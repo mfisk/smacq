@@ -4,7 +4,7 @@ EXTRA_DIST=$(man_MANS)
 DOCDSTS=$(patsubst %,$(SRCDIR)/%,$(DOCS))
 DOCTXTS=$(patsubst %,$(SRCDIR)/%.txt,$(DOCS))
 DOCPDFS=$(patsubst %,$(SRCDIR)/%.pdf,$(DOCS))
-DOCBOOK2MAN=docbook2man
+DOCBOOK2MAN=docbook-to-man
 
 all: $(DOCDSTS) $(DOCTXTS) $(DOCPDFS)
 
