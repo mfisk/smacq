@@ -67,7 +67,7 @@ int type_lt_virtual(int type, void * p1, int len1, void * p2, int len2);
  */
 EXTERN dts_environment * dts_init();
 /*
-EXTERN int type_requiretype(dts_environment *, char * name);
+EXTERN int dts_requiretype(dts_environment *, char * name);
 EXTERN int type_newtype(dts_environment *, char * name, struct dts_field_spec * d);
 EXTERN int type_typenum_byname(dts_environment *, char*);
 EXTERN char * type_typename_bynum(dts_environment *, int);

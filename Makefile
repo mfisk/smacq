@@ -1,19 +1,19 @@
-DIRS=libsmacq types modules bin doc #reloc
-CFLAGS=-O9 -Winline 			# Optimized for normal use
-CFLAGS=-ggdb -O0 -fno-inline -Winline	# For debugging
-CFLAGS=-O0 -fno-inline -Winline		# MacOS/X doesn't like -ggdb 
-COPTS+=$(CFLAGS)
+DIRS=libsmacq contrib types modules bin doc #reloc
+BUILDDIR=build/`uname -sm| sed 's/  */-/g'`
+TOPSRCDIR=.
 
-auto:
-	@./misc/config-env
-	env `./misc/config-env` $(MAKE) all
+include config.mk
+
+auto: 
+	@misc/config-env
+	@mkdir -p $(BUILDDIR)
+	$(MAKE) -C $(BUILDDIR) -f `pwd`/Makefile dirs 
 	@echo "Executables are in build/":
 	@ls -al build/*/bin/smacqq
+	ln -fs build/*/bin/smacqq smacqq
 
 smacq.iso: #reloc.RECURSE
-	env `./misc/config-env` misc/mkiso
-
-all: dirs
+	./misc/mkiso
 
 warn: 
 	$(MAKE) auto >/dev/null
@@ -27,7 +27,7 @@ warn:
 test: auto
 
 $(DIRS) test reloc : .ALWAYS
-	env `./misc/config-env` $(MAKE) $@.RECURSE
+	$(MAKE) $@.RECURSE
 
 .ALWAYS:
 	@true
@@ -48,4 +48,5 @@ dist: clean
 
 	gnumake MAKE=gnumake COPTS="-I/sw/include/glib-2.0 -I/sw/lib/glib-2.0/include/ -I/sw/include" LIBTOOL=glibtool LDOPTS="-L/sw/lib" settings all
 
-include misc/include.mk
+include $(TOPSRCDIR)/misc/include.mk
+

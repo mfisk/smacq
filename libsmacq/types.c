@@ -178,7 +178,7 @@ static int type_load_module(struct dts_type * t) {
 }
 
 
-int type_requiretype(dts_environment * tenv, char * name) {
+int dts_requiretype(dts_environment * tenv, char * name) {
   struct dts_type * t;
 
   t = g_hash_table_lookup(tenv->types_byname, name);
@@ -209,7 +209,7 @@ int type_requiretype(dts_environment * tenv, char * name) {
       struct dts_field_info * f = g_new(struct dts_field_info, 1);
       // fprintf(stderr,"\tAdding %s (%s) to %s structure\n", d->name, d->type, t->name);
       f->offset = offset;
-      f->type = type_requiretype(tenv, d->type);
+      f->type = dts_requiretype(tenv, d->type);
       f->desc = *d;
       darray_set(&t->fields, dnum, f);
       if (offset >= 0) {
@@ -253,7 +253,7 @@ dts_environment * dts_init() {
 
   tenv->typenum_byname = type_typenum_byname;
   tenv->typename_bynum = type_typename_bynum;
-  tenv->requiretype = type_requiretype;
+  tenv->requiretype = dts_requiretype;
   tenv->requirefield = type_requirefield;
   tenv->getfield = type_getfield_virtual;
   tenv->fromstring = type_fromstring_virtual;

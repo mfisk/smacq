@@ -1,8 +1,9 @@
+include config.mk
+
 DOCS=smacq.1 smacqq.1 smacqp.1 smacq-modules.3 dts.3 dts-modules.3 smacq-embed.3
 DOCDSTS=$(patsubst %,$(SRCDIR)/%,$(DOCS))
 DOCTXTS=$(patsubst %,$(SRCDIR)/%.txt,$(DOCS))
 DOCPDFS=$(patsubst %,$(SRCDIR)/%.pdf,$(DOCS))
-
 
 all: $(DOCDSTS) $(PRODUCTS)
 

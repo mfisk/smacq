@@ -1,6 +1,5 @@
-CFLAGS= -Winline -Wall -I$(SRCDIR) -I$(USR)/include/glib-2.0 -I$(USR)/lib/glib-2.0/include -I$(SRCDIR)/../include $(COPTS)
+include config.mk
 
-LIBTOOL=libtool
 LDFLAGS=$(LDOPTS) ../libsmacq/libsmacq.la -ldl
 BUILTINS=../modules/libsmacq-modules.la ../types/libdts-modules.la 
 PRODUCTS=smacqp smacqq iterative-example smacqq-static smacqq-dynamic

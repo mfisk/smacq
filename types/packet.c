@@ -1,3 +1,4 @@
+#include <smacq.h>
 #include <sys/types.h>
 #ifdef linux
 #define __FAVOR_BSD
@@ -12,7 +13,6 @@
 #include <netinet/ip_icmp.h>
 #include <assert.h>
 #include <dts_packet.h>
-#include <smacq.h>
 
 // XXX: This implementation assumes ethernet
 
@@ -21,6 +21,7 @@
  */
 
 #define field_offset(s,f) ((int)&(((struct s *)0)->f))
+
 
 static inline struct ip * get_ip(const dts_object * datum) {
   struct ether_header * ethhdr = (struct ether_header*)(((struct dts_pkthdr *)dts_getdata(datum)) + 1);
@@ -245,7 +246,10 @@ struct dts_field_spec dts_type_packet_fields[] = {
         { END,	NULL,		NULL }
 };
 
+
+int epan_getfield(const dts_object * packet, dts_object * fieldo, dts_field_element element);
+
 struct dts_type_info dts_type_packet_table = {
 	size: -1,
-	getfield: dts_packet_get_wtap_field
+	getfield: epan_getfield
 };

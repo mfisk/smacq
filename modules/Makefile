@@ -1,18 +1,17 @@
-DIRS=substr
-CFLAGS=-Wall -I$(SRCDIR) -I$(USR)/include/glib-2.0 -I$(USR)/lib/glib-2.0/include -I$(SRCDIR)/../include $(COPTS)
-LIBSMACQ=-L$(BINDIR)/../libsmacq -lsmacq
+DIRS=substr #Must come before config.mk
+
+include config.mk
+
+LIBSMACQ=-L$(TOPBINDIR)/libsmacq -lsmacq
 LDFLAGS=$(LDOPTS) #$(LIBSMACQ)
-LIBTOOL=libtool
 
 SHAREDONLY_MODULES=test_dynamic #python #reassemble
-BUILTIN_MODULES=print pcaplive pcapfile socket uniq counter last top head intervals filter msgtest entropy derivative split encrypt warden pdf fifo delta tabularinput sync rusage groupby flowid sum fifodelay project rename join substr bench_field mask const ndjoin lor
+BUILTIN_MODULES=print pcaplive pcapfile socket uniq counter last top head intervals filter msgtest entropy derivative split encrypt warden pdf fifo delta tabularinput sync rusage groupby flowid sum fifodelay project rename join substr bench_field mask const ndjoin lor counter_loop
 
 LIBS_BUILTIN=$(patsubst %,lib%.la,$(BUILTIN_MODULES)) 
 LIBS_SHARED=$(patsubst %,smacq_%.la,$(SHAREDONLY_MODULES))
 
 all: dirs $(LIBS_SHARED) libsmacq-modules.la
-
-include $(MAKEINCLUDES)
 
 reallyclean: clean
 clean:
@@ -52,13 +51,13 @@ libreassemble.la: reassemble.lo spp_export_pkt.lo
 #
 # Per module compile info
 # 
-%.lo: %.c $(SRCDIR)/../include/smacq.h
+%.lo: %.c $(TOPSRCDIR)/include/smacq.h
 	$(LIBTOOL) $(CC) -c $(CFLAGS) $< 
 
-%.lo: %.C $(SRCDIR)/../include/smacq.h 
+%.lo: %.C $(TOPSRCDIR)/include/smacq.h 
 	$(LIBTOOL) $(CXX) -c $(CFLAGS) $< 
 
-python.lo: python.c $(SRCDIR)/../include/smacq.h 
+python.lo: python.c $(TOPSRCDIR)/include/smacq.h 
 	$(LIBTOOL) $(CC) -c $(CFLAGS) -I$(USR)/include/python2.2 $<
 
 # What we really want is a convenience library that we can link into binaries

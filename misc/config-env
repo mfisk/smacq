@@ -4,6 +4,7 @@ has() {
 	which "$1" > /dev/null 2>&1
 }
 
+config() {
 	LIBTOOL=${LIBTOOL:-libtool}
 	USR=${USR:-/usr}
 
@@ -30,12 +31,21 @@ has() {
 	#export MAKE COPTS LIBTOOL LDOPTS CC CXX 
 
 	PWD=`pwd`
-	platform=`uname -sm| sed 's/  */-/g'`
 
 	echo "LIBTOOL=$LIBTOOL"
 	echo "USR=$USR"
 	echo "LDOPTS=$LDOPTS"
-	echo "COPTS=$COPTS"
+	#echo "COPTS=$COPTS"
+	echo "CFLAGS=$COPTS"
 	echo "MAKEINCLUDES=$PWD/misc/include.mk"
+	echo "TOPSRCDIR=${TOPSRCDIR:-$PWD}"
 	echo "SRCDIR=$PWD"
+	echo "VPATH=$PWD"
+	echo "TOPBINDIR=${TOPBINDIR:-$PWD/build/$platform}"
 	echo "BINDIR=$PWD/build/$platform"
+	echo "include $PWD/misc/include.mk"
+}
+
+platform=`uname -sm| sed 's/  */-/g'`
+mkdir -p build/$platform
+config > build/$platform/config.mk
