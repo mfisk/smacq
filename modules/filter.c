@@ -68,11 +68,6 @@ static int filter_init(struct flow_init * context) {
     flow_parsetest(state->env, state->comp+i, state->argv[i]);
   }
 
-  if (context->isfirst) {
-    fprintf(stderr, "Error: no predecessor\n");
-    exit(-1);
-  }
-
   return 0;
 }
 
