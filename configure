@@ -19289,23 +19289,6 @@ else
 fi
 
 
-# Libtool needs EGREP, but doesn't always express it
-echo "$as_me:$LINENO: checking for egrep" >&5
-echo $ECHO_N "checking for egrep... $ECHO_C" >&6
-if test "${ac_cv_prog_egrep+set}" = set; then
-  echo $ECHO_N "(cached) $ECHO_C" >&6
-else
-  if echo a | (grep -E '(a|b)') >/dev/null 2>&1
-    then ac_cv_prog_egrep='grep -E'
-    else ac_cv_prog_egrep='egrep'
-    fi
-fi
-echo "$as_me:$LINENO: result: $ac_cv_prog_egrep" >&5
-echo "${ECHO_T}$ac_cv_prog_egrep" >&6
- EGREP=$ac_cv_prog_egrep
-
-
-
 # Checks for libraries.
 # FIXME: Replace `main' with a function in `-lc':
 
@@ -22419,7 +22402,7 @@ fi
 
 
 
-                                                                                          ac_config_files="$ac_config_files Makefile bin/Makefile doc/Makefile libsmacq/Makefile misc/Makefile modules/Makefile modules/substr/Makefile test/Makefile types/Makefile"
+                                                                                                              ac_config_files="$ac_config_files Makefile bin/Makefile doc/Makefile libsmacq/Makefile libsmacq/filter/Makefile libsmacq/sql/Makefile misc/Makefile modules/Makefile modules/substr/Makefile test/Makefile types/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -22959,6 +22942,8 @@ do
   "bin/Makefile" ) CONFIG_FILES="$CONFIG_FILES bin/Makefile" ;;
   "doc/Makefile" ) CONFIG_FILES="$CONFIG_FILES doc/Makefile" ;;
   "libsmacq/Makefile" ) CONFIG_FILES="$CONFIG_FILES libsmacq/Makefile" ;;
+  "libsmacq/filter/Makefile" ) CONFIG_FILES="$CONFIG_FILES libsmacq/filter/Makefile" ;;
+  "libsmacq/sql/Makefile" ) CONFIG_FILES="$CONFIG_FILES libsmacq/sql/Makefile" ;;
   "misc/Makefile" ) CONFIG_FILES="$CONFIG_FILES misc/Makefile" ;;
   "modules/Makefile" ) CONFIG_FILES="$CONFIG_FILES modules/Makefile" ;;
   "modules/substr/Makefile" ) CONFIG_FILES="$CONFIG_FILES modules/substr/Makefile" ;;
