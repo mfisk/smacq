@@ -21,10 +21,5 @@ void smacq_start_threads(SmacqGraph *);
 
 END_C_DECLS
 
-/*
- * Interace to buffer system 
- */
-#include <buffer-inline.c>
-
 #endif
 

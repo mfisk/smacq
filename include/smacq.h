@@ -96,7 +96,6 @@ struct arglist;
 struct state; // Private to modules
 
 #include "util.c"
-#include "darray.c"
 #include "smacq_args.h"
 
 #include <dts-types.h>
