@@ -80,37 +80,45 @@ static inline int type_match_one(dts_environment * tenv, const dts_object * datu
   int retval = 0;
 
   switch (c->op) {
-	case EXIST:
-  		fetch_operand(tenv, datum, c->op1, -1);
-		break;
+  case EXIST:
+    fetch_operand(tenv, datum, c->op1, -1);
+    break;
 
-	case EQ:
-	case NEQ:
-	case LT:
-	case GT:
-	case LEQ:
-	case GEQ:
-	  	if (c->op1->type != CONST) {
-  			fetch_operand(tenv, datum, c->op1, -1);
-			if (c->op1->valueo)
-			  fetch_operand(tenv, datum, c->op2, c->op1->valueo->type);
-		} else if (c->op2->type != CONST) {
-  			fetch_operand(tenv, datum, c->op2, -1);
-			if (c->op2->valueo)
-			  fetch_operand(tenv, datum, c->op1, c->op2->valueo->type);
-		} else {
-  			fetch_operand(tenv, datum, c->op2, dts_requiretype(tenv, "string"));
-			if (c->op2->valueo)
-			  fetch_operand(tenv, datum, c->op1, c->op2->valueo->type);
-		}
+  case EQ:
+  case NEQ:
+  case LT:
+  case GT:
+  case LEQ:
+  case GEQ:
 
-		break;
+    if (c->op1->type != CONST) {
 
-                  case NOT:
-	case OR:
-	case AND:
-	case FUNC:
-		break;
+      fetch_operand(tenv, datum, c->op1, -1);
+      if (c->op1->valueo)
+	fetch_operand(tenv, datum, c->op2, c->op1->valueo->type);
+
+    } else if (c->op2->type != CONST) {
+
+      fetch_operand(tenv, datum, c->op2, -1);
+      if (c->op2->valueo)
+	fetch_operand(tenv, datum, c->op1, c->op2->valueo->type);
+
+    } else {
+    
+      fetch_operand(tenv, datum, c->op2, dts_requiretype(tenv, "string"));
+      if (c->op2->valueo)
+	fetch_operand(tenv, datum, c->op1, c->op2->valueo->type);
+    }
+    
+    break;
+
+  case NOT:
+  case OR:
+  case AND:
+  case FUNC:
+  case LIKE:
+    break;
+
   }
 
   switch (c->op) {
@@ -154,6 +162,9 @@ static inline int type_match_one(dts_environment * tenv, const dts_object * datu
 
       case FUNC:
 	fprintf(stderr, "Error: function tests are unsupported\n");
+	break;
+      case LIKE:
+	fprintf(stderr, "Error: like tests are unsupported\n");
 	break;
   }
 
