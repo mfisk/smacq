@@ -1,7 +1,7 @@
-/* A Bison parser, made from /home/mfisk/smacq/libsmacq/filter/filter-parser.y, by GNU bison 1.75.  */
+/* A Bison parser, made by GNU Bison 1.875a.  */
 
 /* Skeleton parser for Yacc-like parsing with Bison,
-   Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -22,9 +22,6 @@
    Bison output file, you may use that output file without restriction.
    This special exception was added by the Free Software Foundation
    in version 1.24 of Bison.  */
-
-#ifndef BISON__HOME_MFISK_SMACQ_LIBSMACQ_FILTER_FILTER_PARSER_H
-# define BISON__HOME_MFISK_SMACQ_LIBSMACQ_FILTER_FILTER_PARSER_H
 
 /* Tokens.  */
 #ifndef YYTOKENTYPE
@@ -74,9 +71,9 @@
 
 
 
-#ifndef YYSTYPE
+#if ! defined (YYSTYPE) && ! defined (YYSTYPE_IS_DECLARED)
 #line 64 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
-typedef union {
+typedef union YYSTYPE {
   struct graph graph;
   struct arglist * arglist;
   struct vphrase vphrase;
@@ -86,14 +83,15 @@ typedef union {
   enum dts_arith_operand_type arithop;
   dts_comparison * comp;
   struct dts_operand * operand;
-} yystype;
-/* Line 1281 of /usr/share/bison/yacc.c.  */
-#line 92 "/home/mfisk/smacq/libsmacq/filter/filter-parser.h"
-# define YYSTYPE yystype
+} YYSTYPE;
+/* Line 1240 of yacc.c.  */
+#line 89 "/home/mfisk/smacq/libsmacq/filter/filter-parser.h"
+# define yystype YYSTYPE /* obsolescent; will be withdrawn */
+# define YYSTYPE_IS_DECLARED 1
+# define YYSTYPE_IS_TRIVIAL 1
 #endif
 
 extern YYSTYPE yyfilterlval;
 
 
-#endif /* not BISON__HOME_MFISK_SMACQ_LIBSMACQ_FILTER_FILTER_PARSER_H */
 
