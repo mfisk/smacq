@@ -215,14 +215,14 @@ struct dts_field_spec dts_type_packet_fields[] = {
 	{ "int",	"linktype",	NULL },
 	{ "int",	"snaplen",	NULL }, 
 
+	{ "timeval",	"ts",		NULL },
+	{ "uint32",	"caplen",	NULL },
+	{ "uint32",	"len",		NULL },
+
 	{ "int",	"ifindex",	NULL },
 	{ "ushort",	"ethertype",	NULL },
 	{ "ubyte",	"pkt_type",	NULL },
 	{ "ubyte",	"padding",	NULL },
-
-	{ "timeval",	"ts",		NULL },
-	{ "uint32",	"caplen",	NULL },
-	{ "uint32",	"len",		NULL },
 
 	{ "ipproto",	"ipprotocol",	dts_pkthdr_get_protocol },
 	{ "bytes",	"packet",	dts_pkthdr_get_packet },
