@@ -232,6 +232,11 @@ void smacq_graph_print(FILE * fh, smacq_graph * f, int indent);
 
 void dts_init_object(dts_object * d);
 
+#if defined(WIN32) && !defined(inline)       
+	/* Visual C++ uses the keyword "__inline" rather than "inline" */
+	#define inline __inline 
+#endif
+
 #include <types-inline.c>
 
 #endif
