@@ -1,6 +1,6 @@
 #!/bin/sh
 
-bin/smacqq -m -O <<EOF 2>/dev/null
+bin/smacqq -m -O <<EOF 2>/tmp/multistr.test.err
 print cmd from tabularinput(-f, test/multistr.test, cmd, arg) where substr(cmd, "print")
 print cmd from tabularinput(-d, " ", -f, test/multistr.test, cmd, arg) where substr(cmd, "bin")
 EOF

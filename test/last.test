@@ -1,5 +1,5 @@
 #!/bin/sh
 
 bin/smacqq -m -O <<EOF 2>/dev/null
-print srcip, dstip from (last srcip, dstip from pcapfile(test/0325@1112-snort.pcap))
+print ts, srcip, dstip from (last srcip, dstip from pcapfile(test/0325@1112-snort.pcap))
 EOF
