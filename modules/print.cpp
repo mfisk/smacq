@@ -5,19 +5,19 @@
 #include <SmacqModule.h>
 
 SMACQ_MODULE(print, 
-	PROTO_CTOR(print);
-	PROTO_CONSUME();
-
-   	char ** argv;
-   	int argc;
-	FILE * outputfh;
-	bool verbose, tagged, flush, internals, boulder;
-   	std::vector<DtsField> fields;
-	DtsField string_transform;
-	char * delimiter, * record_delimiter;
-	
-	int print_field(DtsObject field, char * fname, int printed, int column);
-);
+	     PROTO_CTOR(print);
+	     PROTO_CONSUME();
+	     
+	     char ** argv;
+	     int argc;
+	     FILE * outputfh;
+	     bool verbose, tagged, flush, internals, boulder, binary;
+	     std::vector<DtsField> fields;
+	     DtsField string_transform;
+	     char * delimiter, * record_delimiter;
+	     
+	     int print_field(DtsObject field, char * fname, int printed, int column);
+	     );
 
 static struct smacq_options options[] = {
   {"x", {boolean_t:0}, "XML-markup mode", SMACQ_OPT_TYPE_BOOLEAN},
@@ -26,34 +26,35 @@ static struct smacq_options options[] = {
   {"d", {string_t:"\t"}, "Delimiter", SMACQ_OPT_TYPE_STRING},
   {"r", {string_t:"\n"}, "Delimiter between records", SMACQ_OPT_TYPE_STRING},
   {"boulder", {boolean_t:0}, "Print records in Boulder format", SMACQ_OPT_TYPE_BOOLEAN},
+  {"binary", {boolean_t:0}, "Binary output", SMACQ_OPT_TYPE_BOOLEAN},
   {"B", {boolean_t:0}, "Disable buffering: flush output after each line", SMACQ_OPT_TYPE_BOOLEAN},
   {"f", {string_t:"-"}, "Output file", SMACQ_OPT_TYPE_STRING},
   END_SMACQ_OPTIONS
 };
 
 int printModule::print_field(DtsObject field, char * fname, int printed, int column) {
-	if (printed) {
-		fprintf(outputfh, delimiter);
-   	} else if (field) {
-		for (int j=0; j<column; j++) 
-			fprintf(outputfh, delimiter);
-   	}
+  if (printed) {
+    fprintf(outputfh, delimiter);
+  } else if (field) {
+    for (int j=0; j<column; j++) 
+      fprintf(outputfh, delimiter);
+  }
 
-	if (verbose) printed = 1;
-	if (!field) return printed;
+  if (verbose) printed = 1;
+  if (!field) return printed;
 
-	if (tagged) {
-		fprintf(outputfh, "<%s>%s</%s>", fname, (char *)field->getdata(),fname);
-	} else if (boulder) {
-		fprintf(outputfh, "%s=%s", fname, (char *)field->getdata());
-	} else if (verbose) {
-		fprintf(outputfh, "%.20s = %s", fname, (char *)field->getdata());
-	} else {
-		fprintf(outputfh, "%s", (char*)field->getdata());
-	}
+  if (tagged) {
+    fprintf(outputfh, "<%s>%s</%s>", fname, (char *)field->getdata(),fname);
+  } else if (boulder) {
+    fprintf(outputfh, "%s=%s", fname, (char *)field->getdata());
+  } else if (verbose) {
+    fprintf(outputfh, "%.20s = %s", fname, (char *)field->getdata());
+  } else {
+    fprintf(outputfh, "%s", (char*)field->getdata());
+  }
         
 
-	return 1;
+  return 1;
 }
 
 smacq_result printModule::consume(DtsObject datum, int & outchan) {
@@ -64,65 +65,69 @@ smacq_result printModule::consume(DtsObject datum, int & outchan) {
   assert(datum);
 
   if (!fields.size()) {
-      /* Print all fields */
+    /* Print all fields */
 
-	  if (internals) {
-		fprintf(outputfh, "Object %p:\n", datum.get());
-  	  }
+    if (internals) {
+      fprintf(outputfh, "Object %p:\n", datum.get());
+    }
 
-      DtsField f;
-      f.resize(1);
-      datum->prime_all_fields();
-      std::vector<DtsObject> v = datum->get_all_fields();
-      std::vector<DtsObject>::iterator j;
+    DtsField f;
+    f.resize(1);
+    datum->prime_all_fields();
+    std::vector<DtsObject> v = datum->get_all_fields();
+    std::vector<DtsObject>::iterator j;
 
-	  int num;
-      for (num=0, j=v.begin(); j != v.end(); ++j, ++num) {
-			if (*j) {
-				DtsObject str = (*j)->getfield(string_transform);
-				f[0] = num;
-				if (internals) {
-					char * s = "(unprintable)";
-					if (str.get()) { 
-						s = (char*)str->getdata();
-					}
-					fprintf(outputfh, "\tField %2d: %15s = (obj %p) %s\n", num, 
-						dts->field_getname(f), j->get(), s);
-				} else {
-					printed = print_field(str, dts->field_getname(f), printed, column);
-				}
-			}
-      }
-
-  } else {
-	for (i = 0; i < argc; i++) {
-			field = datum->getfield(fields[i]);
-			printed = print_field(field, argv[i], printed, column);
-
-			if (!field && verbose) {
-				if (tagged) {
-					fprintf(outputfh, "no field %s.string", argv[i]);
-				} else {
-       				fprintf(stderr, "Warning: print: no field %s.string\n", argv[i]);
-				}
-			}
-    		column++;
+    int num;
+    for (num=0, j=v.begin(); j != v.end(); ++j, ++num) {
+      if (*j) {
+	DtsObject str = (*j)->getfield(string_transform);
+	f[0] = num;
+	if (internals) {
+	  char * s = "(unprintable)";
+	  if (str.get()) { 
+	    s = (char*)str->getdata();
+	  }
+	  fprintf(outputfh, "\tField %2d: %15s = (obj %p) %s\n", num, 
+		  dts->field_getname(f), j->get(), s);
+	} else {
+	  printed = print_field(str, dts->field_getname(f), printed, column);
 	}
+      }
+    }
+      
+  } else {
+    for (i = 0; i < argc; i++) {
+      field = datum->getfield(fields[i]);
+      if (binary) {
+	fwrite(field->getdata(), field->getsize(), 1, outputfh);
+      } else { 
+	printed = print_field(field, argv[i], printed, column);
+	
+	if (!field && verbose) {
+	  if (tagged) {
+	    fprintf(outputfh, "no field %s.string", argv[i]);
+	  } else {
+	    fprintf(stderr, "Warning: print: no field %s.string\n", argv[i]);
+	  }
+	}
+	column++;
+      }
+    }
   }
   if (printed) {
- 		fprintf(outputfh, record_delimiter);
+    fprintf(outputfh, record_delimiter);
   }
   if (flush) {
-		fflush(stdout); 
-	}
+    fflush(stdout); 
+  }
   return SMACQ_PASS;
 }
 
 printModule::printModule(struct smacq_init * context) : SmacqModule(context) {
   smacq_opt boulder_opt, record_delimiter_opt, tagged_opt, verbose_opt, 
-		flush_opt, delimiter_opt, internals_opt, output_opt;
+    flush_opt, delimiter_opt, internals_opt, output_opt, binary_opt;
   int i;
-
+  
   {
     struct smacq_optval optvals[] = {
       {"x", &tagged_opt},
@@ -132,12 +137,13 @@ printModule::printModule(struct smacq_init * context) : SmacqModule(context) {
       {"B", &flush_opt},
       {"f", &output_opt},
       {"boulder", &boulder_opt},
+      {"binary", &binary_opt},
       {"i", &internals_opt},
       {NULL, NULL}
     };
     smacq_getoptsbyname(context->argc-1, context->argv+1,
-				 &argc, &argv,
-				 options, optvals);
+			&argc, &argv,
+			options, optvals);
     //assert(argv);
   }
 
@@ -147,19 +153,20 @@ printModule::printModule(struct smacq_init * context) : SmacqModule(context) {
   record_delimiter = record_delimiter_opt.string_t;
   verbose = verbose_opt.boolean_t;
   boulder = boulder_opt.boolean_t;
+  binary = binary_opt.boolean_t;
   tagged = tagged_opt.boolean_t;
   if (strcmp(output_opt.string_t, "-")) {
-	outputfh = fopen(output_opt.string_t, "w");
-	if (!outputfh) {
-		fprintf(stderr, "print: error writing to %s\n", output_opt.string_t);
-		exit(-1);
-	}
+    outputfh = fopen(output_opt.string_t, "w");
+    if (!outputfh) {
+      fprintf(stderr, "print: error writing to %s\n", output_opt.string_t);
+      exit(-1);
+    }
   } else {
-	outputfh = stdout;
+    outputfh = stdout;
   }
   if (boulder) {
-	delimiter = "\n";
-	record_delimiter = "\n=\n";
+    delimiter = "\n";
+    record_delimiter = "\n=\n";
   }
 
   fields.resize(argc);
@@ -169,8 +176,14 @@ printModule::printModule(struct smacq_init * context) : SmacqModule(context) {
 
   //fprintf(stderr, "creating2 print module\n");
 
-  for (i = 0; i < argc; i++) {
-	  fields[i] = dts->requirefield(dts_fieldname_append(argv[i],"string")); 
+  if (binary) {
+    for (i = 0; i < argc; i++) {
+      fields[i] = dts->requirefield(argv[i]); 
+    }
+  } else {
+    for (i = 0; i < argc; i++) {
+      fields[i] = dts->requirefield(dts_fieldname_append(argv[i],"string")); 
+    }
   }
 }
 
