@@ -30,7 +30,7 @@ struct vphrase {
 
 struct group {
       struct arglist * args;
-      struct arglist * having;
+      dts_comparison * having;
 };
 
 enum argtype { WORD, FUNCTION };
