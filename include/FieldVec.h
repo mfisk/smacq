@@ -58,6 +58,7 @@ class FieldVec : public std::vector<FieldVecElement*> {
   //DtsObjectVec operator () () { return objs; }
 
   DtsObjectVec & getobjs() { return objs; }
+  const DtsObjectVec & getobjs() const { return objs; }
 
   bool operator == (const FieldVec &b) const;
 
