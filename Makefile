@@ -1,57 +1,18 @@
-DIRS=libsmacq contrib types modules bin doc #reloc
 BUILDDIR=build/`uname -sm| sed 's/  */-/g'`
-TOPSRCDIR=.
 
-include config.mk
-
-# This target is first iff we're in the source directory
-auto:
-	misc/config-env # Make the build directory and its config.mk
-	@mkdir -p $(BUILDDIR)
-	@ln -sf `pwd`/Makefile $(BUILDDIR)/Makefile
-	$(MAKE) -C $(BUILDDIR) -f `pwd`/Makefile dirs 
+all: platform dirs
 	@echo "Executables are in build/":
 	@ls -al build/*/bin/smacqq
-	ln -fs build/*/bin/smacqq smacqq
+	@ln -fs build/*/bin/smacqq smacqq
 
-# The build directory's config.mk will cause all to be build
-all: dirs 
+platform:
+	misc/config-env # Make the build directory and its config.mk
+	@mkdir -p $(BUILDDIR)
+	@ln -sf `pwd`/Makefile.top $(BUILDDIR)/Makefile
 
-smacq.iso: #reloc.RECURSE
-	./misc/mkiso
-
-warn: 
-	$(MAKE) auto >/dev/null
-
-#
-# Let the user build any top-level directory automatically
-#
-#test : .auto ALWAYS
-	#env `./misc/config-env` $(MAKE) $@.RECURSE
-
-test: auto
-
-$(DIRS) test reloc : .ALWAYS
-	$(MAKE) $@.RECURSE
+%: .ALWAYS
+	@echo $(MAKE) -C $(BUILDDIR) $@ 
+	@$(MAKE) -C $(BUILDDIR) $@ 
 
 .ALWAYS:
 	@true
-
-clean: 
-	@for f in $(DIRS); do $(MAKE) -C $$f clean; done
-	@rm -Rf build smacq.iso
-
-reallyclean: 
-	@for f in $(DIRS); do $(MAKE) -C $$f reallyclean; done
-
-binclean:
-	find . -type d -name .libs -o -name \*.lo -o -name \*.o -exec rm -Rf {} \;
-
-dist: clean
-	tar czplf flow.tgz flow/flow doc/*.pdf doc/*.txt doc/*.1 doc/*.3
-	(cd /tmp; cvs -q -d cj:/home/cvs co flow); tar -C /tmp -czlf flow-src.tgz flow
-
-	gnumake MAKE=gnumake COPTS="-I/sw/include/glib-2.0 -I/sw/lib/glib-2.0/include/ -I/sw/include" LIBTOOL=glibtool LDOPTS="-L/sw/lib" settings all
-
-include $(TOPSRCDIR)/misc/include.mk
-

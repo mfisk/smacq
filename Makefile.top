@@ -1,0 +1,29 @@
+DIRS=libsmacq contrib types modules bin doc #reloc test
+
+include config.mk
+
+all: dirs
+
+test: warn test.RECURSE
+	@true
+
+smacq.iso: #reloc.RECURSE
+	./misc/mkiso
+
+warn: 
+	$(MAKE) dirs >/dev/null
+
+clean: 
+	@for f in $(DIRS); do $(MAKE) -C $$f clean; done
+	@rm -Rf build smacq.iso
+
+reallyclean: 
+	@for f in $(DIRS); do $(MAKE) -C $$f reallyclean; done
+
+binclean:
+	find . -type d -name .libs -o -name \*.lo -o -name \*.o -exec rm -Rf {} \;
+
+dist: clean
+	tar czplf smacq.tgz build/*/bin/smacqq doc/*.pdf doc/*.txt doc/*.1 doc/*.3
+	(cd /tmp; cvs -q -d cj:/home/cvs co flow); tar -C /tmp -czlf flow-src.tgz flow
+
