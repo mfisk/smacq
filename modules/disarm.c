@@ -188,6 +188,7 @@ static int client_init(struct state * state, int port, char * hostname, char ** 
 static smacq_result disarm_init(struct smacq_init * context) {
   struct state * state;
   smacq_opt date, srcip, dstip, dstport, srcport, port, hostname;
+  char * end_date;
   context->state = state = (struct state*) calloc(sizeof(struct state),1);
   assert(state);
   
@@ -207,7 +208,18 @@ static smacq_result disarm_init(struct smacq_init * context) {
     smacq_getoptsbyname(context->argc-1, context->argv+1,
 				 NULL, NULL,
 				 options, optvals);
-    
+
+  }
+
+  if (!strcmp("", date.string_t)) {
+		fprintf(stderr, "disarm: -date is mandatory!\n");
+		exit(-1);
+  }
+
+  end_date = index(date.string_t, '~');
+  if (end_date) {
+		end_date[0] = '\0';
+		end_date++;
   }
 
   state->sv4_type = smacq_requiretype(state->env, "sv4");
@@ -222,25 +234,23 @@ static smacq_result disarm_init(struct smacq_init * context) {
   	listen_fd = server_init(state, &myaddr);
 	fd = client_init(state, port.int_t, hostname.string_t, &myip);
 	fh = fdopen(fd, "w");
-	fprintf(fh, "<Query ");
+	fprintf(fh, "<Query");
 
 	if (strcmp("", srcport.string_t)) 
-		fprintf(fh, "srcport=\"%s\" ", srcport.string_t);
+		fprintf(fh, " srcport=\"%s\"", srcport.string_t);
 	if (strcmp("", dstport.string_t)) 
-		fprintf(fh, "dstport=\"%s\" ", dstport.string_t);
+		fprintf(fh, " dstport=\"%s\"", dstport.string_t);
 	if (strcmp("", srcip.string_t)) 
-		fprintf(fh, "srcip=\"%s\" ", srcip.string_t);
+		fprintf(fh, " srcip=\"%s\"", srcip.string_t);
 	if (strcmp("", dstip.string_t)) 
-		fprintf(fh, "dstip=\"%s\" ", dstip.string_t);
+		fprintf(fh, " dstip=\"%s\"", dstip.string_t);
 
-	if (strcmp("", date.string_t)) { 
-		fprintf(fh, "date=\"%s\" ", date.string_t);
-	} else {
-		fprintf(stderr, "disarm: -date is mandatory!\n");
-		exit(-1);
+	fprintf(fh, "><Date start=\"%s\"", date.string_t);
+	if (end_date && strcmp("", end_date)) { 
+		fprintf(fh, " end=\"%s\"", end_date);
 	}
-
-	fprintf(fh, "> <SocketResult type=\"tcp\" host=\"%s\" port=\"%d\" />", myip, ntohs(myaddr.sin_port));
+	
+	fprintf(fh, "/> <SocketResult type=\"tcp\" host=\"%s\" port=\"%d\" />", myip, ntohs(myaddr.sin_port));
 	fprintf(fh, "</Query>\n<--DiSARM: end query-->\n");
 	fclose(fh);
 
