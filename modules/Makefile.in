@@ -1,6 +1,6 @@
-# Makefile.in generated automatically by automake 1.4-p4 from Makefile.am
+# Makefile.in generated automatically by automake 1.4-p6 from Makefile.am
 
-# Copyright (C) 1994, 1995-8, 1999 Free Software Foundation, Inc.
+# Copyright (C) 1994, 1995-8, 1999, 2001 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
@@ -59,33 +59,29 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 host_alias = @host_alias@
 host_triplet = @host@
-AR = @AR@
 AS = @AS@
 CC = @CC@
 CXX = @CXX@
-CXXCPP = @CXXCPP@
 DLLTOOL = @DLLTOOL@
 ECHO = @ECHO@
-EGREP = @EGREP@
 ETHEREAL_DIR = @ETHEREAL_DIR@
 ETHEREAL_LIBRARY = @ETHEREAL_LIBRARY@
 EXEEXT = @EXEEXT@
-F77 = @F77@
-GCJ = @GCJ@
-GCJFLAGS = @GCJFLAGS@
 GLOBAL_INCLUDES = @GLOBAL_INCLUDES@
+HAVE_LIB = @HAVE_LIB@
 LEX = @LEX@
+LIB = @LIB@
 LIBS_MODULES_ALL = @LIBS_MODULES_ALL@
 LIBS_MODULES_SHARED = @LIBS_MODULES_SHARED@
 LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
+LTLIB = @LTLIB@
 MAKEINFO = @MAKEINFO@
 OBJDUMP = @OBJDUMP@
 OBJECTS_MODULES_BUILTIN = @OBJECTS_MODULES_BUILTIN@
 OBJEXT = @OBJEXT@
 PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
-RC = @RC@
 SOURCES_MODULES_BUILTIN = @SOURCES_MODULES_BUILTIN@
 SOURCES_TYPES_BUILTIN = @SOURCES_TYPES_BUILTIN@
 STRIP = @STRIP@
@@ -94,15 +90,14 @@ YACC = @YACC@
 
 SUBDIRS = substr 
 INCLUDES = @GLOBAL_INCLUDES@ -I$(top_srcdir)/include
-noinst_LTLIBRARIES = libsmacq_modules.la libtest_dynamic.la libsubstr.la #libsmacq_modules_builtin.la 
+noinst_LTLIBRARIES = libsmacq_modules.la libtest_dynamic.la 
 EXTRA_LTLIBRARIES = libpcaplive.la libpython.la libreassemble.la libbench_field.la 
 
-libsmacq_modules_la_SOURCES = print.c pcaplive.c pcapfile.c socket.c uniq.c count.c last.c top.c head.c filter.c msgtest.c entropy.c derivative.c split.c encrypt.c warden.c pdf.c fifo.c delta.c tabularinput.c sync.c rusage.c groupby.c flowid.c sum.c fifodelay.c project.c rename.c join.c bench_field.la mask.c const.c ndjoin.c lor.c counter_loop.c dfa.c noop.c expr.c equals.c cflow.c clock.c disarm.c
+libsmacq_modules_la_SOURCES = print.c pcaplive.c pcapfile.c socket.c uniq.c count.c last.c top.c head.c filter.c msgtest.c entropy.c derivative.c split.c encrypt.c warden.c pdf.c fifo.c delta.c tabularinput.c sync.c rusage.c groupby.c flowid.c sum.c fifodelay.c project.c rename.c join.c bench_field.la mask.c const.c ndjoin.c lor.c counter_loop.c dfa.c noop.c expr.c equals.c cflow.c clock.c disarm.c substr-main.c 
+libsmacq_modules_la_LIBADD = substr/libsubstr.la
+libsmacq_modules_la_DEPENDENCIES = $(libsmacq_modules_la_LIBADD)
 
 libtest_dynamic_la_SOURCES = test_dynamic.c
-
-libsmacq_modules_la_LIBADD = libsubstr.la 
-libsmacq_modules_la_DEPENDENCIES = $(libsmacq_modules_la_LIBADD)
 
 # What we really want is a convenience library that we can link into binaries
 # with a "--whole-archive" flag.  However, libtool doesn't do "--whole-archive"
@@ -110,16 +105,9 @@ libsmacq_modules_la_DEPENDENCIES = $(libsmacq_modules_la_LIBADD)
 # we can preopen
 libsmacq_modules_la_LDFLAGS = -rpath /bogus
 
-SUFFIXIES = .la 
-
 #
 # Per module link requirements
 # 
-libsubstr_la_SOURCES = substr-main.c
-libsubstr_la_LIBADD = substr/libsubstr.la
-libsubstr_la_DEPENDENCIES = $(libsubstr_la_LIBADD)
-libsubstr_la_LDFLAGS = -rpath /bogus
-
 libbench_field_la_SOURCES = bench_field-main.c bench_field-virtual.C 
 
 libpcaplive_la_SOURCES = pcaplive.c
@@ -169,11 +157,10 @@ entropy.lo derivative.lo split.lo encrypt.lo warden.lo pdf.lo fifo.lo \
 delta.lo tabularinput.lo sync.lo rusage.lo groupby.lo flowid.lo sum.lo \
 fifodelay.lo project.lo rename.lo join.lo mask.lo const.lo ndjoin.lo \
 lor.lo counter_loop.lo dfa.lo noop.lo expr.lo equals.lo cflow.lo \
-clock.lo disarm.lo
+clock.lo disarm.lo substr-main.lo
 libtest_dynamic_la_LDFLAGS = 
 libtest_dynamic_la_LIBADD = 
 libtest_dynamic_la_OBJECTS =  test_dynamic.lo
-libsubstr_la_OBJECTS =  substr-main.lo
 CXXFLAGS = @CXXFLAGS@
 CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 LTCXXCOMPILE = $(LIBTOOL) --mode=compile $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -203,8 +190,8 @@ DEP_FILES =  .deps/bench_field-main.P .deps/bench_field-virtual.P \
 .deps/rename.P .deps/rusage.P .deps/socket.P .deps/split.P \
 .deps/substr-main.P .deps/sum.P .deps/sync.P .deps/tabularinput.P \
 .deps/test_dynamic.P .deps/top.P .deps/uniq.P .deps/warden.P
-SOURCES = $(libpcaplive_la_SOURCES) libpython.la.c libreassemble.la.c $(libbench_field_la_SOURCES) $(libsmacq_modules_la_SOURCES) $(libtest_dynamic_la_SOURCES) $(libsubstr_la_SOURCES)
-OBJECTS = $(libpcaplive_la_OBJECTS) libpython.la.lo libreassemble.la.lo $(libbench_field_la_OBJECTS) $(libsmacq_modules_la_OBJECTS) $(libtest_dynamic_la_OBJECTS) $(libsubstr_la_OBJECTS)
+SOURCES = $(libpcaplive_la_SOURCES) libpython.la.c libreassemble.la.c $(libbench_field_la_SOURCES) $(libsmacq_modules_la_SOURCES) $(libtest_dynamic_la_SOURCES)
+OBJECTS = $(libpcaplive_la_OBJECTS) libpython.la.lo libreassemble.la.lo $(libbench_field_la_OBJECTS) $(libsmacq_modules_la_OBJECTS) $(libtest_dynamic_la_OBJECTS)
 
 all: all-redirect
 .SUFFIXES:
@@ -281,9 +268,6 @@ libsmacq_modules.la: $(libsmacq_modules_la_OBJECTS) $(libsmacq_modules_la_DEPEND
 
 libtest_dynamic.la: $(libtest_dynamic_la_OBJECTS) $(libtest_dynamic_la_DEPENDENCIES)
 	$(LINK)  $(libtest_dynamic_la_LDFLAGS) $(libtest_dynamic_la_OBJECTS) $(libtest_dynamic_la_LIBADD) $(LIBS)
-
-libsubstr.la: $(libsubstr_la_OBJECTS) $(libsubstr_la_DEPENDENCIES)
-	$(LINK)  $(libsubstr_la_LDFLAGS) $(libsubstr_la_OBJECTS) $(libsubstr_la_LIBADD) $(LIBS)
 .C.o:
 	$(CXXCOMPILE) -c $<
 .C.obj:
@@ -327,7 +311,7 @@ maintainer-clean-recursive:
 	dot_seen=no; \
 	rev=''; list='$(SUBDIRS)'; for subdir in $$list; do \
 	  rev="$$subdir $$rev"; \
-	  test "$$subdir" = "." && dot_seen=yes; \
+	  test "$$subdir" != "." || dot_seen=yes; \
 	done; \
 	test "$$dot_seen" = "no" && rev=". $$rev"; \
 	target=`echo $@ | sed s/-recursive//`; \
@@ -369,7 +353,7 @@ TAGS: tags-recursive $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) $(LISP)
 	  awk '    { files[$$0] = 1; } \
 	       END { for (i in files) print i; }'`; \
 	test -z "$(ETAGS_ARGS)$$unique$(LISP)$$tags" \
-	  || (cd $(srcdir) && etags $(ETAGS_ARGS) $$tags  $$unique $(LISP) -o $$here/TAGS)
+	  || (cd $(srcdir) && etags -o $$here/TAGS $(ETAGS_ARGS) $$tags  $$unique $(LISP))
 
 mostlyclean-tags:
 
@@ -543,9 +527,6 @@ all-redirect all-am all installdirs-am installdirs mostlyclean-generic \
 distclean-generic clean-generic maintainer-clean-generic clean \
 mostlyclean distclean maintainer-clean
 
-
-lib%.la: %.c
-	$(LINK) -o $@ $<
 
 libepan_filter.o: epan_filter.o 
 	$(LD) -r -o $@ $< -L$(TOPBINDIR)/contrib -L. -lpacket-ethereal
