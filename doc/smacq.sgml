@@ -12,7 +12,7 @@
       <firstname>Mike</firstname>
       <surname>Fisk</surname>
     </author>
-    <date>$Date: 2003/03/19 03:25:49 $</date>
+    <date>$Date: 2003/03/20 04:12:10 $</date>
   </refentryinfo>
   <refmeta>
     <refentrytitle>smacq</refentrytitle>
@@ -400,6 +400,40 @@
       <para>
         The count value is added to the record as an annotation of type int and name "counter"
 	unless the "-f" is used to specify an alternate name for the field.
+      </para>
+    </refsect2>
+
+    <refsect2>
+      <title>Stateful Matching</title>
+      <cmdsynopsis>
+	<command>dfa</command>
+	<arg choice=req> <replaceable>statefile</replaceable></arg>
+	
+      </cmdsynopsis>
+
+      <para>
+                   The DFA module takes a input file describing
+                   transitions in a state machine.  Each line contains
+                   a current state, a subsequent state, and a
+                   predicate for the transition between those states.
+                   The predicate is in normal SMACQ syntax for a
+                   "where" clause.  States named START and STOP are
+                   required.  All other states can be named with any
+                   non-whitespace word.
+      </para>
+      <para>
+	The DFA module will create multiple instantiations of the
+	given state machine.  However, a given input object is used by
+	at most 1 of those instantiations.  When the DFA module
+	receives an input object, any existing state machines are
+	checked for possible transitions that would be satisfied by
+	the object.  If none of the transitions from the current state
+	of that machine are matched, then that machine will remain in
+	the current state.  After a machine does match and transition
+	on an input, no other machines will receive that input.  If no
+	existing machines can use the input, then transitions from the
+	START state are checked.  If the START state can be left, then
+	a new machine is created.
       </para>
     </refsect2>
 

@@ -1,0 +1,21 @@
+pcapfile: Opening /home/mfisk/smacq/test/0325@1112-snort.pcap for read
+transition from state 2 to 0
+transition from state 2 to 0
+transition from state 2 to 0
+transition from state 2 to 0
+transition from state 2 to 0
+transition from state 2 to 0
+transition from state 2 to 0
+transition from state 2 to 0
+transition from state 2 to 0
+transition from state 2 to 0
+seq = 3593444674	ack = 1729801	srcip = 192.168.0.54	dstip = 192.168.0.200	srcport = 1052	dstport = 139	ts = 954011728.021391	previous.seq = 3593444674	previous.ts = 954011728.021223
+seq = 3593509274	ack = 0	srcip = 192.168.0.54	dstip = 192.168.0.200	srcport = 1053	dstport = 21	ts = 954011728.518317	previous.seq = 3593509274	previous.ts = 954011728.102582
+seq = 3593571492	ack = 0	srcip = 192.168.0.54	dstip = 192.168.0.200	srcport = 1054	dstport = 80	ts = 954011728.518393	previous.seq = 3593571492	previous.ts = 954011728.103886
+seq = 3593755013	ack = 0	srcip = 192.168.0.54	dstip = 192.168.0.200	srcport = 1057	dstport = 111	ts = 954011728.620389	previous.seq = 3593755013	previous.ts = 954011728.129182
+seq = 3593800672	ack = 0	srcip = 192.168.0.54	dstip = 192.168.0.200	srcport = 1058	dstport = 79	ts = 954011728.620464	previous.seq = 3593800672	previous.ts = 954011728.131837
+seq = 3593845018	ack = 0	srcip = 192.168.0.54	dstip = 192.168.0.200	srcport = 1059	dstport = 53	ts = 954011728.620554	previous.seq = 3593845018	previous.ts = 954011728.134177
+seq = 3593649239	ack = 0	srcip = 192.168.0.54	dstip = 192.168.0.200	srcport = 1055	dstport = 25	ts = 954011728.620627	previous.seq = 3593649239	previous.ts = 954011728.120922
+seq = 3593700394	ack = 0	srcip = 192.168.0.54	dstip = 192.168.0.200	srcport = 1056	dstport = 110	ts = 954011728.620701	previous.seq = 3593700394	previous.ts = 954011728.126184
+seq = 3594727177	ack = 1729878	srcip = 192.168.0.54	dstip = 192.168.0.200	srcport = 1061	dstport = 139	ts = 954011731.422384	previous.seq = 3594727177	previous.ts = 954011731.422224
+seq = 3594889132	ack = 1729895	srcip = 192.168.0.54	dstip = 192.168.0.200	srcport = 1062	dstport = 135	ts = 954011731.774992	previous.seq = 3594889132	previous.ts = 954011731.768626

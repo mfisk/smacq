@@ -6,7 +6,7 @@ LIBSMACQ=-L$(TOPBINDIR)/libsmacq -lsmacq
 LDFLAGS=$(LDOPTS) #$(LIBSMACQ)
 
 SHAREDONLY_MODULES=test_dynamic #python #reassemble
-BUILTIN_MODULES=print pcaplive pcapfile socket uniq counter last top head intervals filter msgtest entropy derivative split encrypt warden pdf fifo delta tabularinput sync rusage groupby flowid sum fifodelay project rename join substr bench_field mask const ndjoin lor counter_loop
+BUILTIN_MODULES=print pcaplive pcapfile socket uniq counter last top head intervals filter msgtest entropy derivative split encrypt warden pdf fifo delta tabularinput sync rusage groupby flowid sum fifodelay project rename join substr bench_field mask const ndjoin lor counter_loop dfa
 
 LIBS_BUILTIN=$(patsubst %,lib%.la,$(BUILTIN_MODULES)) 
 LIBS_SHARED=$(patsubst %,smacq_%.la,$(SHAREDONLY_MODULES))
@@ -47,6 +47,9 @@ libpython.la: python.lo
 
 libreassemble.la: reassemble.lo spp_export_pkt.lo  
 	$(CC) -o $@ -c $(CFLAGS) -I$(SNORT_HOME) -I. $+ 
+
+libepan_filter.o: epan_filter.o 
+	$(LD) -r -o $@ $< -L$(TOPBINDIR)/contrib -L. -lpacket-ethereal
 
 #
 # Per module compile info

@@ -1,0 +1,5 @@
+#!/bin/sh
+
+bin/smacqq -m <<EOF #2>/tmp/dfa.test.stderr
+print -v, seq, ack, srcip, dstip, srcport, dstport, ts, previous.seq, previous.ts from dfa($TEST/dfa.test.dfa) from pcapfile($TEST/0325@1112-snort.pcap)
+EOF
