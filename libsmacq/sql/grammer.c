@@ -91,6 +91,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <smacq.h>
+#include <pthread.h>
 #include "smacq-parser.h"
 //#define DEBUG
   
@@ -99,6 +100,12 @@
   void yyerror(char *);
   extern char * yytext;
   extern char * yystring;
+#ifdef PTHREAD_MUTEX_INITIALIZER
+  pthread_mutex_t local_lock = PTHREAD_MUTEX_INITIALIZER;
+#else
+  pthread_mutex_t local_lock;
+  #warning "No PTHREAD_MUTEX_INITIALIZER"
+#endif
 
   struct arglist {
     char * arg;
@@ -140,7 +147,7 @@
 #endif
 
 #ifndef YYSTYPE
-#line 84 "grammer.y"
+#line 91 "grammer.y"
 typedef union {
   struct graph graph;
   struct arglist * arglist;
@@ -151,7 +158,7 @@ typedef union {
   dts_comparison * comp;
 } yystype;
 /* Line 193 of /usr/share/bison/yacc.c.  */
-#line 155 "grammer.c"
+#line 162 "grammer.c"
 # define YYSTYPE yystype
 # define YYSTYPE_IS_TRIVIAL 1
 #endif
@@ -172,7 +179,7 @@ typedef struct yyltype
 
 
 /* Line 213 of /usr/share/bison/yacc.c.  */
-#line 176 "grammer.c"
+#line 183 "grammer.c"
 
 #if ! defined (yyoverflow) || YYERROR_VERBOSE
 
@@ -358,15 +365,15 @@ static const yysigned_char yyrhs[] =
 };
 
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
-static const unsigned char yyrline[] =
+static const unsigned short yyrline[] =
 {
-       0,    95,    95,   105,   107,   120,   121,   130,   131,   150,
-     151,   154,   155,   158,   159,   164,   165,   168,   169,   172,
-     173,   176,   178,   179,   180,   183,   184,   187,   188,   191,
-     192,   198,   199,   200,   201,   202,   203,   206,   209,   210,
-     213,   214,   217,   220,   221,   224,   225,   228,   229,   232,
-     239,   240,   241,   242,   245,   246,   247,   252,   253,   254,
-     255
+       0,   102,   102,   112,   114,   127,   128,   137,   138,   157,
+     158,   161,   162,   165,   166,   171,   172,   175,   176,   179,
+     180,   183,   185,   186,   187,   190,   191,   194,   195,   198,
+     199,   205,   206,   207,   208,   209,   210,   213,   216,   217,
+     220,   221,   224,   227,   228,   231,   232,   235,   236,   239,
+     246,   247,   248,   249,   252,   253,   254,   259,   260,   261,
+     262
 };
 #endif
 
@@ -1074,7 +1081,7 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 96 "grammer.y"
+#line 103 "grammer.y"
     { 
 #ifdef DEBUG
 	   	smacq_graph_print(stderr, yyvsp[-1].graph.head, 0); 
@@ -1085,7 +1092,7 @@ yyreduce:
     break;
 
   case 4:
-#line 108 "grammer.y"
+#line 115 "grammer.y"
     {
 	   	yyval.graph.head = (yyval.graph.tail = NULL);
 	   	graph_join(&(yyval.graph), yyvsp[-2].graph);
@@ -1099,12 +1106,12 @@ yyreduce:
     break;
 
   case 5:
-#line 120 "grammer.y"
+#line 127 "grammer.y"
     { yyval.graph.head = NULL; yyval.graph.tail = NULL; }
     break;
 
   case 6:
-#line 122 "grammer.y"
+#line 129 "grammer.y"
     { 
 		yyval.graph = yyvsp[-1].graph; 
 	   	if (yyvsp[0].arglist) {
@@ -1114,12 +1121,12 @@ yyreduce:
     break;
 
   case 7:
-#line 130 "grammer.y"
+#line 137 "grammer.y"
     { yyval.arglist = NULL; }
     break;
 
   case 8:
-#line 132 "grammer.y"
+#line 139 "grammer.y"
     {
 		struct arglist * atail;
 		yyval.arglist = newarg(arglist2str(yyvsp[-2].arglist), 0, NULL);
@@ -1139,92 +1146,92 @@ yyreduce:
     break;
 
   case 9:
-#line 150 "grammer.y"
+#line 157 "grammer.y"
     { yyval.string = NULL; }
     break;
 
   case 10:
-#line 151 "grammer.y"
+#line 158 "grammer.y"
     { yyval.string = yyvsp[0].string; }
     break;
 
   case 12:
-#line 155 "grammer.y"
+#line 162 "grammer.y"
     { yyval.graph = yyvsp[-1].graph; }
     break;
 
   case 13:
-#line 158 "grammer.y"
+#line 165 "grammer.y"
     { yyval.graph = nullgraph; }
     break;
 
   case 14:
-#line 159 "grammer.y"
+#line 166 "grammer.y"
     { yyval.graph = optimize_bools(yyvsp[0].comp); }
     break;
 
   case 15:
-#line 164 "grammer.y"
+#line 171 "grammer.y"
     { yyval.group.args = NULL; yyval.group.having = NULL;}
     break;
 
   case 16:
-#line 165 "grammer.y"
+#line 172 "grammer.y"
     { yyval.group.args = yyvsp[-1].arglist; yyval.group.having = yyvsp[0].arglist; }
     break;
 
   case 17:
-#line 168 "grammer.y"
+#line 175 "grammer.y"
     { yyval.arglist = NULL; }
     break;
 
   case 18:
-#line 169 "grammer.y"
+#line 176 "grammer.y"
     { yyval.arglist = yyvsp[0].arglist; }
     break;
 
   case 21:
-#line 176 "grammer.y"
+#line 183 "grammer.y"
     { yyval.string = yystring; }
     break;
 
   case 22:
-#line 178 "grammer.y"
+#line 185 "grammer.y"
     { yyval.string = yystring; }
     break;
 
   case 23:
-#line 179 "grammer.y"
+#line 186 "grammer.y"
     { yyval.string = "or"; }
     break;
 
   case 24:
-#line 180 "grammer.y"
+#line 187 "grammer.y"
     { yyval.string = "and"; }
     break;
 
   case 26:
-#line 184 "grammer.y"
+#line 191 "grammer.y"
     { yyval.arglist->rename = yyvsp[0].string; }
     break;
 
   case 27:
-#line 187 "grammer.y"
+#line 194 "grammer.y"
     { yyval.arglist = newarg(yyvsp[0].string, 0, NULL); }
     break;
 
   case 28:
-#line 188 "grammer.y"
+#line 195 "grammer.y"
     { yyval.arglist = newarg(yyvsp[-3].string, 1, yyvsp[-1].arglist); }
     break;
 
   case 29:
-#line 191 "grammer.y"
+#line 198 "grammer.y"
     { yyval.arglist = newarg(yyvsp[0].string, 0, NULL); }
     break;
 
   case 30:
-#line 193 "grammer.y"
+#line 200 "grammer.y"
     { 
 	    	char * str = malloc(sizeof(char *) * (strlen(yyvsp[0].string)+2)); 
 		sprintf(str,"\"%s\"", yyvsp[0].string); 
@@ -1233,139 +1240,139 @@ yyreduce:
     break;
 
   case 31:
-#line 198 "grammer.y"
+#line 205 "grammer.y"
     { yyval.arglist = newarg("<", 0, NULL); }
     break;
 
   case 32:
-#line 199 "grammer.y"
+#line 206 "grammer.y"
     { yyval.arglist = newarg(">", 0, NULL); }
     break;
 
   case 33:
-#line 200 "grammer.y"
+#line 207 "grammer.y"
     { yyval.arglist = newarg("=", 0, NULL); }
     break;
 
   case 34:
-#line 201 "grammer.y"
+#line 208 "grammer.y"
     { yyval.arglist = newarg("(", 0, NULL); }
     break;
 
   case 35:
-#line 202 "grammer.y"
+#line 209 "grammer.y"
     { yyval.arglist = newarg(")", 0, NULL); }
     break;
 
   case 36:
-#line 203 "grammer.y"
+#line 210 "grammer.y"
     { yyval.arglist = newarg("!", 0, NULL); }
     break;
 
   case 38:
-#line 209 "grammer.y"
+#line 216 "grammer.y"
     { yyval.graph = newmodule(yyvsp[0].string, NULL); }
     break;
 
   case 39:
-#line 210 "grammer.y"
+#line 217 "grammer.y"
     { yyval.graph = newmodule(yyvsp[-3].string, yyvsp[-1].arglist); }
     break;
 
   case 40:
-#line 213 "grammer.y"
+#line 220 "grammer.y"
     { yyval.vphrase = newvphrase(yyvsp[-1].string, yyvsp[0].arglist); }
     break;
 
   case 41:
-#line 214 "grammer.y"
+#line 221 "grammer.y"
     { yyval.vphrase = newvphrase(yyvsp[-3].string, yyvsp[-1].arglist); }
     break;
 
   case 42:
-#line 217 "grammer.y"
+#line 224 "grammer.y"
     { yyval.arglist = yyvsp[-1].arglist; yyval.arglist->next = yyvsp[0].arglist; }
     break;
 
   case 43:
-#line 220 "grammer.y"
+#line 227 "grammer.y"
     { yyval.arglist = NULL; }
     break;
 
   case 44:
-#line 221 "grammer.y"
+#line 228 "grammer.y"
     { yyval.arglist = yyvsp[-1].arglist; yyval.arglist->next = yyvsp[0].arglist; }
     break;
 
   case 45:
-#line 224 "grammer.y"
+#line 231 "grammer.y"
     { yyval.arglist = NULL; }
     break;
 
   case 46:
-#line 225 "grammer.y"
+#line 232 "grammer.y"
     { yyval.arglist = yyvsp[-1].arglist; yyval.arglist->next = yyvsp[0].arglist; }
     break;
 
   case 47:
-#line 228 "grammer.y"
+#line 235 "grammer.y"
     { yyval.arglist = NULL; }
     break;
 
   case 48:
-#line 229 "grammer.y"
+#line 236 "grammer.y"
     { yyval.arglist = yyvsp[-1].arglist; yyval.arglist->next = yyvsp[0].arglist; }
     break;
 
   case 50:
-#line 239 "grammer.y"
+#line 246 "grammer.y"
     { yyval.comp = yyvsp[-1].comp; }
     break;
 
   case 51:
-#line 240 "grammer.y"
+#line 247 "grammer.y"
     { yyval.comp = comp_join(yyvsp[-2].comp, yyvsp[0].comp, 1); }
     break;
 
   case 52:
-#line 241 "grammer.y"
+#line 248 "grammer.y"
     { yyval.comp = comp_join(yyvsp[-2].comp, yyvsp[0].comp, 0); }
     break;
 
   case 54:
-#line 245 "grammer.y"
+#line 252 "grammer.y"
     { yyval.comp = comp_new(yyvsp[0].string, EXIST, NULL); }
     break;
 
   case 55:
-#line 246 "grammer.y"
+#line 253 "grammer.y"
     { yyval.comp = comp_new(yyvsp[-2].string, yyvsp[-1].op, yyvsp[0].string); }
     break;
 
   case 56:
-#line 247 "grammer.y"
+#line 254 "grammer.y"
     { yyval.comp = comp_new(yyvsp[-3].string, FUNC, arglist2str(yyvsp[-1].arglist));
 					  yyval.comp->arglist = yyvsp[-1].arglist;
 	}
     break;
 
   case 57:
-#line 252 "grammer.y"
+#line 259 "grammer.y"
     { yyval.op = EQUALITY; }
     break;
 
   case 58:
-#line 253 "grammer.y"
+#line 260 "grammer.y"
     { yyval.op = GT; }
     break;
 
   case 59:
-#line 254 "grammer.y"
+#line 261 "grammer.y"
     { yyval.op = LT; }
     break;
 
   case 60:
-#line 255 "grammer.y"
+#line 262 "grammer.y"
     { yyval.op = LIKE; }
     break;
 
@@ -1373,7 +1380,7 @@ yyreduce:
     }
 
 /* Line 1016 of /usr/share/bison/yacc.c.  */
-#line 1377 "grammer.c"
+#line 1384 "grammer.c"
 
   yyvsp -= yylen;
   yyssp -= yylen;
@@ -1592,7 +1599,7 @@ yyreturn:
 }
 
 
-#line 258 "grammer.y"
+#line 265 "grammer.y"
 
 
 
@@ -1621,6 +1628,7 @@ smacq_graph * smacq_build_query(dts_environment * tenv, int argc, char ** argv) 
   }
 
   /* LOCK */
+  pthread_mutex_lock(&local_lock);
 
   yy_scan_string(qstr);
   /* fprintf(stderr, "parsing buffer: %s\n", qstr); */
@@ -1630,6 +1638,7 @@ smacq_graph * smacq_build_query(dts_environment * tenv, int argc, char ** argv) 
   graph = Graph;
 
   /* UNLOCK */
+  pthread_mutex_unlock(&local_lock);
 
   if (res) {
     fprintf(stderr, "smacq_build_query: error parsing query: %s\n", qstr);

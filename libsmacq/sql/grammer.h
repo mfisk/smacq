@@ -67,7 +67,7 @@
 
 
 #ifndef YYSTYPE
-#line 84 "grammer.y"
+#line 91 "grammer.y"
 typedef union {
   struct graph graph;
   struct arglist * arglist;

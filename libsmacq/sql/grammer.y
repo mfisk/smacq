@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <smacq.h>
+#include <pthread.h>
 #include "smacq-parser.h"
 //#define DEBUG
   
@@ -30,6 +31,12 @@
   void yyerror(char *);
   extern char * yytext;
   extern char * yystring;
+#ifdef PTHREAD_MUTEX_INITIALIZER
+  pthread_mutex_t local_lock = PTHREAD_MUTEX_INITIALIZER;
+#else
+  pthread_mutex_t local_lock;
+  #warning "No PTHREAD_MUTEX_INITIALIZER"
+#endif
 
   struct arglist {
     char * arg;
@@ -283,6 +290,7 @@ smacq_graph * smacq_build_query(dts_environment * tenv, int argc, char ** argv) 
   }
 
   /* LOCK */
+  pthread_mutex_lock(&local_lock);
 
   yy_scan_string(qstr);
   /* fprintf(stderr, "parsing buffer: %s\n", qstr); */
@@ -292,6 +300,7 @@ smacq_graph * smacq_build_query(dts_environment * tenv, int argc, char ** argv) 
   graph = Graph;
 
   /* UNLOCK */
+  pthread_mutex_unlock(&local_lock);
 
   if (res) {
     fprintf(stderr, "smacq_build_query: error parsing query: %s\n", qstr);
