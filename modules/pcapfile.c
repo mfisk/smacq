@@ -8,21 +8,240 @@
 #include <assert.h>
 #include <sys/types.h>
 #include <net/ethernet.h>
-#include "smacq.h"
-#include "pcapfile.h"
-#include "dts_packet.h"
+#include <smacq.h>
+#include <dts_packet.h>
+#include <pcap.h>
+#include <zlib.h>
 
-#define PATCHED_TCPDUMP_MAGIC 0xa1b2cd34
+enum file_read_type { EITHER, COPY, MAP };
+static int open_file(struct state * state);
+static inline void * read_current_file(struct state * state, void * buf, int len, enum file_read_type read_type);
 
 static struct smacq_options options[] = {
   {"w", {string_t:"-"}, "Output file", SMACQ_OPT_TYPE_STRING},
   {"s", {uint32_t:0}, "Maximum output file size (MB)", SMACQ_OPT_TYPE_UINT32},
   {"l", {boolean_t:0}, "Read list of input files from STDIN", SMACQ_OPT_TYPE_BOOLEAN},
+  {"z", {boolean_t:0}, "Use gzip compression", SMACQ_OPT_TYPE_BOOLEAN},
   {NULL, {string_t:NULL}, NULL, 0}
 };
 
+struct state {
+  dts_object * datum;	
+  smacq_environment * env;
+  int argc;
+  char ** argv;
+  int dts_pkthdr_type;		
+
+  /* Booleans */
+  int produce;			/* Does this instance produce */
+  int gzip;
+  int swapped;
+  int extended;
+  int hdr_size;
+
+  void * mmap;
+  void * mmap_current;
+  void * mmap_last;
+
+  gzFile * gzfh;
+  FILE * fh;
+  struct pcap_file_header pcap_file_header;
+
+  long long outputleft;
+  unsigned long long maxfilesize;
+  int suffix;
+  int file_list;
+  char * filename;
+};
+
+
+#define SWAPLONG(y) \
+((((y)&0xff)<<24) | (((y)&0xff00)<<8) | (((y)&0xff0000)>>8) | (((y)>>24)&0xff))
+#define SWAPSHORT(y) \
+        ( (((y)&0xff)<<8) | ((u_short)((y)&0xff00)>>8) )
+
+
+static inline void swap_hdr(struct pcap_file_header *hp)
+{
+        hp->version_major = SWAPSHORT(hp->version_major);
+        hp->version_minor = SWAPSHORT(hp->version_minor);
+        hp->thiszone = SWAPLONG(hp->thiszone);
+        hp->sigfigs = SWAPLONG(hp->sigfigs);
+        hp->snaplen = SWAPLONG(hp->snaplen);
+        hp->linktype = SWAPLONG(hp->linktype);
+}
+
+#define TCPDUMP_MAGIC 0xa1b2c3d4
+#define TCPDUMP_MAGIC_NEW 0xa1b2cd34
+
+static inline void parse_pcapfile(struct state * state, struct pcap_file_header * hdr) {
+  state->swapped = 0;
+  state->extended = 0;
+
+  if (hdr->magic == TCPDUMP_MAGIC) {
+
+  } else if (hdr->magic == SWAPLONG(TCPDUMP_MAGIC)) {
+    state->swapped = 1;
+  } else if (hdr->magic == TCPDUMP_MAGIC_NEW) {
+    state->extended = 1;
+  } else if (hdr->magic == SWAPLONG(TCPDUMP_MAGIC_NEW)) {
+    state->extended = 1;
+    state->swapped = 1;
+  } else {
+    fprintf(stderr, "bad dump file format");
+    exit(-1);
+  }
+
+  if (state->extended) {
+    state->hdr_size = sizeof(struct old_pcap_pkthdr) + sizeof(struct extended_pkthdr);
+  } else {
+    state->hdr_size = sizeof(struct old_pcap_pkthdr);
+  }
+
+  if (state->swapped)
+    swap_hdr(hdr);
+
+  if (hdr->version_major < PCAP_VERSION_MAJOR) {
+    fprintf(stderr, "unsupported (old?) file format");
+    exit(-1);
+  }
+}
+
+static inline void fixup_pcap(struct state * state, struct old_pcap_pkthdr * hdr) {
+  if (state->swapped) {
+    hdr->caplen = SWAPLONG(hdr->caplen);
+    hdr->len = SWAPLONG(hdr->len);
+    hdr->ts.tv_sec = SWAPLONG(hdr->ts.tv_sec);
+    hdr->ts.tv_usec = SWAPLONG(hdr->ts.tv_usec);
+  }
+
+  /*
+   * We interchanged the caplen and len fields at version 2.3,
+   * in order to match the bpf header layout.  But unfortunately
+   * some files were written with version 2.3 in their headers
+   * but without the interchanged fields.
+   */
+  if (state->pcap_file_header.version_minor < 3 ||
+      (state->pcap_file_header.version_minor == 3 && hdr->caplen > hdr->len)) {
+    int t = hdr->caplen;
+    hdr->caplen = hdr->len;
+    hdr->len = t;
+  }
+}
+
+static inline void * read_current_file(struct state * state, void * buf, int len, enum file_read_type read_type) {
+    if (state->mmap) {
+	    void * current = state->mmap;
+	    state->mmap_current += len;
+
+	    if (state->mmap_current > state->mmap_last) {
+		    if (state->mmap_current - len < state->mmap_last) {
+			    fprintf(stderr, "pcapfile: premature end of file\n");
+		    }
+		    return NULL;
+	    }
+	    assert(state->mmap_current <= state->mmap_last);
+
+	    if (read_type == COPY) {
+		    memcpy(buf, current, len);
+		    return buf;
+	    } else {
+		    return current;
+	    }
+    } else {
+	int retval;
+	assert(read_type != MAP);
+
+	if (state->gzfh) {
+		retval = gzread(state->gzfh, buf, len);
+		//fprintf(stderr, "gzread returned %d\n", retval);
+		return( (retval==1) ? buf : NULL );
+	} else {
+		retval = fread(buf, len, 1, state->fh);
+		//fprintf(stderr, "fread returned %d on length %u\n", retval, len);
+		return( (retval==1) ? buf : NULL );
+	}
+    }
+}
+
+
+static inline void close_file(struct state* state) {
+  if (state->gzfh) {
+    gzclose(state->gzfh);
+    state->gzfh = NULL;
+  }
+  
+  if (state->fh) {
+    fclose(state->fh);
+    state->fh = NULL;
+  }
+}
+
+/* Read from this file or the next one */
+static inline void * read_file(struct state * state, void * buf, int len, enum file_read_type read_type) {
+  void * result;
+  int retval;
+
+  while (1) {
+	result = read_current_file(state, buf, len, read_type);
+	if (result) return result;
+
+	close_file(state);
+    	if (!open_file(state)) {
+		return NULL;
+    	} 
+  }
+
+}
+
+
+static inline int open_filename(struct state * state, char * filename) {
+  int try_mmap = 0;
+
+  if ((!filename) || (!strcmp(filename, "-"))) {
+    if (state->gzip) {
+	    state->gzfh = gzdopen(0, "rb");
+    } else {
+	    state->fh = fdopen(0, "r");
+    }
+  } else {
+    if (state->gzip) {
+	    state->gzfh = gzopen(filename, "rb");
+    } else {
+	    state->fh = fopen(filename, "r");
+	    try_mmap = 1;
+    }
+  }
+
+  if (!state->fh && !state->gzfh) {
+    perror("pcapfile open");
+    exit(-1);
+  }
+  if (!read_file(state, &state->pcap_file_header, sizeof(struct pcap_file_header), COPY)) {
+    perror("pcapfile read");
+    exit(-1);
+  }
+  
+  parse_pcapfile(state, &state->pcap_file_header);
+  
+  if (try_mmap && !state->swapped && state->extended) {
+    fprintf(stderr, "File will be memory mapped\n");
+  }
+
+  fprintf(stderr, "pcapfile: Opening %s for read ( ", filename);
+
+  if (state->swapped) fprintf(stderr, " byte-swapped ");
+  else fprintf(stderr, "host-byte-order ");
+
+  if (state->extended) fprintf(stderr, " extended-header ");
+  if (state->mmap) fprintf(stderr, " memory-mapped ");
+
+  fprintf(stderr, ")\n");
+
+  return(1); /* success */
+}
+
 static int open_file(struct state * state) {
-  gzFile * filep;
   char * filename = "";
   char next_file[4096];
 
@@ -44,98 +263,58 @@ static int open_file(struct state * state) {
     state->argc--; state->argv++;
   }
 
-  if (state->pcap) pcap_close(state->pcap);
-  if (state->gzfile) gzclose(state->gzfile);
-
-  fprintf(stderr, "pcapfile: Opening %s for read\n", filename);
-  
-  if ((!filename) || (!strcmp(filename, "-"))) {
-    filep = gzdopen(0, "rb");
-  } else {
-    filep = gzopen(filename, "rb");
-  }
-
-  if (!filep) {
-    perror("open");
-    exit(-1);
-  }
-  if (1 > gzread(filep, &state->pcap_file_header, sizeof(struct pcap_file_header))) {
-    perror("read");
-    exit(-1);
-  }
-  
-  parse_pcapfile(state, &state->pcap_file_header);
-
-  state->gzfile = filep;
-
-  return(1); /* success */
+  return open_filename(state, filename);
 }
 
-/* Read from this file or the next one */
-static int read_file(struct state * state, void * buf, int len) {
-  int retval;
-
-  while (1) {
-    retval = gzread(state->gzfile, buf, len);
-    if (retval == 0) {
-      if (open_file(state)) {
-	continue; /* Try again with this file */
-      } else {
-	return 0;
-      }
-    } else if (retval == -1) {
-      perror("read");
-      return -1;
+static inline int file_eof(struct state * state) {
+    if (!state->mmap) {
+	    return gzeof(state->gzfh);
     } else {
-      return retval;
+	    return (state->mmap_current > state->mmap_last); 
     }
-  }
 }
 
 static smacq_result pcapfile_produce(struct state * state, const dts_object ** datump, int * outchan) {
-  struct old_pcap_pkthdr hdr;
+  struct old_pcap_pkthdr * hdrp;
+  const dts_object * datum;
   struct dts_pkthdr * pkt;
-  const dts_object * datum = NULL;
   int res;
 
   if (!state->produce) return SMACQ_END;
 
-  assert(state->gzfile);
+  datum = smacq_alloc(state->env, state->pcap_file_header.snaplen + sizeof(struct dts_pkthdr), 
+		      state->dts_pkthdr_type);
 
-  while(1) {
-     res = read_file(state, &hdr, sizeof(struct old_pcap_pkthdr));
-
-     if (sizeof(struct old_pcap_pkthdr) != res) {
-    	if (res) {
-		fprintf(stderr, "pcapfile: premature end of file (read %d bytes instead of %d)\n", res, (int)sizeof(struct old_pcap_pkthdr));
-		continue;
-    	} else {
-    		return SMACQ_END;
-	}
-     } else {
-	break;
-     }
-  }
-
-  fixup_pcap(state, &hdr);
-
-  datum = smacq_alloc(state->env, hdr.caplen + sizeof(struct dts_pkthdr), 
-				state->dts_pkthdr_type);
   pkt = (struct dts_pkthdr*)dts_getdata(datum);
 
-  pkt->pcap_pkthdr = hdr;
-  pkt->linktype = state->pcap_file_header.linktype;
-  pkt->snaplen = state->pcap_file_header.snaplen;
+  hdrp = read_file(state, &pkt->pcap_pkthdr, state->hdr_size, EITHER);
+  if (!hdrp) return SMACQ_END;
 
-  if (state->extended) {
-    if (sizeof(struct extended_pkthdr) != read_file(state, &pkt->extended, sizeof(struct extended_pkthdr))) 
-      return SMACQ_END;
+  fixup_pcap(state, hdrp);
+
+  if (hdrp == &pkt->pcap_pkthdr) {
+  	pkt->linktype = state->pcap_file_header.linktype;
+  	pkt->snaplen = state->pcap_file_header.snaplen;
+
+  	if (!state->extended) {
+    		memset(&pkt->extended, 0, sizeof(struct extended_pkthdr));
+  	}
+
+	//fprintf(stderr, "reading packet of caplen %d\n", hdrp->caplen);
+  	if (!read_file(state, dts_getdata(datum)+sizeof(struct dts_pkthdr), hdrp->caplen, COPY)) 
+    		return SMACQ_END;
+
   } else {
-    memset(&pkt->extended, 0, sizeof(struct extended_pkthdr));
-  }
+	void * payload; 
+  	datum = smacq_alloc(state->env, 0, state->dts_pkthdr_type);
+	((dts_object *)datum)->data = hdrp;
 
-  if (1 > gzread(state->gzfile, dts_getdata(datum)+sizeof(struct dts_pkthdr), hdr.caplen)) 
-    return SMACQ_END;
+  	payload = read_file(state, NULL, hdrp->caplen, MAP);
+  	if (payload != dts_getdata(datum)+sizeof(struct dts_pkthdr)) {
+		fprintf(stderr, "pcapfile: premature end of file\n");
+    		return SMACQ_END;
+	}
+  }
 
   *datump = datum;
 
@@ -160,13 +339,13 @@ static smacq_result pcapfile_consume(struct state * state, const dts_object * da
 	  char * filename;
 
 	  if (state->maxfilesize) {
-	    snprintf(sufbuf, 256, "%s.%02d", state->opts.output, state->suffix);
+	    snprintf(sufbuf, 256, "%s.%02d", state->filename, state->suffix);
 	    filename = sufbuf;
 	    state->suffix++;
 	    
 	    state->outputleft = state->maxfilesize - sizeof(struct pcap_file_header);
 	   } else {
-	     filename = state->opts.output;
+	     filename = state->filename;
 	     state->outputleft = 1;
 	   }
 
@@ -212,19 +391,7 @@ static smacq_result pcapfile_consume(struct state * state, const dts_object * da
 }
 
 static smacq_result pcapfile_shutdown(struct state * state) {
-	if (state->pcap) {
-	  pcap_close(state->pcap);
-	  state->pcap = NULL;
-	}
-	if (state->fh) {
-	  fclose(state->fh);
-	  state->fh = NULL;
-	}
-	if (state->gzfile) {
-	  gzclose(state->gzfile);
-	  state->gzfile = NULL;
-	}
-
+	close_file(state);
 	free(state);
 
 	return 0;
@@ -241,12 +408,13 @@ static smacq_result pcapfile_init(struct smacq_init * context) {
 
   state->env = context->env;
   {
-    smacq_opt output, size, list;
+    smacq_opt output, size, list, gzip;
 
     struct smacq_optval optvals[] = {
       { "w", &output}, 
       { "s", &size}, 
       { "l", &list}, 
+      { "z", &gzip}, 
       {NULL, NULL}
     };
     output.uint32_t = 0;
@@ -254,10 +422,11 @@ static smacq_result pcapfile_init(struct smacq_init * context) {
 				 &state->argc, &state->argv,
 				 options, optvals);
     
-    state->opts.output = output.string_t;
+    state->filename = output.string_t;
     state->file_list = list.boolean_t;
     state->maxfilesize = size.uint32_t * 1024 * 1024;
     state->outputleft = 1024*1024;
+    state->gzip = gzip.boolean_t;
   }
 
   if (context->isfirst) {
@@ -265,8 +434,8 @@ static smacq_result pcapfile_init(struct smacq_init * context) {
     open_file(state);
     state->produce = 1;
   } else if (context->islast) {
-    fprintf(stderr, "Output will be placed in pcapfile %s\n", state->opts.output);
-    state->pcap_file_header.magic = PATCHED_TCPDUMP_MAGIC;
+    fprintf(stderr, "Output will be placed in pcapfile %s\n", state->filename);
+    state->pcap_file_header.magic = TCPDUMP_MAGIC_NEW;
     state->pcap_file_header.version_major = 2;
     state->pcap_file_header.version_minor = 4;
     state->pcap_file_header.thiszone = 0;
