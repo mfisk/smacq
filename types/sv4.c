@@ -7,7 +7,8 @@ static int get_sv4_data(const dts_object * datum, dts_object * data) {
 	return (data->len > 0);
 }
 static int get_sv4_prompt(const dts_object * o, dts_object * stro) {
-	unsigned short prompt = ntohs(dts_data_as(o, unsigned short));
+	void * p = dts_getdata(o) + 47;
+	ushort prompt = ntohs( *(ushort*)p );
 	dts_setsize(stro, 6);
 	char * str = dts_getdata(stro);
 
@@ -17,6 +18,7 @@ static int get_sv4_prompt(const dts_object * o, dts_object * stro) {
 	str[3] = ((prompt & 2) ? '>' : ' ');
 	str[4] = ((prompt & 1) ? '>' : ' ');
 	str[5] = '\0';
+	/* sprintf(str+5, " %d", prompt); */
 
 	return 1;
 }
