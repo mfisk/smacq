@@ -11,6 +11,7 @@
 #include <smacq-internal.h>
 #include "filter.h"
 #include "filter-parser.h"
+#define YYERROR_VERBOSE
   
   extern int yylex();
   extern void yy_scan_string(const char *);
@@ -45,7 +46,7 @@ booleanline: boolean YYSTOP 	{
 					if ($1.isor) {
 						Comp = calloc(1,sizeof(dts_comparison));
 
-						fprintf(stderr, "parsed a top-level OR to %p\n", Comp);
+						//fprintf(stderr, "parsed a top-level OR to %p\n", Comp);
 
 						Comp->op = OR;
 						Comp->group = $1.head;
@@ -113,7 +114,7 @@ static void print_comp(dts_environment * tenv, dts_comparison * c) {
 
 dts_comparison * dts_parse_tests(dts_environment * localtenv, int argc, char ** argv) {
   dts_comparison * retval;
-  int size = 0;
+  int size = 1;
   int i;
   char * qstr;
 
@@ -126,6 +127,7 @@ dts_comparison * dts_parse_tests(dts_environment * localtenv, int argc, char ** 
   size += argc;
 
   qstr = (char*)malloc(size);
+  qstr[0] = '\0';
   	
   for (i=0; i<argc; i++) {
   	strcatn(qstr, size, argv[i]);
@@ -226,7 +228,7 @@ static struct list newlist(char * field, dts_compare_operation op, char * value)
 
 void yyerror(char * msg) {
   fprintf(stderr, "Error: %s near %s\n", msg, yytext);
-  exit(-1);
+  //exit(-1);
 }
 
 

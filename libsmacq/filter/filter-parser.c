@@ -87,6 +87,7 @@
 #include <smacq-internal.h>
 #include "filter.h"
 #include "filter-parser.h"
+#define YYERROR_VERBOSE
   
   extern int yylex();
   extern void yy_scan_string(const char *);
@@ -116,14 +117,14 @@
 #endif
 
 #ifndef YYSTYPE
-#line 37 "filter-parser.y"
+#line 38 "filter-parser.y"
 typedef union {
   char * string;
   struct list list;
   dts_compare_operation op;
 } yystype;
 /* Line 193 of /usr/share/bison/yacc.c.  */
-#line 127 "filter-parser.c"
+#line 128 "filter-parser.c"
 # define YYSTYPE yystype
 # define YYSTYPE_IS_TRIVIAL 1
 #endif
@@ -144,7 +145,7 @@ typedef struct yyltype
 
 
 /* Line 213 of /usr/share/bison/yacc.c.  */
-#line 148 "filter-parser.c"
+#line 149 "filter-parser.c"
 
 #if ! defined (yyoverflow) || YYERROR_VERBOSE
 
@@ -314,8 +315,8 @@ static const yysigned_char yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const unsigned char yyrline[] =
 {
-       0,    44,    44,    60,    61,    62,    63,    66,    67,    70,
-      71,    72,    73,    76,    77,    80,    82
+       0,    45,    45,    61,    62,    63,    64,    67,    68,    71,
+      72,    73,    74,    77,    78,    81,    83
 };
 #endif
 
@@ -962,12 +963,12 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 44 "filter-parser.y"
+#line 45 "filter-parser.y"
     { 
 					if (yyvsp[-1].list.isor) {
 						Comp = calloc(1,sizeof(dts_comparison));
 
-						fprintf(stderr, "parsed a top-level OR to %p\n", Comp);
+						//fprintf(stderr, "parsed a top-level OR to %p\n", Comp);
 
 						Comp->op = OR;
 						Comp->group = yyvsp[-1].list.head;
@@ -980,57 +981,57 @@ yyreduce:
     break;
 
   case 3:
-#line 60 "filter-parser.y"
+#line 61 "filter-parser.y"
     { yyval.list = yyvsp[-1].list; }
     break;
 
   case 4:
-#line 61 "filter-parser.y"
+#line 62 "filter-parser.y"
     { yyval.list = list_join(yyvsp[-2].list, yyvsp[0].list, 1); }
     break;
 
   case 5:
-#line 62 "filter-parser.y"
+#line 63 "filter-parser.y"
     { yyval.list = list_join(yyvsp[-2].list, yyvsp[0].list, 0); }
     break;
 
   case 7:
-#line 66 "filter-parser.y"
+#line 67 "filter-parser.y"
     { yyval.list = newlist(yyvsp[0].string, EXIST, NULL); }
     break;
 
   case 8:
-#line 67 "filter-parser.y"
+#line 68 "filter-parser.y"
     { yyval.list = newlist(yyvsp[-2].string, yyvsp[-1].op, yyvsp[0].string); }
     break;
 
   case 9:
-#line 70 "filter-parser.y"
+#line 71 "filter-parser.y"
     { yyval.op = EQUALITY; }
     break;
 
   case 10:
-#line 71 "filter-parser.y"
+#line 72 "filter-parser.y"
     { yyval.op = GT; }
     break;
 
   case 11:
-#line 72 "filter-parser.y"
+#line 73 "filter-parser.y"
     { yyval.op = LT; }
     break;
 
   case 12:
-#line 73 "filter-parser.y"
+#line 74 "filter-parser.y"
     { yyval.op = LIKE; }
     break;
 
   case 15:
-#line 80 "filter-parser.y"
+#line 81 "filter-parser.y"
     { yyval.string = yystring; }
     break;
 
   case 16:
-#line 82 "filter-parser.y"
+#line 83 "filter-parser.y"
     { yyval.string = yystring; }
     break;
 
@@ -1038,7 +1039,7 @@ yyreduce:
     }
 
 /* Line 1016 of /usr/share/bison/yacc.c.  */
-#line 1042 "filter-parser.c"
+#line 1043 "filter-parser.c"
 
   yyvsp -= yylen;
   yyssp -= yylen;
@@ -1257,7 +1258,7 @@ yyreturn:
 }
 
 
-#line 85 "filter-parser.y"
+#line 86 "filter-parser.y"
 
 
 static dts_environment * tenv;
@@ -1289,7 +1290,7 @@ static void print_comp(dts_environment * tenv, dts_comparison * c) {
 
 dts_comparison * dts_parse_tests(dts_environment * localtenv, int argc, char ** argv) {
   dts_comparison * retval;
-  int size = 0;
+  int size = 1;
   int i;
   char * qstr;
 
@@ -1302,6 +1303,7 @@ dts_comparison * dts_parse_tests(dts_environment * localtenv, int argc, char ** 
   size += argc;
 
   qstr = (char*)malloc(size);
+  qstr[0] = '\0';
   	
   for (i=0; i<argc; i++) {
   	strcatn(qstr, size, argv[i]);
@@ -1402,7 +1404,7 @@ static struct list newlist(char * field, dts_compare_operation op, char * value)
 
 void yyerror(char * msg) {
   fprintf(stderr, "Error: %s near %s\n", msg, yytext);
-  exit(-1);
+  //exit(-1);
 }
 
 

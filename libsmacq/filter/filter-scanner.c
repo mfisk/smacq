@@ -419,16 +419,18 @@ char *yytext;
 #include <string.h>
 #define MAX_STR_CONST 1024
 
-extern void yyerror(const char *);
-
 char string_buf[MAX_STR_CONST];
 char *yystring;
+
+static void yyerror(const char * msg) {
+	fprintf(stderr, "Scan error: %s at %s\n", msg, yytext);
+}
 
 #define xdquote 1
 
 #define xquote 2
 
-#line 432 "filter-scanner.c"
+#line 434 "filter-scanner.c"
 
 /* Macros after this point can all be overridden by user definitions in
  * section 1.
@@ -590,10 +592,10 @@ YY_DECL
 	register char *yy_cp, *yy_bp;
 	register int yy_act;
 
-#line 26 "filter-scanner.l"
+#line 28 "filter-scanner.l"
 
 
-#line 597 "filter-scanner.c"
+#line 599 "filter-scanner.c"
 
 	if ( yy_init )
 		{
@@ -678,43 +680,43 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 28 "filter-scanner.l"
+#line 30 "filter-scanner.l"
 return YYLIKE;
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 29 "filter-scanner.l"
+#line 31 "filter-scanner.l"
 return YYAND;
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 30 "filter-scanner.l"
+#line 32 "filter-scanner.l"
 return YYAND;
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 31 "filter-scanner.l"
+#line 33 "filter-scanner.l"
 return YYOR;
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 32 "filter-scanner.l"
+#line 34 "filter-scanner.l"
 return YYOR;
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 34 "filter-scanner.l"
+#line 36 "filter-scanner.l"
 BEGIN(xquote);
 	YY_BREAK
 
 case 7:
 YY_RULE_SETUP
-#line 36 "filter-scanner.l"
+#line 38 "filter-scanner.l"
 BEGIN(0);
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 37 "filter-scanner.l"
+#line 39 "filter-scanner.l"
 {
 			yystring = strdup(yytext);
 			return YYSTRING;
@@ -723,38 +725,38 @@ YY_RULE_SETUP
 
 case 9:
 YY_RULE_SETUP
-#line 44 "filter-scanner.l"
+#line 46 "filter-scanner.l"
 yystring = string_buf; BEGIN(xdquote);
 	YY_BREAK
 
 case 10:
 YY_RULE_SETUP
-#line 46 "filter-scanner.l"
+#line 48 "filter-scanner.l"
 *yystring++ = '\n';
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 47 "filter-scanner.l"
+#line 49 "filter-scanner.l"
 *yystring++ = '\r';
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 48 "filter-scanner.l"
+#line 50 "filter-scanner.l"
 *yystring++ = '\t';
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 49 "filter-scanner.l"
+#line 51 "filter-scanner.l"
 *yystring++ = '\f';
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 50 "filter-scanner.l"
+#line 52 "filter-scanner.l"
 *yystring++ = yytext[1];
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 51 "filter-scanner.l"
+#line 53 "filter-scanner.l"
 {
 				*yystring = '\0'; 
 			 	yystring = strdup(string_buf);
@@ -764,28 +766,28 @@ YY_RULE_SETUP
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 57 "filter-scanner.l"
+#line 59 "filter-scanner.l"
 *yystring++ = yytext[0];
 	YY_BREAK
 
 case 17:
 YY_RULE_SETUP
-#line 60 "filter-scanner.l"
+#line 62 "filter-scanner.l"
 { ; }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 62 "filter-scanner.l"
+#line 64 "filter-scanner.l"
 return yytext[0];
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 64 "filter-scanner.l"
+#line 66 "filter-scanner.l"
 { return yytext[0]; }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 66 "filter-scanner.l"
+#line 68 "filter-scanner.l"
 { 
 			yystring = strdup((char *)yytext); 
 			return YYID; 
@@ -794,20 +796,20 @@ YY_RULE_SETUP
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(xdquote):
 case YY_STATE_EOF(xquote):
-#line 71 "filter-scanner.l"
+#line 73 "filter-scanner.l"
 { return YYSTOP; }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 73 "filter-scanner.l"
+#line 75 "filter-scanner.l"
 { yyerror("Unexpected character"); }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 75 "filter-scanner.l"
+#line 77 "filter-scanner.l"
 ECHO;
 	YY_BREAK
-#line 811 "filter-scanner.c"
+#line 813 "filter-scanner.c"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -1695,6 +1697,6 @@ int main()
 	return 0;
 	}
 #endif
-#line 75 "filter-scanner.l"
+#line 77 "filter-scanner.l"
 
 
