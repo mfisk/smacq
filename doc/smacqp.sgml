@@ -73,14 +73,14 @@
 
     <para>
       SMACQ is an extensible system that the user can add modules to.
-      However the following suite of components comes with the
+      However the following suite of modules comes with the
       software distribution:
     </para>
 
 
   </refsect1>
   <refsect1>
-    <title>STANDARD INPUT/OUTPUT COMPONENTS</title>
+    <title>STANDARD INPUT/OUTPUT MODULES</title>
 
     <refsect2>
       <title>Print</title>
@@ -239,7 +239,7 @@
 
   </refsect1>
   <refsect1>
-    <title>FILTER (BOOLEAN) COMPONENTS</title>
+    <title>FILTER MODULES (BOOLEAN FUNCTIONS)</title>
 
     <refsect2>
       <title>IP Address Mask</title>
@@ -403,8 +403,23 @@
   </refsect1>
 
   <refsect1>
-    <title>STANDARD ANALYSIS COMPONENTS</title>
+    <title>ANALYSIS MODULES</title>
     
+    <refsect2>
+      <title>Constant Annotation</title>
+      <cmdsynopsis>
+	<command>const</command> 
+	<arg choice=req> <replaceable>string</replaceable></arg>
+	<arg><replaceable>field</replaceable></arg>
+      </cmdsynopsis>
+
+      <para>
+	Annotate each object with a field containing the specified string constant.
+	If a field name is specified, it will be used.  Otherwise, the name will be the same
+	as the value string.
+      </para>
+    </refsect2>
+
     <refsect2>
       <title>Counter</title>
       <cmdsynopsis>
