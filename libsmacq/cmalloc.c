@@ -27,7 +27,7 @@ struct cmalloc * cmalloc_init(int minsize, int maxfree) {
 	m->freelist = calloc(sizeof(struct cmalloc_element *), maxfree);
 	m->fullp = m->freelist + (maxfree - 1);
 	m->emptyp = m->freelist - 1;
-	m->stackp = m->freelist;
+	m->stackp = m->emptyp;
 
 	return m;
 }
