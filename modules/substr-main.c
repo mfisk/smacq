@@ -181,7 +181,7 @@ static smacq_result substr_init(struct smacq_init * context) {
   context->state = state = (struct state*) calloc(sizeof(struct state),1);
   assert(state);
 
-  state->batch = malloc(sizeof(struct batch));
+  state->batch = calloc(sizeof(struct batch), 1);
 
   state->env = context->env;
   {
@@ -198,7 +198,7 @@ static smacq_result substr_init(struct smacq_init * context) {
   }
 
   for (i = 0; i < argc; i++) {
-	  if (!strcmp(argv[i], ";")) {
+	  if (!strcmp(argv[i], ";") && hay) {
 		if (!field) field = field_opt.string_t; 
 		add_entry(state, field, hay, output++);
 		field = NULL;
