@@ -150,8 +150,8 @@ static int parse_dfa(struct state * state, char * filename) {
   while (!feof(fh)) {
     char line[LINESIZE];
     char * next_state_name, * this_state_name, * test;
-    int this_state_num;
     struct transition * transition = NULL;
+    int this_state_num = -1;
     struct dfa_state * this_state;
 
     if (!fgets(line, LINESIZE, fh))
@@ -206,15 +206,17 @@ static int parse_dfa(struct state * state, char * filename) {
       smacq_sched_iterative_init(transition->graph, &transition->runq, 0);
     }
 
-    this_state = darray_get(&state->states, this_state_num);
-    if (!this_state) {
-      this_state = g_new0(struct dfa_state, 1);
-      darray_init(&this_state->transitions, 0);
-      darray_set(&state->states, this_state_num, this_state);
-    }
+    if (this_state_num > -1) {
+    	this_state = darray_get(&state->states, this_state_num);
+    	if (!this_state) {
+      		this_state = g_new0(struct dfa_state, 1);
+      		darray_init(&this_state->transitions, 0);
+      		darray_set(&state->states, this_state_num, this_state);
+    	}
 
-    if (transition) {
-      darray_append(&this_state->transitions, transition);
+    	if (transition) {
+      	darray_append(&this_state->transitions, transition);
+    	}
     }
   } 
 
