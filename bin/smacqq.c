@@ -71,7 +71,6 @@ int main(int argc, char ** argv) {
       }
 
       while(1) {
-	       smacq_graph * g;
 	       int res = smacq_sched_iterative(graphs, NULL, &product, &runq, 1);
 	       if (product) {
 		       //fprintf(stderr, "smacqq: Got selection!\n");

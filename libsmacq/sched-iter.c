@@ -19,7 +19,7 @@ void runable(struct runq ** runqp, smacq_graph * f, const dts_object * d) {
 
   if (f && (f->status & SMACQ_FREE)) return;
 
-  fprintf(stderr, "runable %p for  %p\n", d, f);
+  //fprintf(stderr, "runable %p for  %p\n", d, f);
   assert(!d || dts_gettype(d));
 
   entry = malloc(sizeof(struct runq));
@@ -40,7 +40,7 @@ void runable(struct runq ** runqp, smacq_graph * f, const dts_object * d) {
 static void pop_runable(struct runq ** runqp) {
   struct runq * runq = *runqp;
   assert(runq);
-  fprintf(stderr, "pop-run %p from %p\n", runq->d, runq->f);
+  //fprintf(stderr, "pop-run %p from %p\n", runq->d, runq->f);
   *runqp=runq->next;
   if (*runqp) {
 	  (*runqp)->tail = runq->tail;
@@ -89,7 +89,7 @@ void do_shutdown(struct runq ** runqp, smacq_graph *f) {
 	  return;
   }
 
-  fprintf(stderr, "shutting down %p %s\n", f, f->name);
+  //fprintf(stderr, "shutting down %p %s\n", f, f->name);
 
   if (f->ops.shutdown) {
     f->ops.shutdown(f->state);
@@ -173,7 +173,7 @@ static int run_produce(smacq_graph * f, struct runq ** runqp, smacq_graph * star
 				} else {
 					/* Produced nothing */
 					pretval |= SMACQ_END;
-					fprintf(stderr, "%s produced nothing while ending\n", f->name);
+					//fprintf(stderr, "%s produced nothing while ending\n", f->name);
 				}
 			}
 		}
@@ -241,7 +241,7 @@ int smacq_sched_iterative(smacq_graph * startf, const dts_object * din, const dt
   if (!*runqp) {
      if (produce_first) {
 	  while(startf) {
-		  fprintf(stderr, "produce_first for %p\n", startf);
+		  //fprintf(stderr, "produce_first for %p\n", startf);
         	  /* Force first guy to produce */
 		  runable(runqp, startf, NULL);
 		  startf = startf->next_graph;

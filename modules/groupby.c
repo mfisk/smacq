@@ -32,7 +32,7 @@ struct state {
 
 struct output {
   smacq_graph * graph;
-  void * runq;
+  struct runq * runq;
 };
 
 static smacq_result groupby_consume(struct state * state, const dts_object * datum, int * outchan) {
