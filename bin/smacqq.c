@@ -47,7 +47,7 @@ int main(int argc, char ** argv) {
       char * queryline;
       smacq_graph * graphs = NULL;
       const dts_object * product;
-      void * runq = NULL;
+      struct runq * runq = NULL;
 
       queryline = malloc(MAX_QUERY_SIZE);
 

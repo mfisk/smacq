@@ -20,7 +20,7 @@ static struct smacq_options options[] = {
 struct state {
   smacq_environment * env;
   const dts_object * product;
-  void * runq;
+  struct runq * runq;
   smacq_graph * graph;
   int done; 
   int isfirst;

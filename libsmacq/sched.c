@@ -4,7 +4,7 @@
 static int smacq_start_single(smacq_graph * objs, enum smacq_scheduler scheduler, dts_environment * tenv) {
   smacq_environment * env = g_new0(smacq_environment, 1);
   const dts_object * record;
-  void * runq = NULL;
+  struct runq * runq = NULL;
 
   if (!tenv) {
     tenv = dts_init();

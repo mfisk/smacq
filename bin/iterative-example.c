@@ -16,8 +16,8 @@ struct thread_args {
 char * printer_args[] = { "print", "count" };
 
 int main(int argc, char ** argv) {
-  void * runq = NULL;
-  void * printq = NULL;
+  struct runq * runq = NULL;
+  struct runq * printq = NULL;
   const dts_object * record = NULL;
   smacq_graph * objs, *printer;
 
