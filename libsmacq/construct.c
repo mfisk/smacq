@@ -68,6 +68,17 @@ int smacq_graph_print(FILE * fh, smacq_graph * f, int indent) {
   return count;
 }
 
+int smacq_graphs_print(FILE * fh, smacq_graph * g, int indent) {
+  double count = 0;
+  smacq_graph * ap;
+  for (ap = g; ap; ap=ap->next_graph) {
+    smacq_graph_print(fh, ap, indent);
+    count += smacq_graph_count_nodes(ap);
+  }
+  fprintf(fh, "Total number of nodes = %g\n", count);
+  return count;
+}
+
 int smacq_load_module(smacq_graph * graph) {
     struct smacq_functions * modtable;
 
