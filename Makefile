@@ -25,6 +25,9 @@ clean:
 reallyclean: 
 	@for f in $(DIRS); do $(MAKE) -C $$f reallyclean; done
 
+binclean:
+	find . -type d -name .libs -o -name \*.lo -o -name \*.o -exec rm -Rf {} \;
+
 dist: clean
 	tar czplf flow.tgz flow/flow doc/*.pdf doc/*.txt doc/*.1 doc/*.3
 	(cd /tmp; cvs -q -d cj:/home/cvs co flow); tar -C /tmp -czlf flow-src.tgz flow
