@@ -255,17 +255,26 @@ gint bytes_hash_table_lookup_extendedv(GHashTableofBytes * ht, struct iovec * ke
   return retval;
 }
 
-void bytes_hash_table_foreach(GHashTableofBytes * ht, GHFunc func, gpointer user_data) {
-  g_hash_table_foreach(ht->ht, func, user_data);
-}
-
 void bytes_hash_table_foreach_remove(GHashTableofBytes * ht, GHRFunc func, gpointer user_data) {
   g_hash_table_foreach_remove(ht->ht, func, user_data);
 }
 
 static int isexpired(gpointer key, gpointer value, gpointer userdata) {
   assert(key);
+  //fprintf(stderr, "glib delayed removal of value %p\n", value);
   return ((struct bytedata*)key)->expired;
+}
+
+static inline void bytes_hash_table_gc(GHashTableofBytes * ht) {
+  if (! ht->gc_count--) {
+    //fprintf(stderr, "doing gc\n");
+    bytes_hash_table_foreach_remove(ht, isexpired, NULL);
+    ht->gc_count = 1000;
+  }
+}
+
+void bytes_hash_table_foreach(GHashTableofBytes * ht, GHFunc func, gpointer user_data) {
+  g_hash_table_foreach(ht->ht, func, user_data);
 }
 
 int bytes_hash_table_removev(GHashTableofBytes * ht, struct iovec * vecs, int nvecs) {
@@ -281,11 +290,7 @@ int bytes_hash_table_removev(GHashTableofBytes * ht, struct iovec * vecs, int nv
   res = g_hash_table_remove(ht->ht, s);
 
   // Garbage collect since g_hash_table_remove doesn't seem to work
-  if (! ht->gc_count--) {
-    //fprintf(stderr, "doing gc\n");
-    bytes_hash_table_foreach_remove(ht, isexpired, NULL);
-    ht->gc_count = 1000;
-  }
+  bytes_hash_table_gc(ht);
 
   return res;
 }
