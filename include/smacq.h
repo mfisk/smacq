@@ -100,6 +100,7 @@ struct smacq_module_algebra {
   unsigned int vector:1;
   unsigned int boolean:1;
   unsigned int demux:1;
+  unsigned int nesting:1;
 };
 
 struct smacq_functions {
