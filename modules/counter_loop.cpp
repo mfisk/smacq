@@ -17,21 +17,16 @@ SMACQ_MODULE_THREAD(counter,);
 smacq_result counterModule::thread(struct SmacqModule::smacq_init * context) {
   FieldVec fieldvec;
   FieldVecHash<int> counters;
-
-  int counter;
-
   DtsField timefield; // Field number
   DtsField probfield; 
   DtsField countfield;
-  dts_typeid counttype;
-  dts_typeid probtype;
+  dts_typeid counttype = dts->requiretype("int");
+  dts_typeid probtype = dts->requiretype("double");
   DtsObject datum;
-  int c;
+  int counter = 0;
   int argc = 0;
   char ** argv;
   smacq_opt probability, countfieldo;
-
-  c = ++counter;
 
   struct smacq_optval optvals[] = {
 	{"pdf", &probability},
@@ -50,15 +45,14 @@ smacq_result counterModule::thread(struct SmacqModule::smacq_init * context) {
   timefield = dts->requirefield("timeseries");
   if (doprob) {
   	probfield = dts->requirefield("probability");
-  	probtype = dts->requiretype("double");
   } else {
   	countfield = dts->requirefield(countfieldo.string_t);
-  	counttype = dts->requiretype("int");
   }
 
   //fprintf(stderr, "count thread is running\n");
 
   while( (datum = smacq_read()) ) {
+	int c = ++counter;
     //fprintf(stderr, "count thread got datum\n");
 
     if (! fieldvec.empty()) {
