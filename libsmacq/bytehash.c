@@ -1,11 +1,5 @@
 /*
- * This file provides generic hash table functionality for keys that are 
- * arbitrary length byte strings.
- * 
- * We implement this using the glib hash functions and a counted byte-string
- * data structure (struct bytedata).  The API is very similar to the glib API
- * (see bytehash.h).
- *
+ * This file provides generic hash table functionality for keys that are iovecs 
  */
 
 #include <stdio.h>
@@ -98,16 +92,16 @@ void bytes_init_hash(uint32_t** randoms, int num, unsigned long prime) {
   }
 }
 
-static unsigned int bytes_hash(const struct element * s) {
+static unsigned int bytes_iovec_hash(struct iovec_hash * table, struct iovec * iovecs, int nvecs) {
   int i;
   int j;
   uint32_t index = 0;
 
-  for (i=0; i < s->nvecs; i++) {
-    unsigned char * base = s->iovecs[i].iov_base;
+  for (i=0; i < nvecs; i++) {
+    unsigned char * base = iovecs[i].iov_base;
 
-    for (j=0; j < s->iovecs[i].iov_len; j++) {
-      index += (base[j] * s->table->randoms[j % s->table->maxkeybytes]); 
+    for (j=0; j < iovecs[i].iov_len; j++) {
+      index += (base[j] * table->randoms[j % table->maxkeybytes]); 
     }
   }
 
@@ -138,16 +132,15 @@ bytes_boolean bytes_mask(const struct element * b1, struct iovec * iovecs, int n
   return true;
 }
 
-static bytes_boolean bytes_equal(const struct element * b1, const struct element * b2) {
+static bytes_boolean iovecs_equal(struct iovec * v1, int n1, struct iovec * v2, int n2) {
   int i;
 
-  if (b1 == b2) return true;
+  if (n1 != n2) return false;
+  if (v1 == v2) return true;
 
-  if (b1->nvecs != b2->nvecs) return false;
-
-  for (i=0; i < b1->nvecs; i++) {
-    if (b1->iovecs[i].iov_len != b2->iovecs[i].iov_len) return false;
-    if (memcmp(b1->iovecs[i].iov_base, b2->iovecs[i].iov_base, b1->iovecs[i].iov_len)) return false;
+  for (i=0; i < n1; i++) {
+    if (v1[i].iov_len != v2[i].iov_len) return false;
+    if (memcmp(v1[i].iov_base, v2[i].iov_base, v1[i].iov_len)) return false;
   }
 
   return true;
@@ -174,26 +167,21 @@ struct iovec_hash * bytes_hash_table_new(int maxbytes, int flags) {
 }
 
 uint32_t bytes_hash_valuev(struct iovec_hash * ht, int nvecs, struct iovec * vecs) {
-  struct element * s = make_element(ht, vecs, nvecs);
-  int val = bytes_hash(s);
-  free_element(s);
+  int val = bytes_iovec_hash(ht, vecs, nvecs);
   return val;
 }
 
 bytes_boolean bytes_hash_table_getv(struct iovec_hash * ht, struct iovec * vecs, int nvecs, struct element ** oldkey, void ** current) {
-  struct element * s = make_element(ht, vecs, nvecs);
-  struct element * bucket = ht->buckets[bytes_hash(s) % ht->num_buckets];
+  struct element * bucket = ht->buckets[bytes_iovec_hash(ht, vecs, nvecs) % ht->num_buckets];
 
-  if (ht->do_chain) {
+  if (bucket && ht->do_chain) {
      struct element * e;
      for (e = bucket; e; e = e->chain) {
-	if (bytes_equal(e, s) == true) break;
+	if (iovecs_equal(vecs, nvecs, e->iovecs, e->nvecs) == true) break;
      }
      /* fprintf(stderr, "Checking bucket %p resulted in %p\n", bucket, e); */
      bucket = e;
   }
-
-  free_element(s);
 
   *oldkey = bucket;
 
@@ -216,7 +204,7 @@ void * bytes_hash_table_setv(struct iovec_hash * ht, struct iovec * keys, int co
 	  return oldval;
   } else {
 	  struct element * e = make_element(ht, keys, count);
-  	  int b = bytes_hash(e) % ht->num_buckets;
+  	  int b = bytes_iovec_hash(ht, keys, count) % ht->num_buckets;
 
   	  e->parent = &(ht->buckets[b]);
   	  e->chain = ht->buckets[b];
