@@ -2,6 +2,6 @@
 
 TESTFILE=$TEST/0325@1112-snort.pcap
 
-bin/smacqq -m -O <<EOF 2>/tmp/pipe.test.err
+bin/smacqq -m -O <<EOF 
 pcapfile $TESTFILE | uniq srcip dstip where srcip != 192.168.0.200 | print srcip dstip where dstip = 192.168.0.200
 EOF
