@@ -21,7 +21,7 @@ struct bytevec {
 };
 
 struct element {
-  struct bytevec * bytevecs;
+  struct iovec * iovecs;
   int nvecs;
 
   struct iovec_hash * table;
@@ -34,21 +34,29 @@ struct iovec_hash {
   GHashTable * ht;
 
   struct cmalloc * cm_bytes;
-  struct cmalloc * cm_bytevecs;
+  struct cmalloc * cm_iovecs;
   struct cmalloc * cm_elements;
 };
+
+struct iovec * bytes_hash_element_iovec(struct element * e) {
+  return e->iovecs;
+}
+
+int bytes_hash_element_nvecs(struct element * e) {
+  return e->nvecs;
+}
 
 static struct element * make_element(struct iovec_hash * b, struct iovec * iovecs, int nvecs) {
   struct element * s = cm_new(b->cm_elements, struct element, 1);
   int i;
 
-  s->bytevecs = cm_new(b->cm_bytevecs, struct bytevec, nvecs);
+  s->iovecs = cm_new(b->cm_iovecs, struct iovec, nvecs);
   s->nvecs = nvecs;
   
   for (i=0; i < nvecs; i++) {
-    s->bytevecs[i].data = cm_new(b->cm_bytes, char, iovecs[i].iov_len);
-    s->bytevecs[i].len = iovecs[i].iov_len;
-    memcpy(s->bytevecs[i].data, iovecs[i].iov_base, iovecs[i].iov_len);
+    s->iovecs[i].iov_base = cm_new(b->cm_bytes, char, iovecs[i].iov_len);
+    s->iovecs[i].iov_len = iovecs[i].iov_len;
+    memcpy(s->iovecs[i].iov_base, iovecs[i].iov_base, iovecs[i].iov_len);
   }
 
   s->table = b;
@@ -62,9 +70,9 @@ static void free_element(gpointer k) {
   int i;
 
   for (i=0; i<s->nvecs; i++) {
-    cmfree(s->table->cm_bytes, s->bytevecs[i].data);
+    cmfree(s->table->cm_bytes, s->iovecs[i].iov_base);
   }
-  cmfree(s->table->cm_bytevecs, s->bytevecs);
+  cmfree(s->table->cm_iovecs, s->iovecs);
   cmfree(s->table->cm_elements, s);
 }
 
@@ -94,8 +102,10 @@ static guint bytes_hash(gconstpointer v) {
   guint32 index = 0;
 
   for (i=0; i < s->nvecs; i++) {
-    for (j=0; j < s->bytevecs[i].len; j++) {
-      index += (s->bytevecs[i].data[j] * s->table->randoms[j % s->table->maxkeybytes]); 
+    unsigned char * base = s->iovecs[i].iov_base;
+
+    for (j=0; j < s->iovecs[i].iov_len; j++) {
+      index += (base[j] * s->table->randoms[j % s->table->maxkeybytes]); 
     }
   }
 
@@ -115,16 +125,16 @@ int bytes_mask(const struct element * b1, struct iovec * iovecs, int nvecs) {
 
   for (i=0; i<nvecs; i++) {
 
-    if (!b1->bytevecs[i].len != !iovecs[i].iov_len) {
+    if (!b1->iovecs[i].iov_len != !iovecs[i].iov_len) {
 
-      if (!b1->bytevecs[i].len || !iovecs[i].iov_len) {
+      if (!b1->iovecs[i].iov_len || !iovecs[i].iov_len) {
 	break; /* Don't care */
       } else {
 	return FALSE;
       }
     }
 
-    if (memcmp(b1->bytevecs[i].data, iovecs[i].iov_base, b1->bytevecs[i].len))
+    if (memcmp(b1->iovecs[i].iov_base, iovecs[i].iov_base, b1->iovecs[i].iov_len))
       return FALSE;
   }
 
@@ -141,8 +151,8 @@ static gint bytes_equal(gconstpointer v, gconstpointer v2) {
   if (b1->nvecs != b2->nvecs) return FALSE;
 
   for (i=0; i < b1->nvecs; i++) {
-    if (b1->bytevecs[i].len != b2->bytevecs[i].len) return FALSE;
-    if (memcmp(b1->bytevecs[i].data, b2->bytevecs[i].data, b1->bytevecs[i].len)) return FALSE;
+    if (b1->iovecs[i].iov_len != b2->iovecs[i].iov_len) return FALSE;
+    if (memcmp(b1->iovecs[i].iov_base, b2->iovecs[i].iov_base, b1->iovecs[i].iov_len)) return FALSE;
   }
 
   return TRUE;
@@ -157,7 +167,7 @@ struct iovec_hash * bytes_hash_table_new(int maxbytes, enum chaining_boolean cha
   bytes_init_hash(&myt->randoms, maxbytes, 419400011);
 
   myt->cm_bytes = cmalloc_init(0,0);
-  myt->cm_bytevecs = cmalloc_init(0,0);
+  myt->cm_iovecs = cmalloc_init(0,0);
   myt->cm_elements = cmalloc_init(0,0);
 
   if (dofree == FREE) {
@@ -313,7 +323,7 @@ void bytes_hash_table_destroy(struct iovec_hash * ht) {
   g_hash_table_destroy(ht->ht);
   free(ht->randoms);
   cmalloc_destroy(ht->cm_bytes);
-  cmalloc_destroy(ht->cm_bytevecs);
+  cmalloc_destroy(ht->cm_iovecs);
   cmalloc_destroy(ht->cm_elements);
   free(ht);
 }
