@@ -41,7 +41,7 @@ smacq_result fifoModule::produce(DtsObject & datum, int & outchan) {
     fifo = fifo->next;
 
     datum = old->obj;
-    free(old);
+    delete(old);
   } else {
     return(SMACQ_END);
   }
