@@ -8,7 +8,7 @@ FILTER="ip"
 	    #) \
 
 #while [ 1 ]; do 
-	./smacqq "\
+	./smacqq -g "\
 	print -d ; flowid bytes packets srcip srcport dstport \
                 dstip packetsback bytesback start finish \
 		from (flowid -r -t 8 srcip dstip srcport dstport \
