@@ -299,7 +299,7 @@ inline void SmacqGraph::replace_child(SmacqGraph * oldchild,
 
   FOREACH_CHILD(this, {
       if (child == oldchild) {
-	replace_child(i, j, newchild);
+			replace_child(i, j, newchild);
       }
     });
 }
@@ -422,7 +422,7 @@ inline SmacqGraph * SmacqGraph::children_as_heads() {
 
 /// Modify parent(s) and children to replace myself with the specified graph.
 inline void SmacqGraph::replace(SmacqGraph * g) {
-  parent[0]->print(stderr, 0);
+  //parent[0]->print(stderr, 0);
 
   if (children[0].size()) {
     assert(children.size() == 1);
@@ -442,7 +442,7 @@ inline void SmacqGraph::replace(SmacqGraph * g) {
   
   for (int i = 0; i < numparents; i++) {
     parent[i]->replace_child(this, g);
-    parent[i]->print(stderr, 4);
+    //parent[i]->print(stderr, 4);
     parent[i] = NULL;
   }
   numparents = 0;
