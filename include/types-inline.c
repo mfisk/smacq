@@ -1,10 +1,7 @@
 #ifndef SMACQ_INLINE_C
 #define SMACQ_INLINE_C
 
-/* Need NAN: */
-#define __USE_ISOC99 1
 #include <math.h>
-
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
