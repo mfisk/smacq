@@ -117,7 +117,7 @@ void attach_stats(struct state * state, struct srcstat * s, const dts_object * d
 
 }
 
-static inline int output(struct state * state, struct iovec * domainv, struct srcstat * s) {
+static inline int output(struct state * state, struct srcstat * s) {
     int i;
 
     // Output refresh record
@@ -151,19 +151,19 @@ static int expired(struct state * state, struct iovec * domainv, struct srcstat 
 
   if (s->expired) {
     assert(0); //Shouldn't happen
-    return 1;
   }
 
   if (!timeval_past(s->lasttime, state->edge)) {
     s->expired = 1;
 
-    output(state, domainv, s);
+    output(state, s);
 
     // Cleanup
     free(s->fields);
 
     if (domainv)
-    	bytes_hash_table_removev(state->stats, domainv, state->fieldset.num);
+    	if (!bytes_hash_table_removev(state->stats, domainv, state->fieldset.num))
+		assert(0);
 
     return 1;
   }
@@ -175,7 +175,7 @@ static void output_all(gpointer key, gpointer val, gpointer user_data) {
   struct srcstat * s = val;
   struct state * state = user_data;
 
-  output(state, NULL, s);
+  output(state, s);
 }
 
 static inline int test_expired(gpointer key, gpointer val, gpointer user_data) {
@@ -183,6 +183,30 @@ static inline int test_expired(gpointer key, gpointer val, gpointer user_data) {
   struct state * state = user_data;
   
   return expired(state, NULL, s);
+}
+
+struct srcstat * stats_lookup(struct state * state, const dts_object * datum, struct iovec ** domainv, int * swapped) {
+	struct srcstat * s;
+  	*domainv = fields2vec(state->env, datum, &state->fieldset);
+	if (!*domainv) {
+		*swapped = -1;
+		return NULL;
+	}
+
+	s = bytes_hash_table_lookupv(state->stats, *domainv, state->fieldset.num);
+	if (s && !expired(state, *domainv, s)) return s;
+
+	/* Try reverse */
+    	if (state->reverse) {
+		struct iovec * rev_domainv = fields2vec(state->env, datum, &state->fieldset2);
+		s = bytes_hash_table_lookupv(state->stats, rev_domainv, state->fieldset.num);
+		if (s && !expired(state, rev_domainv, s)) {
+			*swapped = 1;
+			return s;
+		}
+	}
+
+	return NULL;
 }
 
 /*
@@ -201,7 +225,8 @@ static smacq_result flowid_consume(struct state * state, const dts_object * datu
   const dts_object * field;
   dts_object * msgdata;
   struct timeval * tsnow;
-  int size, swapped;
+  int size;
+  int swapped = 0;
 
   // Get current time
   if (! (field = smacq_getfield(state->env, datum, state->ts_field, NULL))) {
@@ -221,28 +246,19 @@ static smacq_result flowid_consume(struct state * state, const dts_object * datu
     dts_decref(field);
   }
 
-  // Find this entry
-  domainv = fields2vec(state->env, datum, &state->fieldset);
-
-  if (!domainv) {
-    //fprintf(stderr, "Skipping datum\n");
-    return SMACQ_FREE;
-  }
-  s = bytes_hash_table_lookupv(state->stats, domainv, state->fieldset.num);
- 
-  swapped = 0;
-
+  // Update clock
   if (state->hasinterval) 
     timeval_minus(*tsnow, state->interval, &state->edge);
 
-  // Make new entry if necessary 
-  if (!s || expired(state, domainv, s)) {
-    if (state->reverse) {
-      struct iovec * domain2v =  fields2vec(state->env, datum, &state->fieldset2);
-      s = bytes_hash_table_lookupv(state->stats, domain2v, state->fieldset2.num);
-    }
+  s = stats_lookup(state, datum, &domainv, &swapped);
 
-    if (!s || expired(state, domainv, s)) {
+  if (swapped == -1) {
+    //fprintf(stderr, "Skipping datum\n");
+    return SMACQ_FREE;
+  }
+ 
+  // Make new entry if necessary 
+  if (!s) {
       int i;
 
       s = g_new0(struct srcstat, 1);
@@ -257,19 +273,16 @@ static smacq_result flowid_consume(struct state * state, const dts_object * datu
       bytes_hash_table_replacev(state->stats, domainv, state->fieldset.num, s);
       state->active++;
       status = SMACQ_PASS;
-    } else {
-      swapped = 1;
-    }
   }
 
   // Update state
   s->lasttime = *tsnow;
   if (swapped) {
     s->byte_count_back += size;
-    s->packet_count_back ++;
+    s->packet_count_back++;
   } else {
     s->byte_count += size;
-    s->packet_count ++;
+    s->packet_count++;
   }
 
   if (status & SMACQ_PASS) {
