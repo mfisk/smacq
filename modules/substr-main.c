@@ -50,9 +50,9 @@ static smacq_result substr_produce(struct state* state, const dts_object ** datu
 static smacq_result substr_consume(struct state * state, const dts_object * datum, int * outchan) {
   struct substr_search_result res;
   const dts_object * field;
-  int found;
-
   int matched = 0;
+  int chan;
+
   assert(datum);
 
   if (state->field) {
@@ -65,24 +65,24 @@ static smacq_result substr_consume(struct state * state, const dts_object * datu
   memset(&res, 0, sizeof(res));
 
   while(1) {
-	  found = substr_search(state->set, field->data, field->len, &res);
-	  if (!found) break;
+	  if (! substr_search(state->set, field->data, field->len, &res)) 
+		  break;
 
-	  fprintf(stderr, "pattern match '%.*s' at offset %d\n", res.p->len, res.p->pattern, res.shift);
+	  chan = (int)res.p->handle;
+
 #ifdef DEBUG
+	  fprintf(stderr, "pattern match '%.*s' at offset %d output %d\n", res.p->len, res.p->pattern, res.shift, chan);
 #endif
 
-	  if (state->demux) {
-		if (matched) {
-			smacq_produce_enqueue(&state->outputq, datum, (int)res.p->handle);
-			dts_incref(datum, 1);
-		} else {
-			*outchan = (int)res.p->handle;
-		}
+	  if (matched) {
+		smacq_produce_enqueue(&state->outputq, datum, chan);
+		dts_incref(datum, 1);
+	  } else {
+	  	matched = 1;
+		*outchan = chan;
 	  }
-
-	  matched = 1;
   }
+
   if (state->field) 
 	  dts_decref(field);
 
