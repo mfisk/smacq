@@ -1,6 +1,6 @@
 #include <DtsObject.h>
 
-enum action { PRODUCE=1, SHUTDOWN=2, LASTCALL=3, CONSUME=4 };
+enum action { PRODUCE=1, SHUTDOWN=2, CONSUME=4 };
 
 struct qel {
   enum action action;
@@ -153,7 +153,7 @@ inline bool runq::is_empty() {
 inline bool runq::pending_normal(SmacqGraph * f) {
 	struct qel * q = this->head;
 	while (q) {
-		if ((q->action != SHUTDOWN) && (q->action != LASTCALL) && (q->f == f)) {
+		if ((q->action != SHUTDOWN) && (q->f == f)) {
 			return 1;
 		}
 		q = q->next;

@@ -1,8 +1,8 @@
+#ifndef ITERATIVE_SCHEDULER_H
+#define ITERATIVE_SCHEDULER_H
 #include <stdlib.h>
-#include <SmacqGraph.h>
 #include <smacq.h>
 #include <RunQ.h>
-
 
 /// This is currently the only scheduler implementation.
 class IterativeScheduler {
@@ -34,11 +34,13 @@ class IterativeScheduler {
   /// Return false iff error.
   bool busy_loop();
 
+  /// Handle an object produced by the specified node
+  void queue_children(SmacqGraph * f, DtsObject d, int outchan);
+
  private:
   bool graphs_alive (SmacqGraph *f);
 
   void do_shutdown(SmacqGraph *f);
-  void queue_children(SmacqGraph * f, DtsObject d, int outchan);
   void check_for_shutdown(SmacqGraph *f);
   smacq_result run_produce(SmacqGraph * f);
   bool run_consume(SmacqGraph * f, DtsObject d);
@@ -49,6 +51,8 @@ class IterativeScheduler {
   runq q;
   SmacqGraph * graph;
 };
+
+#include <SmacqGraph.h>
 
 inline IterativeScheduler::IterativeScheduler(DTS * dts, 
 				       SmacqGraph * startf, 
@@ -155,7 +159,6 @@ inline bool IterativeScheduler::graphs_alive (SmacqGraph *f) {
 }
 
 inline void IterativeScheduler::shutdown(SmacqGraph * f) {
-  q.runable(f, NULL, LASTCALL);
   q.runable(f, NULL, SHUTDOWN);
 }
 
@@ -245,15 +248,6 @@ inline smacq_result IterativeScheduler::element(DtsObject &dout) {
 			}
 			break;
 
-    case LASTCALL:
-      if (q.pending_normal(f)) {
-	/* Defer last call until everything produced and consumed */
-	q.runable(f, NULL, LASTCALL);
-      } else {
-	run_produce(f);
-      }
-      break;
- 
    case PRODUCE:
       run_produce(f);
       break;
@@ -327,4 +321,4 @@ inline smacq_result IterativeScheduler::decide(DtsObject din) {
 	}
 
 }
-
+#endif

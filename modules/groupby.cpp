@@ -19,8 +19,8 @@ typedef FieldVecHash<SmacqGraph*>::iterator OutputsIterator;
 
 SMACQ_MODULE(groupby,
   PROTO_CTOR(groupby);
+  PROTO_DTOR(groupby);
   PROTO_CONSUME();
-  PROTO_PRODUCE();
 
   SmacqScheduler * sched;
 	  
@@ -77,14 +77,12 @@ smacq_result groupbyModule::consume(DtsObject datum, int & outchan) {
   return SMACQ_FREE;
 }
 
-smacq_result groupbyModule::produce(DtsObject & datum, int & outchan) {
-  /// Last call
+groupbyModule::~groupbyModule() {
   OutputsIterator i;
   for (i=outTable.begin(); i!= outTable.end(); ++i) {
     sched->shutdown(i->second);
   }
   outTable.clear();
-  return SMACQ_END;
 }
 
 groupbyModule::groupbyModule(struct SmacqModule::smacq_init * context) 

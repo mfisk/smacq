@@ -6,10 +6,6 @@
 #include <FieldVec.h>
 #include <SmacqScheduler.h>
 
-/* Programming constants */
-
-#define KEYBYTES 128
-
 struct join {
   SmacqGraph * graph;
   DtsField field;
@@ -22,11 +18,9 @@ struct join {
 SMACQ_MODULE(ndjoin,
   PROTO_CTOR(ndjoin);
   PROTO_CONSUME();
-  PROTO_PRODUCE();
 
   int whereargc;
   char ** whereargv;
-  DtsObject product;
   dts_comparison * comp;
 
   struct join join;
@@ -97,15 +91,3 @@ ndjoinModule::ndjoinModule(struct SmacqModule::smacq_init * context)
   sched = new SmacqScheduler(dts, join.graph, true);
 }
 
-smacq_result ndjoinModule::produce(DtsObject & datump, int & outchan) {
-  smacq_result status;
-
-  if (product) {
-    datump = product;
-    status = SMACQ_PASS;
-  } else {
-    status = SMACQ_FREE;
-  }
-
-  return (smacq_result)(status | (product ? SMACQ_PRODUCE : 0));
-}

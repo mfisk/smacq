@@ -1,11 +1,24 @@
-#ifndef LIBSMACQ_DATAFLOW_H
-#define LIBSMACQ_DATAFLOW_H
+/*
 
-#include <SmacqGraphNode.h>
+We have a really nasty dependency problem here:
+  SmacqGraph -> SmacqGraphNode -> SmacqModule -> SmacqScheduler
+
+SmacqScheduler depends on SmacqGraph, but only later in the file.  To avoid
+a dependency loop, we therefore have to include SmacqScheduler before anything
+else in that chain.
+
+*/
+#include <SmacqScheduler.h>
+
+#ifndef SMACQ_GRAPH_H
+#define SMACQ_GRAPH_H
+
 #include <DynamicArray.h>
 #include <set>
 #include <vector>
 #include <assert.h>
+
+#include <SmacqGraphNode.h>
 
 #define FOREACH_CHILD(x, y)					    \
   for (unsigned int i = 0; i < (x)->children.size(); i ++)	    \

@@ -18,8 +18,8 @@ static struct smacq_options options[] = {
 
 SMACQ_MODULE(sum, 
   PROTO_CTOR(sum);
+  PROTO_DTOR(sum);
   PROTO_CONSUME();
-  PROTO_PRODUCE();
 
   FieldVec fieldvec;
 
@@ -94,17 +94,12 @@ sumModule::sumModule(struct SmacqModule::smacq_init * context) : SmacqModule(con
   xfield = dts->requirefield(xfieldname);
 }
 
-smacq_result sumModule::produce(DtsObject & datum, int & outchan) {
+sumModule::~sumModule() {
   if (lastin) {
         DtsObject msgdata = dts->construct(sumtype, &total);
         lastin->attach_field(sumfield, msgdata); 
-	
-	datum = lastin;
-	lastin = NULL;
-  	//fprintf(stderr, "sum last call for %p\n", datum);
-	return SMACQ_PASS|SMACQ_END;
-  } else {
-  	return SMACQ_FREE|SMACQ_END;
+
+		enqueue(lastin);
   }
 }
 

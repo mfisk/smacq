@@ -159,32 +159,20 @@ class SmacqModule {
  protected:
   /// Each module instance runs in the context of a DTS instance.
   DTS * dts;
-  
-  /// @name Output Queueing
-  /// A module can internally queue output objects
-  /// @{
-  
-  /// Return SMACQ_CANPRODUCE or SMACQ_NONE
-  smacq_result canproduce();
 
-  /// Dequeue an object for output.  Both the object reference output
-  /// channel reference will be set if there is anything on the queue.
-  /// SMACQ_PASS is returned on success and SMACQ_NONE is returned if
-  /// the queue is empty.  If there is more than one item in the
-  /// queue, then SMACQ_PRODUCE|SMACQ_PASS is returned.
-  smacq_result dequeue(DtsObject &, int & outchan);
+  /// Each module instance is run by a scheduler.
+  SmacqScheduler * scheduler;
 
+  /// A pointer to ourself in the current dataflow graph
+  SmacqGraph * self;
+  
   /// Enqueue an object for output to the specified output channel.
-  void enqueue(DtsObject &, int outchan);
-  /// @}
-  
- private:
-  std::list<std::pair<DtsObject,int> > outputq;
+  void enqueue(DtsObject &, int outchan = 0);
 };
 
-inline SmacqModule::SmacqModule(struct smacq_init * context) {
-	dts = context->dts;
-}
+inline SmacqModule::SmacqModule(struct smacq_init * context) 
+	: dts(context->dts), scheduler(context->scheduler), self(context->self)
+{}
 
 inline SmacqModule::~SmacqModule() {}
 
@@ -193,41 +181,7 @@ inline smacq_result SmacqModule::consume(DtsObject datum, int & outchan) {
 }
 
 inline smacq_result SmacqModule::produce(DtsObject & datum, int & outchan) {
-	if (outputq.empty()) {
-		return SMACQ_END;
-	} else {
-		return dequeue(datum, outchan);
-	}
-}
-
-inline smacq_result SmacqModule::canproduce() {
-	if (outputq.empty()) {
-		return SMACQ_NONE;
-	} else {
-		return SMACQ_PRODUCE;
-	}
-}
-	
-inline void SmacqModule::enqueue(DtsObject & datum, int outchan) {
-	outputq.push_back(std::pair<DtsObject,int>(datum,outchan));
-}
-
-inline smacq_result SmacqModule::dequeue(DtsObject & d, int & outchan) {
-  if (outputq.empty()) {
-    return SMACQ_NONE;
-  }
-  
-  d = outputq.front().first;
-  outchan = outputq.front().second;
-  
-  outputq.pop_front();
-  
-  if (outputq.empty()) {
-    return SMACQ_PASS;
-  } else {
-    //fprintf(stderr, "returning SMACQ_PASS|SMACQ_PRODUCE\n");
-    return SMACQ_PASS|SMACQ_PRODUCE;
-  }
+	return SMACQ_END;
 }
 
 struct smacq_functions {
@@ -235,6 +189,12 @@ struct smacq_functions {
   struct SmacqModule::algebra algebra;
 /* Put constructor and algebra first so that we can use partial initializers in g++ */
 };
+
+#include <SmacqScheduler.h>
+
+inline void SmacqModule::enqueue(DtsObject & datum, int outchan) {
+	scheduler->queue_children(self, datum, outchan);
+}
 
 #else
 typedef void SmacqModule;

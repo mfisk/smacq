@@ -7,7 +7,6 @@
 SMACQ_MODULE(project,
   PROTO_CTOR(project);
   PROTO_CONSUME();
-  PROTO_PRODUCE();
 
   FieldVec fieldvec;
   int empty_type;
@@ -30,9 +29,8 @@ smacq_result projectModule::consume(DtsObject datum, int & outchan) {
 	}
     	newo->attach_field((*i)->num, newf); 
   }
-
-  product = newo;
-  return (smacq_result)(SMACQ_FREE|SMACQ_PRODUCE);
+  enqueue(newo);
+  return SMACQ_FREE;
 }
 
 projectModule::projectModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
@@ -43,14 +41,5 @@ projectModule::projectModule(struct SmacqModule::smacq_init * context) : SmacqMo
   fieldvec.init(dts, argc, argv);
 
   empty_type = dts->requiretype("empty");
-}
-
-smacq_result projectModule::produce(DtsObject & datum, int & outchan) {
-  if (product) {
-	  datum = product;
-	  product = NULL;
-	  return SMACQ_PASS;
-  }
-  return SMACQ_END;
 }
 

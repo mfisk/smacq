@@ -102,8 +102,7 @@ smacq_result joinModule::consume(DtsObject datum, int & outchan) {
 		break;
   }
 
-	//fprintf(stderr, "join canproduce? %d.\n", canproduce()==SMACQ_PRODUCE);
-  return (SMACQ_FREE|canproduce());
+  return SMACQ_FREE;
 }
 
 joinModule::joinModule(SmacqModule::smacq_init * context) 

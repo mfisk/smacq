@@ -12,7 +12,6 @@ SMACQ_MODULE(iplookup,
   PROTO_CTOR(iplookup);
   PROTO_DTOR(iplookup);
   PROTO_CONSUME();
-  PROTO_PRODUCE();
 
   int demux;
   struct batch * batch;
@@ -88,10 +87,6 @@ void iplookupModule::add_entry(char * field, char * needle, int output) {
   node->data = (void*)output;
 }
 
-smacq_result iplookupModule::produce(DtsObject & datum, int & outchan) {
-  return dequeue(datum, outchan);
-}
-
 smacq_result iplookupModule::consume(DtsObject datum, int & outchan) {
   DtsObject field;
   int matched = 0;
@@ -128,7 +123,7 @@ smacq_result iplookupModule::consume(DtsObject datum, int & outchan) {
   }
 
   if (matched) {
-	return (SMACQ_PASS|canproduce());
+	return SMACQ_PASS;
   } else {
   	return SMACQ_FREE;
   }

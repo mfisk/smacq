@@ -38,7 +38,6 @@ SMACQ_MODULE(flowid,
   PROTO_CTOR(flowid);
   PROTO_DTOR(flowid);
   PROTO_CONSUME();
-  PROTO_PRODUCE();
 
   FieldVec fieldvec;
   FieldVec fieldvec2;
@@ -316,7 +315,6 @@ smacq_result flowidModule::consume(DtsObject datum, int & outchan) {
   if (hasinterval) 
       timers_manage();
 
-  status |= canproduce();
   /* fprintf(stderr, "consume PRODUCE? %d\n", status & (SMACQ_PRODUCE|SMACQ_CANPRODUCE)); */
 
   //fprintf(stderr, "Expires list length %d\n", list_length(expires));
@@ -387,26 +385,11 @@ flowidModule::flowidModule(struct SmacqModule::smacq_init * context) : SmacqModu
 }
 
 flowidModule::~flowidModule() {
-  list_free(&timers);
-}
-
-smacq_result flowidModule::produce(DtsObject & datum, int & outchan) {
-  if (canproduce()) {
-    return dequeue(datum, outchan);
-  } else {
-    /* fprintf(stderr, "flowid: produce called with nothing in queue.  Outputing everything in current table!\n"); */
-
-    FieldVecHash<SrcStat*>::iterator i;
-    for (i=stats.begin(); i!=stats.end(); i++) {
+   FieldVecHash<SrcStat*>::iterator i;
+   for (i=stats.begin(); i!=stats.end(); i++) {
       finalize(i->second);
-    }
+   }
 
-    list_free(&timers);
-
-    if (!canproduce())
-	    return (SMACQ_FREE|SMACQ_END);
-
-    return produce(datum, outchan);
-  }
+  list_free(&timers);
 }
 

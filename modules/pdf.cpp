@@ -3,20 +3,14 @@
 #include <SmacqModule.h>
 #include <FieldVec.h>
 
-struct obj_list{
-  DtsObject obj;
-  struct obj_list * next;
-};
-
 SMACQ_MODULE(pdf,
   PROTO_CTOR(pdf);
+  PROTO_DTOR(pdf);
   PROTO_CONSUME();
-  PROTO_PRODUCE();
 
   FieldVec fieldvec;
   
-  struct obj_list * outputq;
-  struct obj_list * list;
+  std::vector<DtsObject> list;
 
   dts_typeid refreshtype;
   dts_typeid probtype;
@@ -30,23 +24,22 @@ SMACQ_MODULE(pdf,
 void pdfModule::compute_all() {
   DtsObject count; 
   DtsObject pfield; 
-  struct obj_list * n;
+  std::vector<DtsObject>::iterator n;
   double p;
 
-  outputq = list;
-  list = NULL;
-
-  for (n = outputq; n; n = n->next) {
-  	if (! (count = n->obj->getfield(countfield))) {
+  for (n = list.begin(); n != list.end(); ++n) {
+  	if (! (count = (*n)->getfield(countfield))) {
 		assert(0);
 	}
 	p = (double)(dts_data_as(count, int)) / (double)(total);
 	//fprintf(stderr, "%d / %lld = %g\n", *(int*)(count.data), total, p);
 	pfield = dts->construct(probtype, &p);
-	n->obj->attach_field(probfield, pfield); 
-	
-  }
+	(*n)->attach_field(probfield, pfield); 
 
+	enqueue(*n);	
+  }
+  
+  list.resize(0);
   total = 0;
 }
   
@@ -63,19 +56,9 @@ smacq_result pdfModule::consume(DtsObject datum, int & outchan) {
       	return SMACQ_PASS;
       }
   } else {
-  	struct obj_list * newo = new obj_list;
-  	newo->obj = datum;
-  	newo->next = list;
-  	list = newo;
-
-	
-
+	list.push_back(datum);
   	total += dts_data_as(count, int);
-	
   }
-
-  if (outputq) 
-	res |= SMACQ_PRODUCE;
 
   return(res);
 }
@@ -88,19 +71,7 @@ pdfModule::pdfModule(struct SmacqModule::smacq_init * context)
 	countfield(dts->requirefield("count"))
 {}
 
-smacq_result pdfModule::produce(DtsObject & datum, int & outchan) {
-  if (!outputq) {
+pdfModule::~pdfModule() {
     compute_all();
-  }
-    
-  if (outputq) {
-    datum = outputq->obj;
-    outputq = outputq->next;
-  } else {
-    return SMACQ_END;
-  }
-
-
-  return (smacq_result)(SMACQ_PASS|(outputq ? SMACQ_PRODUCE : 0));
 }
 

@@ -68,7 +68,7 @@ smacq_result clockModule::consume(DtsObject datum, int & outchan) {
   datum->attach_field(clockfield, current_ticko);
   
 
-  return (SMACQ_PASS|canproduce());
+  return SMACQ_PASS;
 }
 
 clockModule::clockModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
@@ -98,14 +98,9 @@ clockModule::clockModule(struct SmacqModule::smacq_init * context) : SmacqModule
 }
 
 smacq_result clockModule::produce(DtsObject & datum, int & outchan) {
-  //fprintf(stderr, "clock is producing (a refresh)\n");
-  if (canproduce()) {
-  	return dequeue(datum, outchan);
-  } else {
 	/* Forced last call */
 	datum = dts->construct(refreshtype, NULL);
 	datum->attach_field(clockfield, current_ticko);
 	return (SMACQ_PASS|SMACQ_END);
-  }
 }
 

@@ -11,7 +11,6 @@
 SMACQ_MODULE(substr,
   PROTO_CTOR(substr);
   PROTO_CONSUME();
-  PROTO_PRODUCE();
 
   int demux;
   struct batch * batch;
@@ -121,10 +120,6 @@ void substrModule::add_entry(char * field, char * needle, int output) {
   substr_add(mybatch->set, nlen, (unsigned char*)needle, 0, (void*)output, 0, 0);
 }
 
-smacq_result substrModule::produce(DtsObject & datum, int & outchan) {
-  return dequeue(datum, outchan);
-}
-
 smacq_result substrModule::consume(DtsObject datum, int & outchan) {
   struct substr_search_result res;
   DtsObject field;
@@ -166,7 +161,7 @@ smacq_result substrModule::consume(DtsObject datum, int & outchan) {
   }
 
   if (matched) {
-	return (SMACQ_PASS|canproduce());
+	return SMACQ_PASS;
   } else {
   	return SMACQ_FREE;
   }

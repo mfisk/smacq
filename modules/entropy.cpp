@@ -6,8 +6,8 @@
 
 SMACQ_MODULE(entropy,
   PROTO_CTOR(entropy);
+  PROTO_DTOR(entropy);
   PROTO_CONSUME();
-  PROTO_PRODUCE();
 
   double total;
   double prev_total;
@@ -26,12 +26,11 @@ static struct smacq_options options[] = {
 
 smacq_result entropyModule::consume(DtsObject datum, int & outchan) {
 	if (datum->gettype() == refreshtype) {
-		double total = total / log(2);
-    		DtsObject msgdata = dts->construct(probtype, &total);
+		double tot = total / log(2);
+    	DtsObject msgdata = dts->construct(probtype, &tot);
 		// fprintf(stderr, "Got refresh\n");
-    		datum->attach_field(entropyfield, msgdata); 
+    	datum->attach_field(entropyfield, msgdata); 
 		
-
 		prev_total = total;
 		total = 0;
 	
@@ -59,7 +58,9 @@ smacq_result entropyModule::consume(DtsObject datum, int & outchan) {
 	}
 }
 
-entropyModule::entropyModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
+entropyModule::entropyModule(struct SmacqModule::smacq_init * context) 
+  : SmacqModule(context) 
+{
   {
   	int argc = 0;
   	char ** argv;
@@ -78,27 +79,18 @@ entropyModule::entropyModule(struct SmacqModule::smacq_init * context) : SmacqMo
   entropyfield = dts->requirefield("entropy");
 }
 
-smacq_result entropyModule::produce(DtsObject & datum, int & outchan) {
-  double total = total;
-  if (!total) total = prev_total;
+entropyModule::~entropyModule() {
+  double tot = total;
+  if (!tot) tot = prev_total;
 
-  total /= log(2);
+  tot /= log(2);
   // fprintf(stderr, "TOTAL is %g\n", total);
 
-  if (!total) {
-    return SMACQ_END;
-  } else {
+  if (tot) {
     //DtsObject refresh = dts->construct(refreshtype, NULL);
-    DtsObject msgdata = dts->construct(probtype, &total);
+    DtsObject msgdata = dts->construct(probtype, &tot);
     lasto->attach_field(entropyfield, msgdata); 
-    
-    datum = lasto;
-
-    // net refcount change of 0
+	enqueue(lasto);
   }
-
-  prev_total = 0;
-  
-  return (smacq_result)SMACQ_PASS|SMACQ_END;
 }
 

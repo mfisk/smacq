@@ -12,8 +12,8 @@ static struct smacq_options options[] = {
 
 SMACQ_MODULE(count, 
   PROTO_CTOR(count);
+  PROTO_DTOR(count);
   PROTO_CONSUME();
-  PROTO_PRODUCE();
 
   void annotate(DtsObject datum, int c);
 
@@ -107,21 +107,9 @@ countModule::countModule(struct SmacqModule::smacq_init * context)
   }
 }
 
-smacq_result countModule::produce(DtsObject & datump, int & outchan) {
-  //fprintf(stderr, "count_produce()\n");
-  
-  if (!lastin) {
-    return SMACQ_FREE;
-  }
-
-  if (! fieldvec.empty()) {
-    assert("count: If field names are specified, you must use -a\n!"&&0);
-  } else {
+countModule::~countModule() {
+  if (lastin && fieldvec.empty()) {
     annotate(lastin, counter);
-    datump = lastin;
-    lastin = NULL;
+	enqueue(lastin);
   }
-
-  //fprintf(stderr, "count_produce() %p\n", datump);
-  return (SMACQ_PASS|SMACQ_END);
 }

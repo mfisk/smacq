@@ -12,8 +12,8 @@ static struct smacq_options options[] = {
 
 SMACQ_MODULE(last, 
   PROTO_CTOR(last);
+  PROTO_DTOR(last);
   PROTO_CONSUME();
-  PROTO_PRODUCE();
 
 	     FieldVec fieldvec;
 	     FieldVecHash<DtsObject> last;
@@ -125,8 +125,6 @@ void lastModule::emit_all() {
 }
   
 smacq_result lastModule::consume(DtsObject datum, int & outchan) {
-  smacq_result condproduce = (smacq_result)0;
-  
   if (hasinterval) {
     DtsObject field_data;
 
@@ -158,13 +156,9 @@ smacq_result lastModule::consume(DtsObject datum, int & outchan) {
   
   last[fieldvec] = datum;
 
-  return (SMACQ_FREE|canproduce());
+  return SMACQ_FREE;
 }
 
-smacq_result lastModule::produce(DtsObject & datum, int & outchan) {
-  if (!canproduce()) {
-    emit_all();
-  }
-
-  return dequeue(datum, outchan);
+lastModule::~lastModule() {
+  emit_all();
 }

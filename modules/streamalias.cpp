@@ -17,7 +17,7 @@ smacq_result streamaliasModule::consume(DtsObject datum, int & outchan) {
   newd->attach_field(newfield, datum);
   enqueue(newd, 0);
 
-  return SMACQ_FREE|canproduce();
+  return SMACQ_FREE;
 }
 
 streamaliasModule::streamaliasModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
