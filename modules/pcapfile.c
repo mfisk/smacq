@@ -44,12 +44,15 @@ struct state {
   dts_field ifindex_field, protocol_field, pkt_type_field;
 };
 
-
+/*
 #define SWAPLONG(y) \
 ((((y)&0xff)<<24) | (((y)&0xff00)<<8) | (((y)&0xff0000)>>8) | (((y)>>24)&0xff))
 #define SWAPSHORT(y) \
         ( (((y)&0xff)<<8) | ((u_short)((y)&0xff00)>>8) )
+*/
 
+#define SWAPLONG(y) GUINT32_SWAP_LE_BE(y)
+#define SWAPSHORT(y) GUINT16_SWAP_LE_BE(y)
 
 static inline void swap_hdr(struct pcap_file_header *hp)
 {
