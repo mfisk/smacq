@@ -23,7 +23,7 @@ static void * closure = NULL;
 int pcap_loop(pcap_t * p, int foo, pcap_handler handler, u_char * user) {
 	int argc = 0;
 	char ** argv = NULL;
-	struct filter * f;
+	smacq_graph * f;
 	char * args = strdup(getenv("SMACQ_PCAP"));
 	char * tok;
 	if (!args) {
