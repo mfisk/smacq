@@ -28,7 +28,7 @@ struct obj_list{
 struct state {
   smacq_environment * env;
   struct fieldset fieldset;
-  GHashTableofBytes *last;
+  struct iovec_hash *last;
   
   struct obj_list * outputq, *list;
 

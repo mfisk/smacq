@@ -25,7 +25,7 @@ struct state {
   enum mode mode;
   smacq_graph * self;
 
-  GHashTableofBytes * hashtable;
+  struct iovec_hash * hashtable;
 }; 
 
 static smacq_result split_consume(struct state * state, const dts_object * datum, int * outchan) {

@@ -17,7 +17,7 @@ static struct smacq_options options[] = {
 struct state {
   smacq_environment * env;
   struct fieldset fieldset;
-  GHashTableofBytes *counters;
+  struct iovec_hash *counters;
   int started;
 
   double lastx, lasty;

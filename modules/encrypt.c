@@ -21,7 +21,7 @@ struct state {
   smacq_environment * env;
   struct fieldset fieldset;
   dts_field changefield;
-  GHashTableofBytes * hashtable;
+  struct iovec_hash * hashtable;
   const dts_object * datum;
 
   int add;

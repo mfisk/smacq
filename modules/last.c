@@ -21,7 +21,7 @@ static struct smacq_options options[] = {
 struct state {
   smacq_environment * env;
   struct fieldset fieldset;
-  GHashTableofBytes *last;
+  struct iovec_hash *last;
   
   struct timeval interval, nextinterval;
   int istarted, hasinterval;

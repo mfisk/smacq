@@ -24,7 +24,7 @@
 struct state {
   smacq_environment * env;
   struct fieldset fieldset;
-  GHashTableofBytes *drset;
+  struct iovec_hash *drset;
   struct bloom_summary *summary;
   double prob; // Use probabilistic algebraorithms?
   int threshold;

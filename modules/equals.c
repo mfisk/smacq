@@ -28,8 +28,8 @@
 #define KEYBYTES 128
 
 struct set_element {
-  //GHashTableofBytes *drset;
-  struct darray tables; // darray of GHashTableofBytes* 
+  //struct iovec_hash *drset;
+  struct darray tables; // darray of struct iovec_hash* 
   struct darray values; // darray of struct value 
   struct fieldset fieldset;
 };
@@ -105,10 +105,10 @@ static inline void init_sets(struct state * state) {
 }
 
 /* fields2vec must have been called before get_table() */
-static inline GHashTableofBytes * get_table(struct state * state, struct set_element * set, const dts_object * datum) {
+static inline struct iovec_hash * get_table(struct state * state, struct set_element * set, const dts_object * datum) {
 	int i;
 	int type = set->fieldset.currentdata[0]->type;
-	GHashTableofBytes * table = darray_get(&set->tables, type);
+	struct iovec_hash * table = darray_get(&set->tables, type);
 
 	if (!table) {
   		table = bytes_hash_table_new(KEYBYTES, CHAIN, NOFREE);
@@ -146,7 +146,7 @@ static smacq_result equals_consume(struct state * state, const dts_object * datu
   struct iovec * domainv;
   int val;
   int found = 0;
-  GHashTableofBytes * table;
+  struct iovec_hash * table;
   int t;
   int i;
 

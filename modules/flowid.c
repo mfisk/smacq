@@ -80,7 +80,7 @@ struct state {
   dts_field packet_count_back_field;
 
   struct wheel timers;
-  GHashTableofBytes *stats;
+  struct iovec_hash *stats;
   
   int reverse;
 }; 
