@@ -105,13 +105,13 @@
 
 
 /* Copy the first part of user declarations.  */
-#line 4 "/home/mfisk/projects/lfap/smacq/libsmacq/filter/expr-parser.y"
+#line 4 "/home/mfisk/smacq/libsmacq/filter/expr-parser.y"
 
 #include <smacq.h>
 static struct dts_operand * Expr;
 extern char * yysmacql_text;
 #define yyexprlex yysmacql_lex
-#line 30 "/home/mfisk/projects/lfap/smacq/libsmacq/filter/expr-parser.y"
+#line 30 "/home/mfisk/smacq/libsmacq/filter/expr-parser.y"
 
 #include <smacq-parser.h>
 
@@ -130,7 +130,7 @@ extern char * yysmacql_text;
 #endif
 
 #if ! defined (YYSTYPE) && ! defined (YYSTYPE_IS_DECLARED)
-#line 59 "/home/mfisk/projects/lfap/smacq/libsmacq/filter/expr-parser.y"
+#line 59 "/home/mfisk/smacq/libsmacq/filter/expr-parser.y"
 typedef union YYSTYPE {
   struct graph graph;
   struct arglist * arglist;
@@ -143,7 +143,7 @@ typedef union YYSTYPE {
   struct dts_operand * operand;
 } YYSTYPE;
 /* Line 191 of yacc.c.  */
-#line 147 "/home/mfisk/projects/lfap/smacq/libsmacq/filter/expr-parser.c"
+#line 147 "/home/mfisk/smacq/libsmacq/filter/expr-parser.c"
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
 # define YYSTYPE_IS_TRIVIAL 1
@@ -155,7 +155,7 @@ typedef union YYSTYPE {
 
 
 /* Line 214 of yacc.c.  */
-#line 159 "/home/mfisk/projects/lfap/smacq/libsmacq/filter/expr-parser.c"
+#line 159 "/home/mfisk/smacq/libsmacq/filter/expr-parser.c"
 
 #if ! defined (yyoverflow) || YYERROR_VERBOSE
 
@@ -1038,81 +1038,81 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 80 "/home/mfisk/projects/lfap/smacq/libsmacq/filter/expr-parser.y"
+#line 80 "/home/mfisk/smacq/libsmacq/filter/expr-parser.y"
     { yyval.string = yystring; ;}
     break;
 
   case 3:
-#line 83 "/home/mfisk/projects/lfap/smacq/libsmacq/filter/expr-parser.y"
+#line 83 "/home/mfisk/smacq/libsmacq/filter/expr-parser.y"
     { yyval.string = yystring; ;}
     break;
 
   case 4:
-#line 86 "/home/mfisk/projects/lfap/smacq/libsmacq/filter/expr-parser.y"
+#line 86 "/home/mfisk/smacq/libsmacq/filter/expr-parser.y"
     { yyval.string = yystring; ;}
     break;
 
   case 5:
-#line 87 "/home/mfisk/projects/lfap/smacq/libsmacq/filter/expr-parser.y"
+#line 87 "/home/mfisk/smacq/libsmacq/filter/expr-parser.y"
     { yyval.string = "or"; ;}
     break;
 
   case 6:
-#line 88 "/home/mfisk/projects/lfap/smacq/libsmacq/filter/expr-parser.y"
+#line 88 "/home/mfisk/smacq/libsmacq/filter/expr-parser.y"
     { yyval.string = "and"; ;}
     break;
 
   case 7:
-#line 131 "/home/mfisk/projects/lfap/smacq/libsmacq/filter/expr-parser.y"
+#line 131 "/home/mfisk/smacq/libsmacq/filter/expr-parser.y"
     { yyval.operand = comp_operand(FIELD, yyvsp[0].string); ;}
     break;
 
   case 8:
-#line 132 "/home/mfisk/projects/lfap/smacq/libsmacq/filter/expr-parser.y"
+#line 132 "/home/mfisk/smacq/libsmacq/filter/expr-parser.y"
     { yyval.operand = comp_operand(CONST, yyvsp[0].string); ;}
     break;
 
   case 9:
-#line 133 "/home/mfisk/projects/lfap/smacq/libsmacq/filter/expr-parser.y"
+#line 133 "/home/mfisk/smacq/libsmacq/filter/expr-parser.y"
     { yyval.operand = comp_operand(CONST, yyvsp[0].string); ;}
     break;
 
   case 10:
-#line 139 "/home/mfisk/projects/lfap/smacq/libsmacq/filter/expr-parser.y"
+#line 139 "/home/mfisk/smacq/libsmacq/filter/expr-parser.y"
     {	  
 				  yyval.operand = yyvsp[-1].operand;  
 				;}
     break;
 
   case 11:
-#line 143 "/home/mfisk/projects/lfap/smacq/libsmacq/filter/expr-parser.y"
+#line 143 "/home/mfisk/smacq/libsmacq/filter/expr-parser.y"
     {
 				  yyval.operand = comp_arith(parse_tenv, yyvsp[-1].arithop, yyvsp[-2].operand, yyvsp[0].operand); 
 				;}
     break;
 
   case 14:
-#line 172 "/home/mfisk/projects/lfap/smacq/libsmacq/filter/expr-parser.y"
+#line 172 "/home/mfisk/smacq/libsmacq/filter/expr-parser.y"
     { yyval.arithop = ADD; ;}
     break;
 
   case 15:
-#line 173 "/home/mfisk/projects/lfap/smacq/libsmacq/filter/expr-parser.y"
+#line 173 "/home/mfisk/smacq/libsmacq/filter/expr-parser.y"
     { yyval.arithop = SUB; ;}
     break;
 
   case 16:
-#line 174 "/home/mfisk/projects/lfap/smacq/libsmacq/filter/expr-parser.y"
+#line 174 "/home/mfisk/smacq/libsmacq/filter/expr-parser.y"
     { yyval.arithop = DIVIDE; ;}
     break;
 
   case 17:
-#line 175 "/home/mfisk/projects/lfap/smacq/libsmacq/filter/expr-parser.y"
+#line 175 "/home/mfisk/smacq/libsmacq/filter/expr-parser.y"
     { yyval.arithop = MULT; ;}
     break;
 
   case 18:
-#line 179 "/home/mfisk/projects/lfap/smacq/libsmacq/filter/expr-parser.y"
+#line 179 "/home/mfisk/smacq/libsmacq/filter/expr-parser.y"
     {
 					Expr = yyvsp[-1].operand;
 					return 0;
@@ -1123,7 +1123,7 @@ yyreduce:
     }
 
 /* Line 999 of yacc.c.  */
-#line 1127 "/home/mfisk/projects/lfap/smacq/libsmacq/filter/expr-parser.c"
+#line 1127 "/home/mfisk/smacq/libsmacq/filter/expr-parser.c"
 
   yyvsp -= yylen;
   yyssp -= yylen;
@@ -1317,17 +1317,19 @@ yyreturn:
 }
 
 
-#line 185 "/home/mfisk/projects/lfap/smacq/libsmacq/filter/expr-parser.y"
+#line 185 "/home/mfisk/smacq/libsmacq/filter/expr-parser.y"
 
 
 static dts_environment * tenv;
 extern void yysmacql_scan_string(char *);
 
+#ifndef SMACQ_OPT_NOPTHREADS
 #ifdef PTHREAD_MUTEX_INITIALIZER
   static pthread_mutex_t local_lock = PTHREAD_MUTEX_INITIALIZER;
 #else
   static pthread_mutex_t local_lock;
   #warning "No PTHREAD_MUTEX_INITIALIZER"
+#endif
 #endif
 
 struct dts_operand * dts_parse_expr(dts_environment * localtenv, int argc, char ** argv) {

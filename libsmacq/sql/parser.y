@@ -252,11 +252,13 @@ verbphrase : verb args 		{ $$ = newvphrase($1, $2); }
 extern void yysmacql_scan_string(char*);
 extern char * yysmacql_text;
 
+#ifndef SMACQ_OPT_NOPTHREADS
 #ifdef PTHREAD_MUTEX_INITIALIZER
   static pthread_mutex_t local_lock = PTHREAD_MUTEX_INITIALIZER;
 #else
   static pthread_mutex_t local_lock;
   #warning "No PTHREAD_MUTEX_INITIALIZER"
+#endif
 #endif
 
 smacq_graph * smacq_build_query(dts_environment * tenv, int argc, char ** argv) {

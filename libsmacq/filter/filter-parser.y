@@ -187,11 +187,13 @@ booleanline: boolean YYSTOP 	{
 static dts_environment * tenv;
 extern void yysmacql_scan_string(char *);
 
+#ifndef SMACQ_OPT_NOPTHREADS
 #ifdef PTHREAD_MUTEX_INITIALIZER
   static pthread_mutex_t local_lock = PTHREAD_MUTEX_INITIALIZER;
 #else
   static pthread_mutex_t local_lock;
   #warning "No PTHREAD_MUTEX_INITIALIZER"
+#endif
 #endif
 
 static void print_comp(dts_environment * tenv, dts_comparison * c) {

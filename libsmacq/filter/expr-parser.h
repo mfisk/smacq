@@ -72,7 +72,7 @@
 
 
 #if ! defined (YYSTYPE) && ! defined (YYSTYPE_IS_DECLARED)
-#line 59 "/home/mfisk/projects/lfap/smacq/libsmacq/filter/expr-parser.y"
+#line 59 "/home/mfisk/smacq/libsmacq/filter/expr-parser.y"
 typedef union YYSTYPE {
   struct graph graph;
   struct arglist * arglist;
@@ -85,7 +85,7 @@ typedef union YYSTYPE {
   struct dts_operand * operand;
 } YYSTYPE;
 /* Line 1240 of yacc.c.  */
-#line 89 "/home/mfisk/projects/lfap/smacq/libsmacq/filter/expr-parser.h"
+#line 89 "/home/mfisk/smacq/libsmacq/filter/expr-parser.h"
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
 # define YYSTYPE_IS_TRIVIAL 1
