@@ -27,12 +27,30 @@ struct state {
   int refresh_type;
 
   struct output * cont;
+
+  int lastcall;
 }; 
 
 struct output {
   smacq_graph * graph;
   struct runq * runq;
 };
+
+/* Bucket may no longer be valid after this call */
+static inline int run(struct state * state, struct output* bucket) {
+    int more;
+    more = smacq_sched_iterative_busy(bucket->graph, &state->product, bucket->runq, 0);
+    if (more & SMACQ_END) {
+      assert(!bucket->runq);
+      smacq_destroy_graph(bucket->graph);
+      bucket->graph = NULL;
+    }
+    if (more) {
+      state->cont = bucket;
+    }
+
+    return more;
+}
 
 static smacq_result groupby_consume(struct state * state, const dts_object * datum, int * outchan) {
   struct iovec * partitionv = fields2vec(state->env, datum, &state->fieldset);
@@ -43,56 +61,45 @@ static smacq_result groupby_consume(struct state * state, const dts_object * dat
 
   bucket = bytes_hash_table_lookupv(state->hashtable, partitionv, state->fieldset.num);
 
+  if (bucket && !bucket->graph) {
+    int res = bytes_hash_table_removev(state->hashtable, partitionv, state->fieldset.num);
+    assert(res);
+    /* run() already ended this graph, but we didn't know about it before. */ free(bucket);
+    bucket = NULL;
+  }
+
   if (!bucket) {
     bucket =  g_new(struct output, 1);
     bucket->runq = NULL;
-    //fprintf(stderr, "Cloning %d\n", state->bucket);
+    fprintf(stderr, "New partition %p\n", bucket);
     bucket->graph = smacq_build_pipeline(state->queryargc, state->queryargv);
     smacq_start(bucket->graph, ITERATIVE, state->env->types);
+    smacq_sched_iterative_init(bucket->graph, &bucket->runq, 0);
     bytes_hash_table_insertv(state->hashtable, partitionv, state->fieldset.num, bucket);
   } 
 
-  more = smacq_sched_iterative(bucket->graph, datum, &state->product, &bucket->runq, 0);
-  
-  // Handle refresh (kill-off child)
   if (dts_gettype(datum) == state->refresh_type) {
+    // Handle refresh (kill-off child)
     int res = bytes_hash_table_removev(state->hashtable, partitionv, state->fieldset.num);
     assert(res);
     //fprintf(stderr, "groupby remove from %p\n", state->hashtable);
     smacq_sched_iterative_shutdown(bucket->graph, bucket->runq);
-
+  } else {
+    smacq_sched_iterative_input(bucket->graph, datum, bucket->runq);
   }
+
+  /* Run may invalidate the bucket, so we shouldn't use that variable
+   * later in this function. */
+  run(state, bucket);
   
   // Producing input is just a PASS
   if (state->product == datum) {
     status = SMACQ_PASS;
-
-    if (! (more&SMACQ_END)) {
-      more = smacq_sched_iterative(bucket->graph, NULL, &state->product, &bucket->runq, 0);
-      if (more & SMACQ_END) {
-	assert(0); // Not expected
-      }
-    } else {
-      state->product = NULL;
-    }
+    state->product = NULL;
+    // XXX: memory leak?  need to decref product?
   }
 
-  if ((dts_gettype(datum) == state->refresh_type) && (!state->product)) {
-    // Null datum is EOF
-    more = smacq_sched_iterative(bucket->graph, NULL, &state->product, &bucket->runq, 0);
-  }
-
-  
-  if (more & SMACQ_END) {
-    assert(!bucket->runq);
-    smacq_destroy_graph(bucket->graph);
-    free(bucket);
-  } else {
-    state->cont = bucket;
-  }
-
-  if (state->product) status = SMACQ_PRODUCE;
-  if (state->cont) status |= SMACQ_PRODUCE;
+  if (state->product || state->cont) status |= SMACQ_PRODUCE;
 
   return status;
 }
@@ -146,31 +153,57 @@ static smacq_result groupby_init(struct smacq_init * context) {
   return 0;
 }
 
+static int destroy_bucket(gpointer key, gpointer value, gpointer userdata) {
+  struct state * state = (struct state *)userdata;
+  struct output * bucket = (struct output*)value;
+
+  if (state->product) {
+	  state->lastcall = 1;
+
+	  /* We can't produce now, but the result of this algorithm
+	   * is that foreach() has to be called once for each
+	   * bucket that has something to produce.  So if n buckets
+	   * have output to produce, foreach is called n times 
+	   * and destroy_bucket is called n*(n-1)/2 times. 
+	   * We'd rather tell foreach() to stop completely. */
+	  return 0;
+  }
+
+  fprintf(stderr, "Last call for bucket %p\n", bucket);
+  smacq_sched_iterative_shutdown(bucket->graph, bucket->runq);
+
+  run(state, bucket);
+
+  return 1;
+}
+
 static smacq_result groupby_produce(struct state * state, const dts_object ** datump, int * outchan) {
-  int status;
+  int status = SMACQ_FREE;
+  int lastcall = 1;
 
   if (state->product) {
     *datump = state->product;
-    status = SMACQ_PASS;
-  } else {
-    status = SMACQ_FREE;
-  }
-
-  if (state->cont) {
-    int more;
-    more = smacq_sched_iterative(state->cont->graph, NULL, &state->product, &state->cont->runq, 0);
-    if (more & SMACQ_END) {
-      assert(!state->cont->runq);
-      smacq_destroy_graph(state->cont->graph);
-      free(state->cont);
-      state->cont = NULL;
-    }
-  } else {
-    assert(0);
     state->product = NULL;
+    status = SMACQ_PASS;
+
+    lastcall = 0;
+  }
+  
+  if (state->cont) {
+    struct output * cont = state->cont;
+    state->cont=NULL;
+    run(state, cont);
+
+    lastcall = 0;
+  } 
+  
+  if (state->lastcall || lastcall) {
+    /* This must be last-call, because we didn't ask for it */
+    /* Notify all children */
+    bytes_hash_table_foreach_remove(state->hashtable, destroy_bucket, state);
   }
 
-  return status | (state->product ? SMACQ_PRODUCE : 0);
+  return status | ((state->product || state->cont) ? SMACQ_PRODUCE : 0);
 }
 
 /* Right now this serves mainly for type checking at compile time: */
