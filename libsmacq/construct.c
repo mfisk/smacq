@@ -116,17 +116,17 @@ smacq_graph * smacq_graph_clone(smacq_environment * env, smacq_graph * orig) {
   /* Have distinct children */
   clone->numparents = 0;
   clone->numchildren = 0;
+  clone->parent = NULL;
+  clone->child = NULL;
+
   for(i=0; i < orig->numchildren; i++) {
       if (orig->child[i]) {
 	  smacq_add_child(clone, smacq_graph_clone(env, orig->child[i]));
+	  /* fprintf(stderr, "clone %p got child %p\n", clone, clone->child[clone->numchildren-1]); */
+      } else {
+	  assert(0);
       }
   }
-
-  /*
-  fprintf(stderr,"New clone:\n");
-  smacq_graph_print(stderr, clone, 1);
-  fprintf(stderr,":\n");
-  */
 
   return clone;
 }
@@ -270,7 +270,7 @@ void smacq_init_modules(smacq_graph * f, smacq_environment * env) {
   int i;
 
   if (!f || f->state) return;
-  //fprintf(stderr, "init_modules on graph node %p\n", f);
+  /* fprintf(stderr, "init_modules on graph node %p %s\n", f, f->argv[0]); */
 
   context.islast = !f->child;
   context.isfirst = !f->previous;
