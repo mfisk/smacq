@@ -6,7 +6,7 @@
 #include <assert.h>
 #include <pthread.h>
 #include <string.h>
-#include <smacq-internal.h>
+#include <smacq.h>
 
 struct thread_args {
   smacq_graph * f;

@@ -1,7 +1,7 @@
 #include <glib.h>
 #include <stdio.h>
 #include <pcap.h>
-#include <smacq-internal.h>
+#include <smacq.h>
 #include <dts_packet.h>
 #include <string.h>
 

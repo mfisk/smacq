@@ -6,7 +6,7 @@
 #include <assert.h>
 #include <pthread.h>
 #include <string.h>
-#include <smacq-internal.h>
+#include <smacq.h>
 
 #define MAX_QUERY_SIZE 4096
 
