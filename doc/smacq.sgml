@@ -12,7 +12,7 @@
       <firstname>Mike</firstname>
       <surname>Fisk</surname>
     </author>
-    <date>$Date: 2004/12/12 22:50:35 $</date>
+    <date>$Date: 2005/01/03 17:01:48 $</date>
   </refentryinfo>
   <refmeta>
     <refentrytitle>smacq</refentrytitle>
@@ -582,6 +582,23 @@
     </refsect2>
 
     <refsect2>
+      <title>Div</title>
+      <cmdsynopsis>
+	<command>div</command> 
+	<arg> -d <replaceable>divisor</replaceable></arg>
+	<arg><replaceable>field</replaceable></arg>
+      </cmdsynopsis>
+
+      <para>
+	The div module annotates each object with a field of type
+	"int" and the name "div".  The field is computed by dividing
+	the speficied field by the specified divisor (or 1 by
+	default).  The result is then truncated.  See the "clock"
+	module for similar functionality.
+      </para>
+    </refsect2>
+
+    <refsect2>
       <title>Flow ID</title>
       <cmdsynopsis>
 	<command>flowid</command>
@@ -611,8 +628,22 @@
 	packet and byte counters ("packets", "packetsback", "bytes",
 	"bytesout") and the "start" and "finish" times.
       </para>
-      
     </refsect2>
+      
+    <refsect2>
+      <title>Now</title>
+      <cmdsynopsis>
+	<command>now</command> 
+	<arg> -f <replaceable>field</replaceable></arg>
+      </cmdsynopsis>
+
+      <para>
+	The now module annotates each object with an object of type
+	"timeval" (a struct timeval) with the given name, or "now" by
+	default.
+      </para>
+    </refsect2>
+
   </refsect1>
     
   <refsect1>
@@ -726,6 +757,19 @@
 	field of type "double".
 	calculate then use the 
       </para>
+    </refsect2>
+
+    <refsect2>
+      <title>Private Field Namespace</title>
+      <cmdsynopsis>
+	<command>private</command>
+      </cmdsynopsis>
+
+      <para>
+        Return a new object that shares the same data, but has its own namespace for
+		fields.  The namespace is initially the same as the original, but new fields 
+		that are added are private to the new copy.
+	  </para>
     </refsect2>
 
     <refsect2>
