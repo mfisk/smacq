@@ -41,6 +41,7 @@ struct group {
 enum argtype { WORD, FUNCTION };
 
 char * expression2fieldname(struct dts_operand * expr);
+struct graph newjoin(struct graph, char *, char *, struct graph);
 struct graph newmodule(char * module, struct arglist * alist);
 void graph_join(struct graph * graph, struct graph newg);
 struct graph newgroup(struct group, struct graph vphrase);
