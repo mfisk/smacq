@@ -59,7 +59,7 @@ static smacq_result groupby_consume(struct state * state, const dts_object * dat
     int res = bytes_hash_table_removev(state->hashtable, partitionv, state->fieldset.num);
     assert(res);
     //fprintf(stderr, "groupby remove from %p\n", state->hashtable);
-    smacq_sched_iterative_shutdown(bucket->graph, &bucket->runq);
+    smacq_sched_iterative_shutdown(bucket->graph, bucket->runq);
 
   }
   
