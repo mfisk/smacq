@@ -141,7 +141,11 @@ struct graph newmodule(char * module, struct arglist * alist) {
      arglist_append(anew, alist);
 
      for(ap=anew; ap; ap=ap->next) {
-        /* Check for rename options on arguments */
+	/* Check for function arguments */
+	if (ap->isfunc) 
+		graph_join(&graph, newmodule(ap->arg, ap->func_args));
+
+                   /* Check for rename options on arguments */
      	if (ap->rename) {
 		rename_argc += 2;
 		rename_argv = realloc(rename_argv, rename_argc * sizeof(char*));
@@ -150,9 +154,6 @@ struct graph newmodule(char * module, struct arglist * alist) {
 		ap->arg = ap->rename;
 	}
 
-	/* Check for function arguments */
-	if (ap->isfunc) 
-		graph_join(&graph, newmodule(ap->arg, ap->func_args));
      }
 
      if (rename_argc > 1) {
