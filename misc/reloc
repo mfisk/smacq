@@ -1,8 +1,14 @@
 #!/bin/sh
 
-RUNDIR=`echo "$0" | sed 's/\/[^/]*$//'`
+SPEC="$0"
+
+if [ -L "$0" ]; then
+	SPEC=`readlink "$0"`
+fi
+
+RUNDIR=`echo "$SPEC" | sed 's/\/[^/]*$//'`
 PLAT=`uname -sm | sed 's/ /-/g'`
-CMD=`basename "$0"`
+CMD=`basename "$SPEC"`
 LD_LIBRARY_PATH=${RUNDIR}/.bin/${PLAT}:${LD_LIBRARY_PATH}
 DYLD_LIBRARY_PATH=${RUNDIR}/.bin/${PLAT}:${DYLD_LIBRARY_PATH}
 export LD_LIBRARY_PATH
