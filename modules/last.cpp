@@ -1,18 +1,9 @@
 #include <stdlib.h>
-#include <netdb.h>
-#include <sys/socket.h>
-#include <signal.h>
-#include <time.h>
-#include <string.h>
-#include <math.h>
 #include <assert.h>
 #include <smacq.h>
 #include <FieldVec.h>
 #include <dts.h>
 #include <sys/time.h>
-
-/* Programming constants */
-#define KEYBYTES 128
 
 static struct smacq_options options[] = {
   {"t", {double_t:0}, "Update interval", SMACQ_OPT_TYPE_TIMEVAL},
@@ -39,6 +30,41 @@ SMACQ_MODULE(last,
 	     void emit_all();
 
 ); 
+
+lastModule::lastModule(struct smacq_init * context) 
+  : SmacqModule(context)
+{
+  int argc = 0;
+  char ** argv;
+
+  {
+    smacq_opt interval_opt;
+    
+    struct smacq_optval optvals[] = {
+      { "t", &interval_opt}, 
+      {NULL, NULL}
+    };
+    smacq_getoptsbyname(context->argc-1, context->argv+1,
+			       &argc, &argv,
+			       options, optvals);
+
+    interval = interval_opt.timeval_t;
+    if ((interval_opt.timeval_t.tv_sec != 0) || 
+	(interval_opt.timeval_t.tv_usec != 0)) {
+      hasinterval = true;
+      isstarted = false;
+    } else {
+      hasinterval = false;
+    }
+  }
+
+  // Consume rest of arguments as fieldnames
+  fieldvec.init(dts, argc, argv);
+
+  timeseries = dts->requirefield("timeseries");
+  refreshtype = dts->requiretype("refresh");
+  timevaltype = dts->requiretype("timeval");
+}
 
 static inline void timeval_inc(struct timeval * x, struct timeval y) {
   x->tv_usec += y.tv_usec;
@@ -80,11 +106,10 @@ void lastModule::emit_all() {
   
   for (i = last.begin(); i != last.end(); i++) {
     enqueue(i->second, 0);
-    
   }
 
   // Last entry to be sent is a refresh message:
-  if (! fieldvec.empty()) {
+  if (fieldvec.empty()) {
 	DtsObject obj = dts->construct(refreshtype, NULL);
 
   	if (hasinterval) {
@@ -130,51 +155,14 @@ smacq_result lastModule::consume(DtsObject datum, int & outchan) {
   fieldvec.getfields(datum);
 
   DtsObject old = last[fieldvec];
-  if (old) 
-  
   
   last[fieldvec] = datum;
 
   return (SMACQ_FREE|canproduce());
 }
 
-lastModule::lastModule(struct smacq_init * context) 
-  : SmacqModule(context)  
-{
-  int argc = 0;
-  char ** argv;
-
-  {
-    smacq_opt interval_opt;
-    
-    struct smacq_optval optvals[] = {
-      { "t", &interval_opt}, 
-      {NULL, NULL}
-    };
-    smacq_getoptsbyname(context->argc-1, context->argv+1,
-			       &argc, &argv,
-			       options, optvals);
-
-    interval = interval_opt.timeval_t;
-    if ((interval_opt.timeval_t.tv_sec != 0) || 
-	(interval_opt.timeval_t.tv_usec != 0)) {
-      hasinterval = true;
-      isstarted = false;
-    } else {
-      hasinterval = false;
-    }
-  }
-
-  // Consume rest of arguments as fieldnames
-  fieldvec.init(dts, argc, argv);
-
-  timeseries = dts->requirefield("timeseries");
-  refreshtype = dts->requiretype("refresh");
-  timevaltype = dts->requiretype("timeval");
-}
-
 smacq_result lastModule::produce(DtsObject & datum, int & outchan) {
-  if (canproduce()) {
+  if (!canproduce()) {
     emit_all();
   }
 
