@@ -1,7 +1,8 @@
-<!doctype refentry PUBLIC "-//OASIS//DTD DocBook V4.1//EN" [
-  <!ENTITY docbook "<productname>DocBook</productname>">
-  <!ENTITY sgml    "<abbrev>SGML</abbrev>">
-]>
+<?xml version="1.0"?>
+
+<!DOCTYPE refentry
+  PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN"
+         "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd">
 
 <refentry>
   <refentryinfo>
@@ -12,7 +13,7 @@
       <firstname>Mike</firstname>
       <surname>Fisk</surname>
     </author>
-    <date>$Date: 2004/05/18 23:56:02 $</date>
+    <date>$Date: 2004/11/15 01:36:39 $</date>
   </refentryinfo>
   <refmeta>
     <refentrytitle>smacq</refentrytitle>
@@ -22,84 +23,145 @@
     <refname>smacq</refname>
     <refpurpose>System for Modular Analysis and Continuous Queries</refpurpose>
   </refnamediv>
+
   <refsect1>
     <title>DESCRIPTION</title>
 
     <para>
-      The System for Modular Analysis and Continuous Queries
-      (SMACQ) is an extensible component system for analyzing streams
-      of structured data.  This manpage describes the modules
-      included with the system by default. 
+      The System for Modular Analysis and Continuous Queries (SMACQ)
+      is an extensible component system for analyzing streams of
+      structured data.  Users with a familiarity of SQL will
+      immediately be comfortable using the basic features of the
+      system.  However, there are additional object-relational and
+      extensibility features that are described below.  This manpage
+      describes the query syntax and the modules included with the
+      system by default, which are grouped into sections for I/O,
+      Boolean, Annotation, and Miscellaneous Analysis functions.
+      Queries are executed using SMACQ's command-line utility,
+      <command>smacqq(1)</command>, or the SMACQ C++ API.
     </para>
 
     <para>
-      These modules are used by SMACQ's command-line utility
-      <command>smacqp(1)</command>
-      as well as the SMACQ C++ API.
+      The primary difference from standard relational databases is
+      that data is not stored in preloaded tables, but is instead
+      produced by data source modules.  Also, the select operation
+      does not automatically print fields.  If printable output is
+      desired, use the <command>print</command> command.
     </para>
 
     <para>
-      The function modules included in the system are described in the
-      following sections:  I/O, Boolean, Annotation, and Miscellaneous 
-      Analysis functions.
+      The following example prints the "srcip" and "dstip" fields from
+      a stream of packets stored in a tcpdump-format file named "/tmp/dump":
+
+      <computeroutput>
+	smacqq 'print srcip, dstip from pcapfile("/tmp/dump")'
+      </computeroutput>
+
+      Nested queries are also supported.  For example:
+
+      <computeroutput>
+	print srcip, dstip from (uniq srcip, dstip from pcapfile("/tmp/dump"))
+      </computeroutput>
+      
+      "Where" clauses are supported for both boolean tests based on <,
+      <=, >, >=, =, !=, or arbitrary filtering functions.
+
+      <computeroutput>
+	print dstip from pcapfile("/tmp/dump") where srcip = 128.129.1.2
+      </computeroutput>
+
+      <computeroutput>
+	print dstip from pcapfile("/tmp/dump") where mask(srcip, 128.129.0.0/16)
+      </computeroutput>
+
+      Aliasing with "as" is supported:
+      
+      <computeroutput>
+	print dstip, totalbytes from (select dstip, sum(len) as totalbytes from pcapfile("/tmp/dump"))
+      </computeroutput>
+
+	Joins are supported as well:
+
+	<computeroutput>
+	print a.srcip, b.srcip from pcapfile("/tmp/dump") a, b where a.srcip != b.srcip	
+	</computeroutput>
+
+	When used with streams, joins require very large amounts of memory.  The "until" 
+	term can be used to define when elements can be removed from the pool of possible
+	values in a join:
+
+	<computeroutput>
+	print a.srcip, b.srcip from pcapfile("/tmp/dump") a until (new.a.ts > a.ts), b where a.srcip != b.srcip	
+	</computeroutput>
+
+      Extended relational algebra provides aggregate functions and the
+      "group by" and "having" terms.  This syntax is supported, but with slightly
+      different semantics.  For example, the following query would
+      behave as it would in SQL:
+
+      <computeroutput>
+	print dstip, sum(len) from pcapfile("/tmp/dump") group
+	by dstip
+      </computeroutput>
+
+      but is also the same as:
+
+      <computeroutput>
+	print dstip, sum from (groupby dstip, '--', sum, len from
+	pcapfile("/tmp/dump"))
+      </computeroutput>
+
+      However the use of a function (such as "sum()") as one of the
+      arguments will result in the "sum" module processing the data
+      before the "print" module.  A module called in this way is
+      expected to annotate the data object with a field of the same
+      name as the function.  Thus, the sum field will be part of the
+      object from now on.  Thus, it can also be used in subsequent
+      arguments.  In addition, however, the module can cause other
+      side-effects to the data.  Finally, functions can be used whether or
+      not "group by" is used.
+
     </para>
+
+    <para>
+      When queries are nested deeply, the syntax described above can become
+      complex.  As a result, commas are optional between arguments, and SMACQ 
+      also supports the | symbol used in Unix shells.  The result is a syntax 
+      much more familiar to Unix shell users.  Thus the following queries are 
+      all equivalent:
+
+      <computeroutput>
+	print srcip, dstip from (uniq srcip, dstip from pcapfile("/tmp/dump"))
+      </computeroutput>
+
+      <computeroutput>
+	print srcip, dstip from uniq srcip, dstip from pcapfile "/tmp/dump"
+      </computeroutput>
+
+      <computeroutput>
+	print srcip dstip from uniq srcip dstip from pcapfile "/tmp/dump"
+      </computeroutput>
+
+      <computeroutput>
+	pcapfile "/tmp/dump" | uniq srcip dstip | print srcip dstip
+      </computeroutput>
+
+      .
+    </para>
+
+    <para>
+      SMACQ is an extensible system that the user can add modules to.
+      See the <command>smacqp</command>(1) manpage for a detailed
+      description of modules.  Many modules take flags which, like all
+      arguments, can be separated with commas or spaces:
+
+      <computeroutput>
+	print -v, srcip, dstip from pcapfile("/tmp/dump")
+      </computeroutput>&nbsp;
+    </para>
+
   </refsect1>
 
-  <refsect1>
-    <title>QUERY SYNTAX</title>
-    <para>
-    SMACQ queries are specified using the following SQL-like grammer:
-    </para>
-
-    <literallayout>
-    query: 
-		action from [alias, joins] [WHERE boolean] [GROUP BY args [HAVING boolean]]
-		| action [WHERE boolean]
-		| WHERE boolean
-		| query '|' action [WHERE boolean] [GROUP BY args [HAVING boolean]]
-
-	action: 
-		function args
-		| function ( args )
-		| ( query )
-		| ( parenquery + parenquery )
-
-    joins: 
-		[parenquery] alias [, joins]
-	   
-    parenquery: 
-		( query )
-		| function ( args )
-		| function
-
-    from: 
-		FROM action [from]
-
-    </literallayout>
-
-    <para>
-    Arguments can be given in a space separated list or a comma separated list.
-    Any argument can be followed by the phrase "AS alias" to be
-    given the specified alias.
-    </para>
-
-    <literallayout>
-    argument: 
-		word 
-		| function ( args ) 
-		| '[' expression ']'
-
-    boolean:
-		( boolean )
-		| boolean AND boolean
-		| boolean OR boolean
-		| NOT boolean
-		| operand
-		| subexpression op subexpression
-		| function ( args )
-    </literallayout>
-
-  </refsect1>
   <refsect1>
     <title>INPUT/OUTPUT FUNCTIONS</title>
 
@@ -107,11 +169,11 @@
       <title>Print</title>
       <cmdsynopsis>
 	<command>print</command>
-	<arg choice=opt>-x</arg>
-	<arg choice=opt>-v</arg>
-	<arg choice=opt>-B</arg>
-	<arg choice=opt>-d <replaceable>delimiter</replaceable></arg>
-	<arg choice=req rep=repeat>fields</arg>
+	<arg choice="opt">-x</arg>
+	<arg choice="opt">-v</arg>
+	<arg choice="opt">-B</arg>
+	<arg choice="opt">-d <replaceable>delimiter</replaceable></arg>
+	<arg choice="req" rep="repeat">fields</arg>
       </cmdsynopsis>
 
       <para>
@@ -132,9 +194,9 @@
       <title>Tabular Input</title>
       <cmdsynopsis>
 	<command>tabularinput</command>
-	<arg choice=opt>-d <replaceable>delimiter</replaceable></arg>
-	<arg choice=opt>-f <replaceable>filename</replaceable></arg>
-	<arg choice=opt rep=repeat>field<arg choice=opt>:type</arg></arg>
+	<arg choice="opt">-d <replaceable>delimiter</replaceable></arg>
+	<arg choice="opt">-f <replaceable>filename</replaceable></arg>
+	<arg choice="opt" rep="repeat">field<arg choice="opt">:type</arg></arg>
       </cmdsynopsis>
 
       <para>
@@ -160,7 +222,7 @@
 	<arg>-i <replaceable>interface</replaceable></arg>
 	<arg>-s <replaceable>snaplen</replaceable></arg>
 	<arg>-p</arg>
-	<arg rep=repeat><replaceable>filter</replaceable></arg>
+	<arg rep="repeat"><replaceable>filter</replaceable></arg>
       </cmdsynopsis>
 
       <para>
@@ -189,11 +251,11 @@
       <title>Packet Trace File</title>
       <cmdsynopsis>
 	<command>pcapfile</command>
-	<arg choice=req rep=repeat> <replaceable>filename</replaceable></arg>
+	<arg choice="req" rep="repeat"> <replaceable>filename</replaceable></arg>
       </cmdsynopsis>
       <cmdsynopsis>
 	<command>pcapfile</command>
-	<arg choice=req> -w <replaceable>filename</replaceable></arg>
+	<arg choice="req"> -w <replaceable>filename</replaceable></arg>
 	<arg>-l </arg>
 	<arg>-s <replaceable>megabytes</replaceable></arg>
       </cmdsynopsis>
@@ -231,7 +293,7 @@
       <title>cflowd Raw Flow File</title>
       <cmdsynopsis>
 	<command>cflow</command>
-	<arg choice=req rep=repeat> <replaceable>filename</replaceable></arg>
+	<arg choice="req" rep="repeat"> <replaceable>filename</replaceable></arg>
 	<arg>-l </arg>
       </cmdsynopsis>
 
@@ -299,7 +361,7 @@
       <title>IP Address Mask Lookup</title>
       <cmdsynopsis>
 	<command>iplookup</command>
-	<arg choice=req><replaceable>field</replaceable></arg>
+	<arg choice="req"><replaceable>field</replaceable></arg>
       </cmdsynopsis>
 
       <para>
@@ -318,8 +380,8 @@
       <title>IP Address Mask</title>
       <cmdsynopsis>
 	<command>mask</command>
-	<arg choice=req><replaceable>field</replaceable></arg>
-	<arg choice=req>[!]<replaceable>addr/cidr</replaceable></arg>
+	<arg choice="req"><replaceable>field</replaceable></arg>
+	<arg choice="req">[!]<replaceable>addr/cidr</replaceable></arg>
       </cmdsynopsis>
 
       <para>
@@ -341,8 +403,8 @@
       <cmdsynopsis>
 	<command>substr</command>
 	<arg><replaceable>field</replaceable></arg>
-	<arg choice=req><replaceable>string</replaceable></arg>
-	<arg rep=repeat> ; <replaceable>string</replaceable></arg>
+	<arg choice="req"><replaceable>string</replaceable></arg>
+	<arg rep="repeat"> ; <replaceable>string</replaceable></arg>
       </cmdsynopsis>
 
       <para>
@@ -358,7 +420,7 @@
       <title>Filter</title>
       <cmdsynopsis>
 	<command>filter</command>
-	<arg choice=req rep=repeat> <replaceable>field [[<=>] value] ...</replaceable></arg>
+	<arg choice="req" rep="repeat"> <replaceable>field [[&lt;=&gt;] value] ...</replaceable></arg>
       </cmdsynopsis>
 
       <para>
@@ -378,7 +440,7 @@
       <cmdsynopsis>
 	<command>uniq</command>
 	<arg>-m <replaceable>megabytes</replaceable></arg>
-	<arg choice=req rep=repeat> <replaceable>fields</replaceable></arg>
+	<arg choice="req" rep="repeat"> <replaceable>fields</replaceable></arg>
       </cmdsynopsis>
 
       <para>
@@ -402,7 +464,7 @@
 	<command>top</command>
 	<arg>-m <replaceable>megabytes</replaceable></arg>
 	<arg>-r <replaceable>deviation</replaceable></arg>
-	<arg choice=req rep=repeat> <replaceable>fields</replaceable></arg>
+	<arg choice="req" rep="repeat"> <replaceable>fields</replaceable></arg>
       </cmdsynopsis>
 
       <para>
@@ -434,7 +496,7 @@
       <title>Head</title>
       <cmdsynopsis>
 	<command>head</command>
-	<arg choice=req> <replaceable>number</replaceable></arg>
+	<arg choice="req"> <replaceable>number</replaceable></arg>
       </cmdsynopsis>
 
       <para>
@@ -462,7 +524,7 @@
       <cmdsynopsis>
 	<command>clock</command> 
 	<arg> -t <replaceable>seconds</replaceable></arg>
-	<arg choice=req> <replaceable>field</replaceable></arg>
+	<arg choice="req"> <replaceable>field</replaceable></arg>
       </cmdsynopsis>
 
       <para>
@@ -480,7 +542,7 @@
       <title>Constant Annotation</title>
       <cmdsynopsis>
 	<command>const</command> 
-	<arg choice=req> <replaceable>string</replaceable></arg>
+	<arg choice="req"> <replaceable>string</replaceable></arg>
 	<arg><replaceable>field</replaceable></arg>
       </cmdsynopsis>
 
@@ -493,7 +555,7 @@
       <title>Delta</title>
       <cmdsynopsis>
 	<command>delta</command>
-	<arg choice=req> <replaceable>xfield</replaceable></arg>
+	<arg choice="req"> <replaceable>xfield</replaceable></arg>
       </cmdsynopsis>
 
       <para>
@@ -507,8 +569,8 @@
       <title>Derivative</title>
       <cmdsynopsis>
 	<command>derivative</command>
-	<arg choice=req> <replaceable>yfield</replaceable></arg>
-	<arg choice=req><replaceable>xfield</replaceable></arg>
+	<arg choice="req"> <replaceable>yfield</replaceable></arg>
+	<arg choice="req"><replaceable>xfield</replaceable></arg>
       </cmdsynopsis>
 
       <para>
@@ -525,7 +587,7 @@
 	<command>flowid</command>
 	<arg>-t <replaceable>time</replaceable></arg>
 	<arg>-r </arg>
-	<arg choice=req rep=repeat> <replaceable>fields</replaceable></arg>
+	<arg choice="req" rep="repeat"> <replaceable>fields</replaceable></arg>
       </cmdsynopsis>
 
       <para>
@@ -562,7 +624,7 @@
 	<arg>-a</arg>
 	<arg>-f <replaceable>countname</replaceable></arg>
 	<arg>-p</arg>
-	<arg rep=repeat><replaceable>fields</replaceable></arg>
+	<arg rep="repeat"><replaceable>fields</replaceable></arg>
       </cmdsynopsis>
 
       <para>
@@ -590,7 +652,7 @@
       <title>Stateful Matching</title>
       <cmdsynopsis>
 	<command>dfa</command>
-	<arg choice=req> <replaceable>statefile</replaceable></arg>
+	<arg choice="req"> <replaceable>statefile</replaceable></arg>
 	
       </cmdsynopsis>
 
@@ -625,7 +687,7 @@
       <cmdsynopsis>
 	<command>last</command>
 	<arg>-t <replaceable>time</replaceable></arg>
-	<arg rep=repeat><replaceable>fields</replaceable></arg>
+	<arg rep="repeat"><replaceable>fields</replaceable></arg>
       </cmdsynopsis>
 
       <para>
@@ -670,7 +732,7 @@
       <title>Project</title>
       <cmdsynopsis>
 	<command>project</command>
-	<arg choice=req rep=repeat> <replaceable>fields</replaceable></arg>
+	<arg choice="req" rep="repeat"> <replaceable>fields</replaceable></arg>
       </cmdsynopsis>
 
       <para>
@@ -684,7 +746,7 @@
       <title>Rename</title>
       <cmdsynopsis>
 	<command>rename</command>
-	<arg choice=req rep=repeat> <replaceable>oldfield newfield</replaceable></arg>
+	<arg choice="req" rep="repeat"> <replaceable>oldfield newfield</replaceable></arg>
       </cmdsynopsis>
 
       <para>
@@ -714,9 +776,9 @@
       <title>Group-By</title>
       <cmdsynopsis>
 	<command>groupby</command>
-	<arg choice=req rep=repeat> <replaceable>fields</replaceable></arg>
-	<arg choice=req> -- </arg>
-	<arg choice=req rep=repeat> <replaceable>query</replaceable></arg>
+	<arg choice="req" rep="repeat"> <replaceable>fields</replaceable></arg>
+	<arg choice="req"> -- </arg>
+	<arg choice="req" rep="repeat"> <replaceable>query</replaceable></arg>
       </cmdsynopsis>
 
       <para>
@@ -749,6 +811,64 @@
     </refsect2>
 
   </refsect1>
+
+
+  <refsect1>
+    <title>QUERY SYNTAX</title>
+    <para>
+    SMACQ queries are specified using the following SQL-like grammer:
+    </para>
+
+    <literallayout>
+    query: 
+		action from [alias, joins] [WHERE boolean] [GROUP BY args [HAVING boolean]]
+		| action [WHERE boolean]
+		| WHERE boolean
+		| query '|' action [WHERE boolean] [GROUP BY args [HAVING boolean]]
+
+	action: 
+		function args
+		| function ( args )
+		| ( query )
+		| ( parenquery + parenquery )
+
+    joins: 
+		[parenquery] alias [, joins]
+	   
+    parenquery: 
+		( query )
+		| function ( args )
+		| function
+
+    from: 
+		FROM action [from]
+
+    </literallayout>
+
+    <para>
+    Arguments can be given in a space separated list or a comma separated list.
+    Any argument can be followed by the phrase "AS alias" to be
+    given the specified alias.
+    </para>
+
+    <literallayout>
+    argument: 
+		word 
+		| function ( args ) 
+		| '[' expression ']'
+
+    boolean:
+		( boolean )
+		| boolean AND boolean
+		| boolean OR boolean
+		| NOT boolean
+		| operand
+		| subexpression op subexpression
+		| function ( args )
+    </literallayout>
+
+  </refsect1>
+
   <refsect1>
     <title>SEE ALSO</title>
 
