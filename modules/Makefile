@@ -51,11 +51,6 @@ libsnort.la: ../contrib/snort-1.8.7/
 	$(LIBTOOL) $(CC) -static -o $@ $</[a-r]*.o
 	$(LIBTOOL) $(CC) -dynamic -r -L/sw/lib -o $@ $</*.o -lpcap -lm
 
-libsnort.old.la: ../contrib/snort-1.8.7/snort
-	#libtool -dynamic -o $@ $<
-	$(LIBTOOL) $(CC) -dynamic -o $@ $<
-	#ld -static -r -o $@ $<
-
 pcapfile.lo: pcapfile.c pcapfile.h 
 pcaplive.lo: pcaplive.c pcapfile.h 
 
@@ -66,5 +61,5 @@ python.lo: python.c ../include/smacq.h
 	$(LIBTOOL) $(CC) -c $(CFLAGS) -I/usr/include/python2.2 $<
 
 smacq_%.la: %.lo
-	$(LIBTOOL) $(CC) -module -rpath /usr/local/lib $(LDFLAGS) -o $@ $(SO_LDFLAGS) $+
+	$(LIBTOOL) $(CC) -module -rpath /usr/local/lib $(LDFLAGS) -o $@ $+
 
