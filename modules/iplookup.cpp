@@ -2,11 +2,11 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
-#include <smacq.h>
 #include <patricia/patricia.h>
 
 #define SMACQ_MODULE_IS_VECTOR 1
 #define SMACQ_MODULE_IS_STATELESS 1
+#include <smacq.h>
 
 SMACQ_MODULE(iplookup,
   PROTO_CTOR(iplookup);

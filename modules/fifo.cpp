@@ -2,9 +2,7 @@
 #include <assert.h>
 #include <smacq.h>
 
-static struct smacq_options options[] = {
-  END_SMACQ_OPTIONS
-};
+/* Programming constants */
 
 struct obj_list{
   DtsObject obj;
@@ -18,7 +16,7 @@ SMACQ_MODULE(fifo,
 
   struct obj_list * fifo;
   struct obj_list * last;
-); 
+);
 
 fifoModule::fifoModule(smacq_init * context) : SmacqModule(context) { ; }
 
@@ -33,7 +31,7 @@ smacq_result fifoModule::consume(DtsObject datum, int & outchan) {
 	  fifo = newo;
   }
   last = newo;
-  
+
   return (smacq_result)(SMACQ_FREE|SMACQ_CANPRODUCE);
 }
 
@@ -49,4 +47,3 @@ smacq_result fifoModule::produce(DtsObject & datum, int & outchan) {
   }
   return (smacq_result)(SMACQ_PASS|(fifo ? SMACQ_CANPRODUCE : 0));
 }
-

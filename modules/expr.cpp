@@ -1,10 +1,6 @@
 #include <smacq.h>
 #include <smacq-parser.h>
 
-static struct smacq_options options[] = {
-  END_SMACQ_OPTIONS
-};
-
 SMACQ_MODULE(expr,
   PROTO_CTOR(expr);
   PROTO_CONSUME();
@@ -19,8 +15,8 @@ SMACQ_MODULE(expr,
   int double_type;
 );
 
-exprModule::exprModule(struct SmacqModule::smacq_init * context) 
- : SmacqModule(context), as_field(NULL) 
+exprModule::exprModule(struct SmacqModule::smacq_init * context)
+ : SmacqModule(context), as_field(NULL)
 {
   int argc = context->argc-1;
   char ** argv = context->argv+1;
@@ -35,7 +31,7 @@ exprModule::exprModule(struct SmacqModule::smacq_init * context)
   }
 
   expr = dts->parse_expr(argc, argv);
-  if (!expr) 
+  if (!expr)
 	assert(0);
 
   char * expr_str = "expr";
@@ -55,12 +51,11 @@ smacq_result exprModule::consume(DtsObject datum, int & outchan) {
 
   //dts_data_as(msgdata, double) = eval_arith_operand(datum, op);
 
-  datum->attach_field(expr_field, msgdata); 
+  datum->attach_field(expr_field, msgdata);
 
   if (as_field) {
-    datum->attach_field(as_field, msgdata); 
+    datum->attach_field(as_field, msgdata);
   }
 
   return SMACQ_PASS;
 }
-

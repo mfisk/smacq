@@ -2,11 +2,11 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
-#include <smacq.h>
 #include "substr/substr.h"
 
 #define SMACQ_MODULE_IS_VECTOR 1
 #define SMACQ_MODULE_IS_STATELESS 1
+#include <smacq.h>
 
 SMACQ_MODULE(substr,
   PROTO_CTOR(substr);

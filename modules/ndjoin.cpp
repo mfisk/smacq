@@ -6,9 +6,9 @@
 #include <FieldVec.h>
 #include <SmacqScheduler.h>
 
-static struct smacq_options options[] = {
-  END_SMACQ_OPTIONS
-};
+/* Programming constants */
+
+#define KEYBYTES 128
 
 struct join {
   SmacqGraph * graph;
@@ -16,7 +16,7 @@ struct join {
   dts_field left_key, right_key;
   struct runq * runq;
   double next_val;
-  DtsObject next_dobj; 
+  DtsObject next_dobj;
 };
 
 SMACQ_MODULE(ndjoin,
@@ -32,7 +32,7 @@ SMACQ_MODULE(ndjoin,
   struct join join;
 
   SmacqScheduler * sched;
-); 
+);
 
 smacq_result ndjoinModule::consume(DtsObject datum, int & outchan) {
   smacq_result more;
@@ -41,32 +41,32 @@ smacq_result ndjoinModule::consume(DtsObject datum, int & outchan) {
   struct join * j = &join;
   DtsObject left = datum->getfield(j->left_key);
   if (!left) return SMACQ_PASS;
-  
+
   left_val = dts_data_as(left, double);
-  
+
   while (1) {
     while (!j->next_dobj) {
       more = sched->get(j->next_dobj);
-      if ( (SMACQ_END|SMACQ_ERROR) & more) 
+      if ( (SMACQ_END|SMACQ_ERROR) & more)
 	return more;
-      
+
       if (j->next_dobj) {
 	DtsObject next_val = j->next_dobj->getfield(j->right_key);
 	if (!next_val) {
-	  
+
 	  j->next_dobj = NULL;
 	} else {
 	  j->next_val = dts_data_as(next_val, double);
 	  /* Success: found the next key */
-	  
+
 	}
       }
     }
-    
-    
+
+
     if (left_val > j->next_val) {
       /* We skipped over this object */
-      
+
       j->next_dobj = NULL;
       //fprintf(stderr, "skipped over %g to %g\n", j->next_val, left_val);
     } else if (left_val == j->next_val) {
@@ -76,11 +76,11 @@ smacq_result ndjoinModule::consume(DtsObject datum, int & outchan) {
       break;
     }
   }
-  
+
   return SMACQ_PASS;
 }
 
-ndjoinModule::ndjoinModule(struct SmacqModule::smacq_init * context) 
+ndjoinModule::ndjoinModule(struct SmacqModule::smacq_init * context)
   : SmacqModule(context)
 {
   int argc = context->argc-1;

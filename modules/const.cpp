@@ -12,14 +12,10 @@ SMACQ_MODULE(const,
   DtsObject data;
 );
 
-static struct smacq_options options[] = {
-  END_SMACQ_OPTIONS
-};
-
 smacq_result constModule::consume(DtsObject datum, int & outchan) {
   assert(datum);
 
-  
+
   datum->attach_field(field, data);
 
   return SMACQ_PASS;
@@ -34,13 +30,12 @@ constModule::constModule(struct SmacqModule::smacq_init * context) : SmacqModule
 
   data = dts->construct_fromstring(dts->requiretype("string"), strdup(argv[0]));
   if (argc == 2) {
-  	field = dts->requirefield(argv[1]);
+	field = dts->requirefield(argv[1]);
   } else {
-  	field = dts->requirefield("const");
+	field = dts->requirefield("const");
   }
 }
 
 constModule::~constModule() {
   dts_field_free(field);
 }
-

@@ -8,10 +8,6 @@
 
 #define LINESIZE 4096
 
-static struct smacq_options options[] = {
-  END_SMACQ_OPTIONS
-};
-
 #include <ext/hash_map>
 namespace stdext = ::__gnu_cxx;
 

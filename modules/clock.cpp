@@ -6,6 +6,8 @@
 #include <string.h>
 #include <math.h>
 #include <assert.h>
+
+#define SMACQ_MODULE_IS_ANNOTATION 1
 #include <smacq.h>
 #include <FieldVec.h>
 #include <FieldVec.h>
@@ -15,7 +17,6 @@ static struct smacq_options options[] = {
   END_SMACQ_OPTIONS
 };
 
-#define SMACQ_MODULE_IS_ANNOTATION 1
 
 SMACQ_MODULE(clock,
   PROTO_CTOR(clock);

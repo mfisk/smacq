@@ -2,29 +2,29 @@
 #include <stdlib.h>
 #include <math.h>
 #include <assert.h>
-#include <smacq.h>
-#include <SmacqGraph.h>
 
 #define SMACQ_MODULE_IS_STATELESS 1
+#include <smacq.h>
+#include <SmacqGraph.h>
 
 SMACQ_MODULE(lor,
   PROTO_CTOR(lor);
 
   SmacqGraph * graphs;
   void build_clause(char ** argv, int num);
-); 
+);
 
 void lorModule::build_clause(char ** argv, int num) {
   /* End of query */
   SmacqGraph * g;
 
   //fprintf(stderr, "Build clause from %s(%p)+%d ... %s\n", argv[0], argv, num, argv[num-1]);
-  
+
   if (num < 1) {
     fprintf(stderr, "OR: empty clause\n");
     return;
   }
-  
+
   g = SmacqGraph::newQuery(dts, num, argv);
   assert(g);
 
@@ -35,7 +35,7 @@ void lorModule::build_clause(char ** argv, int num) {
   }
 }
 
-lorModule::lorModule(struct SmacqModule::smacq_init * context) 
+lorModule::lorModule(struct SmacqModule::smacq_init * context)
   : SmacqModule(context), graphs(NULL)
 {
   int argc = context->argc-1;
@@ -58,5 +58,3 @@ lorModule::lorModule(struct SmacqModule::smacq_init * context)
   graphs->init(dts, context->scheduler);
   context->self->replace(graphs);
 }
-
-

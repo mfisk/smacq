@@ -1,5 +1,5 @@
-TESTS = arith.test bag.test bagfirst.test bagtail.test dfa.test dynamic.test expr.test flowid.test groupby.test groupby2.test having.test head.test iplookup.test last.test mask.test multistr.test or.test orand.test orfunc.test pipe.test subfield.test uniq.test unixq.test @OPTIONAL_TESTS@
-EXTRA_TESTS = sqlinsert.test
+TESTS = arith.test bag.test bagfirst.test bagtail.test dfa.test dynamic.test expr.test flowid.test groupby.test groupby2.test having.test head.test iplookup.test last.test mask.test multistr.test or.test orand.test orfunc.test pipe.test subfield.test uniq.test unixq.test @PYTHON_TESTS@ @OPTIONAL_TESTS@
+EXTRA_TESTS = python.test sqlinsert.test
 
 #Disabled tests: pcapfile.test (false alarm on big-endian platforms)
 

@@ -5,10 +5,6 @@ SMACQ_MODULE(noop,
   PROTO_CONSUME();
 );
 
-static struct smacq_options options[] = {
-  END_SMACQ_OPTIONS
-};
-
 smacq_result noopModule::consume(DtsObject datum, int & outchan) {
   assert(datum);
 
