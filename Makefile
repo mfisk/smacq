@@ -4,6 +4,10 @@ default:
 debug:
 	BUILDNAME=debug CONFIG="--enable-debug" misc/buildarch 
 
+dist:
+	misc/buildarch dist
+	set -ex; misc/buildarch dist; d=/tmp/$$$$; mkdir $d; tar -C $d -xzf build/*/smacq-*.tar.gz; cd $d/smacq-*; ./configure; make check; echo "IT'S A KEEPER:" build/*/smacq-*.tar.gz
+
 bootstrap:
 	rm -Rf autom4te.cache config/[a-z]*
 	mkdir -p config
