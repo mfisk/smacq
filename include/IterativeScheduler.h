@@ -79,21 +79,23 @@ inline void IterativeScheduler::input(SmacqGraph * g, DtsObject din) {
 
 
 inline void IterativeScheduler::queue_children(SmacqGraph * f, DtsObject d, int outchan) {
-  assert(outchan < (int)f->children.size());
+	assert(outchan < (int)f->children.size());
 
-  if (f->children[outchan].size()) {
-    //fprintf(stderr, "queueing %p for children of %s (%p)\n", d.get(), f->name, f);
-    for (unsigned int i=0; i < f->children[outchan].size(); i++) {
-      assert(f->children[outchan][i]);
-      //fprintf(stderr, "\tchild %d: %s (%p)\n", 
-      //	      i, f->children[outchan][i]->name, f->children[outchan][i]);
-    q.runable(f->children[outchan][i], d, CONSUME);
-    }
-  } else {
-    //fprintf(stderr, "queueing %p falling off leaf %s (%p)\n", 
-    //d.get(), f->name, f);
-    q.runable(NULL, d, CONSUME);
-  }
+	if (f->children[outchan].size()) {
+		//fprintf(stderr, "queueing %p for children of %s (%p)\n", d.get(), f->name, f);
+		for (unsigned int i=0; i < f->children[outchan].size(); i++) {
+			assert(f->children[outchan][i]);
+			/*
+			fprintf(stderr, "\tchild %d: %s (%p)\n", 
+      	      i, f->children[outchan][i]->name, f->children[outchan][i]);
+			*/
+			q.runable(f->children[outchan][i], d, CONSUME);
+		}
+	} else {
+ 		//fprintf(stderr, "queueing %p falling off leaf %s (%p)\n", 
+		//d.get(), f->name, f);
+		q.runable(NULL, d, CONSUME);
+	}
 }
 
 inline void IterativeScheduler::check_for_shutdown(SmacqGraph *f) {
@@ -235,13 +237,13 @@ inline smacq_result IterativeScheduler::element(DtsObject &dout) {
       break;
       
     case SHUTDOWN:
-      if (q.pending(f)) {
-	/* Defer last call until everything produced and consumed */
-	q.runable(f, NULL, SHUTDOWN);
-      } else {
-	do_shutdown(f);
-      }
-      break;
+			if (q.pending(f)) {
+				/* Defer last call until everything produced and consumed */
+				q.runable(f, NULL, SHUTDOWN);
+			} else {
+				do_shutdown(f);
+			}
+			break;
 
     case LASTCALL:
       if (q.pending_normal(f)) {
@@ -261,32 +263,22 @@ inline smacq_result IterativeScheduler::element(DtsObject &dout) {
   return SMACQ_FREE;
 }
 
-/*
-/// Process one element.
-inline smacq_result IterativeScheduler::once(DtsObject &dout) {
-  smacq_result r = element(dout);
-
-  // Run until something falls off the edge, or until the queue is empty 
-  if (!r || (r & SMACQ_ERROR)) {
-	return r;
-  } else if (produce_first || !graphs_alive(graph) ) {
-    	return SMACQ_END;
-  } else {
-	return SMACQ_FREE;
-  }
-}
-*/
-
 /// Process until completion.  Returns unless there is an error.
 inline bool IterativeScheduler::busy_loop() {
   DtsObject dout; // Ignored.
   smacq_result r;
-  smacq_result done = SMACQ_ERROR|SMACQ_END;
-  do {
+	smacq_result prev = SMACQ_NONE; 
+  for (;;) {
     r = element(dout);
-  } while (r != SMACQ_NONE && ! (r & done));
 
-  if (r & SMACQ_ERROR) {
+	 	if (r == SMACQ_NONE) {
+			break;
+		} else {
+			prev = r;
+		}
+  } 
+
+  if (prev & SMACQ_ERROR) {
     return false;
   } else {
     return true;
@@ -310,21 +302,29 @@ inline smacq_result IterativeScheduler::get(DtsObject &dout) {
 inline smacq_result IterativeScheduler::decide(DtsObject din) {
   DtsObject dout;
   smacq_result r;
-  smacq_result done = SMACQ_ERROR|SMACQ_END|SMACQ_PASS;
+	smacq_result prev = SMACQ_NONE;
 
   input(din);
-  do {
-    r = element(dout);
-  } while (r != SMACQ_NONE && ! (r & done));
 
-  if (dout) assert(dout.get() == din.get());
+	// Run until nothing else we can do
+	for (;;) {
+		r = element(dout);
 
-  if (r == SMACQ_NONE) {
-	r = SMACQ_FREE;
-  }
-  return r;
+		if (r == SMACQ_NONE) {
+			// Done
+			break;
+		}
+
+		// Save this result for future
+		prev = r;		
+	}
+
+	// Use next to last result as final word
+	if (prev & SMACQ_PASS) {
+  	return SMACQ_PASS;
+	} else {
+	  return SMACQ_FREE;
+	}
+
 }
-
-
-
 
