@@ -99,7 +99,7 @@ void inline runq::runable(SmacqGraph * f, DtsObject d, enum action action) {
   el->f = f;
   el->d = d;
   el->action = action;
-  f->pending++;
+  if (f) f->pending++;
 		
   //fprintf(stderr, "%p now runable\n", el->f);
   
@@ -117,9 +117,9 @@ inline int runq::pop_runable(SmacqGraph * & f, DtsObject &d, enum action & actio
   }
 
   f = this->head->f;
+  if (f) f->pending--;
   action = this->head->action;
   d = this->head->d;
-  f->pending--;
 
   //fprintf(stderr, "%p for %p off queue from %p/%p\n", this->head->d, this->head->f, this, this->head);
 
