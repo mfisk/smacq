@@ -44,8 +44,19 @@ class DtsObject_ {
 	/// (Re-)initialize the object to the given size and type
 	void init(int size, dts_typeid type);
 
-	/// Return a duplicate of the object
+	/// @name Copy Constructors
+	/// @{
+
+	/// Return a new object with a copy of the data and a private field vector.
+	/// The field vector is a copy of the original.
 	DtsObject dup();
+
+	/// Return a new object with shared data, but a private field vector.
+	/// The field vector is a copy of the original.
+	DtsObject private_copy();
+
+	/// @}
+	
 
 	/// @name Meta-data Methods
 	/// @{

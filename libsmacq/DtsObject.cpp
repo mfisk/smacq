@@ -31,9 +31,18 @@ std::vector<DtsObject> DtsObject_::get_all_fields() {
 	return fields;
 }
 
+/// Return a new DtsObject that shares the underlying data, but with its own 
+/// fieldspace.
+DtsObject DtsObject_::private_copy() {
+	DtsObject copy = dts->newObject(this->type, 0);
+	copy->fields = this->fields;
+	copy->setdata(this->getdata());
+	copy->uses = this;
+	return copy;
+}
+
 /// Shallow copy.  Preserve all attached fields.
 DtsObject DtsObject_::dup() {
-	std::vector<struct dts_field_info*>::iterator i;
 	DtsObject copy = dts->newObject(this->type, this->len);
 	if (copy) {
 		memcpy(copy->data, this->data, this->len);
