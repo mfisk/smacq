@@ -122,13 +122,15 @@ static inline int output(struct state * state, struct srcstat * s) {
       dts_object * refresh = smacq_dts_construct(state->env, state->refresh_type, NULL);
 
       assert(s);
+      assert(s->fields);
+
       msgdata = smacq_dts_construct(state->env, state->id_type, &s->id);
       dts_attach_field(refresh, state->flowid_field, msgdata);
 
       for (i = 0; i<state->fieldset.num; i++) {
-	assert(s->fields[i]);
-	dts_attach_field(refresh, state->fieldset.fields[i].num, s->fields[i]);
-	s->fields[i] = NULL; /* shouldn't be used again */
+		assert(s->fields[i]);
+		dts_attach_field(refresh, state->fieldset.fields[i].num, s->fields[i]);
+		s->fields[i] = NULL; /* shouldn't be used again */
       }
 
       msgdata = smacq_dts_construct(state->env, state->timeval_type, &s->lasttime);
@@ -161,6 +163,7 @@ static int finalize_wrap(struct element * e, void * val, void * user_data) {
   struct srcstat * s = val;
   struct state * state = user_data;
 
+  /* fprintf(stderr, "foreach destroying srcstat %p\n", s); */
   finalize(state, s);
 
   return 1;
@@ -174,7 +177,7 @@ static inline struct srcstat * stats_lookup(struct state * state, const dts_obje
 	/* Try reverse */
     	if (state->reverse) {
 		struct iovec * rev_domainv = fields2vec(state->env, datum, &state->fieldset2);
-		s = bytes_hash_table_lookupv(state->stats, rev_domainv, state->fieldset.num);
+		s = bytes_hash_table_lookupv(state->stats, rev_domainv, state->fieldset2.num);
 		if (s) {
 			*swapped = 1;
 			return s;
@@ -211,8 +214,11 @@ static void timers_manage(struct state * state) {
 
 	/* Remove from all datastructures */
 	list_element_free(&state->timers, list_pop_element(&state->timers));
+
+	/* fprintf(stderr, "remove element %p hash %p\n", s, s->hash_entry); */
 	bytes_hash_table_remove_element(state->stats, s->hash_entry);
 
+	s->hash_entry = NULL;
 	/* Output and free */
 	finalize(state, s);
     }
@@ -281,12 +287,14 @@ static smacq_result flowid_consume(struct state * state, const dts_object * datu
       s->lasttime = tsnow;
 
       s->fields = g_new(const dts_object*, state->fieldset.num);
+      assert(s->fields);
       for (i = 0; i<state->fieldset.num; i++) {
-	s->fields[i] = smacq_getfield_copy(state->env, datum, state->fieldset.fields[i].num, NULL);
-	assert(s->fields[i]);
+		s->fields[i] = dts_dup(state->env->types, state->fieldset.currentdata[i]);
+		assert(s->fields[i]);
       }
 
-      bytes_hash_table_setv_get(state->stats, domainv, state->fieldset.num, s, &s->hash_entry);
+      assert(!bytes_hash_table_setv_get(state->stats, domainv, state->fieldset.num, s, &s->hash_entry));
+
       if (state->hasinterval) {
 	s->timer_entry = list_append_value(&state->timers, s);
 	s->timer_index = s->lasttime;
@@ -328,6 +336,7 @@ static smacq_result flowid_consume(struct state * state, const dts_object * datu
       timers_manage(state);
 
   status |= smacq_produce_canproduce(&state->outputq);
+  /* fprintf(stderr, "consume PRODUCE? %d\n", status & (SMACQ_PRODUCE|SMACQ_CANPRODUCE)); */
 
   //fprintf(stderr, "Expires list length %d\n", list_length(state->expires));
   return status;
@@ -410,11 +419,13 @@ static smacq_result flowid_shutdown(struct state * state) {
 
 static smacq_result flowid_produce(struct state * state, const dts_object ** datum, int * outchan) {
   if (smacq_produce_canproduce(&state->outputq)) {
-    return 255&smacq_produce_dequeue(&state->outputq, datum, outchan);
+    return smacq_produce_dequeue(&state->outputq, datum, outchan);
   } else {
     /* fprintf(stderr, "flowid: produce called with nothing in queue.  Outputing everything in current table!\n"); */
 
     bytes_hash_table_foreach_remove(state->stats, finalize_wrap, state);
+
+    list_free(&state->timers);
 
     if (!smacq_produce_canproduce(&state->outputq))
 	    return SMACQ_FREE|SMACQ_END;
