@@ -1,7 +1,7 @@
 #include <smacq.h>
 #include <stdio.h>
 
-void msg_send(dts_environment * tenv, dts_field_element fieldnum, dts_object * data, dts_comparison * comparisons) {
+void msg_send(dts_environment * tenv, dts_field_element fieldnum, const dts_object * data, dts_comparison * comparisons) {
   dts_message * msg = g_new(dts_message, 1);
   dts_message * mlist = darray_get(&tenv->messages_byfield, fieldnum);
   msg->field_data = *data;
@@ -25,7 +25,7 @@ const dts_object * msg_check(dts_environment * tenv, const dts_object * d,
  
   // Look for an unbound message that applies to this datum
   for (m = darray_get(&tenv->messages_byfield, field); m; m = m->next) {
-      if (type_match(tenv, d, m->criteria, 0)) {
+      if (type_match(tenv, d, m->criteria)) {
 	dts_attach_field_single(d, field, &m->field_data);
 
 	// If message was ANYCAST, free it now.
