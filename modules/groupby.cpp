@@ -44,7 +44,7 @@ inline SmacqGraph * groupbyModule::get_partition() {
   if (!partition) {
     partition = mastergraph->clone(NULL);
     partition->share_children_of(self);
-    partition->init(dts, sched);
+    partition->init(dts, sched, false);
     outTable[fieldvec] = partition;
   } 
 
@@ -119,6 +119,7 @@ groupbyModule::groupbyModule(struct SmacqModule::smacq_init * context)
 		mastergraph = (SmacqGraph*)ptr.uint32_t;
 		if (print_graph.boolean_t) 
 			mastergraph->print(stderr, 15);
+		mastergraph->optimize();  // optimize now, before cloning
 	}
 
   }

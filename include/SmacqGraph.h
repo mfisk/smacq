@@ -62,7 +62,7 @@ class SmacqGraph : public SmacqGraphNode {
   ~SmacqGraph();
 
   /// This method must be called before a graph is used.
-  void init(DTS *, SmacqScheduler *);
+  void init(DTS *, SmacqScheduler *, bool do_optimize = true);
 
   /// @name Parent/Child Relationships
   /// @{
@@ -245,12 +245,12 @@ inline void SmacqGraph::add_graph(SmacqGraph * b) {
 }
 
 /// Recursively initalize nodes in graph.
-inline void SmacqGraph::init(DTS * dts, SmacqScheduler * sched) {
+inline void SmacqGraph::init(DTS * dts, SmacqScheduler * sched, bool do_optimize) {
   for (SmacqGraph * g = this; g; g=g->next_graph) {
     g->init_node_one(dts, sched);
   }
 
-  optimize();
+  if (do_optimize) optimize();
 }
 
 inline void SmacqGraph::init_node_one(DTS * dts, SmacqScheduler * sched) {
