@@ -26,8 +26,33 @@ static struct smacq_options options[] = {
   {NULL, {NULL}, NULL, 0}
 };
 
+struct batch * get_batch(struct state * state, char * field) {
+	struct batch * batch;
+	int i;
+	dts_field f = smacq_requirefield(state->env, field);
+
+	for (i = 0; i < state->num_batches; i++) {
+		if (dts_comparefields(f, state->batch[i].field)) {
+			return &state->batch[i];
+		}
+	}
+	dts_field_free(f);
+
+	state->num_batches++;
+	state->batch = realloc(state->batch, state->num_batches * sizeof(struct batch));
+	batch = &state->batch[state->num_batches-1];
+
+ 	batch->field = smacq_requirefield(state->env, field);
+	batch->fieldname = field;
+  	batch->trie = New_Patricia(32);
+
+	return batch;
+}
+
 static void add_entry(struct state * state, char * field, char * needle, int output) {
   struct batch * batch = NULL;
+  prefix_t * pfx;
+
   if (!field && !needle) return;
 
   if (!needle) {
@@ -36,40 +61,22 @@ static void add_entry(struct state * state, char * field, char * needle, int out
   }
 
   if (field) {
-	int i;
-	int found = 0;
-	dts_field f = smacq_requirefield(state->env, field);
-
-	for (i = 0; i < state->num_batches; i++) {
-		if (dts_comparefields(f, state->batch[i].field)) {
-			batch = &state->batch[i];
-			found = 1;
-		}
-	}
-
-	if (!found) {
-		state->num_batches++;
-		state->batch = realloc(state->batch, state->num_batches * sizeof(struct batch));
-		batch = &state->batch[state->num_batches-1];
-
-    		batch->field = smacq_requirefield(state->env, field);
-		batch->fieldname = field;
-  		batch->trie = New_Patricia(32);
-	}
+	batch = get_batch(state, field);
   }
 
-  {
-	prefix_t * pfx = ascii2prefix(AF_INET, needle);
-  	patricia_node_t * node = patricia_lookup(batch->trie, pfx);
-	//Deref_Prefix(pfx);
-
-	assert(node);
-	if (node->data) {
-		assert(!"dup");
-		//deref_data(node->data);
-	}
-	node->data = (void*)output;
+  pfx = ascii2prefix(AF_INET, needle);
+  if (!pfx) {
+ 	fprintf(stderr, "iplookup: unable to parse mask: %s\n", needle);
+  	assert(pfx);
   }
+  patricia_node_t * node = patricia_lookup(batch->trie, pfx);
+    
+  assert(node);
+  if (node->data) {
+  	assert(!"duplicate mask");
+  	//deref_data(node->data);
+  }
+  node->data = (void*)output;
 }
 
 static smacq_result iplookup_produce(struct state* state, const dts_object ** datum, int * outchan) {
@@ -99,7 +106,7 @@ static smacq_result iplookup_consume(struct state * state, const dts_object * da
 
      assert(field->type == state->ipaddr_type);
      prefix = New_Prefix(AF_INET, dts_getdata(field), 0);
-  
+ 
      node = patricia_search_best(batch->trie, prefix);
      Deref_Prefix(prefix);	 
      if (node) {
