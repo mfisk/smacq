@@ -1,6 +1,7 @@
 #include <smacq-internal.h>
 
 #define SMACQ_DEBUG
+#define SMACQ_OPT_DEMUX 
 
 struct list {
   smacq_graph * g;
@@ -42,31 +43,6 @@ static struct list * list_tails(struct list * list, smacq_graph * g, smacq_graph
   }
 }
 
-static int compare_trees(smacq_graph * a, smacq_graph *b) {
-  int i, j;
-
-  if (a==b) return 1;
-
-  if (a->argc != b->argc) return 0;
-
-  for (i=0; i < a->argc; i++) {
-    if (strcmp(a->argv[i], b->argv[i])) return 0;
-  }
-
-  //fprintf(stderr, "%p(%s) === %p(%s)\n", a, a->name, b, b->name);
-
-  /* Compare children at this level */
-  for (i = 0; i < b->numchildren; i++) {
-    for (j = 0; j < a->numchildren; j++) {
-      if (!compare_trees(a->child[j], b->child[i])) {
-	return 0;
-      }
-    }
-  }
-
-  return 1;
-}
-
 static int compare_elements(smacq_graph * a, smacq_graph * b) {
   int i;
 
@@ -93,7 +69,6 @@ static int compare_tail_ends(smacq_graph * a, smacq_graph * b) {
       /* This is the top of the commonality */
       smacq_remove_child(b, 0);
       smacq_add_child(b, a->child[0]);
-      smacq_add_parent(a->child[0], b);
 
       return 0;
     }
@@ -133,7 +108,6 @@ static void compare_tails(struct list * alist, struct list * blist) {
     assert(blist->parent); /* else this would be a head */
     smacq_remove_child(blist->parent, 0);
     smacq_add_child(blist->parent, a);
-    smacq_add_parent(a, blist->parent);
     
     if (blist->next) {
       /* Remove b tail from list of tails */
@@ -187,7 +161,6 @@ static int merge_tree(smacq_graph * a, smacq_graph *b) {
 		/* Pawn this child off on our newly found twin */
 		if (b->child[i]) {
 			smacq_add_child(a, b->child[i]);
-			smacq_add_parent(b->child[i], a);
 			/* fprintf(stderr, "%p child %p(%s) now child of %p(%s)\n", b, 
 					b->child[i], b->child[i]->name, 
 					a, a->name); */
@@ -196,6 +169,56 @@ static int merge_tree(smacq_graph * a, smacq_graph *b) {
 	}
 
 	return 1;
+}
+
+static void add_args(smacq_graph * a, smacq_graph * b) {
+	int i;
+	a->argv = realloc(a->argv, (a->argc + b->argc) * sizeof(char*));
+	a->argv[a->argc++] = ";";
+	for (i=1; i < b->argc; i++) {
+		a->argv[a->argc++] = b->argv[i];
+	}
+}
+
+static void apply_demux(smacq_graph * g) {
+	int i, j, k;
+	smacq_graph * ichild, * jchild, * orphan;
+
+	if (!g) return;
+
+	for (i = 0; i < g->numchildren; i++) {
+		ichild = g->child[i];
+
+		for (j=1; j < g->numchildren; j++) {
+			if (j==i) continue;
+
+			jchild = g->child[j];
+
+			if (strcmp(ichild->argv[0], "substr")) continue;
+
+			if (! strcmp(ichild->argv[0], jchild->argv[0])) {
+				/* Merge arguments */
+				add_args(ichild, jchild);
+
+				/* Move j's children to i */
+				for (k=0; k < jchild->numchildren; k++) {
+					orphan = jchild->child[k];
+					fprintf(stderr, "moved %p from %p to %p\n", orphan, jchild, ichild);
+					smacq_add_child(ichild, orphan);
+					smacq_remove_child(jchild, k);
+				}
+
+				fprintf(stderr, "removed %p from %p\n", jchild, g);
+				smacq_remove_child(g, j);
+				j--; /* remove_child will reset g->child[j] to something new */
+
+			}
+		}
+	}
+
+	for (i = 0; i < g->numchildren; i++) {
+		apply_demux(g->child[i]);
+	}
 }
 
 smacq_graph * smacq_merge_graphs(smacq_graph * g) {
@@ -232,8 +255,13 @@ smacq_graph * smacq_merge_graphs(smacq_graph * g) {
   /* Do the merge again from the tails up */
   merge_tails(g);
 
-#ifdef SMACQ_DEBUG
+#ifdef SMACQ_OPT_DEMUX
+  /* Do the merge again from the tails up */
+  apply_demux(g);
+#endif
+
   fprintf(stderr, "--- optimized to ---\n");
+#ifdef SMACQ_DEBUG
   for (bp = g; bp; bp=bp->next_graph) {
     smacq_graph_print(stderr, bp, 8);
   }
