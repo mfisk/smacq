@@ -18,7 +18,9 @@ static struct smacq_options options[] = {
 static smacq_result const_consume(struct state * state, const dts_object * datum, int * outchan) {
   assert(datum);
 
+  dts_incref(state->data, 1);
   dts_attach_field(datum, state->field, state->data);
+
   return SMACQ_PASS;
 }
 
