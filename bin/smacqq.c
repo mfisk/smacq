@@ -33,7 +33,7 @@ int main(int argc, char ** argv) {
 
   if (argc <= 1) {
 	  fprintf(stderr, "Usage: %s [-m] query\n", argv[0]);
-	  fprintf(stderr, "Version $Version$ built on %s\n", SMACQ_BUILD_DATE);
+	  fprintf(stderr, "Build date %s\n", SMACQ_BUILD_DATE);
 	  return -1;
   }
 
