@@ -11,7 +11,7 @@ SMACQ_MODULE(print,
 	     char ** argv;
 	     int argc;
 	     FILE * outputfh;
-	     bool verbose, tagged, flush, internals, boulder, binary, use_file_pattern;
+	     bool verbose, tagged, flush, internals, boulder, binary, use_file_pattern, mysql;
 	     std::vector<DtsField> fields;
 	     DtsField string_transform, filefield;
 	     char * delimiter, * record_delimiter, * output_name;
@@ -29,6 +29,7 @@ static struct smacq_options options[] = {
   {"r", {string_t:"\n"}, "Delimiter between records", SMACQ_OPT_TYPE_STRING},
   {"boulder", {boolean_t:0}, "Print records in Boulder format", SMACQ_OPT_TYPE_BOOLEAN},
   {"binary", {boolean_t:0}, "Binary output", SMACQ_OPT_TYPE_BOOLEAN},
+  {"mysql", {boolean_t:0}, "MySQL output", SMACQ_OPT_TYPE_BOOLEAN},
   {"B", {boolean_t:0}, "Disable buffering: flush output after each line", SMACQ_OPT_TYPE_BOOLEAN},
   {"f", {string_t:"-"}, "Output file", SMACQ_OPT_TYPE_STRING},
   {"filefield", {string_t:NULL}, "Field substituted into file name pattern", SMACQ_OPT_TYPE_STRING},
@@ -61,7 +62,6 @@ int printModule::print_field(DtsObject field, char * fname, int printed, int col
 }
 
 smacq_result printModule::consume(DtsObject datum, int & outchan) {
-  int i;
   int printed = 0;
   int column = 0;
   DtsObject field;
@@ -77,6 +77,16 @@ smacq_result printModule::consume(DtsObject datum, int & outchan) {
     if (!outputfh || strcmp(last_file_field, this_file_field)) {
 	last_file_field = this_file_field;
     	snprintf(buf, 4095, output_name, (char*)ff->getdata());
+
+	// MySQL doesn't like periods
+	if (mysql) {
+		char * i = buf; 
+		while ((i=index(i, '.'))) {
+			*i = '_';
+		}
+		strncat(buf, ".MYD", 4095);
+	}
+	
     	if (outputfh) fclose(outputfh);  
     	outputfh = fopen(buf, "a");
     	if (!outputfh) {
@@ -117,9 +127,12 @@ smacq_result printModule::consume(DtsObject datum, int & outchan) {
     }
       
   } else {
-    for (i = 0; i < argc; i++) {
+    for (int i = 0; i < argc; i++) {
       field = datum->getfield(fields[i]);
       if (binary) {
+	if (mysql) 
+	  fwrite("\001\000\000", 3, 1, outputfh);
+
 	if (field) 
 	  fwrite(field->getdata(), field->getsize(), 1, outputfh);
       } else { 
@@ -149,7 +162,7 @@ printModule::printModule(struct smacq_init * context)
  : SmacqModule(context), use_file_pattern(false) {
   smacq_opt boulder_opt, record_delimiter_opt, tagged_opt, verbose_opt, 
     flush_opt, delimiter_opt, internals_opt, output_opt, binary_opt,
-    filefield_opt;
+    mysql_opt, filefield_opt;
   int i;
   
   {
@@ -163,6 +176,7 @@ printModule::printModule(struct smacq_init * context)
       {"filefield", &filefield_opt},
       {"boulder", &boulder_opt},
       {"binary", &binary_opt},
+      {"mysql", &mysql_opt},
       {"i", &internals_opt},
       {NULL, NULL}
     };
@@ -180,6 +194,9 @@ printModule::printModule(struct smacq_init * context)
   boulder = boulder_opt.boolean_t;
   binary = binary_opt.boolean_t;
   tagged = tagged_opt.boolean_t;
+
+  mysql = mysql_opt.boolean_t;
+  if (mysql) binary = true;
 
   if (filefield_opt.string_t) {
     filefield = dts->requirefield(dts_fieldname_append(filefield_opt.string_t, "string"));
