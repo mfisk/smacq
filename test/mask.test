@@ -1,3 +1,3 @@
 #!/bin/sh
 
-bin/smacqp pcapfile $TEST/0325@1112-snort.pcap \| mask srcip 192.168.0.0/16 \| print srcip dstip 
+bin/smacqp pcapfile $TEST/0325@1112-snort.pcap \| mask srcip 192.168.0.0/24 \| print srcip dstip 
