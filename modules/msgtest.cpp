@@ -40,7 +40,7 @@ smacq_result msgtestModule::consume(DtsObject datum, int & outchan) {
   return SMACQ_PASS;
 }
 
-msgtestModule::msgtestModule(struct smacq_init * context) : SmacqModule(context) {
+msgtestModule::msgtestModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
   {
     struct smacq_optval optvals[] = {
       {NULL, NULL}

@@ -48,7 +48,7 @@ cflowModule::~cflowModule() {
   delete rdr;
 }
 
-cflowModule::cflowModule(struct smacq_init * context) : SmacqModule(context) {
+cflowModule::cflowModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
   dts->requiretype("packet");
 
   rdr = new Strucio();

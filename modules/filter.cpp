@@ -33,7 +33,7 @@ smacq_result filterModule::consume(DtsObject datum, int & outchan) {
     return SMACQ_FREE;
 }
 
-filterModule::filterModule(struct smacq_init * context) : SmacqModule(context) {
+filterModule::filterModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
   {
     struct smacq_optval optvals[] = {
       {NULL, NULL}

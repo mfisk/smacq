@@ -307,7 +307,7 @@ pcapfileModule::~pcapfileModule() {
   delete strucio;
 }
 
-pcapfileModule::pcapfileModule(struct smacq_init * context) : SmacqModule(context) {
+pcapfileModule::pcapfileModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
   smacq_opt output, size, list, gzip, avoid_mmap;
 
   //fprintf(stderr, "Loading pcapfile (%d,%d)\n", context->isfirst, context->islast);

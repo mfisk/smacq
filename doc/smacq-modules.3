@@ -1,4 +1,4 @@
-.TH smacq-modules 3 "$Date: 2003/10/23 23:06:15 $" "LANL"
+.TH smacq-modules 3 "$Date: 2004/07/05 03:38:56 $" "LANL"
 .SH NAME
 smacq-modules - pipeline module programming guide
 .SH SYNOPSIS
@@ -34,17 +34,6 @@ By convention, the referenced functions also include the name of the module.  Th
 .BI "static smacq_result smacq_\fImodule\fP_shutdown(void * state);"
 .sp
 
-The algebra element is optional and is used only by the dataflow
-optimizer.  The following elements of the algebra structure are as
-follows:  Vector specifies that the module can be used with a single
-input and a single output, or can be used with a vector of sets of
-arguments separated by semicolons and a corresponding vector of output
-channels.  Boolean specifies that the module merely filters out some
-data and can be reordered in the dataflow by an optimizer.  Demux
-specifies that the module demultiplexes output data among multiple
-output chanels.  If a demux module fails to set the demux bit, then
-the optimizer may produce disfunctional output.
-
 .BI "static struct smacq_options smacq_options[];"
 .fi
 .SH DESCRIPTION
@@ -56,10 +45,6 @@ dts-types(3).
 
 .sp
 
-This document describes the programming interface used by authors of 
-dataflow modules.  These modules are dynamically loaded and may be
-instantiated multiple times.  Global and static variables are therefore
-deprecated for most cases.
 .sp
 Each module must declare a \fBsmacq_\fP\fImodule\fP\fB_table\fP structure of type
 \fBstruct smacq_functions\fP referring to static functions described below:
@@ -161,8 +146,9 @@ Valid types are: \fISMACQ_OPT_TYPE_INT, SMACQ_OPT_TYPE_USHORT, SMACQ_OPT_TYPE_TI
 
 .SH "OUTPUT QUEUES"
 
-It is often necessary for modules to queue data objects for output.  The following routines enqueue and dequeue objects.  The
-queue is a struct smacq_outputq * and is initialized to NULL.
+It is often necessary for modules to queue data objects for output.
+The following routines enqueue and dequeue objects.  The queue is a
+struct smacq_outputq * and is initialized to NULL.
 
 .TP
 .BI "void smacq_produce_enqueue(struct smacq_outputq ** qp, DtsObject * o, int outchan)"

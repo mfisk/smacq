@@ -136,7 +136,7 @@ smacq_result iplookupModule::consume(DtsObject datum, int & outchan) {
 
 }
 
-iplookupModule::iplookupModule(struct smacq_init * context) : SmacqModule(context) {
+iplookupModule::iplookupModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
   int i, argc;
   char ** argv;
   smacq_opt field_opt, demux_opt;

@@ -15,6 +15,6 @@ smacq_result noopModule::consume(DtsObject datum, int & outchan) {
   return SMACQ_FREE;
 }
 
-noopModule::noopModule(struct smacq_init * context) : SmacqModule(context) {
+noopModule::noopModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
 }
 

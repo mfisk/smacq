@@ -1000,7 +1000,7 @@ void newhandleQuery(char * query)
   DtsObjectrecord;
 
   DTS * tenv = dts_init();
-  graph = smacq_build_query(tenv, 1, &query);
+  graph = SmacqGraph::newQuery(tenv, 1, &query);
   assert(graph);
 
   smacq_start(graph, ITERATIVE, tenv);

@@ -89,7 +89,7 @@ smacq_result sliceModule::consume(DtsObject datum, int & outchan) {
   return SMACQ_PASS;
 }
 
-sliceModule::sliceModule(struct smacq_init * context) {
+sliceModule::sliceModule(struct SmacqModule::smacq_init * context) {
   int argc = 0;
   char ** argv;
 

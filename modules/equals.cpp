@@ -73,7 +73,7 @@ smacq_result equalsModule::consume(DtsObject datum, int & outchan) {
   }
 }
 
-equalsModule::equalsModule(struct smacq_init * context) 
+equalsModule::equalsModule(struct SmacqModule::smacq_init * context) 
   : SmacqModule(context) 
 {
   assert(context->argc > 2);

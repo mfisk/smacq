@@ -226,12 +226,9 @@ inline int DTS::typenum_byname(const char * name) {
 
 
 BEGIN_C_DECLS
-
+ 
 #define dts_field_first(x) (x[0])
 int dts_comparefields(dts_field a, dts_field b);
-
-#define dts_data_as(datum,type) (*((type*)((datum)->getdata())))
-#define dts_set(datum,type,val) (datum)->setsize(sizeof(type)) , (*((type*)((datum)->getdata()))) = (val), 1 
 
 //void dts_decref(DtsObject d);
 	

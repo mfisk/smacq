@@ -277,7 +277,7 @@ void disarmModule::filter_callback(char * op, int argc, char ** argv, void * dat
   }
 }
 
-disarmModule::disarmModule(struct smacq_init * context) : SmacqModule(context) {
+disarmModule::disarmModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
   smacq_opt infile, port, hostname;
   char * end_date;
 

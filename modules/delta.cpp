@@ -55,7 +55,7 @@ smacq_result deltaModule::consume(DtsObject datum, int & outchan) {
   return SMACQ_PASS;
 }
 
-deltaModule::deltaModule(struct smacq_init * context) : SmacqModule(context) {
+deltaModule::deltaModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
   int argc = context->argc-1;
   char ** argv = context->argv+1;;
 

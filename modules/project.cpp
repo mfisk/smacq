@@ -39,7 +39,7 @@ smacq_result projectModule::consume(DtsObject datum, int & outchan) {
   return (smacq_result)(SMACQ_FREE|SMACQ_PRODUCE);
 }
 
-projectModule::projectModule(struct smacq_init * context) : SmacqModule(context) {
+projectModule::projectModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
   int argc = context->argc-1;
   char ** argv = context->argv+1;;
 

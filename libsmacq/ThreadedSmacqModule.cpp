@@ -58,10 +58,10 @@ ThreadedSmacqModule::~ThreadedSmacqModule() {
 	  longjmp(this->loop_stack, 2);
 }
 
-ThreadedSmacqModule::ThreadedSmacqModule(struct smacq_init * volatile_context) : SmacqModule(volatile_context) {
+ThreadedSmacqModule::ThreadedSmacqModule(struct SmacqModule::smacq_init * volatile_context) : SmacqModule(volatile_context) {
   char * stack = (char*)malloc(STACK_SIZE);
 
-  context = (smacq_init*)memdup(volatile_context, sizeof(struct smacq_init));
+  context = (smacq_init*)memdup(volatile_context, sizeof(struct SmacqModule::smacq_init));
 
   /* Create a context with a separate stack for the thread. */
   getcontext(&this->loop_context);

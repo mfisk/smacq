@@ -75,7 +75,7 @@ smacq_result rusageModule::consume(DtsObject datum, int & outchan) {
   return SMACQ_PASS;
 }
 
-rusageModule::rusageModule(struct smacq_init * context) : SmacqModule(context) {
+rusageModule::rusageModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
   int argc = 0;
   char ** argv;
   smacq_opt idrsso, rsso;

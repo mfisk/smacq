@@ -65,7 +65,7 @@ smacq_result derivativeModule::consume(DtsObject datum, int & outchan) {
   return SMACQ_PASS; 
 }
 
-derivativeModule::derivativeModule(struct smacq_init * context) : SmacqModule(context) {
+derivativeModule::derivativeModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
   int argc = 0;
   char ** argv;
   {

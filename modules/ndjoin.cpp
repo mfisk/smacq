@@ -86,7 +86,7 @@ smacq_result ndjoinModule::consume(DtsObject datum, int & outchan) {
   return SMACQ_PASS;
 }
 
-ndjoinModule::ndjoinModule(struct smacq_init * context) 
+ndjoinModule::ndjoinModule(struct SmacqModule::smacq_init * context) 
   : SmacqModule(context)
 {
   int argc = context->argc-1;
@@ -97,7 +97,7 @@ ndjoinModule::ndjoinModule(struct smacq_init * context)
   join.left_key = dts->requirefield(dts_fieldname_append(argv[0], "double"));
   join.right_key = dts->requirefield(dts_fieldname_append(argv[1], "double"));
   join.field = dts->requirefield(argv[2]);
-  join.graph = smacq_build_query(dts, argc-3, argv+3);
+  join.graph = SmacqGraph::newQuery(dts, argc-3, argv+3);
   assert(join.graph);
 
   sched = new SmacqScheduler(dts, join.graph, true);

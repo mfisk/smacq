@@ -10,13 +10,13 @@ class SmacqGraphNode{
   SmacqGraphNode();
   ~SmacqGraphNode();
   bool set(int argc, char ** argv);
-  void init(struct smacq_init &);
+  void init(struct SmacqModule::smacq_init &);
 
  protected:
   char * name;
   char ** argv;
   int argc;
-  struct smacq_module_algebra algebra;
+  struct SmacqModule::algebra algebra;
 
   /// Used by schedulers.
   smacq_result status;
@@ -38,7 +38,7 @@ class SmacqGraphNode{
   pthread_t thread;
 #endif
 
-  struct smacq_module_ops ops;
+  struct SmacqModule::ops ops;
 
   GModule * module;
 
@@ -99,7 +99,7 @@ inline bool SmacqGraphNode::load_module() {
 
 
 /// Initialize a graph node.  It must have already been set().
-inline void SmacqGraphNode::init(struct smacq_init & context) {
+inline void SmacqGraphNode::init(struct SmacqModule::smacq_init & context) {
   if (instance) return;
   /* fprintf(stderr, "init_modules on graph node %p %s\n", f, f->argv[0]); */
 

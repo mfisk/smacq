@@ -46,7 +46,7 @@ smacq_result syncModule::consume(DtsObject datum, int & outchan) {
   return SMACQ_PASS;
 }
 
-syncModule::syncModule(struct smacq_init * context) : SmacqModule(context) {
+syncModule::syncModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
   int argc = context->argc-1;
   char ** argv = context->argv+1;
   isfirst = context->isfirst;
@@ -58,7 +58,7 @@ syncModule::syncModule(struct smacq_init * context) : SmacqModule(context) {
 	  }
   }
 
-  graph = smacq_build_query(dts, argc, argv);
+  graph = SmacqGraph::newQuery(dts, argc, argv);
   graph->init(dts);
   sched = new IterativeScheduler(graph, false);
   sched->busy()

@@ -40,7 +40,7 @@ typedef struct {
 	int ob_num_fields;
 } PyDtsObject;
 
-pythonModule::pythonModule(struct smacq_init * context) {
+pythonModule::pythonModule(struct SmacqModule::smacq_init * context) {
 	char * cmd, * filename;
 	PyObject * builtins, * tmpargs = NULL;
 

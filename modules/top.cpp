@@ -87,7 +87,7 @@ smacq_result topModule::consume(DtsObject datum, int & outchan) {
   }
 }
 
-topModule::topModule(struct smacq_init * context) : SmacqModule(context) {
+topModule::topModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
   int argc;
   char ** argv;
   smacq_opt pcount;

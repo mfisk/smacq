@@ -113,7 +113,7 @@ smacq_result fifodelayModule::consume(DtsObject datum, int & outchan) {
   return (smacq_result)(SMACQ_FREE|SMACQ_PRODUCE);
 }
 
-fifodelayModule::fifodelayModule(struct smacq_init * context) : SmacqModule(context) {
+fifodelayModule::fifodelayModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
   int argc = 0;
   char ** argv;
 

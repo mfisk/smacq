@@ -81,7 +81,11 @@ class SmacqGraph : private SmacqGraphNode {
   /// @name Factories
   /// @{
 
-  /// Construct a new child using the given arguments.
+  /// Parse a query and construct a new graph to execute it 
+  static SmacqGraph * newQuery(DTS * tenv, int argc, char ** argv);
+
+  /// Construct a new graph using the given arguments.  The new graph
+  /// is automatically attached as a child of the current graph.
   SmacqGraph * new_child(int argc, char ** argv);
 
   /// Recursively clone a graph.  The clone is made a child of
@@ -210,7 +214,7 @@ inline void SmacqGraph::init(DTS * dts, SmacqScheduler * sched) {
 }
 
 inline void SmacqGraph::init_node_one(DTS * dts, SmacqScheduler * sched) {
-  struct smacq_init context;
+  struct SmacqModule::smacq_init context;
 
   context.islast = !(children[0].size());
   context.isfirst = (!numparents);

@@ -1,4 +1,4 @@
-DOCS=smacq.1 smacqq.1 smacq-modules.3 dts-modules.3 
+DOCS=smacq.1 smacqq.1 dts-modules.3 
 
 DOCDSTS=$(patsubst %,$(srcdir)/%,$(DOCS))
 DOCCATS=$(patsubst %,$(srcdir)/%.catman,$(DOCS))
@@ -10,8 +10,10 @@ DOCBOOK2MAN=docbook-to-man
 
 dist_man_MANS=$(DOCDSTS) $(DOCPDFS) $(DOCCATS) api/refman.pdf api/man3 api/html $(DOCHTML)
 
-api:
+api: .ALWAYS
 	(cd $(srcdir); doxygen)
+
+.ALWAYS:
 
 publish:
 	(cd $(srcdir); rsync -a -e ssh -Ltv *.pdf *.png *.html html $(top_srcdir)/build/iso/smacq*.tar.gz ../smacq.iso smacq.sourceforge.net:smacqweb/)

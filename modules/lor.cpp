@@ -25,7 +25,7 @@ void lorModule::build_clause(char ** argv, int num) {
     return;
   }
   
-  g = smacq_build_query(dts, num, argv);
+  g = SmacqGraph::newQuery(dts, num, argv);
   assert(g);
 
   if (graphs) {
@@ -35,7 +35,7 @@ void lorModule::build_clause(char ** argv, int num) {
   }
 }
 
-lorModule::lorModule(struct smacq_init * context) 
+lorModule::lorModule(struct SmacqModule::smacq_init * context) 
   : SmacqModule(context), graphs(NULL)
 {
   int argc = context->argc-1;

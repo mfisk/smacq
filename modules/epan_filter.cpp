@@ -15,9 +15,9 @@
  *
  *      EPAN/Ethereal Filter plug-in module for SMACQ
  *        Author:   Alex Kent (alex@lanl.gov)
- *        $Date: 2004/08/05 20:05:16 $
+ *        $Date: 2004/08/11 16:23:42 $
  *
- *      $Id: epan_filter.cpp,v 1.3 2004/08/05 20:05:16 mfisk Exp $
+ *      $Id: epan_filter.cpp,v 1.4 2004/08/11 16:23:42 mfisk Exp $
  */
 
 #include <stdio.h>
@@ -100,7 +100,7 @@ smacq_result epanModule::consume(struct state *state, DtsObjectdatum, int & outc
   }
 }
 
-static int epan_init(struct smacq_init *context) {
+static int epan_init(struct SmacqModule::smacq_init *context) {
   struct state *state;
   int res;
   int argc;

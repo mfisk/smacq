@@ -9,7 +9,7 @@
 
 struct thread_args {
   SmacqGraph * f;
-  struct smacq_init * context;
+  struct SmacqModule::smacq_init * context;
 };
 
 char * printer_args[] = { "print", "count" };

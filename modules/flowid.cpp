@@ -32,7 +32,6 @@ class SrcStat {
 
   struct element * hash_entry;
   struct list_element * timer_entry;
-
 };
 
 SMACQ_MODULE(flowid,
@@ -156,7 +155,7 @@ inline void flowidModule::finalize(SrcStat * s) {
     output(s);
 
     active--;
-    /* fprintf(stderr, "%d active flows, timer list has %d\n", active, list_length(&timers));*/
+    //fprintf(stderr, "%d active flows\n");
 
     // Cleanup
     /* Don't have to decref fields, since their refcount will be picked up from being attached in the output routine */
@@ -213,7 +212,6 @@ void flowidModule::timers_manage() {
 	finalize(s);
 
 	/* fprintf(stderr, "remove element %p hash %p\n", s, s->hash_entry); */
-	stats.erase(s->fields);
     }
 }
 
@@ -325,7 +323,7 @@ smacq_result flowidModule::consume(DtsObject datum, int & outchan) {
   return status;
 }
 
-flowidModule::flowidModule(struct smacq_init * context) : SmacqModule(context) {
+flowidModule::flowidModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
   int argc = 0;
   char ** argv;
 

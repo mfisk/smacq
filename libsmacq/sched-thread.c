@@ -1,6 +1,8 @@
 #include <smacq.h>
 #include <stdio.h>
 
+#define RING_EOF ((void*)-1)
+
 #ifndef SMACQ_OPT_NOPTHREADS
 
 struct thread_args {

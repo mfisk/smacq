@@ -763,8 +763,8 @@ struct dts_operand * DTS::parse_expr(int argc, char ** argv) {
   return retval;
 }
 
-
-SmacqGraph * smacq_build_query(DTS * tenv, int argc, char ** argv) {
+/// Parse a query and return the SmacqGraph that executes it.
+SmacqGraph * SmacqGraph::newQuery(DTS * tenv, int argc, char ** argv) {
   int size = 0;
   int i;
   char * qstr; 
@@ -800,7 +800,7 @@ SmacqGraph * smacq_build_query(DTS * tenv, int argc, char ** argv) {
  smacq_pthread_mutex_unlock(&local_lock);
 
   if (res) {
-    fprintf(stderr, "smacq_build_query: error parsing query: %s\n", qstr);
+    fprintf(stderr, "SmacqGraph::newQuery: error parsing query: %s\n", qstr);
     return NULL;
   }
 

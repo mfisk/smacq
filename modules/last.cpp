@@ -31,7 +31,7 @@ SMACQ_MODULE(last,
 
 ); 
 
-lastModule::lastModule(struct smacq_init * context) 
+lastModule::lastModule(struct SmacqModule::smacq_init * context) 
   : SmacqModule(context)
 {
   int argc = 0;

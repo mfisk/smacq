@@ -18,7 +18,7 @@ static struct smacq_options options[] = {
 
 SMACQ_MODULE_THREAD(counter,); 
 
-smacq_result counterModule::thread(struct smacq_init * context) {
+smacq_result counterModule::thread(struct SmacqModule::smacq_init * context) {
   FieldVec fieldvec;
   FieldVecHash<int> counters;
 

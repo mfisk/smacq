@@ -60,7 +60,7 @@ smacq_result splitModule::consume(DtsObject datum, int & outchan) {
   return SMACQ_PASS;
 }
 
-splitModule::splitModule(struct smacq_init * context)
+splitModule::splitModule(struct SmacqModule::smacq_init * context)
   : SmacqModule(context),
     bucket(0)
 {

@@ -19,7 +19,7 @@ SMACQ_MODULE(expr,
   int double_type;
 );
 
-exprModule::exprModule(struct smacq_init * context) 
+exprModule::exprModule(struct SmacqModule::smacq_init * context) 
  : SmacqModule(context), as_field(NULL) 
 {
   int argc = context->argc-1;

@@ -81,7 +81,7 @@ smacq_result sqlinsertModule::consume(DtsObject datum, int & outchan) {
   }
 }
 
-sqlinsertModule::sqlinsertModule(struct smacq_init * context)
+sqlinsertModule::sqlinsertModule(struct SmacqModule::smacq_init * context)
   : SmacqModule(context)
 {
   char qbuf[BUFSIZE];

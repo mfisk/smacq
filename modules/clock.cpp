@@ -70,7 +70,7 @@ smacq_result clockModule::consume(DtsObject datum, int & outchan) {
   return (SMACQ_PASS|canproduce());
 }
 
-clockModule::clockModule(struct smacq_init * context) : SmacqModule(context) {
+clockModule::clockModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
   int argc = 0;
   char ** argv;
 

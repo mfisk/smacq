@@ -5,12 +5,13 @@
 #include <smacq.h>
 #include <SmacqGraph.h>
 #include <SmacqScheduler.h>
+#include "config.h"
 
 #define MAX_QUERY_SIZE 4096*100
 
 struct thread_args {
   SmacqGraph * f;
-  struct smacq_init * context;
+  struct SmacqModule::smacq_init * context;
 };
 
 static struct smacq_options options[] = {
@@ -33,7 +34,8 @@ int main(int argc, char ** argv) {
 
   if (argc <= 1) {
 	  fprintf(stderr, "Usage: %s [-m] query\n", argv[0]);
-	  fprintf(stderr, "Build date %s\n", SMACQ_BUILD_DATE);
+	  fprintf(stderr, "Version %s; Build date %s\n", 
+		  PACKAGE_VERSION, SMACQ_BUILD_DATE);
 	  return -1;
   }
 
@@ -72,7 +74,7 @@ int main(int argc, char ** argv) {
 	      if (queryline[strlen(queryline)-1] == '\n')
 		      queryline[strlen(queryline)-1] = '\0';
 
-	      newgraph = smacq_build_query(&dts, 1, &queryline);
+	      newgraph = SmacqGraph::newQuery(&dts, 1, &queryline);
 	      if (!newgraph) {
 		      fprintf(stderr, "Fatal error at line %d\n", qno);
 		      exit(-1);
@@ -86,7 +88,7 @@ int main(int argc, char ** argv) {
       }
 
   } else {
-      graphs = smacq_build_query(&dts, qargc, qargv);
+      graphs = SmacqGraph::newQuery(&dts, qargc, qargv);
       assert(graphs);
   }
 

@@ -59,7 +59,7 @@ void joinModule::find_join(dts_comparison * comp) {
 
 }
 
-joinModule::joinModule(struct smacq_init * context) : SmacqModule(context) {
+joinModule::joinModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
   int i, j;
   int argc = context->argc-1;
   char ** argv = context->argv+1;
@@ -88,7 +88,7 @@ joinModule::joinModule(struct smacq_init * context) : SmacqModule(context) {
 	  //char fstr[256];
 	  //snprintf(fstr, 256, "j%d", argv[i]);
 	  joins[j].field = dts->requirefield(argv[i+1]);
-	  joins[j].graph = smacq_build_query(dts, 1, &argv[i]);
+	  joins[j].graph = SmacqGraph::newQuery(dts, 1, &argv[i]);
 	  assert(joins[j].graph);
 	  smacq_start(joins[j].graph, ITERATIVE, dts);
   }

@@ -87,7 +87,7 @@ smacq_result groupbyModule::produce(DtsObject & datum, int & outchan) {
   return SMACQ_END;
 }
 
-groupbyModule::groupbyModule(struct smacq_init * context) 
+groupbyModule::groupbyModule(struct SmacqModule::smacq_init * context) 
   : SmacqModule(context), 
     sched(context->scheduler),
     children(context->self->children_as_heads())

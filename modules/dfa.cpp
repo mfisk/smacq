@@ -212,7 +212,7 @@ int dfaModule::parse_dfa(char * filename) {
 	args[0] = "where";
 	args[1] = test;
 
-	transition.graph = smacq_build_query(dts, 2, args);
+	transition.graph = SmacqGraph::newQuery(dts, 2, args);
 
 	//transition.graph->print(stderr, 2);
 	
@@ -256,7 +256,7 @@ int dfaModule::parse_dfa(char * filename) {
 }
 
 
-dfaModule::dfaModule(struct smacq_init * context) : SmacqModule(context) {
+dfaModule::dfaModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
   int argc = context->argc-1;
   char ** argv = context->argv+1;
 

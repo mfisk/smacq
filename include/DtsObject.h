@@ -16,14 +16,29 @@ typedef void * DtsObject;
 SMDEBUG(static int DtsObject_count = 0;)
 SMDEBUG(static int DtsObject_virtual_count = 0;)
 
+/*!
+
+\class DtsObject
+\brief A DtsObject is an auto-pointer to a DtsObject_ instance
+
+*/
+
 /// DtsObject_ instances should only be used via 
 /// DtsObject auto-pointers (the auto-pointer keeps track of
 /// reference counts or the user).
 class DtsObject_ {
+
+/// This macro casts a datum to a "type*" 
+#define dts_data_as(datum,type) (*((type*)((datum)->getdata())))
+
+/// This macro casts a datum to "type" and sets it to "val"
+#define dts_set(datum,type,val) (datum)->setsize(sizeof(type)) , (*((type*)((datum)->getdata()))) = (val), 1 
+
   public:
 	DtsObject_(DTS * dts, int size, int type);
 	~DtsObject_();
 
+	/// (Re-)initialize the object to the given size and type 
 	void init(int size, dts_typeid type);
 
 	/// Return a duplicate of the object
@@ -34,7 +49,7 @@ class DtsObject_ {
 	void setsize(int size);
 	int getsize() const { return(len); }
 
-	unsigned long getid() const { return(id); }
+	unsigned long getid() const { return(id); }  
 
 	unsigned char * getdata() const { return((unsigned char*)data); }
 
@@ -81,7 +96,7 @@ class DtsObject_ {
 	/// Expr module uses this
 	double eval_arith_operand(struct dts_operand * op);
 
-	bool operator == (DtsObject_ &) const;
+	//bool operator == (DtsObject_ &) const;
 
  private:
 	/// @name Reference Counting
@@ -259,17 +274,14 @@ inline void DtsObject_::attach_field(dts_field field, DtsObject field_data) {
   assert(!dts_field_first(dts_field_next(field)));
 }
 
-inline bool operator== (DtsObject_&a, DtsObject_&b) {
-  return a.operator==(b);
-}
 
-inline bool DtsObject_::operator== (DtsObject_& b) const { 
-  if ( (getsize() == b.getsize()) && 
-       (!memcmp(getdata(), b.getdata(), getsize()))) {
-    //fprintf(stderr, "DtsObject %p == %p\n", this, &b);
+inline bool operator== (DtsObject_&a, DtsObject_&b) {
+  if ( (a.getsize() == b.getsize()) && 
+       (!memcmp(a.getdata(), b.getdata(), a.getsize()))) {
+    //fprintf(stderr, "DtsObject %p == %p\n", &a, &b);
     return true;
   } else {
-    //fprintf(stderr, "DtsObject %p != %p\n", this, &b);
+    //fprintf(stderr, "DtsObject %p != %p\n", &b, &b);
     return false;
   }
 }
