@@ -181,7 +181,7 @@ noinst_LTLIBRARIES = libgnu.la
 AM_CFLAGS = @LIBGNU_CFLAGS@
 
 libgnu_la_SOURCES = allocsa.h allocsa.c getdate.h getdate.y gettime.c setenv.h time_r.h timespec.h xalloc.h xmalloc.c
-libgnu_la_LIBADD = @LTLIBOBJS@ $(LIB_CLOCK_GETTIME)
+libgnu_la_LIBADD = $(LIB_CLOCK_GETTIME) @LTLIBOBJS@
 EXTRA_DIST = alloca_.h allocsa.valgrind stdbool_.h
 
 BUILT_SOURCES = $(ALLOCA_H) getdate.c $(STDBOOL_H)
@@ -405,9 +405,9 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
-	-rm -f getdate.c
 	-test -z "$(MAINTAINERCLEANFILES)" || rm -f $(MAINTAINERCLEANFILES)
 	-test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
+	-rm -f getdate.c
 clean: clean-am
 
 clean-am: clean-generic clean-libtool clean-noinstLTLIBRARIES \

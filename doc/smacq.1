@@ -399,10 +399,9 @@ The input is assumed to be sorted in increasing order.
  
 .SS "Constant Annotation" 
 .PP 
-\fBconst\fR \fIstring\fR  [\fIfield\fR]  
+\fBconst\fR [-t \fItype\fR]  [-f \fIfield\fR]  \fIstring\fR  [\fIfield\fR]  
 .PP 
-Annotate each object with a field containing the specified string constant. 
-If a field name is specified, it will be used.  Otherwise, the name will be "const". 
+Annotate each object with a field containing the specified constant.  The default field name is "const" and the default type is "string". 
  
 .SS "Delta" 
 .PP 
@@ -658,4 +657,4 @@ boolean:
 \fBDTS\fR(3),  
 \fBSmacqGraph\fR(3) 
  
-.\" created by instant / docbook-to-man, Thu 17 Feb 2005, 12:33 
+.\" created by instant / docbook-to-man, Tue 29 Mar 2005, 15:53 
