@@ -37,7 +37,10 @@
      YYOR = 260,
      YYAND = 261,
      YYSTRING = 262,
-     YYID = 263
+     YYID = 263,
+     YYNEQ = 264,
+     YYGEQ = 265,
+     YYLEQ = 266
    };
 #endif
 #define YYSTOP 258
@@ -46,6 +49,9 @@
 #define YYAND 261
 #define YYSTRING 262
 #define YYID 263
+#define YYNEQ 264
+#define YYGEQ 265
+#define YYLEQ 266
 
 
 
@@ -58,7 +64,7 @@ typedef union {
   dts_compare_operation op;
 } yystype;
 /* Line 1281 of /usr/share/bison/yacc.c.  */
-#line 62 "filter-parser.h"
+#line 68 "filter-parser.h"
 # define YYSTYPE yystype
 #endif
 
