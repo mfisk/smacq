@@ -1,18 +1,22 @@
 SUBDIRS=substr patricia
 INCLUDES = @GLOBAL_INCLUDES@ -I$(top_srcdir)/include -I/usr/include/pcap
 noinst_LTLIBRARIES = libsmacq_modules.la libtest_dynamic.la 
-EXTRA_LTLIBRARIES = #libpcaplive.la libpython.la libreassemble.la libbench_field.la 
+EXTRA_LTLIBRARIES = #libpcaplive.la libreassemble.la libbench_field.la 
 #BUILT_SOURCES = count.cpp
 SUFFIXES = .sc
 
-libsmacq_modules_la_SOURCES = print.cpp pcaplive.cpp pcapfile.cpp socket.cpp uniq.cpp count.cpp last.cpp top.cpp head.cpp filter.cpp msgtest.cpp entropy.cpp derivative.cpp encrypt.cpp pdf.cpp fifo.cpp delta.cpp tabularinput.cpp rusage.cpp groupby.cpp flowid.cpp sum.cpp fifodelay.cpp project.cpp rename.cpp mask.cpp const.cpp ndjoin.cpp lor.cpp counter_loop.cpp dfa.cpp expr.cpp equals.cpp cflow.cpp clock.cpp disarm.cpp substr-main.cpp iplookup.cpp #sqlinsert.c #sqlclient.c
+libsmacq_modules_la_SOURCES = print.cpp pcaplive.cpp pcapfile.cpp socket.cpp uniq.cpp count.cpp last.cpp top.cpp head.cpp filter.cpp msgtest.cpp entropy.cpp derivative.cpp encrypt.cpp pdf.cpp fifo.cpp delta.cpp tabularinput.cpp rusage.cpp groupby.cpp flowid.cpp sum.cpp fifodelay.cpp project.cpp rename.cpp mask.cpp const.cpp ndjoin.cpp lor.cpp counter_loop.cpp dfa.cpp expr.cpp equals.cpp cflow.cpp clock.cpp disarm.cpp substr-main.cpp iplookup.cpp
 
-EXTRA_libsmacq_modules_la_SOURCES = sqlinsert.cpp
+EXTRA_libsmacq_modules_la_SOURCES = sqlinsert.cpp python.cpp
 
-libsmacq_modules_la_LIBADD = -lpcap substr/libsubstr.la patricia/libpatricia.la @OPTIONAL_MODULE_LIBS@ 
-libsmacq_modules_la_DEPENDENCIES = $(libsmacq_modules_la_LIBADD) @OPTIONAL_MODULE_LIBS@ 
+
+libsmacq_modules_la_LIBADD = -lpcap substr/libsubstr.la patricia/libpatricia.la @SQLINSERT_LIBADD@ @PYTHON_LIBADD@
+libsmacq_modules_la_DEPENDENCIES = substr/libsubstr.la patricia/libpatricia.la @SQLINSERT_DEPENDENCIES@ @PYTHON_DEPENDENCIES@
 
 libtest_dynamic_la_SOURCES = noop.cpp
+
+python.lo: python.cpp
+	$(LTCXXCOMPILE) @CFLAGS_PYTHON@ -c $<
 
 .sc.c: 
 	$(top_srcdir)/misc/sc2c $< > $@
@@ -30,9 +34,6 @@ libsmacq_modules_la_LDFLAGS = -rpath /bogus
 
 #libpcaplive_la_SOURCES = pcaplive.c
 #libpcaplive_la_LDFLAGS = -lpcap
-
-python_lo_CFLAGS = -I$(USR)/include/python2.2
-#libpython_la_LIBADD = python.lo -L/usr/lib/python2.2/config -lpython2.2 -lpthread -lutil 
 
 #libreassemble_la_LIBADD = reassemble.lo spp_export_pkt.lo  
 reassemble_lo_CFLAGS = -I$(SNORT_HOME)

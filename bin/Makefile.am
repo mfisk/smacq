@@ -8,7 +8,7 @@ CCLD=$(CXX)  #Use C++ even if daemon code is plain C (libraries are C++)
 smacqq_SOURCES = smacqq.cpp
 #EXTRA_DIST = pgsmacqd.h
 
-AM_LDFLAGS = @LDFLAGS@ $(BUILTINS) -export-dynamic -static 
+AM_LDFLAGS = @LDFLAGS@ $(BUILTINS) -export-dynamic -static @LDFLAGS_PYTHON@
 LDADD = $(top_builddir)/modules/libsmacq_modules.la $(top_builddir)/libsmacq/libsmacq.la $(top_builddir)/types/libdts_modules.la -lpthread @LDADDS@
 #DEPENDENCIES = $(top_builddir)/libsmacq/libsmacq.la $(top_builddir)/modules/libsmacq_modules.la $(top_builddir)/types/libdts_modules.la
 
