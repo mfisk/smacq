@@ -12,7 +12,7 @@
       <firstname>Mike</firstname>
       <surname>Fisk</surname>
     </author>
-    <date>$Date: 2003/01/10 06:50:33 $</date>
+    <date>$Date: 2003/03/19 03:25:49 $</date>
   </refentryinfo>
   <refmeta>
     <refentrytitle>dts-modules</refentrytitle>
@@ -89,7 +89,7 @@
       <programlisting>
 	typedef int smacqtype_lt_fn(void *, int, void *, int);</programlisting>
       <programlisting>
-	typedef int smacqtype_fromstring_fn(char *, const dts_object *);</programlisting>
+	typedef int smacqtype_fromstring_fn(char *, DtsObject *);</programlisting>
     </refsect2>
 
     <refsect2>
@@ -113,7 +113,7 @@
 	}; </programlisting>
 
       <programlisting>
-	typedef int <function>field_getfunc_fn</function>(const dts_object*, dts_object *);</programlisting>
+	typedef int <function>field_getfunc_fn</function>(DtsObject*, DtsObject *);</programlisting>
 
       <para>
 	Each entry in this list describes a named field in a list of
@@ -142,8 +142,8 @@
 	<funcsynopsis>
 	  <funcprototype>
 	    <funcdef>int <function>field_getfunc_fn</function></funcdef>
-	    <paramdef>        const dts_object * <parameter>datum</parameter></paramdef>
-	    <paramdef>        dts_object * <parameter>field_datum</parameter></paramdef>
+	    <paramdef>        DtsObject * <parameter>datum</parameter></paramdef>
+	    <paramdef>        DtsObject * <parameter>field_datum</parameter></paramdef>
 	  </funcprototype>
 	</funcsynopsis>
 	  

@@ -95,7 +95,7 @@ AC_SUBST(OPTIONAL_MODULE_LIBS)
 AC_SUBST(OPTIONAL_TESTS)
 AC_ARG_ENABLE(profile,
 	AC_HELP_STRING([--enable-profile],[enable gprof profiling]),
-		CFLAGS="$CFLAGS -pg"
+		ADDCFLAGS="$ADDCFLAGS -pg"
 		LDFLAGS="$LDFLAGS -pg"
 	],)
 
@@ -103,13 +103,13 @@ AC_ARG_ENABLE(debug,
 	AC_HELP_STRING([--enable-debug],[enable debugging options]),
 	[if test -n "$GCC"; then
 		CO="-O0"
-		CFLAGS="$CFLAGS -fno-inline -ggdb"
+		ADDCFLAGS="$ADDCFLAGS -fno-inline -ggdb"
 	else
 		CO="-O0"
-		CFLAGS="$CFLAGS -g"
+		ADDCFLAGS="$ADDCFLAGS -g"
 	fi],
 	[if test -n "$GCC"; then
-		CFLAGS="$CFLAGS -g" # -fast on MacOS
+		ADDCFLAGS="$ADDCFLAGS -g" # -fast on MacOS
 	fi
 	CO="-O9"
 	])
@@ -120,14 +120,15 @@ AC_ARG_WITH([ethereal],
 	[with_ethereal=no])
 
 if test -n "$GCC"; then
-	CFLAGS="$CFLAGS -Wall"
+	ADDCFLAGS="$ADDCFLAGS -Wall"
 fi
 
 if test -z "$CO"; then
  	CO="-O9"
 fi
 
-CFLAGS="$CFLAGS $CO"
+CFLAGS="$ADDCFLAGS $CO"
+CXXFLAGS="$ADDCFLAGS $CO"
 
 if test "$with_ethereal" = "no"; then
 	ETHEREAL_LIBRARY=

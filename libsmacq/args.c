@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <smacq_args.h>
+#include <math.h>
 
 struct smacq_options * get_optstruct_byname(struct smacq_options * opts, char * name) {
 	assert(opts);

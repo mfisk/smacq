@@ -1,0 +1,203 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <assert.h>
+#include <string.h>
+#include <smacq.h>
+#include <patricia/patricia.h>
+#include <produceq.h>
+
+#define SMACQ_MODULE_IS_VECTOR 1
+#define SMACQ_MODULE_IS_STATELESS 1
+
+SMACQ_MODULE(iplookup,
+  PROTO_CTOR(iplookup);
+  PROTO_DTOR(iplookup);
+  PROTO_CONSUME();
+  PROTO_PRODUCE();
+
+  int demux;
+  struct smacq_outputq * outputq;
+  struct batch * batch;
+  int num_batches;
+  int ipaddr_type;
+
+  void add_entry(char * field, char * needle, int output);
+  struct batch * get_batch(char * field);
+);
+
+struct batch {
+  patricia_tree_t * trie;
+  dts_field field;
+  char * fieldname;
+};
+
+static struct smacq_options options[] = {
+  {"f", {string_t:NULL}, "Field to inspect (full data is default)", SMACQ_OPT_TYPE_STRING},
+  {"m", {boolean_t:0}, "OR multiple fields and demux to individual outputs", SMACQ_OPT_TYPE_BOOLEAN},
+  {NULL, {NULL}, NULL, 0}
+};
+
+struct batch * iplookupModule::get_batch(char * field) {
+	struct batch * mybatch;
+	int i;
+	dts_field f = dts->requirefield(field);
+
+	for (i = 0; i < num_batches; i++) {
+		if (dts_comparefields(f, batch[i].field)) {
+			return &batch[i];
+		}
+	}
+	dts_field_free(f);
+
+	num_batches++;
+	batch = realloc(batch, num_batches * sizeof(struct batch));
+	mybatch = &batch[num_batches-1];
+
+ 	mybatch->field = dts->requirefield(field);
+	mybatch->fieldname = field;
+  	mybatch->trie = New_Patricia(32);
+
+	return mybatch;
+}
+
+void iplookupModule::add_entry(char * field, char * needle, int output) {
+  struct batch * mybatch = NULL;
+  prefix_t * pfx;
+
+  if (!field && !needle) return;
+
+  if (!needle) {
+  	needle = field;
+	field = NULL;
+  }
+
+  if (field) {
+	mybatch = get_batch(field);
+  }
+
+  pfx = ascii2prefix(AF_INET, needle);
+  if (!pfx) {
+ 	fprintf(stderr, "iplookup: unable to parse mask: %s\n", needle);
+  	assert(pfx);
+  }
+  patricia_node_t * node = patricia_lookup(mybatch->trie, pfx);
+  /* fprintf(stderr, "%s mybatch->trie is %p, output is %d, node is %p\n", needle, mybatch, output, node); */
+    
+  assert(node);
+  if (node->data) {
+  	assert(!"duplicate mask");
+  	//deref_data(node->data);
+  }
+  node->data = (void*)output;
+}
+
+smacq_result iplookupModule::produce(DtsObject ** datum, int * outchan) {
+  return smacq_produce_dequeue(&outputq, datum, outchan);
+}
+
+smacq_result iplookupModule::consume(DtsObject * datum, int * outchan) {
+  DtsObject * field;
+  int matched = 0;
+  int chan;
+  int i;
+  patricia_node_t * node;
+
+  assert(datum);
+
+  for (i=0; i < num_batches; i++) {
+     struct batch * mybatch = &batch[i];
+     prefix_t * prefix;
+
+     if (mybatch->field) {
+  	field = datum->getfield(mybatch->field);
+  	if (!field) return SMACQ_FREE;
+     } else {
+        field = datum;
+     }
+
+     assert(field->gettype() == ipaddr_type);
+     prefix = New_Prefix(AF_INET, field->getdata(), 32);
+ 
+     node = patricia_search_best(mybatch->trie, prefix);
+     Deref_Prefix(prefix);	 
+     if (node) {
+	  	chan = (int)node->data;
+		if (matched) {
+			smacq_produce_enqueue(&outputq, datum, chan);
+			datum->incref();
+	  	} else {
+	  		matched = 1;
+			*outchan = chan;
+		} 
+     }
+
+     if (mybatch->field) 
+	  field->decref();
+
+  }
+
+  if (matched) {
+	return (smacq_result)(SMACQ_PASS|smacq_produce_canproduce(&outputq));
+  } else {
+  	return SMACQ_FREE;
+  }
+
+}
+
+iplookupModule::iplookupModule(struct smacq_init * context) : SmacqModule(context) {
+  int i, argc;
+  char ** argv;
+  smacq_opt field_opt, demux_opt;
+  char * field = NULL;
+  char * pattern = NULL;
+  int output = 0;
+
+  batch = calloc(sizeof(struct batch), 1);
+
+  {
+    struct smacq_optval optvals[] = {
+      {"f", &field_opt},
+      {"m", &demux_opt},
+      {NULL, NULL}
+    };
+    smacq_getoptsbyname(context->argc-1, context->argv+1,
+				 &argc, &argv,
+				 options, optvals);
+
+    demux = demux_opt.boolean_t;
+  }
+
+  ipaddr_type = dts->requiretype("ip");
+
+  for (i = 0; i < argc; i++) {
+	  if (!strcmp(argv[i], ";") && pattern) {
+		if (!field) field = field_opt.string_t; 
+		//fprintf(stderr, "middle pattern is %s\n", pattern);
+		add_entry(field, pattern, output++);
+		field = NULL;
+		pattern = NULL;
+	  } else if (!field) {
+		field = argv[i];
+	  } else {
+		pattern = argv[i];
+	  }
+  }
+  if (pattern) {
+	if (!field) field = field_opt.string_t; 
+	//fprintf(stderr, "last pattern of %p is %s\n", context->self, pattern);
+  	add_entry(field, pattern, output++);
+  }
+
+  if (output>1) {
+	  demux = 1;
+  }
+}
+
+iplookupModule::~iplookupModule() {
+  int i;
+
+  for (i=0; i < num_batches; i++) {
+  	Destroy_Patricia(batch[i].trie, NULL);
+  }
+}
+

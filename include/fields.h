@@ -1,4 +1,4 @@
-#include <smacq.h>
+#include <dts.h>
 
 struct field {
   char * name;
@@ -8,7 +8,7 @@ struct field {
 struct fieldset {
   int num;
   struct iovec * currentvecs;
-  const dts_object ** currentdata;
+  DtsObject ** currentdata;
   struct field * fields;
 
   //Private:
@@ -16,7 +16,7 @@ struct fieldset {
 };
 
 
-static inline int smacq_nextfielddata(struct fieldset * fieldset, const dts_object **d, int i) {
+static inline int smacq_nextfielddata(struct fieldset * fieldset, DtsObject **d, int i) {
      if (i >= fieldset->num) 
 	     	return 0;
 
@@ -24,7 +24,7 @@ static inline int smacq_nextfielddata(struct fieldset * fieldset, const dts_obje
      return (i+1);
 }
 
-extern struct iovec * fields2vec(smacq_environment * env, const dts_object * datum, struct fieldset * fieldset);
-void fields_init(smacq_environment * env, struct fieldset * fieldset, int argc, char ** argv);
+extern struct iovec * fields2vec(DTS * env, DtsObject * datum, struct fieldset * fieldset);
+void fields_init(DTS * env, struct fieldset * fieldset, int argc, char ** argv);
 int iovec_has_undefined(struct iovec *, int nvecs);
 void fieldset_destroy(struct fieldset * fieldset);

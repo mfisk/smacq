@@ -5,7 +5,23 @@ struct element;
 
 enum chaining_boolean { CHAIN=0, NOCHAIN=1 };
 enum free_boolean { FREE=2, NOFREE=0 };
+#ifdef __cplusplus
+typedef bool bytes_boolean;
+#else
 typedef enum { false=0, true=1 } bytes_boolean;
+#endif
+
+#ifndef BEGIN_C_DECLS
+# ifdef __cplusplus
+#   define BEGIN_C_DECLS extern "C" {
+#   define END_C_DECLS }
+# else
+#   define BEGIN_C_DECLS
+#   define END_C_DECLS
+# endif
+#endif
+
+BEGIN_C_DECLS
 
 struct iovec_hash * bytes_hash_table_new(int maxkeybytes, int flags);
 int bytes_hash_table_incrementv(struct iovec_hash * ht, struct iovec *, int count);
@@ -33,4 +49,5 @@ int bytes_hash_element_nvecs(struct element * e);
 static inline uint32_t bytes_hashv_into(struct iovec * vecs, int nvecs, uint32_t into) {
 	return (bytes_hashv(vecs, nvecs) % into);
 }
+END_C_DECLS
 

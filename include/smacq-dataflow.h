@@ -5,7 +5,7 @@
 
 struct _smacq_module {
   // Ring buffer mgmt
-  dts_object ** q;
+  DtsObject ** q;
   int ringsize;
   int ring_produce;
   int ring_consume;

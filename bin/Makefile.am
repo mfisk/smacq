@@ -1,8 +1,11 @@
 INCLUDES = -I$(top_srcdir)/include @GLOBAL_INCLUDES@
 BUILTINS = -dlopen self -dlopen $(top_builddir)/modules/libsmacq_modules.la -dlopen $(top_builddir)/types/libdts_modules.la -dlopen $(top_builddir)/libsmacq/libsmacq.la
-AM_CFLAGS = @CFLAGS@ -DSMACQ_BUILD_DATE=\"`date '+%Y-%m-%d'`\"
+AM_CXXFLAGS = @CFLAGS@ -DSMACQ_BUILD_DATE=\"`date '+%Y-%m-%d'`\"
 
-bin_PROGRAMS = smacqq pgsmacqd #smacqq_static smacqq_dynamic #iterative-example
+bin_PROGRAMS = smacqq #pgsmacqd #smacqq_static smacqq_dynamic #iterative-example
+CCLD=$(CXX)  #Use C++ even if daemon code is plain C (libraries are C++)
+
+smacqq_SOURCES = smacqq.cpp
 
 AM_LDFLAGS = @LDFLAGS@ $(BUILTINS) -export-dynamic -static 
 LDADD = $(top_builddir)/modules/libsmacq_modules.la $(top_builddir)/libsmacq/libsmacq.la $(top_builddir)/types/libdts_modules.la -lpthread @LDADDS@

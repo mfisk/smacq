@@ -14,7 +14,7 @@ ts_type timestamp_type = ABSOLUTE;
 
 static int did_epan_init = 0;
 
-int epan_getfield(const dts_object * packet, dts_object * fieldo, dts_field_element element) {
+int epan_getfield(DtsObject * packet, DtsObject * fieldo, dts_field_element element) {
   int len;
   int field_id;
   field_info * finfo;
@@ -24,7 +24,7 @@ int epan_getfield(const dts_object * packet, dts_object * fieldo, dts_field_elem
   frame_data fdata;
 
 
-  struct dts_pkthdr * dhdr = (struct dts_pkthdr*)dts_getdata(packet);
+  struct dts_pkthdr * dhdr = (struct dts_pkthdr*)packet->getdata();
   struct old_pcap_pkthdr * phdr = &dhdr->pcap_pkthdr;
   char * packet_data = (char*)(dhdr+1);
 
@@ -93,55 +93,55 @@ int epan_getfield(const dts_object * packet, dts_object * fieldo, dts_field_elem
 
   switch(hfinfo->type) {
     case FT_STRING:
-      fieldo->type = dts_requiretype(packet->tenv, "string");
+      fieldo->type = packet->tenv->requiretype("string");
       fieldo->data = fvalue_get(finfo->value);
       fieldo->len = fvalue_length(finfo->value);
       break;
     
     case FT_DOUBLE:
-      fieldo->type = dts_requiretype(packet->tenv, "double");
+      fieldo->type = packet->tenv->requiretype("double");
       dts_data_as(fieldo, double) = fvalue_get_floating(finfo->value);
       fieldo->len = 2;
       break;
     
     case FT_NONE:
-      fieldo->type = dts_requiretype(packet->tenv, "empty");
+      fieldo->type = packet->tenv->requiretype("empty");
       fieldo->len = 0;
       break;
     
     case FT_BOOLEAN:
     case FT_UINT8:
-      fieldo->type = dts_requiretype(packet->tenv, "ubyte");
+      fieldo->type = packet->tenv->requiretype("ubyte");
       dts_data_as(fieldo, unsigned char) = fvalue_get_integer(finfo->value);
       fieldo->len = 1;
       break;
     
   case FT_PROTOCOL:
-      fieldo->type = dts_requiretype(packet->tenv, "ubyte");
+      fieldo->type = packet->tenv->requiretype("ubyte");
       dts_data_as(fieldo, unsigned char) = fvalue_get_integer(finfo->value);
       fieldo->len = 1;
       break;
 
   case FT_ETHER:
-      fieldo->type = dts_requiretype(packet->tenv, "macaddr");
+      fieldo->type = packet->tenv->requiretype("macaddr");
       fieldo->data  = fvalue_get(finfo->value);
       fieldo->len = 6;
       break;
     
     case FT_UINT16:
-      fieldo->type = dts_requiretype(packet->tenv, "ushort");
+      fieldo->type = packet->tenv->requiretype("ushort");
       dts_data_as(fieldo, uint16_t) = fvalue_get_integer(finfo->value);
       fieldo->len = 2;
       break;
     
     case FT_UINT32:
-      fieldo->type = dts_requiretype(packet->tenv, "uint32");
+      fieldo->type = packet->tenv->requiretype("uint32");
       dts_data_as(fieldo, uint32_t) = fvalue_get_integer(finfo->value);
       fieldo->len = 4;
       break;
     
     case FT_IPv4:
-      fieldo->type = dts_requiretype(packet->tenv, "ip");
+      fieldo->type = packet->tenv->requiretype("ip");
       fieldo->data = fvalue_get(finfo->value);
       dts_data_as(fieldo, unsigned long) = htonl(dts_data_as(fieldo, unsigned long));
       fieldo->len = 4;
@@ -149,7 +149,7 @@ int epan_getfield(const dts_object * packet, dts_object * fieldo, dts_field_elem
 
   default:
       fprintf(stderr, "packet: warning: unsupported EPAN type %s being converted to 'bytes'\n", ftype_pretty_name(hfinfo->type));
-      fieldo->type = dts_requiretype(packet->tenv, "bytes");
+      fieldo->type = packet->tenv->requiretype("bytes");
       fieldo->data = fvalue_get(finfo->value);
       fieldo->len = fvalue_length(finfo->value);
       break;

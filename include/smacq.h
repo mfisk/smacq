@@ -70,37 +70,37 @@ typedef struct _smacq_module smacq_graph;
 #include "util.c"
 #include "darray.c"
 #include "smacq_args.h"
-#include "dts.h"
 
-typedef struct _smacq_env {
-  dts_environment * types;
-} smacq_environment;
-
-typedef smacq_result smacq_thread_fn(struct smacq_init *);
+#ifdef __cplusplus
+class DTS;
+class DtsObject;
+#else
+typedef void DTS;
+typedef void DtsObject;
+#endif
 
 struct smacq_init {
   int isfirst;
   int islast;
   char ** argv;
   int argc;
-  smacq_environment * env;
+  DTS * dts;
   void * state;
   smacq_graph * self;
-  smacq_thread_fn * thread_fn;
 };
 
 /*
  * Interrogation structures
  */
 struct smacq_module_algebra {
+  unsigned int stateless:1;
   unsigned int vector:1;
-  unsigned int boolean:1;
+  unsigned int annotation:1;
   unsigned int demux:1;
-  unsigned int nesting:1;
 };
 
-typedef smacq_result smacq_produce_fn(struct state * state, const dts_object **, int * outchan);
-typedef smacq_result smacq_consume_fn(struct state * state, const dts_object *, int * outchan);
+typedef smacq_result smacq_produce_fn(struct state * state, DtsObject **, int * outchan);
+typedef smacq_result smacq_consume_fn(struct state * state, DtsObject *, int * outchan);
 typedef smacq_result smacq_init_fn(struct smacq_init *);
 typedef smacq_result smacq_shutdown_fn(struct state *);
 #include <SmacqModule.h>
@@ -115,40 +115,18 @@ struct smacq_functions {
   smacq_consume_fn * consume;
   smacq_init_fn * init;
   smacq_shutdown_fn * shutdown;
-  smacq_thread_fn * thread;
 };
 
 BEGIN_C_DECLS
 
 /*
- * Module threading routines 
- */
-smacq_result smacq_thread_init(struct smacq_init * volatile_context);
-smacq_result smacq_thread_consume(struct state * state, const dts_object * datum, int * outchan);
-smacq_result smacq_thread_produce(struct state * state, const dts_object ** datum, int *outchan);
-smacq_result smacq_thread_shutdown(struct state * state);
-
-#define SMACQ_THREADED_MODULE(THREAD) { \
-	init: smacq_thread_init, \
-	consume: smacq_thread_consume, \
-	produce: smacq_thread_produce, \
-	shutdown: smacq_thread_shutdown, \
-	thread: THREAD };
-
-const dts_object * smacq_read(struct smacq_init * context);
-void smacq_write(struct state * state, dts_object * datum, int outchan);
-void smacq_decision(struct smacq_init * context, const dts_object * datum, smacq_result result);
-int smacq_flush(struct smacq_init * context);
-
-
-/*
  * User Interface to main system
  */
 enum smacq_scheduler { ITERATIVE, RECURSIVE, LOOP, THREADED };
-int smacq_start(smacq_graph *, enum smacq_scheduler, dts_environment *);
-void smacq_init_modules(smacq_graph *, smacq_environment *);
+int smacq_start(smacq_graph *, enum smacq_scheduler, DTS *);
+void smacq_init_modules(smacq_graph *, DTS *);
 smacq_graph * smacq_build_pipeline(int argc, char ** argv);
-smacq_graph * smacq_build_query(dts_environment * tenv, int argc, char ** argv);
+smacq_graph * smacq_build_query(DTS * tenv, int argc, char ** argv);
 int smacq_execute_query(int argc, char ** argv);
 smacq_graph * smacq_add_new_child(smacq_graph * parent, int argc, char ** argv);
 int smacq_add_child(smacq_graph * parent, smacq_graph * child);
@@ -158,7 +136,7 @@ void smacq_remove_child(smacq_graph * parent, int childnum);
 void smacq_remove_parent(smacq_graph * child, const smacq_graph * parent);
 smacq_graph * smacq_merge_graphs(smacq_graph *);
 smacq_graph * smacq_graph_add_graph(smacq_graph * a, smacq_graph * b);
-smacq_graph * smacq_graph_clone(smacq_environment *, smacq_graph *);
+smacq_graph * smacq_graph_clone(DTS *, smacq_graph *);
 
 smacq_graph * smacq_new_module(int argc, char ** argv);
 void smacq_free_module(smacq_graph * f);
@@ -181,6 +159,64 @@ static inline void smacq_log(char * name, enum smacq_log_level level, char * msg
 #include "smacq-internal.h"
 #include "types-inline.c"
 
+#ifdef __cplusplus
+
+/* Usage:
+
+SMACQ_MODULE(foo,
+  private:
+    ...
+);
+
+*/
+
+#define PROTO_CONSUME() public: smacq_result consume(DtsObject *, int*); private:
+#define PROTO_PRODUCE() public: smacq_result produce(DtsObject **, int*); private:
+#define PROTO_CTOR(name) public: name##Module::name##Module(smacq_init *); private:
+#define PROTO_DTOR(name) public: name##Module::~name##Module(); private:
+
+#define SMACQ_MODULE(name,defs) \
+ class name##Module : public SmacqModule {	\
+  private:					\
+      defs					\
+  };					        \
+  EXPORT_SMACQ_MODULE(name, MODULE_ALGEBRA)
+
+#define SMACQ_MODULE_THREAD(name,defs) \
+ class name##Module : public ThreadedSmacqModule {	\
+  public:					\
+    smacq_result thread(smacq_init* context);	\
+    name##Module(smacq_init * context) : ThreadedSmacqModule(context) {} \
+  private:					\
+      defs					\
+  };					        \
+  EXPORT_SMACQ_MODULE(name, MODULE_ALGEBRA)
+
+#define MODULE_ALGEBRA { \
+	stateless: SMACQ_MODULE_IS_STATELESS, \
+	vector: SMACQ_MODULE_IS_VECTOR, \
+ 	annotation: SMACQ_MODULE_IS_ANNOTATION, \
+	demux: SMACQ_MODULE_IS_DEMUX }
+
+#define SMACQ_MODULE_IS_STATELESS 0
+#define SMACQ_MODULE_IS_VECTOR 0
+#define SMACQ_MODULE_IS_ANNOTATION 0
+#define SMACQ_MODULE_IS_DEMUX 0
+
+#define EXPORT_SMACQ_MODULE(name, alg)					\
+  SMACQ_MODULE_CONSTRUCTOR(name);					\
+  struct smacq_functions smacq_##name##_table = {			\
+    constructor: &name##_constructor,					\
+    algebra: alg							\
+  };
+
+#define SMACQ_MODULE_CONSTRUCTOR(name) \
+  static SmacqModule * name##_constructor(struct smacq_init * context) { \
+    return new name##Module(context);					\
+  }				
+
+#include <dts.h>
+#endif
 
 #endif
 

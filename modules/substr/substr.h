@@ -1,6 +1,16 @@
 #ifndef SUBSTR_H
 #define SUBSTR_H
 
+#ifndef BEGIN_C_DECLS
+# ifdef __cplusplus
+#   define BEGIN_C_DECLS extern "C" {
+#   define END_C_DECLS }
+# else
+#   define BEGIN_C_DECLS
+#   define END_C_DECLS
+# endif
+#endif
+
 #include <assert.h> // for assert()
 
 #if defined(WIN32) && !defined(inline)
@@ -60,6 +70,8 @@ typedef struct ruleset {
   int * bad;
 } substr_object;
 
+BEGIN_C_DECLS
+
 int substr_add(struct ruleset * rs, int len, unsigned char * str, int nocase, void * handle, int offset, int depth);
 int substr_compile(struct ruleset * rs);
 struct ruleset * substr_new(enum substr_type  searchtype);
@@ -79,6 +91,8 @@ substr_search(substr_object * obj, unsigned char * hay, int len,
 		     len - obj->minoffset, 
 		     stat);
 }
+
+END_C_DECLS
 
 /*
 #define substr_search(rs, hay, len, stat) \

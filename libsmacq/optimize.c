@@ -1,4 +1,5 @@
 #include <smacq.h>
+#include <smacq-dataflow.h>
 
 struct list {
   smacq_graph * g;

@@ -116,7 +116,7 @@ following smacq_sched_iterative() function.
  
 .PP 
 If tenv is NULL, a new type environment will automatically be 
-created.  If dts_objects are to be passed between data-flow 
+created.  If DtsObjects are to be passed between data-flow 
 graphs, the same type environment must be used by those graphs. 
  
 .PP 
@@ -125,8 +125,8 @@ graphs, the same type environment must be used by those graphs.
 .sp 1 
 \fBint \fBsmacq_sched_iterative\fP\fR( 
 \fB        smacq_graph * graph\fR, 
-\fB        const 	dts_object * data_in\fR, 
-\fB        dts_object ** data_out\fR, 
+\fB        const 	DtsObject * data_in\fR, 
+\fB        DtsObject ** data_out\fR, 
 \fB        struct runq ** runq\fR, 
 \fB        int produce_first\fR); 
 .fi 

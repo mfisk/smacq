@@ -2,8 +2,19 @@
 #include <sys/uio.h>
 #include <stdint.h>
 
+#ifndef BEGIN_C_DECLS
+# ifdef __cplusplus
+#   define BEGIN_C_DECLS extern "C" {
+#   define END_C_DECLS }
+# else
+#   define BEGIN_C_DECLS
+#   define END_C_DECLS
+# endif
+#endif
+
 #define WORDTYPE uint32_t
 
+BEGIN_C_DECLS
 extern struct bloom_summary * bloom_summary_init(int maxkeybytes, unsigned long long size);
 extern struct bloom_summary * bloom_counter_init(int maxkeybytes, unsigned long long size);
 extern int bloom_test_or_set(struct bloom_summary * b, unsigned char * key, 
@@ -29,4 +40,4 @@ double bloom_deviation(struct bloom_summary * b, int);
 #define bloom_insertv(bloom, vec, count) bloom_test_or_setv(bloom, vec, count, BIT_SET)
 #define bloom_checkv(bloom, vec, count) bloom_test_or_setv(bloom, vec, count, BIT_TEST)
 
-
+END_C_DECLS

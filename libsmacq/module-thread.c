@@ -10,19 +10,19 @@ struct state {
   pthread_cond_t no_product;
   sem_t newdata, consumed;
 
-  const dts_object * datum;
+  DtsObject * datum;
   smacq_result result;
 
   struct dts_list * product, * product_tail;
 };
 
 struct dts_list {
-  const dts_object * d;
+  DtsObject * d;
   int outchan;
   struct dts_list * next;
 };
 
-const dts_object * smacq_read(struct smacq_init * context) {
+DtsObject * smacq_read(struct smacq_init * context) {
   struct state * state = context->state;
   // fprintf(stderr, "thread: smacq_read blocking for new data\n");
   sem_wait(&state->newdata);
@@ -45,7 +45,7 @@ void  smacq_flush(struct smacq_init * context) {
   return;
 }
 
-void smacq_decision(struct smacq_init * context, const dts_object * datum, smacq_result result) {
+void smacq_decision(struct smacq_init * context, DtsObject * datum, smacq_result result) {
   struct state * state = context->state;
   state->result = result;
   // fprintf(stderr,"thread: smacq_decision signalling data consumed \n");
@@ -53,7 +53,7 @@ void smacq_decision(struct smacq_init * context, const dts_object * datum, smacq
   // fprintf(stderr, "thread: smacq_decision done\n");
 }
 
-void smacq_write(struct state * state, dts_object * datum, int outchan) {
+void smacq_write(struct state * state, DtsObject * datum, int outchan) {
   struct dts_list * entry = g_new(struct dts_list, 1);
   entry->d = datum;
   entry->outchan = outchan;
@@ -95,7 +95,7 @@ smacq_result smacq_thread_init(struct smacq_init * volatile_context) {
   return 0;
 }
 
-smacq_result smacq_thread_consume(struct state * state, const dts_object * datum, int * outchan) {
+smacq_result smacq_thread_consume(struct state * state, DtsObject * datum, int * outchan) {
   state->datum = datum;
   //printf(stderr,"master: new data available\n");
   sem_post(&state->newdata);
@@ -107,7 +107,7 @@ smacq_result smacq_thread_consume(struct state * state, const dts_object * datum
   return state->result;
 }
 
-smacq_result smacq_thread_produce(struct state * state, const dts_object ** datum, int *outchan) {
+smacq_result smacq_thread_produce(struct state * state, DtsObject ** datum, int *outchan) {
   smacq_result result;
   
   pthread_mutex_lock(&state->produce_lock);

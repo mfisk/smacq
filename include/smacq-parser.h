@@ -3,14 +3,17 @@
 
 #include <smacq.h>
 #include <pthread.h>
+#include <dts-filter.h>
 
-BEGIN_C_DECLS
-  
-extern int yylex();
 extern char * yytext;
 extern char * yystring;
+/*
+extern int yylex();
 extern void yyerror(char*);
+*/
 
+BEGIN_C_DECLS
+ 
 struct arglist {
     char * arg;
     char * rename;
@@ -49,13 +52,12 @@ struct vphrase newvphrase(char * verb, struct arglist * args);
 struct graph optimize_bools(dts_comparison *);
 dts_comparison * comp_join(dts_comparison *, dts_comparison *, dts_compare_operation);
 struct dts_operand * comp_operand(enum dts_operand_type type, char * str);
-struct dts_operand * comp_arith(dts_environment *, enum dts_arith_operand_type op, struct dts_operand * op1, struct dts_operand * op2);
 dts_comparison * comp_new(dts_compare_operation op, struct dts_operand *, struct dts_operand *);
 dts_comparison * comp_new_func(char *, int, char **, struct arglist *);
 char * print_comparison(dts_comparison * comp);
 char * print_operand(struct dts_operand * op);
 
-extern dts_environment * parse_tenv;
+extern DTS * parse_dts;
 
 END_C_DECLS
 

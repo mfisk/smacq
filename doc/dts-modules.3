@@ -117,7 +117,7 @@ The less-than and fromstring functions are optional and have the following proto
 .PP 
 .nf 
 .ta 8n 16n 24n 32n 40n 48n 56n 64n 72n 
-\f(CW	typedef int smacqtype_fromstring_fn(char *, const dts_object *);\fR 
+\f(CW	typedef int smacqtype_fromstring_fn(char *, DtsObject *);\fR 
 .fi 
 .PP 
 .SS "dts_type_\fItypename\fP_fields" 
@@ -139,7 +139,7 @@ dts_field_spec\fR elements, which are defined as follows:
 .PP 
 .nf 
 .ta 8n 16n 24n 32n 40n 48n 56n 64n 72n 
-\f(CW	typedef int \fBfield_getfunc_fn\fP(const dts_object*, dts_object *);\fR 
+\f(CW	typedef int \fBfield_getfunc_fn\fP(DtsObject*, DtsObject *);\fR 
 .fi 
 .PP 
 .PP 
@@ -169,8 +169,8 @@ to indicate that the buffer should be freed along with the data object.
 .ta 8n 16n 24n 32n 40n 48n 56n 64n 72n 
 .sp 1 
 \fBint \fBfield_getfunc_fn\fP\fR( 
-\fB        const dts_object * \fBdatum\fR\fR, 
-\fB        dts_object * \fBfield_datum\fR\fR); 
+\fB        DtsObject * \fBdatum\fR\fR, 
+\fB        DtsObject * \fBfield_datum\fR\fR); 
 .fi 
 .PP 
 Set \fB*data\fR to point to the field in 

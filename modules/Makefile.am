@@ -2,16 +2,17 @@ SUBDIRS=substr patricia
 INCLUDES = @GLOBAL_INCLUDES@ -I$(top_srcdir)/include -I/usr/include/pcap
 noinst_LTLIBRARIES = libsmacq_modules.la libtest_dynamic.la 
 EXTRA_LTLIBRARIES = #libpcaplive.la libpython.la libreassemble.la libbench_field.la 
-BUILT_SOURCES = count.c
+#BUILT_SOURCES = count.cpp
 SUFFIXES = .sc
 
-libsmacq_modules_la_SOURCES = print.c pcaplive.c pcapfile.c socket.c uniq.c count.c last.c top.c head.c filter.c msgtest.c entropy.c derivative.c split.c encrypt.c warden.c pdf.c fifo.c delta.c tabularinput.c sync.c rusage.c groupby.c flowid.c sum.c fifodelay.c project.c rename.c join.c mask.c const.c ndjoin.c lor.c counter_loop.c dfa.c noop.c expr.c equals.c cflow.c clock.c disarm.c substr-main.c iplookup.c #sqlinsert.c #sqlclient.c
-EXTRA_libsmacq_modules_la_SOURCES = sqlinsert.c
+libsmacq_modules_la_SOURCES = print.cpp pcaplive.cpp pcapfile.cpp socket.cpp uniq.cpp count.cpp last.cpp top.cpp head.cpp filter.cpp msgtest.cpp entropy.cpp derivative.cpp split.cpp encrypt.cpp warden.cpp pdf.cpp fifo.cpp delta.cpp tabularinput.cpp sync.cpp rusage.cpp groupby.cpp flowid.cpp sum.cpp fifodelay.cpp project.cpp rename.cpp join.cpp mask.cpp const.cpp ndjoin.cpp lor.cpp counter_loop.cpp dfa.cpp expr.cpp equals.cpp cflow.cpp clock.cpp disarm.cpp substr-main.cpp iplookup.cpp #sqlinsert.c #sqlclient.c
+
+EXTRA_libsmacq_modules_la_SOURCES = sqlinsert.cpp
 
 libsmacq_modules_la_LIBADD = -lpcap substr/libsubstr.la patricia/libpatricia.la @OPTIONAL_MODULE_LIBS@ 
 libsmacq_modules_la_DEPENDENCIES = $(libsmacq_modules_la_LIBADD) @OPTIONAL_MODULE_LIBS@ 
 
-libtest_dynamic_la_SOURCES = test_dynamic.c
+libtest_dynamic_la_SOURCES = noop.cpp
 
 .sc.c: 
 	$(top_srcdir)/misc/sc2c $< > $@

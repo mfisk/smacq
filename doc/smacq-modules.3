@@ -1,4 +1,4 @@
-.TH smacq-modules 3 "$Date: 2003/10/23 23:02:05 $" "LANL"
+.TH smacq-modules 3 "$Date: 2003/10/23 23:06:15 $" "LANL"
 .SH NAME
 smacq-modules - pipeline module programming guide
 .SH SYNOPSIS
@@ -27,9 +27,9 @@ By convention, the referenced functions also include the name of the module.  Th
 .sp
 .BI "static smacq_result smacq_\fImodule\fP_init(struct smacq_init * context);"
 .sp
-.BI "static smacq_result smacq_\fImodule\fP_consume(void * state, const dts_object *, int * outchan);"
+.BI "static smacq_result smacq_\fImodule\fP_consume(void * state, DtsObject *, int * outchan);"
 .sp
-.BI "static smacq_result smacq_\fImodule\fP_produce(void * state, const dts_object **, int * outchan);"
+.BI "static smacq_result smacq_\fImodule\fP_produce(void * state, DtsObject **, int * outchan);"
 .sp
 .BI "static smacq_result smacq_\fImodule\fP_shutdown(void * state);"
 .sp
@@ -128,7 +128,7 @@ module.  The return value is an exit code, with 0 indicating no error.
 
 .SH LIBRARY 
 
-See the \fBdts(3)\fP documentation for information on using dts_object objects.
+See the \fBdts(3)\fP documentation for information on using DtsObject objects.
 	
 .TP
 .BI "int smacq_getoptsbyname(int argc, char ** argv, int * argc_left, char *** argv_left, struct smacq_options * options, struct smacq_optval * optvals)"
@@ -165,10 +165,10 @@ It is often necessary for modules to queue data objects for output.  The followi
 queue is a struct smacq_outputq * and is initialized to NULL.
 
 .TP
-.BI "void smacq_produce_enqueue(struct smacq_outputq ** qp, const dts_object * o, int outchan)"
+.BI "void smacq_produce_enqueue(struct smacq_outputq ** qp, DtsObject * o, int outchan)"
 
 .TP
-.BI "smacq_result smacq_produce_dequeue(struct smacq_outputq ** qp, const dts_object ** o, int * outchan)"
+.BI "smacq_result smacq_produce_dequeue(struct smacq_outputq ** qp, DtsObject ** o, int * outchan)"
 
 .TP
 .BI "smacq_result smacq_produce_canproduce(struct smacq_outputq ** qp)"
@@ -192,15 +192,15 @@ module function table should be initialized as follows:
 The smacq_\fImodule\fP_loop function can use the following functions:
 
 .TP
-.BI "const dts_object * smacq_read(struct smacq_init * context)"
+.BI "DtsObject * smacq_read(struct smacq_init * context)"
 
-Returns a dts_object or NULL if there are no more objects to be read the loop should return.
-
-.TP
-.BI "void smacq_write(struct state * state, dts_object * datum, int outchan)"
+Returns a DtsObject or NULL if there are no more objects to be read the loop should return.
 
 .TP
-.BI "void smacq_decision(struct smacq_init * context, const dts_object * datum, smacq_result result)"
+.BI "void smacq_write(struct state * state, DtsObject * datum, int outchan)"
+
+.TP
+.BI "void smacq_decision(struct smacq_init * context, DtsObject * datum, smacq_result result)"
 
 .TP
 .BI "int smacq_flush(struct smacq_init * context)"

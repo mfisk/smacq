@@ -1,7 +1,7 @@
 #include <smacq.h>
 #include <stdio.h>
 
-int mono_propagate(smacq_graph * f, const dts_object * d) {
+int mono_propagate(smacq_graph * f, DtsObject * d) {
   int status;
   int i;
   int retval;
@@ -21,7 +21,7 @@ int mono_propagate(smacq_graph * f, const dts_object * d) {
   if (retval & (SMACQ_PRODUCE|SMACQ_CANPRODUCE)) {
     do {
       int numleft = 0;
-      const dts_object * newd;
+      DtsObject * newd;
       status = f->ops.produce(f->state, &newd, &outchan);
 
       if (! (status & SMACQ_PASS)) { 

@@ -12,7 +12,7 @@
       <firstname>Mike</firstname>
       <surname>Fisk</surname>
     </author>
-    <date>$Date: 2003/03/19 03:25:49 $</date>
+    <date>$Date: 2003/04/07 18:37:34 $</date>
   </refentryinfo>
   <refmeta>
     <refentrytitle>smacq-embed</refentrytitle>
@@ -90,7 +90,7 @@
 
       <para>
 	If tenv is NULL, a new type environment will automatically be
-	created.  If dts_objects are to be passed between data-flow
+	created.  If DtsObjects are to be passed between data-flow
 	graphs, the same type environment must be used by those graphs.
       </para>
 
@@ -98,8 +98,8 @@
       <funcprototype>
 	<funcdef>int <function>smacq_sched_iterative</function></funcdef>
 	<paramdef>        smacq_graph * graph</paramdef>
-	<paramdef>        const 	dts_object * data_in</paramdef>
-	<paramdef>        dts_object ** data_out</paramdef>
+	<paramdef>        const 	DtsObject * data_in</paramdef>
+	<paramdef>        DtsObject ** data_out</paramdef>
 	<paramdef>        struct runq ** runq</paramdef>
 	<paramdef>        int produce_first</paramdef>
       </funcprototype>

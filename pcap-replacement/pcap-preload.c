@@ -47,14 +47,14 @@ int pcap_loop(pcap_t * p, int foo, pcap_handler handler, u_char * user) {
 	return smacq_start(f, 0, NULL);
 }
 
-static smacq_result smacq_consume(struct state * state, const dts_object * datum, int * outchan) {
+static smacq_result smacq_consume(struct state * state, DtsObject * datum, int * outchan) {
 	struct dts_pkthdr * p;
 	p = datum->data;
 	callback(closure, (struct pcap_pkthdr*)&p->pcap_pkthdr, (u_char*)(p+1));
 
 	return SMACQ_PASS;
 }
-static smacq_result smacq_produce(struct state * state, const dts_object **datump, int * outchan) {
+static smacq_result smacq_produce(struct state * state, DtsObject **datump, int * outchan) {
 	return SMACQ_END;
 }
 static smacq_result smacq_init(struct smacq_init * context) {

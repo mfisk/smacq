@@ -1,5 +1,5 @@
 /*
- * $Id: patricia.h,v 1.4 2000/09/29 19:28:07 dplonka Exp $
+ * $Id: patricia.h,v 1.1 2004/02/19 23:58:32 mfisk Exp $
  * Dave Plonka <plonka@doit.wisc.edu>
  *
  * This product includes software developed by the University of Michigan,
@@ -14,6 +14,18 @@
 
 #ifndef _PATRICIA_H
 #define _PATRICIA_H
+
+#ifndef BEGIN_C_DECLS
+# ifdef __cplusplus
+#   define BEGIN_C_DECLS extern "C" {
+#   define END_C_DECLS }
+# else
+#   define BEGIN_C_DECLS
+#   define END_C_DECLS
+# endif
+#endif
+
+BEGIN_C_DECLS
 
 /* typedef unsigned int u_int; */
 typedef void (*void_fn_t)();
@@ -138,5 +150,7 @@ do { \
             } \
         } \
     } while (0)
+
+END_C_DECLS
 
 #endif /* _PATRICIA_H */

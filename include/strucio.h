@@ -1,27 +1,72 @@
-struct strucio;
-
-struct strucio * strucio_init();
-int strucio_open(struct strucio * rdr);
-void * strucio_read(struct strucio *, void * buf, int len);
-void * strucio_read_mmap(struct strucio *, int len);
-void * strucio_read_copy(struct strucio *, void * buf, int len);
-int strucio_write(struct strucio *, void * record, int len);
-void strucio_close(struct strucio *);
+#include <stdio.h>
+#include <zlib.h>
 
 enum strucio_read_type { EITHER, COPY, MMAP };
-typedef char * strucio_nextfilename_fn(struct strucio *, void *);
-typedef int strucio_newfile_fn(struct strucio *, void *);
+class Filelist;
 
-/* Use one of the following: */
-void strucio_register_filelist(struct strucio *, strucio_nextfilename_fn * fn, void *);
-void strucio_register_filelist_stdin(struct strucio *);
-void strucio_register_filelist_args(struct strucio * r, int argc, char ** argv);
-void strucio_register_filelist_bounded(struct strucio * r, char * index_location, long long lower, long long upper);
-void strucio_register_file(struct strucio *, char * filename);
+class Strucio {
+   public:
+	Strucio();
+	~Strucio();
 
-void strucio_set_rotate(struct strucio *, long long size);
-void strucio_register_newfile(struct strucio *, strucio_newfile_fn *, void *);
-void strucio_set_read_type(struct strucio *, enum strucio_read_type read_type);
-void strucio_set_use_gzip(struct strucio *, int boolean);
+	virtual void newfile_hook();
 
-//char * strucio_filelist_stdin(struct strucio * r, void * data);
+	int open();
+	inline void * read(void * buf, int len);
+	inline void * read_mmap(int len);
+	inline void * read_copy(void * buf, int len);
+	int write(void * record, int len);
+
+	/* Use one of the following: */
+	void register_filelist_stdin();
+	void register_filelist_args(int argc, char ** argv);
+	void register_filelist_bounded(char * index_location, long long lower, long long upper);
+	void register_file(char * filename);
+	
+	void set_rotate(long long size);
+	void set_read_type(enum strucio_read_type read_type);
+	void set_use_gzip(int boolean);
+
+   protected:
+	Filelist * filelist;
+	void newFilelist(Filelist *);
+
+	int openwrite();
+	int open_filename(char*);
+	void * get_mmap(int len);
+	void * read_multi(void *, int, enum strucio_read_type);
+	void * read_current_file(void *, int);
+	void close_file();
+
+  	enum strucio_read_type read_type;
+
+  	/* Currenly opened file */
+  	char * filename;
+  	FILE * fh;
+
+  	/* For zlib */
+  	int use_gzip;
+  	gzFile * gzfh;
+
+  	/* For mmap */
+  	void * mmap_current;
+  	void * mmap_end;
+
+  	/* For rotation */
+  	long long outputleft;
+  	long long maxfilesize;
+  	int suffix;
+};
+
+inline void * Strucio::read_copy(void * buf, int len) {
+  return read_multi(buf, len, COPY);
+}
+  
+inline void * Strucio::read_mmap(int len) {
+  return read_multi(NULL, len, MMAP);
+}   
+            
+inline void * Strucio::read(void * buf, int len) {
+  return read_multi(buf, len, EITHER);
+}   
+            

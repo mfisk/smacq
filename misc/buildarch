@@ -9,6 +9,12 @@ platform=`uname -sm| sed 's/  */-/g'`
 srcdir=`pwd`
 builddir="build/$platform"
 
+if [ -d /sw/bin ]; then
+	# Have to use fink autoconf/libtool or build dies
+	PATH=/sw/bin:${PATH} 
+	export PATH
+fi
+
 build() {
 
 	echo "Checking for $builddir/Makefile"
