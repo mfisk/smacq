@@ -25,9 +25,25 @@ struct state {
 
 #define MAX_STR 4096
 
+static const dts_object * default_parse(struct state* state, char * startp, char * endp) {
+      char * badp;
+      const dts_object * msgdata;
+      double d = strtod(startp, &badp);
+
+      if (badp && badp != endp) {
+	//fprintf(stderr, "Double test failed, '%s' remains\n", badp);
+	msgdata = smacq_construct_fromstring(state->env, state->string_type, startp);
+      } else {
+	//fprintf(stderr, "Double test succeeded for '%s'\n", startp);
+	msgdata = smacq_dts_construct(state->env, state->double_type, &d);
+      }
+
+      return msgdata;
+}
+
 static smacq_result tabularinput_produce(struct state* state, const dts_object ** datump, int * outchan) {
   int i;
-  char * startp, * stopp, * endp, * badp, line[MAX_STR];
+  char * startp, * stopp, * endp, line[MAX_STR];
   const dts_object * msgdata;
   char * result;
   const dts_object * datum;
@@ -64,15 +80,16 @@ static smacq_result tabularinput_produce(struct state* state, const dts_object *
       endp[0] = '\0';
     }
  
-    if (i >= state->fields || !state->field_type[i] ||
-	!(msgdata = smacq_construct_fromstring(state->env, state->field_type[i], startp)))  {
-      double d = strtod(startp, &badp);
-      if (badp && badp != endp) {
-	//fprintf(stderr, "Double test failed, '%s' remains\n", badp);
-	msgdata = smacq_construct_fromstring(state->env, state->string_type, startp);
-      } else {
-	msgdata = smacq_dts_construct(state->env, state->double_type, &d);
-      }
+    if (i >= state->fields || !state->field_type[i]) {
+	msgdata = default_parse(state, startp, endp);
+    } else {
+	msgdata = smacq_construct_fromstring(state->env, state->field_type[i], startp);
+	if (!msgdata) {
+	    fprintf(stderr, "Unable to parse field %s as type %s\n", "", "");
+	    msgdata = default_parse(state, startp, endp);
+	//} else {
+	    //fprintf(stderr, "Parsed field %s as type %s to %s\n", "", "", msgdata->data);
+	}
     }
 
     assert(msgdata);
@@ -85,6 +102,7 @@ static smacq_result tabularinput_produce(struct state* state, const dts_object *
       darray_set(&state->field_name, i, field);
     }
     dts_attach_field(datum, field, msgdata); 
+    //fprintf(stderr, "Attached field %d (type %d) to %p\n", field[0], msgdata->type, datum);
   }
 
   *datump = datum;
@@ -144,16 +162,13 @@ static int tabularinput_init(struct smacq_init * context) {
     char * type;
     type = index(name, ':');
 
-    darray_set(&state->field_name, i, smacq_requirefield(state->env, name));
-
     if (!type) {
       state->field_type[i] = 0;
     } else {
       type[0] = '\0';
-      //fprintf(stderr, "Added field %s type %s\n", name, type+1);
       state->field_type[i] = smacq_requiretype(state->env, type+1);
     }
-
+    darray_set(&state->field_name, i, smacq_requirefield(state->env, name));
     free(name);
   }
   
