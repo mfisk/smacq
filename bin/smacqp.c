@@ -20,6 +20,8 @@ int main(int argc, char ** argv) {
   int new_argc;
   char ** new_argv;
 
+  assert(argc > 1);
+
   if (strcmp(argv[1], "-s") == 0) {
     new_argv = parse_stmt(argc-1, argv+1, &new_argc);
     objs = smacq_build_pipeline(new_argc, new_argv);
