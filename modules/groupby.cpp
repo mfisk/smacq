@@ -3,9 +3,9 @@
 #include <math.h>
 #include <assert.h>
 #include <smacq.h>
-#include <fields.h>
-#include <bytehash.h>
-#include <produceq.h>
+#include <FieldVec.h>
+#include <IoVec.h>
+//#include <produceq.h>
 
 #define SMACQ_MODULE_IS_DEMUX 1
 
@@ -13,34 +13,30 @@
 
 static struct smacq_options options[] = {
   {"p", {uint32_t:0}, "pointer to per-partition graph", SMACQ_OPT_TYPE_UINT32},
-  {NULL, {string_t:NULL}, NULL, 0}
+  END_SMACQ_OPTIONS
 };
+
+typedef IoVecHash<struct output*>::iterator OutputsIterator;
 
 SMACQ_MODULE(groupby,
   PROTO_CTOR(groupby);
   PROTO_PRODUCE();
   PROTO_CONSUME();
 
-  struct fieldset fieldset;
+  FieldVec fieldvec;
   smacq_graph * mastergraph;
-  struct smacq_outputq * outputq;
 
-  struct iovec_hash * hashtable;
+  IoVecHash<struct output*> outTable;
 
   int refresh_type;
 
   struct output * cont;
 
-  struct iovec * partitionv;
-
   void destroy_partition(struct output * partition);
-  int run_and_queue(struct output* partition);
-  int run(struct output* partition);
-  void handle_invalidate(DtsObject * datum);
-  struct output * get_partition(struct iovec * partitionv);
-
-  static int destroy_partition_wrapper(struct element * key, void * value, void * userdata);
-  static int check_invalidate(struct element * key, void * value, void * userdata);
+  smacq_result run_and_queue(struct output* partition);
+  smacq_result run(struct output* partition);
+  void handle_invalidate(DtsObject datum);
+  struct output * get_partition();
 ); 
 
 struct output {
@@ -49,13 +45,13 @@ struct output {
 };
 
 /* Bucket may no longer be valid after this call */
-inline int groupbyModule::run_and_queue(struct output* partition) {
-    int more;
+inline smacq_result groupbyModule::run_and_queue(struct output* partition) {
+    smacq_result more;
     do {
-	DtsObject * product = NULL;
+	DtsObject product = NULL;
     	more = smacq_sched_iterative_busy(partition->graph, &product, partition->runq, 0);
 	/* fprintf(stderr, "run_and_queue produced %p with status %x\n", product, more); */
-	if (product) smacq_produce_enqueue(&outputq, product, -1);
+	if (product) enqueue(product, -1);
     	if (more & SMACQ_END) {
       		assert(!partition->runq);
       		smacq_destroy_graph(partition->graph);
@@ -72,22 +68,13 @@ inline void groupbyModule::destroy_partition(struct output * partition) {
   run_and_queue(partition);
 }
 
-int groupbyModule::destroy_partition_wrapper(struct element * key, void * value, void * userdata) {
-  groupbyModule * ths = (groupbyModule *)userdata;
-  struct output * partition = (struct output*)value;
-
-  ths->destroy_partition(partition);
-
-  return 1;
-}
-
 
 /* Bucket may no longer be valid after this call */
-inline int groupbyModule::run(struct output* partition) {
-    int more;
-    DtsObject * product = NULL;
+inline smacq_result groupbyModule::run(struct output* partition) {
+    smacq_result more;
+    DtsObject product = NULL;
     more = smacq_sched_iterative_busy(partition->graph, &product, partition->runq, 0);
-    if (product) smacq_produce_enqueue(&outputq, product, -1);
+    if (product) enqueue(product, -1);
     if (more & SMACQ_END) {
       assert(!partition->runq);
       smacq_destroy_graph(partition->graph);
@@ -101,14 +88,12 @@ inline int groupbyModule::run(struct output* partition) {
     return more;
 }
 
-inline struct output * groupbyModule::get_partition(struct iovec * partitionv) {
+inline struct output * groupbyModule::get_partition() {
   struct output * partition;
 
-  partition = (output*)bytes_hash_table_lookupv(hashtable, partitionv, fieldset.num);
+  partition = outTable[fieldvec];
 
   if (partition && !partition->graph) {
-    int res = bytes_hash_table_removev(hashtable, partitionv, fieldset.num);
-    assert(res);
     /* run() already ended this graph, but we didn't know about it before. */ 
     free(partition);
     partition = NULL;
@@ -123,39 +108,45 @@ inline struct output * groupbyModule::get_partition(struct iovec * partitionv) {
 
     smacq_start(partition->graph, ITERATIVE, dts);
     smacq_sched_iterative_init(partition->graph, &partition->runq, 0);
-    bytes_hash_table_setv(hashtable, partitionv, fieldset.num, partition);
+    outTable[fieldvec] = partition;
   } 
 
   return partition;
 }
 
-int groupbyModule::check_invalidate(struct element * key, void * value, void * userdata) {
-  groupbyModule * ths = (groupbyModule*)userdata;
-  struct element * element = (struct element*)key;
-  struct output * partition = (struct output*)value;
+inline void groupbyModule::handle_invalidate(DtsObject datum) {
+  OutputsIterator to_erase;
+  bool do_erase = false;
+  OutputsIterator i;
+  for (i=outTable.begin(); i != outTable.end(); ++i) {
+    if (do_erase) {
+      outTable.erase(to_erase);
+      do_erase = false;
+    }
 
-  if (bytes_mask(element, ths->partitionv, ths->fieldset.num)) {
-    //fprintf(stderr, "groupby got a partial refresh\n");
-    ths->destroy_partition(partition);
-    return 1;
+    if ( i->first.masks(fieldvec)) {
+      //fprintf(stderr, "groupby got a partial refresh\n");
+      destroy_partition(i->second);
+      to_erase = i;
+      do_erase = true;
+    }
   }
 
-  return 0;
+  if (do_erase) {
+    outTable.erase(to_erase);
+  }
+
 }
 
-inline void groupbyModule::handle_invalidate(DtsObject * datum) {
-   bytes_hash_table_foreach_remove(hashtable, check_invalidate, this);
-}
-
-smacq_result groupbyModule::consume(DtsObject * datum, int * outchan) {
+smacq_result groupbyModule::consume(DtsObject datum, int * outchan) {
   struct output * partition;
   smacq_result status = SMACQ_FREE;
 
   //fprintf(stderr , "groupby got %p a type %d (refresh is %d)\n", datum, datum->gettype(), refresh_type);
 
-  partitionv = datum->fields2vec(&fieldset);
+  fieldvec.getfields(datum);
 
-  if (iovec_has_undefined(partitionv, fieldset.num)) {
+  if (fieldvec.has_undefined()) {
   	if (datum->gettype() == refresh_type) {
     		handle_invalidate(datum);
 	} else {
@@ -163,14 +154,13 @@ smacq_result groupbyModule::consume(DtsObject * datum, int * outchan) {
 		assert(0);
 	}
   } else {
-     partition = get_partition(partitionv);
+     partition = get_partition();
 
      if (datum->gettype() == refresh_type) {
-       int res;
        // Handle refresh (kill-off child)
        destroy_partition(partition);
-       res = bytes_hash_table_removev(hashtable, partitionv, fieldset.num);
-       assert(res);
+       outTable.erase(fieldvec);
+
      } else {
        smacq_sched_iterative_input(partition->graph, datum, partition->runq);
        run(partition);
@@ -178,19 +168,19 @@ smacq_result groupbyModule::consume(DtsObject * datum, int * outchan) {
   }
   
   // Producing input is just a PASS
-  if (smacq_produce_peek(&outputq) == datum) {
-    smacq_produce_dequeue(&outputq, &datum, outchan);
+  if (outputq.front().first == datum) {
+    dequeue(datum, *outchan);
     status = SMACQ_PASS;
   }
 
-  if (smacq_produce_canproduce(&outputq) || cont) 
+  if (canproduce() || cont) 
 	status |= SMACQ_PRODUCE;
 
   return status;
 }
 
 groupbyModule::groupbyModule(struct smacq_init * context) : SmacqModule(context) {
-  int argc = 0;
+  int argc;
   char ** argv;
 
   {
@@ -208,8 +198,7 @@ groupbyModule::groupbyModule(struct smacq_init * context) : SmacqModule(context)
 
   }
 
-  dts->fields_init(&fieldset, argc, argv);
-  hashtable = bytes_hash_table_new(KEYBYTES, CHAIN|NOFREE);
+  fieldvec.init(dts, argc, argv);
 
   refresh_type = dts->requiretype("refresh");
   if (!mastergraph) {
@@ -218,10 +207,10 @@ groupbyModule::groupbyModule(struct smacq_init * context) : SmacqModule(context)
   }
 }
 
-smacq_result groupbyModule::produce(DtsObject ** datump, int * outchan) {
-  int status = 0;
+smacq_result groupbyModule::produce(DtsObject & datump, int * outchan) {
+  smacq_result status = 0;
   int lastcall = 1;
-  *datump = NULL;
+  datump = NULL;
 
   if (cont) {
     struct output * cont = cont;
@@ -232,8 +221,8 @@ smacq_result groupbyModule::produce(DtsObject ** datump, int * outchan) {
     lastcall = 0;
   } 
   
-  if (smacq_produce_canproduce(&outputq)) {
-    status = smacq_produce_dequeue(&outputq, datump, outchan);
+  if (canproduce()) {
+    status = dequeue(datump, *outchan);
     lastcall = 0;
   }
 
@@ -241,12 +230,16 @@ smacq_result groupbyModule::produce(DtsObject ** datump, int * outchan) {
     /* This must be last-call, because we didn't ask for it */
     /* Notify all children */
     /* fprintf(stderr, "groupby got last call\n"); */
-    bytes_hash_table_foreach_remove(hashtable, destroy_partition_wrapper, this);
-    status = smacq_produce_dequeue(&outputq, datump, outchan);
+    IoVecHash<struct output*>::iterator i;
+    for (i = outTable.begin(); i!=outTable.end(); i++) {
+      destroy_partition(i->second);
+      // outTable.erase(i); // Don't bother --- about to delete table anyway
+    }
+    status = dequeue(datump, *outchan);
   }
 
   if (cont) status |= SMACQ_PRODUCE;
 
-  return (smacq_result)(status | smacq_produce_canproduce(&outputq)); 
+  return (smacq_result)(status | canproduce()); 
 }
 

@@ -2,6 +2,8 @@
 #include <smacq.h>
 #include <glib.h>
 
+/// Export DtsObject to Python.
+
 	/*
 	 * Here's what we want to do:
 	 * Export to Python a module with Consume() and Produce() methods.
@@ -19,29 +21,28 @@
 	 *
 	 */
 
-struct state {
-	DTS * env;
-	PyObject * globals; 
-	PyObject * pyObject;
-	PyObject * pyArgs;
-};
+SMACQ_MODULE(python,
+	     PROTO_CTOR(python);
+	     PROTO_DTOR(python);
+	     PROTO_CONSUME();
+	     private:
+	     PyObject * globals; 
+	     PyObject * pyObject;
+	     PyObject * pyArgs;
+);
 
-staticforward PyTypeObject DTSType;
+staticforward PyTypeObject PyDTSType;
 typedef struct {
 	PyObject_HEAD
-	DtsObject * ob_datum;
+	DtsObject ob_datum;
 	char * ob_name;
 	char ** ob_field_names;
 	int ob_num_fields;
-	struct state * state;
-} DTSObject;
+} PyDtsObject;
 
 pythonModule::pythonModule(struct smacq_init * context) {
 	char * cmd, * filename;
 	PyObject * builtins, * tmpargs = NULL;
-	struct state * state = context->state = g_new0 1);
-
-	env = context->env;
 
 	filename = context->argv[1];
 	assert(filename);
@@ -87,17 +88,15 @@ pythonModule::pythonModule(struct smacq_init * context) {
 	return SMACQ_PASS;
 }
 
-smacq_result pythonModule::consume
-                                DtsObject * datum, int * outchan) {
-	PyObject * result, * temp;
+smacq_result pythonModule::consume(DtsObject &datum, int * outchan) {
+	PyDtsObject * result, * temp;
 
 //	printf("Datum is at %d\n", datum);
 
-	temp = (PyObject *)PyObject_New(DTSObject, &DTSType);
-	((DTSObject *)(temp))->ob_datum = (DtsObject *)datum;
-	((DTSObject *)(temp))->state = state;
-	((DTSObject *)(temp))->ob_name = strdup("data");
-	((DTSObject *)(temp))->ob_num_fields = 0;
+	temp = PyObject_New(PyDtsObject, &PyDTSType);
+	temp->ob_datum = datum;
+	temp->ob_name = strdup("data");
+	temp->ob_num_fields = 0;
 
 	PyDict_SetItem(globals, PyString_FromString("datum"), temp);
 
@@ -114,67 +113,47 @@ smacq_result pythonModule::consume
 	return SMACQ_PASS;
 }
 
-smacq_result pythonModule::produce(DtsObject ** datum,
-                                int * outchan) {
-	return SMACQ_END;
-}
-
 pythonModule::~pythonModule(struct state * state) {
 	Py_Finalize();
 	return SMACQ_END;
 }
 
-struct smacq_functions smacq_python_table = {
-	produce: &python_produce, 
-	consume: &python_consume,
-	init: &python_init,
-	shutdown: &python_shutdown
-};
 
 
 
 /* Python object glue */
 
-static PyObject * DTS_getattr(DTSObject * self, char * name) {
-	PyObject * pyAttr;
-	DtsObject * field;
+static PyObject * DTS_getattr(PyDtsObject & self, char * name) {
+	PyDtsObject * pyAttr;
 
-//	printf("# Getting %s attr for a DTSObject!\n", name);
+//	printf("# Getting %s attr for a PyDtsObject!\n", name);
 
 	field = malloc(sizeof(DtsObject));
 	dts_module_init(field);
 
-	pyAttr = (PyObject *)PyObject_New(DTSObject, &DTSType);
-	((DTSObject *)(pyAttr))->state = self->state;
-	((DTSObject *)(pyAttr))->ob_name = strdup(name);
-
-	if (smacq_getfield(self->env, self->ob_datum,
-		dts->requirefield(name), field) == 0) {
-//		printf("# %s field not found\n", name);
-		((DTSObject *)(pyAttr))->ob_datum = NULL;
-	} else {
-		((DTSObject *)(pyAttr))->ob_datum = field;
-	}
+	pyAttr = PyObject_New(PyDtsObject, &PyDTSType);
+	pyAttr->ob_name = strdup(name);
+	pyAttr->ob_datum = self->ob_datum->getfield(dts->requirefield(name));
 
 	return pyAttr;
 }
 
-static int DTS_setattr(DTSObject * self, char * name, PyObject * value) {
+static int DTS_setattr(PyDtsObject * self, char * name, PyObject * value) {
 	PyErr_SetString(PyExc_AttributeError, "read-only attributes");
 	return -1;
 }
 
-static PyObject * DTS_repr(DTSObject * self) {
+static PyObject * DTS_repr(PyDtsObject * self) {
 	char * str;
 	int len;
 
-//	printf("# Building repr for a DTSObject!\n");
+//	printf("# Building repr for a PyDtsObject!\n");
 
 //	strcpy(type,
 //		dts_typename_bynum(self->env, self->ob_datum->type));
 
 //	printf("# %d, %d\n", NULL, self->ob_datum);
-	if (self->ob_datum == NULL) {
+	if (self->ob_datum) {
 		str = strdup("datum doesn't exist");
 	} else {
 		smacq_presentdata(self->env, self->ob_datum, 
@@ -187,27 +166,27 @@ static PyObject * DTS_repr(DTSObject * self) {
 	return PyString_FromString(str);
 }
 
-static PyObject * DTS_str(DTSObject * self) {
+static PyObject * DTS_str(PyDtsObject * self) {
 	return DTS_repr(self);
 }
 	
-static int DTS_print (DTSObject * self, FILE * fp, int flags) {
+static int DTS_print (PyDtsObject * self, FILE * fp, int flags) {
 	PyObject_Print(DTS_repr(self), fp, 0);
 
 	return 0;
 }
 
-static void DTS_dealloc(DTSObject * self) {
-	free(self->ob_datum);
+static void DTS_dealloc(PyDtsObject * self) {
+        self->ob_datum.reset();
 	PyObject_Del(self);
 }
 
 /* TypeObject def for Python2.2 */
-statichere PyTypeObject DTSType = {
+statichere PyTypeObject PyDTSType = {
 	PyObject_HEAD_INIT(NULL)
 	0,					/* ob_size		*/
 	"DTS",					/* tp_name		*/
-	sizeof(DTSObject),			/* tp_basicsize		*/
+	sizeof(PyDtsObject),			/* tp_basicsize		*/
 	0,					/* tp_itemsize		*/
 	(destructor) DTS_dealloc,		/* tp_dealloc		*/
 	(printfunc) DTS_print,			/* tp_print		*/

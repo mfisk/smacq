@@ -3,7 +3,7 @@
 #include <string.h>
 #include <dts-module.h>
 
-static int smacqtype_bytes_get_string(DtsObject * o, DtsObject * field) {
+static int smacqtype_bytes_get_string(DtsObject o, DtsObject field) {
   field->setsize(o->getsize()+1);
   memcpy(field->getdata(), o->getdata(), o->getsize());
 
@@ -13,7 +13,7 @@ static int smacqtype_bytes_get_string(DtsObject * o, DtsObject * field) {
   return 1;
 }
 
-static int smacqtype_bytes_url_decode(DtsObject * o, DtsObject * field) {
+static int smacqtype_bytes_url_decode(DtsObject o, DtsObject field) {
   unsigned char * p, * dp, * end;
   int shrink = 0;
   char hex[3];

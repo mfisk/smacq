@@ -27,7 +27,7 @@ int main(int argc, char ** argv) {
   DTS * tenv = new DTS();
   FILE * fh;
   smacq_graph * graphs = NULL;
-  DtsObject * product;
+  DtsObject product;
   struct runq * runq = NULL;
 
   if (argc <= 1) {
@@ -97,7 +97,7 @@ int main(int argc, char ** argv) {
   }
 
   while(1) {
-       int res = smacq_sched_iterative(graphs, NULL, &product, &runq, 1);
+       smacq_result res = smacq_sched_iterative(graphs, NULL, &product, &runq, 1);
        if (product) {
 	       //fprintf(stderr, "smacqq: Got selection!\n");
 	       dts_decref(product);

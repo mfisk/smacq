@@ -18,13 +18,11 @@
 
 #define BACKLOG 10
 
-class socketModule : public SmacqModule {
- public:
-  socketModule(struct smacq_init * context);
-  ~socketModule();
-
-  smacq_result consume(DtsObject *, int *);
-  smacq_result produce(DtsObject **, int *);
+SMACQ_MODULE(socket,
+  PROTO_CTOR(socket);
+  PROTO_DTOR(socket);
+  PROTO_CONSUME();
+  PROTO_PRODUCE();
 
  private:
   
@@ -32,24 +30,24 @@ class socketModule : public SmacqModule {
   void server_init(int port);
   void client_init(int port, char * hostname);
 
-  DtsObject * datum;
+  DtsObject datum;
   struct pickle *pickle; 
   int *client_type_array;
   int client_array_size;
   fd_set rfds;
   int max_fd;
-  int listen_fd, connect_fd;
+  int listen_fd; 
+  int connect_fd;
   int serverd;
   int do_produce;                  /* Does this instance produce */
-
-};
+);
 
 
 static struct smacq_options options[] = {
   {"p", {int_t:3000}, "Port Number", SMACQ_OPT_TYPE_INT},
   {"h", {string_t:"0.0.0.0"}, "Host Name", SMACQ_OPT_TYPE_STRING},
   {"d", {boolean_t:0}, "Server Daemon", SMACQ_OPT_TYPE_BOOLEAN},
-  {NULL, {string_t:NULL}, NULL, 0}
+  END_SMACQ_OPTIONS
 };
 
 int socketModule::close_it(int closefd) { 
@@ -71,9 +69,9 @@ int socketModule::close_it(int closefd) {
   return 1;
 }
 
-smacq_result socketModule::produce(DtsObject ** datump, int * outchan) {
+smacq_result socketModule::produce(DtsObject & datump, int * outchan) {
   struct sockaddr_in their_addr;
-  int i, new_fd, temp;
+  int i, new_fd;
   int sin_size;
   int num_ready_fds, picked_fd = 0;
   fd_set tempset;  
@@ -113,25 +111,19 @@ smacq_result socketModule::produce(DtsObject ** datump, int * outchan) {
       continue; /* go back to select */
     }
     
-    *datump = dts->readObject(pickle, picked_fd);
-    if (temp == 0) {
+    datump = dts->readObject(pickle, picked_fd);
+    if (! datump) {
       close_it(picked_fd);  
       
       if (serverd) continue; 
       else return(SMACQ_END);
-    } else if (temp < 0) {
-      close_it(picked_fd);  
-
-      fprintf(stderr,"Error receiving header from client, dropping connection\n");
-      if (serverd) continue; 
-      else return(SMACQ_ERROR);
     }
     
     return(SMACQ_PASS);
   } /* while */
 }
 
-smacq_result socketModule::consume(DtsObject * datum, int * outchan) {
+smacq_result socketModule::consume(DtsObject datum, int * outchan) {
   assert(datum->write(pickle, connect_fd) > 0);
 
   return SMACQ_FREE;
@@ -243,12 +235,4 @@ socketModule::socketModule(struct smacq_init * context) : SmacqModule(context) {
     exit(-1);
   } 
 }
-
-static SmacqModule * socket_constructor(struct smacq_init * context) {
-  return new socketModule(context);
-}
-
-struct smacq_functions smacq_socket_table = {
-  constructor: &socket_constructor,
-};
 

@@ -7,7 +7,7 @@ class Filelist;
 class Strucio {
    public:
 	Strucio();
-	~Strucio();
+	virtual ~Strucio();
 
 	virtual void newfile_hook();
 
@@ -28,6 +28,23 @@ class Strucio {
 	void set_use_gzip(int boolean);
 
    protected:
+  	/* Currenly opened file */
+  	char * filename;
+  	FILE * fh;
+
+  	/* For zlib */
+  	int use_gzip;
+  	gzFile * gzfh;
+
+  	/* For rotation */
+  	long long outputleft;
+  	long long maxfilesize;
+  	int suffix;
+
+  	/* For mmap */
+  	unsigned char * mmap_current;
+  	unsigned char * mmap_end;
+
 	Filelist * filelist;
 	void newFilelist(Filelist *);
 
@@ -40,22 +57,7 @@ class Strucio {
 
   	enum strucio_read_type read_type;
 
-  	/* Currenly opened file */
-  	char * filename;
-  	FILE * fh;
 
-  	/* For zlib */
-  	int use_gzip;
-  	gzFile * gzfh;
-
-  	/* For mmap */
-  	void * mmap_current;
-  	void * mmap_end;
-
-  	/* For rotation */
-  	long long outputleft;
-  	long long maxfilesize;
-  	int suffix;
 };
 
 inline void * Strucio::read_copy(void * buf, int len) {

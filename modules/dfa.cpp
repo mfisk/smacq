@@ -9,7 +9,7 @@
 #define LINESIZE 4096
 
 static struct smacq_options options[] = {
-  {NULL, {string_t:NULL}, NULL, 0}
+  END_SMACQ_OPTIONS
 };
 
 SMACQ_MODULE(dfa,
@@ -24,13 +24,13 @@ SMACQ_MODULE(dfa,
   dts_field previous_field;
 
   int parse_dfa(char * filename);
-  int try_transition(DtsObject * datum, struct transition * t);
-  int dfa_try(DtsObject * datum, int current_state); 
+  int try_transition(DtsObject datum, struct transition * t);
+  int dfa_try(DtsObject datum, int current_state); 
 ); 
 
 struct dfa {
   int state;
-  DtsObject * stack;
+  DtsObject stack;
 };
 
 struct dfa_state {
@@ -43,8 +43,8 @@ struct transition {
   struct runq * runq;
 };
 
-int dfaModule::try_transition(DtsObject * datum, struct transition * t) {
-  DtsObject * output;
+int dfaModule::try_transition(DtsObject datum, struct transition * t) {
+  DtsObject output;
   int more;
 
   smacq_sched_iterative_input(t->graph, datum, t->runq);
@@ -64,7 +64,7 @@ int dfaModule::try_transition(DtsObject * datum, struct transition * t) {
   }
 }
 
-int dfaModule::dfa_try(DtsObject * datum, int current_state) {
+int dfaModule::dfa_try(DtsObject datum, int current_state) {
   int t;
   struct dfa_state * dstate = (struct dfa_state*)darray_get(&states, current_state);
   struct darray * transitions = &dstate->transitions;
@@ -84,7 +84,7 @@ int dfaModule::dfa_try(DtsObject * datum, int current_state) {
   return -1;
 }
 
-smacq_result dfaModule::consume(DtsObject * datum, int * outchan) {
+smacq_result dfaModule::consume(DtsObject datum, int * outchan) {
   int i;
   int next_state;
 
@@ -92,7 +92,7 @@ smacq_result dfaModule::consume(DtsObject * datum, int * outchan) {
     struct dfa * dfa = (struct dfa*)darray_get(&machines, i);
     if (!dfa) continue;
 
-    dfa->stack->incref();
+    
     datum->attach_field(previous_field, dfa->stack);
 
     next_state = dfa_try(datum, dfa->state);
@@ -102,7 +102,7 @@ smacq_result dfaModule::consume(DtsObject * datum, int * outchan) {
 
       // fprintf(stderr, "transition from state %d to %d\n", next_state, dfa->state);
       dfa->state = next_state;
-      dfa->stack->decref();
+      
 
       /* Handle STOP states */
       if (stop_state == next_state) {
@@ -113,7 +113,7 @@ smacq_result dfaModule::consume(DtsObject * datum, int * outchan) {
 	return SMACQ_PASS;
       } else {
 	dfa->stack = datum;
-	datum->incref();
+	
 	return SMACQ_FREE;
       }
     } else {
@@ -129,7 +129,7 @@ smacq_result dfaModule::consume(DtsObject * datum, int * outchan) {
     struct dfa * dfa = g_new(struct dfa, 1);
     dfa->state = next_state;
     dfa->stack = datum;
-    datum->incref();
+    
     darray_append(&machines, dfa);
     //fprintf(stderr, "Cranking up new DFA in state %d\n", next_state);
 

@@ -4,11 +4,11 @@
 #include <assert.h>
 #include <smacq.h>
 #include <smacq.h>
-#include <fields.h>
-#include <bytehash.h>
+#include <FieldVec.h>
+#include <IoVec.h>
 
 static struct smacq_options options[] = {
-  {NULL, {string_t:NULL}, NULL, 0}
+  END_SMACQ_OPTIONS
 };
 
 #define SMACQ_MODULE_IS_STATELESS 1
@@ -63,12 +63,12 @@ int lorModule::build_clause(char ** argv, int num) {
 		  return 1;
 }
 
-smacq_result lorModule::consume(DtsObject * datum, int * outchan) {
+smacq_result lorModule::consume(DtsObject datum, int * outchan) {
   int i;
   smacq_result status = SMACQ_FREE;
 
   for (i=0; i < num_clauses; i++) {
-  	DtsObject * output = NULL;
+  	DtsObject output = NULL;
 	struct clause * j = &clause[i];
 	int more = 0;
 

@@ -36,12 +36,9 @@ class OneshotFilelist : public Filelist {
  public:
   OneshotFilelist(char * filename) { this->file = filename; }
   char * nextfilename() { 
-    if (this->file) {
-      char * filename = this->file;
-      return filename;
-    } else {
-      this->file = NULL;
-    }
+     char * filename = this->file;
+     this->file = NULL;
+     return filename;
   }
 
  protected:
@@ -165,7 +162,7 @@ void Strucio::set_rotate(long long size) {
 }
 
 inline void * Strucio::get_mmap(int len) {
-      void * current = mmap_current;
+      unsigned char * current = mmap_current;
       mmap_current += len;
 
       if (mmap_current > mmap_end) {
@@ -272,7 +269,7 @@ inline int Strucio::open_filename(char * filename) {
     struct stat stats;
     fstat(fileno(fh), &stats);
 
-    void * mmap_start = mmap(NULL, stats.st_size, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_NORESERVE, fileno(fh), 0);
+    unsigned char * mmap_start = (unsigned char*)mmap(NULL, stats.st_size, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_NORESERVE, fileno(fh), 0);
     if ((int)mmap_start == -1) mmap_start = NULL;
     
     if (mmap_start) {
@@ -360,8 +357,8 @@ void Strucio::newFilelist(Filelist * fl) {
 }
 
 Strucio::Strucio() :
-  outputleft(0), filename(NULL), mmap_current(NULL), fh(NULL), gzfh(NULL),
-  mmap_end(NULL), suffix(0), use_gzip(0), //Just in case
+  filename(NULL), fh(NULL), use_gzip(false), gzfh(NULL), outputleft(0), suffix(0),
+  mmap_current(NULL), mmap_end(NULL), 
   filelist(new ErrorFilelist()) // We're pure virtual
 { }
 

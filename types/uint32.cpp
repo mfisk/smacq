@@ -3,25 +3,25 @@
 #include <string.h>
 #include <dts-module.h>
 
-static int smacqtype_uint32_get_string(DtsObject * o, DtsObject * field) {
+static int smacqtype_uint32_get_string(DtsObject o, DtsObject field) {
   field->setsize(64); // Only has to hold log10(2**32)
   snprintf(field->getdata(), 64, "%u", dts_data_as(o, unsigned int));
   return 1;
 }
 
-static int smacqtype_uint32_get_hexstring(DtsObject * o, DtsObject * field) {
+static int smacqtype_uint32_get_hexstring(DtsObject o, DtsObject field) {
   field->setsize(16); // 4 bytes -> 8 chars + 3 = 11
   snprintf(field->getdata(), 64, "0x%x", dts_data_as(o, unsigned int));
   return 1;
 }
 
-static int smacqtype_uint32_get_double(DtsObject * o, DtsObject * field) {
+static int smacqtype_uint32_get_double(DtsObject o, DtsObject field) {
   unsigned long l = dts_data_as(o, unsigned long);
   double d = l;
   return dts_set(field, double, d);
 }
 
-static int parse_string(char * buf, DtsObject * d) {
+static int parse_string(char * buf, DtsObject d) {
         unsigned long val;
         char * left = NULL;
         val = strtoul(buf, &left, 10);

@@ -1,4 +1,4 @@
-.TH dts 3 "$Date: 2004/06/05 02:07:24 $" "LANL"
+.TH dts 3 "$Date: 2004/07/05 03:38:56 $" "LANL"
 .SH NAME
 dts  \- Dynamic Type System API
 .SH SYNOPSIS
@@ -71,7 +71,7 @@ freed with dts_field_free().
 
 .SH FIELDSETS
 .TP
-  void fields_init(struct fieldset * fieldset, int argc, char ** argv);
+  void fields_init(struct fieldvec * fieldvec, int argc, char ** argv);
  
 .SH MISC 
 .TP
@@ -103,35 +103,27 @@ Comparisons can include AND and OR statements, parentheses for grouping, and equ
   
 .SH MESSAGES 
 .TP
-void send_message(DtsObject *, dts_field_element, dts_comparison *);
+void send_message(DtsObject &, dts_field_element, dts_comparison *);
 Send a specified field with value specified by data to any data records described
 by the criteria in the comparison list.
 
 .TP
-DtsObject * msg_check(DtsObject * o, dts_field_element field);
+DtsObject msg_check(DtsObject & o, dts_field_element field);
 
 .SH "DtsObject CLASS METHODS"
-.TP
-.BI "void dts_incref()"
-Increment the reference counter of the object.
-
-.TP
-.BI "void decref()"
-Decrement the reference counter of the object and free it
-if there are no more references.
 
 .TP
 .BI "void * getdata()"
 Return a pointer to the data
 
 .TP
-.BI "DtsObject * getfield(dts_field field)"
+.BI "DtsObject getfield(dts_field field)"
 Data records are composed of named fields.
 Return a data object for the specified field of the object.  The field object 
 is only valid for the lifetime of the original object.  dts_decref() must be used to free the object.  NULL is returned on failure.
 
 .TP
-.BI "void attach_field(dts_field, DtsObject *)"
+.BI "void attach_field(dts_field, DtsObject &)"
 Attach the specified object as a field of the current object.
 
 .TP
@@ -150,38 +142,22 @@ Return the type of the data
 Set the type of the data
 
 .TP
-.BI "DtsObject * make_writable()"
-Return a pointer to a writable version of the specified object.
+.BI "DtsObject make_writable()"
+Return a writable version of the specified object.
 This operation invalidates the original object so it should not
 be used any further and should not be passed on to other modules.
 
 .SH "HELPER FUNCTIONS"
 
 .TP
-.BI "TYPE dts_data_as(DtsObject * datum, TYPE)"
+.BI "TYPE dts_data_as(DtsObject&, TYPE)"
 This is a macro that casts the data portion of the datum to the specified type.  The result can be used either as r-value or an l-value.
 
 .TP
-.BI "void dts_set(DtsObject *,  TYPE, VAL)"
+.BI "void dts_set(DtsObject&, TYPE, VAL)"
 This is a macro that ensures that the object is large enough for the
 size of the specified type and then sets the object contents equal to
 the specified value.
-
-.TP
-.BI "void fields_init(DTS *, struct fieldset * fieldset, int argc, char ** argv)"
-
-Given an argument vector containing 1 or more field names, initialize the given fieldset vector.
-
-.TP
-.BI "struct iovec * fields2vec(smacq_environment * env, DtsObject * datum, struct fieldset * fieldset)"
-
-Returns an iovec for the specified fieldset in the specified object.  If the object does not have one or more fields, then the
-iovec entry for that field will have a zero length.  The size of the returned iovec is the same as fieldset->num.
-
-.TP
-.BI "int iovec_has_undefined(struct iovec *, int)"
-
-Return 1 iff the iovec has a zero-length element.  Otherwise return 0.
 
 .TP
 .BI "void dts_field_free(dts_field field)"
@@ -201,6 +177,7 @@ Compare the two field specifications and return 0 unless they are the same.
 .PP
 
 .SH "SEE ALSO"
+.BR FieldVec(3)
 .BR smacq(1),
 .BR smacqq(1),
 .BR dts-modules(3)

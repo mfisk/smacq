@@ -7,21 +7,20 @@
 #include <math.h>
 #include <assert.h>
 #include <smacq.h>
-#include <fields.h>
-#include "bytehash.h"
+#include <FieldVec.h>
+#include <IoVec.h>
 
 #define SMACQ_MODULE_IS_ANNOTATION 1
 
-static struct smacq_options options[] = {
-  {NULL, {string_t:NULL}, NULL, 0}
+static struct smacq_options delta_options[] = {
+  END_SMACQ_OPTIONS
 };
 
 SMACQ_MODULE(delta,
   PROTO_CTOR(delta);
   PROTO_CONSUME();
 
-  struct fieldset fieldset;
-  struct iovec_hash *counters;
+  FieldVec fieldvec;
   int started;
 
   double lastx;
@@ -32,8 +31,8 @@ SMACQ_MODULE(delta,
   dts_field deltafield;
 ); 
  
-smacq_result deltaModule::consume(DtsObject * datum, int * outchan) {
-  DtsObject * newx;
+smacq_result deltaModule::consume(DtsObject datum, int * outchan) {
+  DtsObject newx;
 
   if (! (newx = datum->getfield(xfield))) {
 	fprintf(stderr, "delta: no %s field\n", xfieldname);
@@ -44,14 +43,14 @@ smacq_result deltaModule::consume(DtsObject * datum, int * outchan) {
 
   if (started) {
 	double delta = dts_data_as(newx, double) - lastx;
-    	DtsObject * msgdata = dts->construct(deltatype, &delta);
+    	DtsObject msgdata = dts->construct(deltatype, &delta);
     	datum->attach_field(deltafield, msgdata); 
   } else {
 	started = 1;
   }
 
   lastx = dts_data_as(newx, double);
-  newx->decref();
+  
 	
   return SMACQ_PASS;
 }

@@ -27,7 +27,7 @@ struct dts_literal_operand{
 
 struct dts_operand {
   enum dts_operand_type type;
-  DtsObject * valueo;
+  DtsObject valueo;
 
   union { 
     struct dts_arith_operand arith;

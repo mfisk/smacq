@@ -10,14 +10,14 @@
 #include <arpa/inet.h>
 #include <dts-module.h>
 
-static int smacqtype_macaddr_get_string(DtsObject * o, DtsObject * field) {
+static int smacqtype_macaddr_get_string(DtsObject o, DtsObject field) {
   unsigned char * c = (unsigned char*)o->getdata();
   field->setsize(36); 
   snprintf(field->getdata(), 36, "%02x:%02x:%02x:%02x:%02x:%02x", c[0], c[1], c[2], c[3], c[4], c[5]);
   return 1;
 }
 
-static int parse_macaddr(char * buf,  DtsObject * d) {
+static int parse_macaddr(char * buf,  DtsObject d) {
   unsigned char * c;
 
   d->setsize(6);

@@ -29,8 +29,8 @@ static struct smacq_options options[] = {
   {NULL, {NULL}, NULL, 0}
 };
 
-smacq_result maskModule::consume(DtsObject * datum, int * outchan) {
-  DtsObject * fieldo;
+smacq_result maskModule::consume(DtsObject datum, int * outchan) {
+  DtsObject fieldo;
   in_addr_t f;
   int found = 0;
 
@@ -43,7 +43,7 @@ smacq_result maskModule::consume(DtsObject * datum, int * outchan) {
 	assert(fieldo->gettype() == ip_type);
 
         f = dts_data_as(fieldo, in_addr_t);
-  	fieldo->decref();
+  	
   } else {
 	assert(datum->gettype() == ip_type);
         f = dts_data_as(datum, in_addr_t);

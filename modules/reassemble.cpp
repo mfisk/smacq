@@ -9,8 +9,8 @@
 #include <smacq.h>
 #include <smacq.h>
 #include <dts_packet.h>
-#include <fields.h>
-#include "bytehash.h"
+#include <FieldVec.h>
+#include <IoVec.h>
 
 /* Glib and Snort both define MIN and MAX macros.  
  * Undef the glib one (provided by smacq.h) so that we get the Snort one 
@@ -25,7 +25,7 @@
 
 struct state {
 
-  DtsObject * datum;
+  DtsObject datum;
 
         /* Dynamic dataflow environment */
   DTS * env;
@@ -35,7 +35,7 @@ struct state {
   int extended;
   struct pcap_file_header pcap_file_header;
 
-  struct fieldset fieldset;
+  FieldVec fieldvec;
   uint32_t memcap;
   unsigned int timeout;
 
@@ -49,7 +49,7 @@ struct state {
 static struct smacq_options options[] = {
   {"m", {double_t:0}, "Max amount of memory (bytes)", SMACQ_OPT_TYPE_DOUBLE},
   {"t", {double_t:0}, "Timeout value (secs)", SMACQ_OPT_TYPE_TIMEVAL},
-  {NULL, {string_t:NULL}, NULL, 0}
+  END_SMACQ_OPTIONS
 };
 
 void Stream4Init(u_char *);
@@ -146,7 +146,7 @@ int reassemble_init(struct smacq_init * context) {
   }
 
   // Consume rest of arguments as fieldnames
-  dts->fields_init(&fieldset, argc, argv);
+  fieldvec.init(dts, argc, argv);
 
   if (!memcap) {
     memcap = 67108864; // 64 Meg
@@ -211,7 +211,7 @@ int reassemble_init(struct smacq_init * context) {
 }
 
 ////////////////////////
-smacq_result reassemble_consume DtsObject * datum, int * channel) {
+smacq_result reassemble_consume DtsObject datum, int * channel) {
 ////////////////////////
   struct dts_pkthdr * pkt = datum->data;
   u_char * pkt_data = (u_char *)pkt + sizeof(struct dts_pkthdr);
@@ -232,9 +232,9 @@ smacq_result reassemble_consume DtsObject * datum, int * channel) {
 }
 
 /////////////////////////
-smacq_result reassemble_produce DtsObject ** datump, int * channel) {
+smacq_result reassemble_produce DtsObject datump, int * channel) {
 /////////////////////////
-  DtsObject * datum = NULL;
+  DtsObject datum = NULL;
   struct dts_pkthdr * pkt;
   Packet *p;
   list_item * li;
@@ -310,7 +310,7 @@ smacq_result reassemble_produce DtsObject ** datump, int * channel) {
     fprintf(stderr, "\n");
     #endif
 
-    *datump = datum;
+    datump = datum;
 
 #ifdef DEBUG
   fprintf(stderr, "*** reassemble.c::reassemble_produce(): leaving...\n");

@@ -17,7 +17,7 @@ static struct smacq_options options[] = {
   {"l", {boolean_t:0}, "Read list of input files from STDIN", SMACQ_OPT_TYPE_BOOLEAN},
   {"z", {boolean_t:0}, "Use gzip compression", SMACQ_OPT_TYPE_BOOLEAN},
   {"M", {boolean_t:0}, "Disable memory-mapped I/O", SMACQ_OPT_TYPE_BOOLEAN},
-  {NULL, {string_t:NULL}, NULL, 0}
+  END_SMACQ_OPTIONS
 };
 
 class pcapfileModule;
@@ -50,11 +50,11 @@ SMACQ_MODULE(pcapfile,
   void pcapfileModule::parse_pcapfile(struct pcap_file_header * hdr);
 
   Strucio * strucio;
-  DtsObject * datum;	
+  DtsObject datum;	
   int argc;
   char ** argv;
   int dts_pkthdr_type;		
-  DtsObject * current_datum;
+  DtsObject current_datum;
 
   /* Booleans */
   bool do_produce;			/* Does this instance produce */
@@ -64,8 +64,8 @@ SMACQ_MODULE(pcapfile,
   int hdr_size;
   struct pcap_file_header pcap_file_header;
 
-  DtsObject * snaplen_o;
-  DtsObject * linktype_o;
+  DtsObject snaplen_o;
+  DtsObject linktype_o;
   dts_field snaplen_field;
   dts_field linktype_field;
 
@@ -131,8 +131,6 @@ void pcapfileModule::parse_pcapfile(struct pcap_file_header * hdr) {
     exit(-1);
   }
 
-  if (snaplen_o) snaplen_o->decref();
-  if (linktype_o) linktype_o->decref();
   snaplen_o = dts->construct(snaplen_type, &pcap_file_header.snaplen);
   linktype_o = dts->construct(linktype_type, &pcap_file_header.linktype);
   assert(linktype_o);
@@ -181,9 +179,8 @@ void StrucioReader::newfile_hook() {
   fprintf(stderr, ")\n");
 }
 
-smacq_result pcapfileModule::produce(DtsObject ** datump, int * outchan) {
+smacq_result pcapfileModule::produce(DtsObject & datum, int * outchan) {
   struct old_pcap_pkthdr * hdrp;
-  DtsObject * datum;
   struct dts_pkthdr * pkt;
 
   if (!do_produce) return SMACQ_END;
@@ -202,14 +199,14 @@ smacq_result pcapfileModule::produce(DtsObject ** datump, int * outchan) {
 
   fixup_pcap(hdrp);
 
-  linktype_o->incref();
+  
   datum->attach_field(linktype_field, linktype_o);
 
-  snaplen_o->incref();
+  
   datum->attach_field(snaplen_field, snaplen_o);
 
   if (extended) {
-    DtsObject * newo;
+    DtsObject newo;
     struct extended_pkthdr * ehdr = (struct extended_pkthdr*)(hdrp+1);
     
     newo = dts->construct(ifindex_type, &ehdr->ifindex);
@@ -244,19 +241,17 @@ smacq_result pcapfileModule::produce(DtsObject ** datump, int * outchan) {
     }
   }
 
-  *datump = datum;
-
   return (smacq_result)(SMACQ_PASS|SMACQ_PRODUCE);
 }
 
 void StrucioWriter::newfile_hook() {
-  DtsObject * linktype_o, * snaplen_o;
+  DtsObject linktype_o, snaplen_o;
   int linktype, snaplen;
 
   linktype_o = pcap->current_datum->getfield(pcap->linktype_field);
   if (linktype_o) {
     linktype = dts_data_as(linktype_o, int);
-    linktype_o->decref();
+    
   } else {
     fprintf(stderr, "pcapfile: open: warning no linktype!\n");
     linktype = 1;
@@ -265,7 +260,7 @@ void StrucioWriter::newfile_hook() {
   snaplen_o = pcap->current_datum->getfield(pcap->snaplen_field);
   if (snaplen_o) {
     snaplen = dts_data_as(snaplen_o, int);
-    snaplen_o->decref();
+    
   } else {
     fprintf(stderr, "pcapfile: open: warning no snaplen!\n");
     snaplen = 1514;
@@ -288,7 +283,7 @@ void StrucioWriter::newfile_hook() {
   }
 }
 
-smacq_result pcapfileModule::consume(DtsObject * datum, int * outchan) {
+smacq_result pcapfileModule::consume(DtsObject datum, int * outchan) {
   assert(datum);
 
   current_datum = datum;

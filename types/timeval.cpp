@@ -8,26 +8,26 @@
 #include <netinet/in.h>
 #include <dts-module.h>
 
-static int smacqtype_timeval_get_sec(DtsObject * o, DtsObject * field) {
+static int smacqtype_timeval_get_sec(DtsObject o, DtsObject field) {
   struct timeval * t = (struct timeval *)o->getdata();
   unsigned long sec = t->tv_sec;
   return dts_set(field, unsigned long, sec);
 }
 
-static int smacqtype_timeval_get_double(DtsObject * o, DtsObject * field) {
+static int smacqtype_timeval_get_double(DtsObject o, DtsObject field) {
   struct timeval * t = (struct timeval *)o->getdata();
   double dbl = (double)t->tv_sec + 1e-6 * (double)t->tv_usec;
   return dts_set(field, double, dbl);
 }
 
-static int smacqtype_timeval_get_string(DtsObject * o, DtsObject * field) {
+static int smacqtype_timeval_get_string(DtsObject o, DtsObject field) {
   struct timeval * t = (struct timeval *)o->getdata();
   field->setsize(64);
   snprintf((char*)field->getdata(), 64, "%lu.%06lu", (unsigned long)t->tv_sec, (unsigned long)t->tv_usec);
   return 1;
 }
 
-static int smacqtype_timeval_get_ctime(DtsObject * o, DtsObject * field) {
+static int smacqtype_timeval_get_ctime(DtsObject o, DtsObject field) {
   struct timeval * t = (struct timeval *)o->getdata();
   struct tm tm;
   field->setsize(32);
@@ -36,7 +36,7 @@ static int smacqtype_timeval_get_ctime(DtsObject * o, DtsObject * field) {
   return 1;
 }
 
-static int smacqtype_timeval_get_date(DtsObject * o, DtsObject * field) {
+static int smacqtype_timeval_get_date(DtsObject o, DtsObject field) {
   struct timeval * t = (struct timeval *)o->getdata();
   struct tm tm;
   field->setsize(32);
@@ -45,7 +45,7 @@ static int smacqtype_timeval_get_date(DtsObject * o, DtsObject * field) {
   return 1;
 }
 
-static int parse_timeval(char * buf,  DtsObject * d) {
+static int parse_timeval(char * buf,  DtsObject d) {
   struct timeval rv;
   double time = atol(buf);
   rv.tv_sec = (time_t)floor(time);

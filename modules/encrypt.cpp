@@ -3,14 +3,14 @@
 #include <math.h>
 #include <assert.h>
 #include <smacq.h>
-#include <fields.h>
-#include <bytehash.h>
+#include <FieldVec.h>
+#include <IoVec.h>
 
 #define KEYBYTES 128
 
 static struct smacq_options options[] = {
   {"add", {boolean_t:0}, "Add the random value to the field (instead of replacing i)", SMACQ_OPT_TYPE_BOOLEAN},
-  {NULL, {string_t:NULL}, NULL, 0}
+  END_SMACQ_OPTIONS
 };
 
 
@@ -19,10 +19,9 @@ SMACQ_MODULE(encrypt,
   PROTO_CONSUME();
   PROTO_PRODUCE();
 
-  struct fieldset fieldset;
+  FieldVec fieldvec;
   dts_field changefield;
-  struct iovec_hash * hashtable;
-  DtsObject * datum;
+  DtsObject datum;
 
   int add;
 ); 
@@ -31,22 +30,17 @@ static inline int min(int a, int b) {
   return (a<b ? a : b);
 }
 
-smacq_result encryptModule::consume(DtsObject * datum, int * outchan) {
-  DtsObject * field;
-  struct iovec * keyv;
+smacq_result encryptModule::consume(DtsObject datum, int * outchan) {
+  DtsObject field;
   unsigned long hval;
 
   if (!(field = datum->getfield(changefield))) {
     fprintf(stderr, "Skipping packet without field\n");
     return SMACQ_PASS;
   }
-  field->decref();
+  
 
-  keyv = datum->fields2vec(&fieldset);
-  if (!keyv) {
-    fprintf(stderr, "Encryption basis fields not present\n");
-    return SMACQ_PASS;
-  }
+  fieldvec.getfields(datum);
   
   datum = datum->make_writable();
 
@@ -55,7 +49,7 @@ smacq_result encryptModule::consume(DtsObject * datum, int * outchan) {
     return SMACQ_PASS;
   }
 
-  hval = bytes_hashv(keyv, fieldset.num);
+  hval = fieldvec.hash();
 
   if (!add) {
     memcpy(field->getdata(), &hval, min(field->getsize(), sizeof(unsigned long)));
@@ -68,7 +62,7 @@ smacq_result encryptModule::consume(DtsObject * datum, int * outchan) {
     }
   }
      
-  field->decref();
+  
   return (smacq_result)(SMACQ_FREE|SMACQ_PRODUCE);
 }
 
@@ -101,17 +95,14 @@ encryptModule::encryptModule(struct smacq_init * context) : SmacqModule(context)
   argc--, argv++;
 
   if (argc) {
-    dts->fields_init(&fieldset, argc, argv);
-    hashtable = bytes_hash_table_new(KEYBYTES, CHAIN|NOFREE);
-  } else {
-    hashtable = NULL;
+    fieldvec.init(dts, argc, argv);
   }
 
 }
 
-smacq_result encryptModule::produce(DtsObject ** datump, int * outchan) {
+smacq_result encryptModule::produce(DtsObject & datump, int * outchan) {
   if (datum) {
-    *datump = datum;
+    datump = datum;
     datum = NULL;
     return SMACQ_PASS;
   } else {

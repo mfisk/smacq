@@ -14,8 +14,8 @@
 #include <math.h>
 #include <assert.h>
 #include <smacq.h>
-#include <fields.h>
-#include "bytehash.h"
+#include <FieldVec.h>
+#include <IoVec.h>
 
 /* Programming constants */
 
@@ -25,7 +25,7 @@
 
 static struct smacq_options options[] = {
   {"t", {double_t:0}, "Threshold quiet time", SMACQ_OPT_TYPE_TIMEVAL},
-  {NULL, {string_t:NULL}, NULL, 0}
+  END_SMACQ_OPTIONS
 };
 
 struct srcstat {
@@ -37,8 +37,8 @@ struct srcstat {
 
 struct state {
   DTS * env;
-  struct fieldset fieldset;
-  struct iovec_hash *stats;
+  FieldVec fieldvec;
+  IoVecHash *stats;
 
   FILE * printfd;
 
@@ -86,12 +86,11 @@ static int isexpired(gpointer key, gpointer value, gpointer userdata) {
  * 3) Timout idle flows and send out a final record
  *
  */
-smacq_result activeModule::consume(DtsObject * datum, int * outchan) {
-  struct iovec * domainv = NULL;
+smacq_result activeModule::consume(DtsObject datum, int * outchan) {
   struct srcstat * s;
 
-  DtsObject * field;
-  DtsObject * activefielddata;
+  DtsObject field;
+  DtsObject activefielddata;
   struct timeval * value;
 
   // Get current time
@@ -104,17 +103,12 @@ smacq_result activeModule::consume(DtsObject * datum, int * outchan) {
   }
 
   // Find this entry
-  if (!fieldset.num) {
+  if (!fieldvec.num) {
     s = &(unified);
   } else {
-    domainv = datum->fields2vec(&fieldset);
+    fieldvec.getfields(datum);
 
-    if (!domainv) {
-      //fprintf(stderr, "Skipping datum\n");
-      return SMACQ_FREE;
-    }
-
-    s = bytes_hash_table_lookupv(stats, domainv, fieldset.num);
+    s = stats->lookup(fieldvec);
   }
 
   // Manage expires list
@@ -139,13 +133,13 @@ smacq_result activeModule::consume(DtsObject * datum, int * outchan) {
 
   // Garbage collect
   if (! --gc_count) {
-  	bytes_hash_table_foreach_remove(stats, isexpired, NULL);
+  	stats->foreach_remove(isexpired, NULL);
    	gc_count = 1000;
   }
 
   if (!s) {
     s = g_new(struct srcstat,1);
-    bytes_hash_table_setv(stats, domainv, fieldset.num, s);
+    stats[domainv] = s;
     active++;
   } else if (s->expired) {
     s->expired = 0;
@@ -187,9 +181,9 @@ activeModule::activeModule(struct smacq_init * context) {
   }
 
   // Consume rest of arguments as field names
-  dts->fields_init(&fieldset, argc, argv);
+  fieldvec.init(dts, argc, argv);
 
-  stats = bytes_hash_table_new(KEYBYTES, CHAIN|FREE);
+  stats = new BytesHashTable(KEYBYTES, CHAIN|FREE);
 
   return 0;
 }
@@ -199,7 +193,7 @@ activeModule::~activeModule(struct state * state) {
 }
 
 
-smacq_result activeModule::produce(DtsObject ** datum, int * outchan) {
+smacq_result activeModule::produce(DtsObject & datum, int * outchan) {
   return SMACQ_END;
 }
 

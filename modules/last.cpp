@@ -7,8 +7,8 @@
 #include <math.h>
 #include <assert.h>
 #include <smacq.h>
-#include <fields.h>
-#include <bytehash.h>
+#include <FieldVec.h>
+#include <IoVec.h>
 #include <dts.h>
 #include <produceq.h>
 #include <sys/time.h>
@@ -18,7 +18,7 @@
 
 static struct smacq_options options[] = {
   {"t", {double_t:0}, "Update interval", SMACQ_OPT_TYPE_TIMEVAL},
-  {NULL, {string_t:NULL}, NULL, 0}
+  END_SMACQ_OPTIONS
 };
 
 SMACQ_MODULE(last, 
@@ -27,13 +27,13 @@ SMACQ_MODULE(last,
   PROTO_PRODUCE();
 
 	     struct smacq_outputq * outputq;
-	     struct fieldset fieldset;
-	     struct iovec_hash *last;
+	     FieldVec fieldvec;
+	     IoVecHash<DtsObject> last;
 	     
 	     struct timeval interval;
 	     struct timeval nextinterval;
-	     int istarted;
-	     int hasinterval;
+	     bool isstarted;
+	     bool hasinterval;
 	     
 	     dts_field timeseries; // Field number
 	     int refreshtype;
@@ -41,7 +41,6 @@ SMACQ_MODULE(last,
 
 	     void emit_all();
 
-	static int emit_last(struct element * key, void * value, void * userdata);
 ); 
 
 static inline void timeval_inc(struct timeval * x, struct timeval y) {
@@ -72,35 +71,28 @@ static inline void timeval_minus(struct timeval x, struct timeval y, struct time
 
   if (y.tv_usec > x.tv_usec) {
     x.tv_sec--;
-    x.tv_usec += 1e6;
+    x.tv_usec += (int32_t)1e6;
   }
   x.tv_usec -= y.tv_usec;
   
   return;
 }
 
-static int lastModule::emit_last(struct element * key, void * value, void * userdata) {
-  DtsObject * d = value;
-  lastModule * l = (lastModule*)userdata;
-
-  fprintf(stderr, "emit_last on obj %p\n", value);
-
-  smacq_produce_enqueue(&l->outputq, d, -1);
-  d->incref();
-
-  return 0;
-}
-	
 void lastModule::emit_all() {
   assert (!outputq);
-  bytes_hash_table_foreach(last, emit_last, this);
+  IoVecHash<DtsObject>::iterator i;
+  
+  for (i = last.begin(); i != last.end(); i++) {
+    smacq_produce_enqueue(&outputq, i->second, -1);
+    
+  }
 
   // Last entry to be sent is a refresh message:
-  if (fieldset.num) {
-	DtsObject * obj = dts->construct(refreshtype, NULL);
+  if (! fieldvec.empty()) {
+	DtsObject obj = dts->construct(refreshtype, NULL);
 
   	if (hasinterval) {
-  		DtsObject * timefield;
+  		DtsObject timefield;
   		timefield = dts->construct(timevaltype, &nextinterval);
   		obj->attach_field(timeseries, timefield);
   	}
@@ -111,12 +103,11 @@ void lastModule::emit_all() {
 
 }
   
-smacq_result lastModule::consume(DtsObject * datum, int * outchan) {
-  struct iovec * domainv = datum->fields2vec(&fieldset);
-  int condproduce = 0;
-
+smacq_result lastModule::consume(DtsObject datum, int * outchan) {
+  smacq_result condproduce = (smacq_result)0;
+  
   if (hasinterval) {
-    DtsObject * field_data;
+    DtsObject field_data;
 
     if (!(field_data = datum->getfield(timeseries))) {
       fprintf(stderr, "error: timeseries not available\n");
@@ -124,8 +115,8 @@ smacq_result lastModule::consume(DtsObject * datum, int * outchan) {
       struct timeval * tv = (struct timeval *)field_data->getdata();
       assert(field_data->getsize() == sizeof(struct timeval));
       
-      if (!istarted) {
-	istarted = 1;
+      if (!isstarted) {
+	isstarted = true;
 	nextinterval = *tv;
 	timeval_inc(&nextinterval, interval);
       } else if (timeval_ge(*tv, nextinterval)) {
@@ -144,25 +135,20 @@ smacq_result lastModule::consume(DtsObject * datum, int * outchan) {
     condproduce = SMACQ_PRODUCE;
   }
 
-  if (!domainv && fieldset.num) {
-      //fprintf(stderr, "Skipping datum\n");
-      return SMACQ_PASS|condproduce;
-  }
+  fieldvec.getfields(datum);
 
-  {
-	DtsObject * old; 
+  DtsObject old = last[fieldvec];
+  if (old) 
+  
+  
+  last[fieldvec] = datum;
 
-  	datum->incref();
-  	old = bytes_hash_table_setv(last, domainv, fieldset.num, (gpointer)datum);
-	//fprintf(stderr, "last saving %p, releasing %p\n", datum, old);
-	if (old) 
-	  old->decref();
-  }
-
-  return(SMACQ_FREE|condproduce);
+  return (smacq_result)(SMACQ_FREE|condproduce);
 }
 
-lastModule::lastModule(struct smacq_init * context) : SmacqModule(context) {
+lastModule::lastModule(struct smacq_init * context) 
+  : SmacqModule(context) , outputq(NULL) 
+{
   int argc = 0;
   char ** argv;
 
@@ -180,22 +166,22 @@ lastModule::lastModule(struct smacq_init * context) : SmacqModule(context) {
     interval = interval_opt.timeval_t;
     if ((interval_opt.timeval_t.tv_sec != 0) || 
 	(interval_opt.timeval_t.tv_usec != 0)) {
-      hasinterval = 1;
+      hasinterval = true;
+      isstarted = false;
     } else {
-      hasinterval = 0;
+      hasinterval = false;
     }
   }
 
   // Consume rest of arguments as fieldnames
-  dts->fields_init(&fieldset, argc, argv);
+  fieldvec.init(dts, argc, argv);
 
   timeseries = dts->requirefield("timeseries");
   refreshtype = dts->requiretype("refresh");
   timevaltype = dts->requiretype("timeval");
-  last = bytes_hash_table_new(KEYBYTES, CHAIN|NOFREE);
 }
 
-smacq_result lastModule::produce(DtsObject ** datum, int * outchan) {
+smacq_result lastModule::produce(DtsObject & datum, int * outchan) {
   if (!outputq) {
     emit_all();
   }

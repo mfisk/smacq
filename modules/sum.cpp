@@ -7,14 +7,14 @@
 #include <math.h>
 #include <assert.h>
 #include <smacq.h>
-#include <fields.h>
-#include <bytehash.h>
+#include <FieldVec.h>
+#include <IoVec.h>
 
 #define SMACQ_MODULE_IS_ANNOTATION 1
 
 static struct smacq_options options[] = {
   {"a", {boolean_t:0}, "Output sum only on refresh", SMACQ_OPT_TYPE_BOOLEAN},
-  {NULL, {string_t:NULL}, NULL, 0}
+  END_SMACQ_OPTIONS
 };
 
 SMACQ_MODULE(sum, 
@@ -22,8 +22,7 @@ SMACQ_MODULE(sum,
   PROTO_CONSUME();
   PROTO_PRODUCE();
 
-  struct fieldset fieldset;
-  struct iovec_hash *counters;
+  FieldVec fieldvec;
 
   double total;
   dts_field xfield;
@@ -34,12 +33,12 @@ SMACQ_MODULE(sum,
   int refreshtype;
   
   int outputall;
-  DtsObject * lastin;
+  DtsObject lastin;
 ); 
  
-smacq_result sumModule::consume(DtsObject * datum, int * outchan) {
-  DtsObject * newx;
-  DtsObject * msgdata;
+smacq_result sumModule::consume(DtsObject datum, int * outchan) {
+  DtsObject newx;
+  DtsObject msgdata;
   
   if (datum->gettype() != refreshtype) {
     if (! (newx = datum->getfield(xfield))) {
@@ -50,7 +49,7 @@ smacq_result sumModule::consume(DtsObject * datum, int * outchan) {
     // assert(newx.type == doubletype);
 
     total += dts_data_as(newx, double);
-    newx->decref();
+    
   }
 
   if (outputall || (datum->gettype() == refreshtype)) {
@@ -59,9 +58,8 @@ smacq_result sumModule::consume(DtsObject * datum, int * outchan) {
 	
     return SMACQ_PASS;
   } else {
-    if (lastin) lastin->decref();
     lastin = datum;
-    lastin->incref();
+    
 
     return SMACQ_FREE;
   }
@@ -97,14 +95,14 @@ sumModule::sumModule(struct smacq_init * context) : SmacqModule(context) {
   xfield = dts->requirefield(xfieldname);
 }
 
-smacq_result sumModule::produce(DtsObject ** datum, int * outchan) {
+smacq_result sumModule::produce(DtsObject & datum, int * outchan) {
   if (lastin) {
-        DtsObject * msgdata = dts->construct(sumtype, &total);
+        DtsObject msgdata = dts->construct(sumtype, &total);
         lastin->attach_field(sumfield, msgdata); 
 	
-	*datum = lastin;
+	datum = lastin;
 	lastin = NULL;
-  	//fprintf(stderr, "sum last call for %p\n", *datum);
+  	//fprintf(stderr, "sum last call for %p\n", datum);
 	return SMACQ_PASS|SMACQ_END;
   } else {
   	return SMACQ_FREE|SMACQ_END;

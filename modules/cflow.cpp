@@ -13,7 +13,7 @@ static struct smacq_options options[] = {
   {"l", {boolean_t:0}, "List of files to read is on STDIN", SMACQ_OPT_TYPE_BOOLEAN},
   {"z", {boolean_t:1}, "Use gzip compression", SMACQ_OPT_TYPE_BOOLEAN},
   {"M", {boolean_t:0}, "Disable memory-mapped I/O", SMACQ_OPT_TYPE_BOOLEAN},
-  {NULL, {string_t:NULL}, NULL, 0}
+  END_SMACQ_OPTIONS
 };
 
 SMACQ_MODULE(cflow,
@@ -29,18 +29,18 @@ SMACQ_MODULE(cflow,
   int cflow_type_size;
 );
 
-smacq_result cflowModule::produce(DtsObject ** datump, int * outchan) {
-  DtsObject * datum;
+smacq_result cflowModule::produce(DtsObject & datump, int * outchan) {
+  DtsObject datum;
 
   datum = dts->newObject(cflow_type, cflow_type_size);
   datum->setdata(rdr->read(datum->getdata(), cflow_type_size));
 
   if (!datum->getdata()) {
-	datum->decref();
+	
 	return SMACQ_END;
   }
 
-  *datump = datum;
+  datump = datum;
   return (smacq_result)(SMACQ_PASS|SMACQ_PRODUCE);
 }
 

@@ -2,7 +2,7 @@
 #define LIBSMACQ_INTERNAL_H
 
 BEGIN_C_DECLS
-DtsObject* _smacq_alloc(int size, int type);
+DtsObject _smacq_alloc(int size, int type);
 END_C_DECLS
 
 #include <gmodule.h>
@@ -11,10 +11,6 @@ END_C_DECLS
 #define RING_EOF ((void*)-1)
 
 struct smacq_module_ops {
-  smacq_init_fn * init;
-  smacq_shutdown_fn * shutdown;
-  smacq_consume_fn * consume;
-  smacq_produce_fn * produce;
   smacq_constructor_fn * constructor;
 };
 
@@ -28,10 +24,10 @@ void * smacq_find_module(GModule ** gmodulep, char * envvar, char * envdefault, 
  */
 struct runq;
 void sched_mono(smacq_graph *);
-smacq_result smacq_sched_iterative(smacq_graph * startf, DtsObject * din, DtsObject ** dout , struct runq **, int produce_first);
+smacq_result smacq_sched_iterative(smacq_graph * startf, DtsObject din, DtsObject * dout , struct runq **, int produce_first);
 void smacq_sched_iterative_init(smacq_graph * startf, struct runq ** runqp, int produce_first);
-smacq_result smacq_sched_iterative_busy(smacq_graph * startf, DtsObject ** dout, struct runq * runq, int produce_first);
-void smacq_sched_iterative_input(smacq_graph * startf, DtsObject * din, struct runq * runq);
+smacq_result smacq_sched_iterative_busy(smacq_graph * startf, DtsObject * dout, struct runq * runq, int produce_first);
+void smacq_sched_iterative_input(smacq_graph * startf, DtsObject din, struct runq * runq);
 
 void smacq_sched_iterative_shutdown(smacq_graph * startf, struct runq * runq);
 

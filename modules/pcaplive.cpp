@@ -21,49 +21,48 @@
 #include <smacq.h>
 #include <pcap.h>
 #include <dts_packet.h>
-#include <dts.h>
  
-
 static struct smacq_options options[] = {
   {"i", {string_t:"any"}, "Interface", SMACQ_OPT_TYPE_STRING},
   {"p", {boolean_t:0}, "Promiscuous", SMACQ_OPT_TYPE_BOOLEAN},
   {"s", {int_t:68}, "Snaplen", SMACQ_OPT_TYPE_INT},
-  {NULL, {string_t:NULL}, NULL, 0}
+  END_SMACQ_OPTIONS
 };
 
-class pcapliveModule : public SmacqModule {
- public:
-  pcapliveModule(struct smacq_init *);
-  ~pcapliveModule();
-  smacq_result produce(DtsObject**, int*);
-  smacq_result consume(DtsObject*, int);
+SMACQ_MODULE(pcaplive, 
+  PROTO_CTOR(pcaplive);
+  PROTO_DTOR(pcaplive);
+  PROTO_PRODUCE();
 
+ public:
   void ProcessPacket(const struct old_pcap_pkthdr * hdr, const struct ether_header * ethhdr);
 
  private:
+
 	/* State if using libpcap */
   pcap_t * pcap;		
-  DtsObject * datum;	
+  DtsObject datum;	
   pcap_dumper_t * dumper;
 
 	/* Dynamic dataflow environment */
   int argc;
   char ** argv;
-  int 	dts_pkthdr_type;		
+  int dts_pkthdr_type;		
 
-  DtsObject * linktype_o;
-  DtsObject * snaplen_o;
+  DtsObject linktype_o;
+  DtsObject snaplen_o;
 
   dts_field linktype_field;
   dts_field snaplen_field;
-};
+);
 
-void process_wrapper(u_char * user, const struct old_pcap_pkthdr * hdr, struct ether_header * ethhdr) {
+void process_wrapper(u_char * user, const struct pcap_pkthdr * hdr, const u_char * data) {
+	struct ether_header * ethhdr = (struct ether_header*)data;
 	pcapliveModule * o = (pcapliveModule*)user;
-	o->ProcessPacket(hdr, ethhdr);
+	o->ProcessPacket((const struct old_pcap_pkthdr*)hdr, ethhdr);
 }
 
-void pcapliveModule::ProcessPacket(const struct old_pcap_pkthdr * hdr, 
+inline void pcapliveModule::ProcessPacket(const struct old_pcap_pkthdr * hdr, 
 		   const struct ether_header * ethhdr) {
   struct dts_pkthdr * pkt;
 
@@ -73,28 +72,26 @@ void pcapliveModule::ProcessPacket(const struct old_pcap_pkthdr * hdr,
   pkt->pcap_pkthdr = *hdr;
   // extended header is uninitialized
 
-  snaplen_o->incref();
+  
   datum->attach_field(snaplen_field, snaplen_o);
 
-  linktype_o->incref();
+  
   datum->attach_field(linktype_field, linktype_o);
 
   memcpy(datum->getdata() + sizeof(struct dts_pkthdr), ethhdr, hdr->caplen);
 
 }
 
-smacq_result pcapliveModule::produce(DtsObject ** datump, int * outchan) {
+smacq_result pcapliveModule::produce(DtsObject & datump, int * outchan) {
   int retval;
 
   assert(pcap);
-  datum = NULL;
 
   retval = pcap_loop(pcap, 1, process_wrapper, (u_char*)this);
   assert(!retval);
 
-  *datump = datum;
-
-  return(SMACQ_PASS|SMACQ_PRODUCE);
+  datump = datum;
+  return( (smacq_result)(SMACQ_PASS|SMACQ_PRODUCE));
 }
 
 pcapliveModule::~pcapliveModule() {
@@ -132,7 +129,6 @@ static char * merge_args(int argc, char ** argv) {
 
 pcapliveModule::pcapliveModule(struct smacq_init * context) : SmacqModule(context) {
   char ebuf[PCAP_ERRBUF_SIZE];
-  struct state * state;
   smacq_opt snapleno, promisco, interfaceo;
 
   {
@@ -192,13 +188,4 @@ pcapliveModule::pcapliveModule(struct smacq_init * context) : SmacqModule(contex
       dts->construct(linktype_type, &linktype);
   }
 }
-
-SmacqModule * pcaplive_constructor(struct smacq_init * context) {
-	return new pcapliveModule(context);
-}
-
-/* Right now this serves mainly for type checking at compile time: */
-struct smacq_functions smacq_pcaplive_table = {
-  constructor: &pcaplive_constructor,
-};
 

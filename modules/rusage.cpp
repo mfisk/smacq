@@ -56,19 +56,19 @@ int linux_getrusage(int who, struct rusage * usage) {
 static struct smacq_options options[] = {
   {"d", {boolean_t:0}, "Integral unshared data size (not available on Linux)", SMACQ_OPT_TYPE_BOOLEAN},
   {"r", {boolean_t:1}, "Resident set size (current on Linux, MAX otherwise)", SMACQ_OPT_TYPE_BOOLEAN},
-  {NULL, {string_t:NULL}, NULL, 0}
+  END_SMACQ_OPTIONS
 };
 
-smacq_result rusageModule::consume(DtsObject * datum, int * outchan) {
+smacq_result rusageModule::consume(DtsObject datum, int * outchan) {
   struct rusage rusage;
   getrusage(RUSAGE_SELF, &rusage);
 
   if (idrss) {
-    DtsObject * msgdata = dts->construct(longtype, &rusage.ru_idrss);
+    DtsObject msgdata = dts->construct(longtype, &rusage.ru_idrss);
     datum->attach_field(idrss_field, msgdata); 
   }
   if (rss) {
-    DtsObject * msgdata = dts->construct(longtype, &rusage.ru_maxrss);
+    DtsObject msgdata = dts->construct(longtype, &rusage.ru_maxrss);
     datum->attach_field(rss_field, msgdata); 
   }
  

@@ -3,17 +3,17 @@
 #include <string.h>
 #include <dts-module.h>
 
-static int smacqtype_double_get_double(DtsObject * o, DtsObject * field) {
+static int smacqtype_double_get_double(DtsObject o, DtsObject field) {
   return dts_set(field, double, dts_data_as(o, double));
 }
 
-static int smacqtype_double_get_string(DtsObject * o, DtsObject * field) {
+static int smacqtype_double_get_string(DtsObject o, DtsObject field) {
   field->setsize(64);
   snprintf(field->getdata(), 64, "%g", dts_data_as(o, double));
   return 1;
 }
 
-static int parse_string(char * buf,  DtsObject * d) {
+static int parse_string(char * buf,  DtsObject d) {
   double dbl;
   char * left = NULL;
   dbl = strtod(buf, &left);

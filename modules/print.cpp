@@ -17,7 +17,7 @@ SMACQ_MODULE(print,
 	     dts_field string_transform;
 	     char * delimiter;
 	     
-	     int print_field(DtsObject * field, char * fname, int printed, int column);
+	     int print_field(DtsObject field, char * fname, int printed, int column);
 	     );
 
 static struct smacq_options options[] = {
@@ -25,10 +25,10 @@ static struct smacq_options options[] = {
   {"v", {boolean_t:0}, "Verbose mode: print field names", SMACQ_OPT_TYPE_BOOLEAN},
   {"d", {string_t:"\t"}, "Delimiter", SMACQ_OPT_TYPE_STRING},
   {"B", {boolean_t:0}, "Disable buffering: flush output after each line", SMACQ_OPT_TYPE_BOOLEAN},
-  {NULL, {string_t:NULL}, NULL, 0}
+  END_SMACQ_OPTIONS
 };
 
-int printModule::print_field(DtsObject * field, char * fname, int printed, int column) {
+int printModule::print_field(DtsObject field, char * fname, int printed, int column) {
         if (printed) {
       	   printf(delimiter);
     	} else if (field) {
@@ -47,25 +47,25 @@ int printModule::print_field(DtsObject * field, char * fname, int printed, int c
 	} else {
 		printf("%s", (char*)field->getdata());
 	}
-        field->decref();
+        
 
 	return 1;
 }
 
-smacq_result printModule::consume(DtsObject * datum, int * outchan) {
+smacq_result printModule::consume(DtsObject datum, int * outchan) {
   int i;
   int printed = 0;
   int column = 0;
-  DtsObject *field;
+  DtsObject field;
   assert(datum);
 
   for (i = 0; i < argc; i++) {
     if (!fields[i]) {
       /* Print all fields */
-	int j;
 
-	datum->prime_all_fields();
+      datum->prime_all_fields();
 /*
+  int j;
 	for (j = 0; j <= datum->fields.max; j++) {
 		field = datum->getfield_single(j);
 		if (field) {

@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <sys/time.h>
+#include <ccpp.h>
 
 /* Turn on performance optimizations: */
 #ifdef SMACQ_NO_OPT
@@ -46,18 +47,49 @@
 #define _PTHREAD_H
 #endif
 
-#ifndef BEGIN_C_DECLS
-# ifdef __cplusplus
-#   define BEGIN_C_DECLS extern "C" {
-#   define END_C_DECLS }
-# else
-#   define BEGIN_C_DECLS
-#   define END_C_DECLS
-# endif
+#ifndef __cplusplus
+#error "<smacq.h> can only be used in C++ programs"
 #endif
 
-enum _smacq_result { SMACQ_FREE=1, SMACQ_PASS=2, SMACQ_ERROR=4, SMACQ_END=8, SMACQ_CANPRODUCE=256, SMACQ_PRODUCE=512};
+#ifdef __cplusplus
+/*
+enum _smacq_result { SMACQ_NONE=0, SMACQ_FREE=1, SMACQ_PASS=2, SMACQ_ERROR=4, SMACQ_END=8, SMACQ_CANPRODUCE=256, SMACQ_PRODUCE=512};
 typedef enum _smacq_result smacq_result;
+*/
+template<class N, typename T = int>
+class flags {
+	private:
+		typedef flags this_type;
+		T val;
+	public:
+		flags<N,T>() : val(0) {}
+		flags<N,T>(const T x) : val(x) {}
+
+		flags<N,T> 	operator |  (const flags<N,T> &x) 	const { return val | x.val; }
+		flags<N,T> 	operator &  (const flags<N,T> &x) 	const { return val & x.val; }
+	 	flags<N,T> 	operator |= (const flags<N,T> &x) 	      { return val |= x.val; }
+		//int  		operator () () 				const { return val; }
+		bool  		operator !  () 				const { return val == 0; }
+		bool  		operator == (const flags<N,T> &x) 	const { return val == x.val; }
+		bool  		operator != (const flags<N,T> &x) 	const { return val != x.val; }
+
+		// This is crazy:
+		typedef T this_type::*unspecified_bool_type;
+		operator unspecified_bool_type () const { return (val == 0? 0: &this_type::val); }
+
+};
+
+enum _smacq_result {};
+typedef flags<enum _smacq_result> smacq_result;
+
+extern smacq_result SMACQ_NONE;
+extern smacq_result SMACQ_FREE;
+extern smacq_result SMACQ_PASS;
+extern smacq_result SMACQ_ERROR;
+extern smacq_result SMACQ_END;
+extern smacq_result SMACQ_CANPRODUCE;
+extern smacq_result SMACQ_PRODUCE;
+#endif
 
 #define SMACQ_MULTITHREAD 65536
 
@@ -71,13 +103,7 @@ typedef struct _smacq_module smacq_graph;
 #include "darray.c"
 #include "smacq_args.h"
 
-#ifdef __cplusplus
-class DTS;
-class DtsObject;
-#else
-typedef void DTS;
-typedef void DtsObject;
-#endif
+#include <dts-types.h>
 
 struct smacq_init {
   int isfirst;
@@ -99,10 +125,10 @@ struct smacq_module_algebra {
   unsigned int demux:1;
 };
 
-typedef smacq_result smacq_produce_fn(struct state * state, DtsObject **, int * outchan);
-typedef smacq_result smacq_consume_fn(struct state * state, DtsObject *, int * outchan);
-typedef smacq_result smacq_init_fn(struct smacq_init *);
-typedef smacq_result smacq_shutdown_fn(struct state *);
+//typedef smacq_result smacq_produce_fn(struct state * state, DtsObject, int * outchan);
+//typedef smacq_result smacq_consume_fn(struct state * state, DtsObject, int * outchan);
+//typedef smacq_result smacq_init_fn(struct smacq_init *);
+//typedef smacq_result smacq_shutdown_fn(struct state *);
 #include <SmacqModule.h>
 typedef SmacqModule*  smacq_constructor_fn(struct smacq_init *);
 
@@ -110,11 +136,6 @@ struct smacq_functions {
   smacq_constructor_fn * constructor;
   struct smacq_module_algebra algebra;
 /* Put constructor and algebra first so that we can use partial initializers in g++ */
-
-  smacq_produce_fn * produce;
-  smacq_consume_fn * consume;
-  smacq_init_fn * init;
-  smacq_shutdown_fn * shutdown;
 };
 
 BEGIN_C_DECLS
@@ -169,8 +190,8 @@ SMACQ_MODULE(foo,
 
 */
 
-#define PROTO_CONSUME() public: smacq_result consume(DtsObject *, int*); private:
-#define PROTO_PRODUCE() public: smacq_result produce(DtsObject **, int*); private:
+#define PROTO_CONSUME() public: smacq_result consume(DtsObject, int*); private:
+#define PROTO_PRODUCE() public: smacq_result produce(DtsObject&, int*); private:
 #define PROTO_CTOR(name) public: name##Module::name##Module(smacq_init *); private:
 #define PROTO_DTOR(name) public: name##Module::~name##Module(); private:
 

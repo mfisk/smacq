@@ -9,17 +9,17 @@ SMACQ_MODULE(const,
   PROTO_CONSUME();
 
   dts_field field;
-  DtsObject * data;
+  DtsObject data;
 );
 
 static struct smacq_options options[] = {
   {NULL, {NULL}, NULL, 0}
 };
 
-smacq_result constModule::consume(DtsObject * datum, int * outchan) {
+smacq_result constModule::consume(DtsObject datum, int * outchan) {
   assert(datum);
 
-  data->incref();
+  
   datum->attach_field(field, data);
 
   return SMACQ_PASS;

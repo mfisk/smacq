@@ -12,7 +12,7 @@
 // XXX: Should use buffered IO
 
 struct sockdatum {
-  DtsObject * datum;
+  DtsObject datum;
   int namelen;  
 };
 
@@ -24,7 +24,7 @@ static int receive_it(int fd, unsigned char * space, int size) {
   int current;
   int total = 0;
   while (1) {
-    current = recv(fd, space+total, size - total,0);
+    current = recv(fd, space + total, size - total,0);
     if (current <= 0) {
       if (current < 0) {
 	if (errno == EINTR) continue;
@@ -78,7 +78,7 @@ void pickle_close_source(struct pickle * pickle, int fd) {
   *smap  = g_array_new(TRUE, TRUE, sizeof(int)); // XXX
 }
 
-static int * get_type(struct pickle * pickle, int fd, int type)  {
+static int * get_type(struct pickle * pickle, int fd, unsigned int type)  {
   GArray ** smap = getsmap(pickle, fd);
 
   if (!(*smap)) 
@@ -90,14 +90,14 @@ static int * get_type(struct pickle * pickle, int fd, int type)  {
   return (&g_array_index((*smap), int, type));
 }
 
-static int maptype(struct pickle * pickle, int type, int fd)  {
+static int maptype(struct pickle * pickle, unsigned int type, int fd)  {
   int * btype  = get_type(pickle, fd, type);
   //fprintf(stderr, "%d on %d maps to type %d\n", type, fd, *btype);
   assert(*btype);
   return(*btype);
 }
 
-int DTS::pickle_addnewtype(char * name, int extnum, struct pickle * pickle, int fd) {
+int DTS::pickle_addnewtype(char * name, unsigned int extnum, struct pickle * pickle, int fd) {
   int * typep = get_type(pickle, fd, extnum);
 
   if (! *typep) 
@@ -126,8 +126,8 @@ int DTS::pickle_getnewtype(int fd, struct sockdatum * hdr, struct pickle * pickl
 }
 
 /* 0 is EOF, -1 is error midstream */
-DtsObject * DTS::readObject(struct pickle * pickle, int fd) {
-  DtsObject * datump;
+DtsObject DTS::readObject(struct pickle * pickle, int fd) {
+  DtsObject datump;
   struct sockdatum  hdr;
   int temp = receive_it(fd, (unsigned char*)&hdr, sizeof(struct sockdatum));
 
@@ -145,7 +145,7 @@ DtsObject * DTS::readObject(struct pickle * pickle, int fd) {
 		     hdr.datum->getsize() + sizeof(DtsObject));
   
   if ((temp = receive_it(fd, datump->getdata(), hdr.datum->getsize())) < 0) {
-    datump->decref();
+    
     return NULL;
   }
 
@@ -153,7 +153,7 @@ DtsObject * DTS::readObject(struct pickle * pickle, int fd) {
 }
 
 /* 0 is EOF, -1 is error midstream */
-int DtsObject::write(struct pickle * pickle, int fd) {
+int DtsObject_::write(struct pickle * pickle, int fd) {
   struct sockdatum hdr;
   int * typep = get_type(pickle, fd, this->gettype());
   char * name = NULL;

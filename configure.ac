@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.57)
-AC_INIT(SMACQ, 1.0, mfisk@lanl.gov)
+AC_INIT(SMACQ, 2.0, mfisk@lanl.gov)
 AM_CONFIG_HEADER(config.h)
 AM_INIT_AUTOMAKE(1.7)
 AM_PROG_CC_STDC
@@ -142,6 +142,7 @@ AC_SUBST(ETHEREAL_LIBRARY)
 AC_SUBST(ETHEREAL_DIR)
 
 AC_CONFIG_FILES([Makefile
+                 include/Makefile
                  bin/Makefile
                  doc/Makefile
                  libsmacq/Makefile

@@ -1,27 +1,14 @@
 #include <stdlib.h>
-#include <netdb.h>
-#include <sys/socket.h>
-#include <signal.h>
-#include <time.h>
-#include <string.h>
-#include <math.h>
 #include <assert.h>
 #include <smacq.h>
-#include <fields.h>
-#include "bytehash.h"
-
-/* Programming constants */
-
-#define VECTORSIZE 21
-#define ALARM_BITS 15
-#define KEYBYTES 128
+#include <FieldVec.h>
 
 static struct smacq_options options[] = {
-  {NULL, {string_t:NULL}, NULL, 0}
+  END_SMACQ_OPTIONS
 };
 
 struct obj_list{
-  DtsObject * obj;
+  DtsObject obj;
   struct obj_list * next;
 };
 
@@ -30,8 +17,7 @@ SMACQ_MODULE(pdf,
   PROTO_CONSUME();
   PROTO_PRODUCE();
 
-  struct fieldset fieldset;
-  struct iovec_hash *last;
+  FieldVec fieldvec;
   
   struct obj_list * outputq;
   struct obj_list * list;
@@ -46,8 +32,8 @@ SMACQ_MODULE(pdf,
 ); 
 
 void pdfModule::compute_all() {
-  DtsObject * count; 
-  DtsObject * pfield; 
+  DtsObject count; 
+  DtsObject pfield; 
   struct obj_list * n;
   double p;
 
@@ -62,14 +48,14 @@ void pdfModule::compute_all() {
 	//fprintf(stderr, "%d / %lld = %g\n", *(int*)(count.data), total, p);
 	pfield = dts->construct(probtype, &p);
 	n->obj->attach_field(probfield, pfield); 
-	count->decref();
+	
   }
 
   total = 0;
 }
   
-smacq_result pdfModule::consume(DtsObject * datum, int * outchan) {
-  DtsObject * count; 
+smacq_result pdfModule::consume(DtsObject datum, int * outchan) {
+  DtsObject count; 
   smacq_result res = SMACQ_FREE;
 
   if (! (count = datum->getfield(countfield))) {
@@ -86,10 +72,10 @@ smacq_result pdfModule::consume(DtsObject * datum, int * outchan) {
   	newo->next = list;
   	list = newo;
 
-	datum->incref();
+	
 
   	total += dts_data_as(count, int);
-	count->decref();
+	
   }
 
   if (outputq) 
@@ -100,25 +86,25 @@ smacq_result pdfModule::consume(DtsObject * datum, int * outchan) {
 
 pdfModule::pdfModule(struct smacq_init * context) 
       : SmacqModule(context), 
-	countfield(dts->requirefield("count")),
-  	probfield(dts->requirefield("probability")),
+  	refreshtype(dts->requiretype("refresh")),
   	probtype(dts->requiretype("double")),
-  	refreshtype(dts->requiretype("refresh"))
+  	probfield(dts->requirefield("probability")),
+	countfield(dts->requirefield("count"))
 {}
 
-smacq_result pdfModule::produce(DtsObject ** datum, int * outchan) {
+smacq_result pdfModule::produce(DtsObject & datum, int * outchan) {
   if (!outputq) {
     compute_all();
   }
     
   if (outputq) {
-    *datum = outputq->obj;
+    datum = outputq->obj;
     outputq = outputq->next;
   } else {
     return SMACQ_END;
   }
 
 
-  return(SMACQ_PASS|(outputq ? SMACQ_PRODUCE : 0));
+  return (smacq_result)(SMACQ_PASS|(outputq ? SMACQ_PRODUCE : 0));
 }
 

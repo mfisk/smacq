@@ -5,33 +5,12 @@
 #include <assert.h>
 #include <string.h>
 #include <SmacqModule.h>
-#include <SmacqModuleWrapper.h>
 
 #define RINGSIZE 4
-
-static smacq_result error_produce(struct state* state, DtsObject ** datum, int * outchan) {
-	  return (smacq_result)(SMACQ_ERROR|SMACQ_END);
-}
-
-static smacq_result error_consume(struct state * state, DtsObject * datum, int * outchan) {
-	return (smacq_result)(SMACQ_ERROR|SMACQ_END);
-}
-
-static smacq_result null_shutdown(struct state * state) {
-	return SMACQ_END;
-}
-static smacq_result null_init(struct smacq_init * context) {
-	return SMACQ_FREE;
-}
-
 #define FIRST(a,b) ((a) ? (a) : (b))
 
 static inline void read_module(smacq_graph * graph, struct smacq_functions * modtable) {
 		graph->ops.constructor = modtable->constructor;
-		graph->ops.produce = FIRST(modtable->produce, error_produce);
-		graph->ops.consume = FIRST(modtable->consume, error_consume);
-		graph->ops.shutdown = FIRST(modtable->shutdown, null_shutdown);
-		graph->ops.init = FIRST(modtable->init, null_init);
 		graph->algebra = modtable->algebra;
 }
 
@@ -121,11 +100,11 @@ void smacq_destroy_graph(smacq_graph *f) {
 smacq_graph * smacq_graph_clone(DTS * dts, smacq_graph * orig) {
   int i;
 
-  smacq_graph * clone = (smacq_graph*)malloc(sizeof(smacq_graph));
-  memcpy(clone, orig, sizeof(smacq_graph));
+  smacq_graph * clone = new smacq_graph;
+  *clone = *orig;
 
-  /* Need or own input buffer */
-  clone->q = g_new0(DtsObject *, clone->ringsize);
+  /* Need our own input buffer */
+  clone->q.resize(clone->ringsize);
 
   /* Have distinct children */
   clone->numparents = 0;
@@ -152,12 +131,12 @@ smacq_graph * smacq_graph_clone(DTS * dts, smacq_graph * orig) {
 smacq_graph * smacq_new_module(int argc, char ** argv){
   smacq_graph * newo;
 
-  newo = g_new0(smacq_graph, 1);
+  newo = new smacq_graph;
   newo->name = *argv;
   newo->argv = argv;
   newo->argc = argc;
   newo->ringsize = RINGSIZE;
-  newo->q = g_new0(DtsObject *, newo->ringsize);
+  newo->q.resize(newo->ringsize);
  
 #ifndef SMACQ_OPT_NOPTHREADS
   pthread_mutex_init(&newo->qlock, NULL);
@@ -180,10 +159,10 @@ void smacq_free_module(smacq_graph * f) {
   pthread_cond_destroy(&f->ring_notempty);
 #endif
 
-  free(f->q);
   free(f->parent);
   free(f->child);
-  free(f);
+
+  delete f;
 }
 
 int smacq_add_child_only(smacq_graph * parent, smacq_graph * newo) {
@@ -321,11 +300,8 @@ void smacq_init_modules(smacq_graph * f, DTS * dts) {
   context.argv = f->argv;
   context.self = f;
 
-  if (f->ops.constructor) {
-	f->instance = f->ops.constructor(&context);
-  } else {
-	f->instance = new SmacqModuleWrapper(f, &context);
-  }
+  f->instance = f->ops.constructor(&context);
+  assert(f->ops.constructor);
 
   if (! f->instance) {
      	fprintf(stderr, "Error initializing module %s\n", f->name);	 	

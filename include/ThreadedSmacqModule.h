@@ -5,16 +5,16 @@
 
 class ThreadedSmacqModule : public SmacqModule	{
  public:
-  smacq_result produce(DtsObject **, int*);
-  smacq_result consume(DtsObject *, int*);
+  smacq_result produce(DtsObject, int*);
+  smacq_result consume(DtsObject, int*);
   ThreadedSmacqModule(smacq_init *);
   ~ThreadedSmacqModule();
 
  protected: 
-  DtsObject * smacq_read();
+  DtsObject smacq_read();
   int smacq_flush();
-  void smacq_decision(DtsObject * datum, smacq_result result);
-  void smacq_write(DtsObject * datum, int outchan);
+  void smacq_decision(DtsObject datum, smacq_result result);
+  void smacq_write(DtsObject datum, int outchan);
 
   virtual smacq_result thread(smacq_init * context) = 0;
 
@@ -26,13 +26,13 @@ class ThreadedSmacqModule : public SmacqModule	{
 
   struct smacq_init * context;
 
-  DtsObject * datum;
+  DtsObject datum;
   smacq_result result;
 
   struct dts_list * product, * product_tail;
 };
 
-inline void ThreadedSmacqModule::smacq_decision(DtsObject * datum, smacq_result r) {
+inline void ThreadedSmacqModule::smacq_decision(DtsObject datum, smacq_result r) {
   result = r;
 }
 

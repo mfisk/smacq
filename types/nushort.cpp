@@ -5,23 +5,23 @@
 #include <stdlib.h>
 #include <dts-module.h>
 
-static int smacqtype_nushort_get_string(DtsObject * obj, DtsObject * field) {
+static int smacqtype_nushort_get_string(DtsObject obj, DtsObject field) {
   field->setsize(64); // Only has to hold log10(2**32)
   snprintf((char*)field->getdata(), 64, "%hu", ntohs(dts_data_as(obj, unsigned short)));
   return 1;
 }
 
-static int smacqtype_nushort_get_uint32(DtsObject * o, DtsObject * field) {
+static int smacqtype_nushort_get_uint32(DtsObject o, DtsObject field) {
 	dts_set(field, uint, ntohs(dts_data_as(o, ushort)));
 	return 1;
 }
 
-static int smacqtype_nushort_get_double(DtsObject * o, DtsObject * field) {
+static int smacqtype_nushort_get_double(DtsObject o, DtsObject field) {
 	dts_set(field, double, ntohs(dts_data_as(o, ushort)));
 	return 1;
 }
 
-static int parse_nushort(char * buf,  DtsObject * d) {
+static int parse_nushort(char * buf,  DtsObject d) {
   return dts_set(d, ushort, htons(atol(buf)));
 }
 

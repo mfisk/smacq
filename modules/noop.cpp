@@ -6,10 +6,10 @@ SMACQ_MODULE(noop,
 );
 
 static struct smacq_options options[] = {
-  {NULL, {string_t:NULL}, NULL, 0}
+  END_SMACQ_OPTIONS
 };
 
-smacq_result noopModule::consume(DtsObject * datum, int * outchan) {
+smacq_result noopModule::consume(DtsObject datum, int * outchan) {
   assert(datum);
 
   return SMACQ_FREE;

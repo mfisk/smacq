@@ -7,11 +7,11 @@
 #include <math.h>
 #include <assert.h>
 #include <smacq.h>
-#include <fields.h>
-#include "bytehash.h"
+#include <FieldVec.h>
+#include <IoVec.h>
 
 static struct smacq_options options[] = {
-  {NULL, {string_t:NULL}, NULL, 0}
+  END_SMACQ_OPTIONS
 };
 
 #define MODULE_IS_ANNOTATION 1
@@ -20,8 +20,7 @@ SMACQ_MODULE(derivative,
   PROTO_CTOR(derivative);
   PROTO_CONSUME();
 
-  struct fieldset fieldset;
-  struct iovec_hash *counters;
+  FieldVec fieldvec;
   int started;
 
   double lastx;
@@ -35,8 +34,8 @@ SMACQ_MODULE(derivative,
   dts_field derivfield;
 ); 
  
-smacq_result derivativeModule::consume(DtsObject * datum, int * outchan) {
-  DtsObject * newx, * newy;
+smacq_result derivativeModule::consume(DtsObject datum, int * outchan) {
+  DtsObject newx, newy;
 
   if (! (newx = datum->getfield(xfield))) {
 	fprintf(stderr, "derivative: no %s field\n", xfieldname);
@@ -44,14 +43,14 @@ smacq_result derivativeModule::consume(DtsObject * datum, int * outchan) {
   }
   if (! (newy = datum->getfield(yfield))) {
 	fprintf(stderr, "derivative: no %s field\n", yfieldname);
-	newx->decref();
+	
 	return SMACQ_PASS;
   }
 
   if (started) {
 	double dydx = (dts_data_as(newy, double) - lasty) / 
 			(dts_data_as(newx, double) - lastx);
-    	DtsObject * msgdata = dts->construct(derivtype, &dydx);
+    	DtsObject msgdata = dts->construct(derivtype, &dydx);
     	datum->attach_field(derivfield, msgdata); 
   } else {
 	started = 1;
@@ -60,8 +59,8 @@ smacq_result derivativeModule::consume(DtsObject * datum, int * outchan) {
   lastx = dts_data_as(newx, double);
   lasty = dts_data_as(newy, double);
 	
-  newx->decref();
-  newy->decref();
+  
+  
 
   return SMACQ_PASS; 
 }

@@ -1,4 +1,3 @@
-#include <smacq.h>
 #include <smacq-dataflow.h>
 
 struct list {
@@ -34,7 +33,7 @@ static struct list * list_tails(struct list * list, smacq_graph * g, smacq_graph
     return list;
   } else {
     /* base case: no branches below here, so prepend self */
-    struct list * newl = malloc(sizeof(struct list));
+    struct list * newl = (struct list*)malloc(sizeof(struct list));
     newl->g = g;
     newl->parent = parent;
     newl->child = child_num;
@@ -166,7 +165,7 @@ static void merge_all_tails(smacq_graph * g) {
 
 static void add_args(smacq_graph * a, smacq_graph * b) {
 	int i;
-	a->argv = realloc(a->argv, (a->argc + b->argc) * sizeof(char*));
+	a->argv = (char**)realloc(a->argv, (a->argc + b->argc) * sizeof(char*));
 	a->argv[a->argc++] = ";";
 	for (i=1; i < b->argc; i++) {
 		a->argv[a->argc++] = b->argv[i];

@@ -3,8 +3,8 @@
 #include <math.h>
 #include <assert.h>
 #include <smacq.h>
-#include <fields.h>
-#include <bytehash.h>
+#include <FieldVec.h>
+#include <IoVec.h>
 #include <ThreadedSmacqModule.h>
 
 /* Programming constants */
@@ -13,14 +13,14 @@
 static struct smacq_options options[] = {
   {"pdf", {boolean_t:0}, "Report probabilities rather than absolute counts", SMACQ_OPT_TYPE_BOOLEAN},
   {"f", {string_t:"counter"}, "Name of field to store count in", SMACQ_OPT_TYPE_STRING},
-  {NULL, {string_t:NULL}, NULL, 0}
+  END_SMACQ_OPTIONS
 };
 
 SMACQ_MODULE_THREAD(counter,); 
 
 smacq_result counterModule::thread(struct smacq_init * context) {
-  struct fieldset fieldset;
-  struct iovec_hash *counters;
+  FieldVec fieldvec;
+  IoVecHash<int> counters;
 
   int counter;
 
@@ -29,7 +29,7 @@ smacq_result counterModule::thread(struct smacq_init * context) {
   dts_field countfield;
   int counttype;
   int probtype;
-  DtsObject * datum;
+  DtsObject datum;
   int c;
   int argc = 0;
   char ** argv;
@@ -49,7 +49,7 @@ smacq_result counterModule::thread(struct smacq_init * context) {
   int doprob = probability.boolean_t;
 
   // Consume rest of arguments as fieldnames
-  dts->fields_init(&fieldset, argc, argv);
+  fieldvec.init(dts, argc, argv);
 
   timefield = dts->requirefield("timeseries");
   if (doprob) {
@@ -60,39 +60,28 @@ smacq_result counterModule::thread(struct smacq_init * context) {
   	counttype = dts->requiretype("int");
   }
 
-  counters = bytes_hash_table_new(KEYBYTES, CHAIN|NOFREE);
-
   //fprintf(stderr, "count thread is running\n");
 
   while( (datum = smacq_read()) ) {
     //fprintf(stderr, "count thread got datum\n");
 
-    if (fieldset.num) {
-      struct iovec * domainv = datum->fields2vec(&fieldset);
+    if (! fieldvec.empty()) {
+      fieldvec.getfields(datum);
 
-      if (!domainv) {
-        //fprintf(stderr, "Skipping datum\n");
-        return SMACQ_FREE;
-      }
-
-      c = bytes_hash_table_incrementv(counters, domainv, fieldset.num);
-      c++;
+      c = ++counters[fieldvec];
     }
 
     if (doprob) {
       double p = (double)c / counter;
-      DtsObject * msgdata = dts->construct(probtype, &p);
+      DtsObject msgdata = dts->construct(probtype, &p);
       datum->attach_field(probfield, msgdata); 
     } else {
-      DtsObject * msgdata = dts->construct(counttype, &c);
+      DtsObject msgdata = dts->construct(counttype, &c);
       datum->attach_field(countfield, msgdata); 
     }
    
     smacq_decision(datum, SMACQ_PASS);
   }
-
-  /* Shutdown */
-  bytes_hash_table_destroy(counters);
 
   //fprintf(stderr, "Count thread exiting\n");
 

@@ -9,8 +9,8 @@
 #include <time.h>
 #include <assert.h>
 #include <smacq.h>
-#include <fields.h>
-#include <bytehash.h>
+#include <FieldVec.h>
+#include <IoVec.h>
 #include <dllist.h>
 #include <produceq.h>
 
@@ -20,17 +20,17 @@
 static struct smacq_options options[] = {
   {"t", {double_t:0}, "Threshold quiet time", SMACQ_OPT_TYPE_TIMEVAL},
   {"r", {boolean_t:0}, "Reverse each pair of fields for bidirectional flows", SMACQ_OPT_TYPE_BOOLEAN},
-  {NULL, {string_t:NULL}, NULL, 0}
+  END_SMACQ_OPTIONS
 };
 
-struct srcstat {
+class SrcStat {
+ public:
   struct timeval starttime, lasttime, timer_index;
   int id;
 
   unsigned int byte_count, byte_count_back;
   unsigned int packet_count, packet_count_back;
-
-  DtsObject ** fields;
+  FieldVec fields;
 
   struct element * hash_entry;
   struct list_element * timer_entry;
@@ -43,8 +43,8 @@ SMACQ_MODULE(flowid,
   PROTO_CONSUME();
   PROTO_PRODUCE();
 
-  struct fieldset fieldset;
-  struct fieldset fieldset2;
+  FieldVec fieldvec;
+  FieldVec fieldvec2;
 
   struct timeval interval;
   struct timeval nextgc;
@@ -77,17 +77,15 @@ SMACQ_MODULE(flowid,
 
   struct list timers;
 
-  struct iovec_hash *stats;
+  IoVecHash<SrcStat*> stats;
   
   int reverse;
 
-  void attach_stats(struct srcstat * s, DtsObject * datum);
-  int output(struct srcstat * s);
-  void finalize(struct srcstat * s);
-  struct srcstat * stats_lookup(DtsObject * datum, struct iovec * domainv, int * swapped);
+  void attach_stats(SrcStat * s, DtsObject datum);
+  void output(SrcStat * s);
+  void finalize(SrcStat * s);
+  SrcStat * stats_lookup(DtsObject datum, int * swapped);
   void timers_manage();
-
-  static int finalize_wrap(struct element * e, void * val, void * user_data);
 ); 
 
 static void timeval_minus(struct timeval x, struct timeval y, struct timeval * result) {
@@ -109,8 +107,8 @@ static int timeval_past(struct timeval x, struct timeval y) {
   return 0;
 }
 
-void flowidModule::attach_stats(struct srcstat * s, DtsObject * datum) {
-  DtsObject * msgdata;
+void flowidModule::attach_stats(SrcStat * s, DtsObject datum) {
+  DtsObject msgdata;
 
   msgdata = dts->construct(timeval_type, &s->starttime);
   datum->attach_field(start_field, msgdata);
@@ -129,40 +127,31 @@ void flowidModule::attach_stats(struct srcstat * s, DtsObject * datum) {
 
 }
 
-inline int flowidModule::output(struct srcstat * s) {
-      int i;
-
+inline void flowidModule::output(SrcStat * s) {
       // Output refresh record
-      DtsObject * msgdata;
-
-      DtsObject * refresh = dts->construct(refresh_type, NULL);
-
-      assert(s);
-      assert(s->fields);
+      DtsObject msgdata;
+      DtsObject refresh = dts->construct(refresh_type, NULL);
 
       msgdata = dts->construct(id_type, &s->id);
       refresh->attach_field(flowid_field, msgdata);
 
-      for (i = 0; i<fieldset.num; i++) {
-		assert(s->fields[i]);
-		refresh->attach_field(fieldset.fields[i].num, s->fields[i]);
-		s->fields[i] = NULL; /* shouldn't be used again */
+      FieldVec::iterator i;
+      for (i = s->fields.begin(); i != s->fields.end(); i++) {
+	refresh->attach_field((*i)->num, (*i)->field_obj);
       }
 
       msgdata = dts->construct(timeval_type, &s->lasttime);
       refresh->attach_field(finish_field, msgdata);
 
       //refresh->attach_field(ts_field, msgdata);
-      //msgdata->incref();
+      
   
       attach_stats(s, refresh);
       //fprintf(stderr, "enqueuing %p\n", refresh);
       smacq_produce_enqueue(&outputq, refresh, -1);
-
-      return 1;
 }
 
-inline void flowidModule::finalize(struct srcstat * s) {
+inline void flowidModule::finalize(SrcStat * s) {
     output(s);
 
     active--;
@@ -170,44 +159,32 @@ inline void flowidModule::finalize(struct srcstat * s) {
 
     // Cleanup
     /* Don't have to decref fields, since their refcount will be picked up from being attached in the output routine */
-    g_free(s->fields);
-    s->fields = NULL;
-    g_free(s);
+
+    delete s;
 }
 
-int flowidModule::finalize_wrap(struct element * e, void * val, void * user_data) {
-  struct srcstat * s = (struct srcstat*)val;
-  flowidModule * ths = (flowidModule*)user_data;
-
-  /* fprintf(stderr, "foreach destroying srcstat %p\n", s); */
-  ths->finalize(s);
-
-  return 1;
-}
-
-inline struct srcstat * flowidModule::stats_lookup(DtsObject * datum, struct iovec * domainv, int * swapped) {
-	struct srcstat * s;
-	s = (srcstat*)bytes_hash_table_lookupv(stats, domainv, fieldset.num);
-	if (s) return s;
-
-	/* Try reverse */
-    	if (reverse) {
-		struct iovec * rev_domainv = datum->fields2vec(&fieldset2);
-		s = (srcstat*)bytes_hash_table_lookupv(stats, rev_domainv, fieldset2.num);
-		if (s) {
-			*swapped = 1;
-			return s;
-		}
-	}
-
-	return NULL;
+inline SrcStat * flowidModule::stats_lookup(DtsObject datum, int * swapped) {
+  IoVecHash<SrcStat *>::iterator s = stats.find(fieldvec);
+  if (s != stats.end()) return s->second;
+  
+  /* Try reverse */
+  if (reverse) {
+    fieldvec2.getfields(datum);
+    s = stats.find(fieldvec2);
+    if (s != stats.end()) {
+      *swapped = 1;
+      return s->second;
+    }
+  }
+  
+  return NULL;
 }
 
 
 void flowidModule::timers_manage() {
     //fprintf(stderr, "managing of list\n");
     while (1) {
-        struct srcstat * s = (srcstat*)list_peek_value(&timers);
+        SrcStat * s = (SrcStat*)list_peek_value(&timers);
 	if (!s) {
 		//fprintf(stderr, "end of list\n");
 		break;
@@ -231,12 +208,11 @@ void flowidModule::timers_manage() {
 	/* Remove from all datastructures */
 	list_element_free(&timers, list_pop_element(&timers));
 
-	/* fprintf(stderr, "remove element %p hash %p\n", s, s->hash_entry); */
-	bytes_hash_table_remove_element(stats, s->hash_entry);
-
-	s->hash_entry = NULL;
 	/* Output and free */
 	finalize(s);
+
+	/* fprintf(stderr, "remove element %p hash %p\n", s, s->hash_entry); */
+	stats.erase(s->fields);
     }
 }
 
@@ -248,13 +224,12 @@ void flowidModule::timers_manage() {
  * 3) Timout idle flows and send out a final record
  *
  */
-smacq_result flowidModule::consume(DtsObject * datum, int * outchan) {
-  struct iovec * domainv = NULL;
-  struct srcstat * s;
+smacq_result flowidModule::consume(DtsObject datum, int * outchan) {
+  SrcStat * s;
   smacq_result status = SMACQ_FREE;
 
-  DtsObject * field;
-  DtsObject * msgdata;
+  DtsObject field;
+  DtsObject msgdata;
   struct timeval tsnow;
   int size;
   int swapped = 0;
@@ -265,7 +240,7 @@ smacq_result flowidModule::consume(DtsObject * datum, int * outchan) {
     return SMACQ_PASS;
   } else {
     tsnow = dts_data_as(field, struct timeval);
-    field->decref();
+    
   }
 
   // Get current size
@@ -274,42 +249,33 @@ smacq_result flowidModule::consume(DtsObject * datum, int * outchan) {
     return SMACQ_PASS;
   } else {
     size = dts_data_as(field, unsigned int);
-    field->decref();
+    
   }
 
   // Update clock
   if (hasinterval) 
     timeval_minus(tsnow, interval, &edge);
 
-  domainv = datum->fields2vec(&fieldset);
-  assert(domainv);
-  if (iovec_has_undefined(domainv, fieldset.num)) {
+  fieldvec.getfields(datum);
+  if (fieldvec.has_undefined()) {
     /* Not all fields present */
     //fprintf(stderr, "Skipping datum\n");
 
 	return SMACQ_FREE;
   }
-  s = stats_lookup(datum, domainv, &swapped);
+  s = stats_lookup(datum, &swapped);
 
   // Make new entry if necessary 
   if (!s) {
-      int i;
-
-      s = g_new0(struct srcstat, 1);
+      s = new SrcStat;
       //fprintf(stderr, "new %p\n", s);
-      //
+      
       s->id = flowid++;
       s->starttime = tsnow;
       s->lasttime = tsnow;
-
-      s->fields = g_new(DtsObject*, fieldset.num);
-      assert(s->fields);
-      for (i = 0; i<fieldset.num; i++) {
-		s->fields[i] = fieldset.currentdata[i]->dup();
-		assert(s->fields[i]);
-      }
-
-      assert(!bytes_hash_table_setv_get(stats, domainv, fieldset.num, s, &s->hash_entry));
+      s->fields = fieldvec;
+      
+      stats[fieldvec] = s;
 
       if (hasinterval) {
 	s->timer_entry = list_append_value(&timers, s);
@@ -400,7 +366,7 @@ flowidModule::flowidModule(struct smacq_init * context) : SmacqModule(context) {
   }
 
   // Consume rest of arguments as field names
-  dts->fields_init(&fieldset, argc, argv);
+  fieldvec.init(dts, argc, argv);
 
   if (reverse) {
     int i;
@@ -414,26 +380,27 @@ flowidModule::flowidModule(struct smacq_init * context) : SmacqModule(context) {
 	rargv[i] = argv[i+1];
       }
     }
-    dts->fields_init(&fieldset2, argc, rargv);
+    fieldvec2.init(dts, argc, rargv);
     free(rargv);
   }
 
-  stats = bytes_hash_table_new(KEYBYTES, CHAIN|NOFREE);
   list_init(&timers);
 }
 
 flowidModule::~flowidModule() {
-  bytes_hash_table_destroy(stats);
   list_free(&timers);
 }
 
-smacq_result flowidModule::produce(DtsObject ** datum, int * outchan) {
+smacq_result flowidModule::produce(DtsObject & datum, int * outchan) {
   if (smacq_produce_canproduce(&outputq)) {
     return smacq_produce_dequeue(&outputq, datum, outchan);
   } else {
     /* fprintf(stderr, "flowid: produce called with nothing in queue.  Outputing everything in current table!\n"); */
 
-    bytes_hash_table_foreach_remove(stats, finalize_wrap, this);
+    IoVecHash<SrcStat*>::iterator i;
+    for (i=stats.begin(); i!=stats.end(); i++) {
+      finalize(i->second);
+    }
 
     list_free(&timers);
 

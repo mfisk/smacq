@@ -1,9 +1,7 @@
 #ifndef SMACQ_ARGS_H
 #define SMACQ_ARGS_H
-
+#include <ccpp.h>
 #include <sys/time.h>
-#include <glib.h>
-#include "smacq.h"
 
 union _smacq_opt { 
   char * string_t;
@@ -36,6 +34,8 @@ struct smacq_options {
   smacq_opt_type type;
   int flags;
 };
+
+#define END_SMACQ_OPTIONS {NULL, {int_t:0}, NULL, END}
 
 BEGIN_C_DECLS
 

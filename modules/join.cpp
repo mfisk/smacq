@@ -4,15 +4,15 @@
 #include <assert.h>
 #include <smacq.h>
 #include <smacq.h>
-#include <fields.h>
-#include <bytehash.h>
+#include <FieldVec.h>
+#include <IoVec.h>
 
 /* Programming constants */
 
 #define KEYBYTES 128
 
 static struct smacq_options options[] = {
-  {NULL, {string_t:NULL}, NULL, 0}
+  END_SMACQ_OPTIONS
 };
 
 struct join {
@@ -29,20 +29,20 @@ SMACQ_MODULE(join,
   int numjoins;
   int whereargc;
   char ** whereargv;
-  DtsObject * product;
+  DtsObject product;
   dts_comparison * comp;
 
   struct join * joins;
   static void find_join(dts_comparison * comp);
 ); 
 
-smacq_result joinModule::consume(DtsObject * datum, int * outchan) {
+smacq_result joinModule::consume(DtsObject datum, int * outchan) {
   int more;
   int i;
 
   for (i=0; i<numjoins; i++) {
 	struct join * j = &joins[i];
-  	DtsObject * product;
+  	DtsObject product;
 
   	more = smacq_sched_iterative(j->graph, NULL, &product, &j->runq, 1);
 	datum->attach_field(j->field, product);
@@ -96,11 +96,11 @@ joinModule::joinModule(struct smacq_init * context) : SmacqModule(context) {
   find_join(comp);
 }
 
-smacq_result joinModule::produce(DtsObject ** datump, int * outchan) {
+smacq_result joinModule::produce(DtsObject & datump, int * outchan) {
   smacq_result status;
 
   if (product) {
-    *datump = product;
+    datump = product;
     status = SMACQ_PASS;
   } else {
     status = SMACQ_FREE;

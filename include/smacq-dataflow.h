@@ -2,10 +2,12 @@
 #define LIBSMACQ_DATAFLOW_H
 
 #include <SmacqModule.h>
+#include <vector>
 
-struct _smacq_module {
+class _smacq_module {
+ public:
   // Ring buffer mgmt
-  DtsObject ** q;
+  std::vector<DtsObject> q;
   int ringsize;
   int ring_produce;
   int ring_consume;
@@ -27,7 +29,7 @@ struct _smacq_module {
   SmacqModule * instance;
 
   GModule * module;
-  int status;
+  smacq_result status;
 
   struct smacq_options * options;
 

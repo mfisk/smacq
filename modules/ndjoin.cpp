@@ -4,15 +4,15 @@
 #include <assert.h>
 #include <smacq.h>
 #include <smacq.h>
-#include <fields.h>
-#include <bytehash.h>
+#include <FieldVec.h>
+#include <IoVec.h>
 
 /* Programming constants */
 
 #define KEYBYTES 128
 
 static struct smacq_options options[] = {
-  {NULL, {string_t:NULL}, NULL, 0}
+  END_SMACQ_OPTIONS
 };
 
 struct join {
@@ -21,7 +21,7 @@ struct join {
   dts_field left_key, right_key;
   struct runq * runq;
   double next_val;
-  DtsObject * next_dobj; 
+  DtsObject next_dobj; 
 };
 
 SMACQ_MODULE(ndjoin,
@@ -31,22 +31,22 @@ SMACQ_MODULE(ndjoin,
 
   int whereargc;
   char ** whereargv;
-  DtsObject * product;
+  DtsObject product;
   dts_comparison * comp;
 
   struct join join;
 ); 
 
-smacq_result ndjoinModule::consume(DtsObject * datum, int * outchan) {
+smacq_result ndjoinModule::consume(DtsObject datum, int * outchan) {
   	int more;
   	double left_val;
 
 	struct join * j = &join;
-	DtsObject * left = datum->getfield(j->left_key);
+	DtsObject left = datum->getfield(j->left_key);
 	if (!left) return SMACQ_PASS;
 
 	left_val = dts_data_as(left, double);
-	left->decref();
+	
 
 	while (1) {
 	  while (!j->next_dobj) {
@@ -55,14 +55,14 @@ smacq_result ndjoinModule::consume(DtsObject * datum, int * outchan) {
 			return SMACQ_END;
 
 		if (j->next_dobj) {
-	  		DtsObject * next_val = j->next_dobj->getfield(j->right_key);
+	  		DtsObject next_val = j->next_dobj->getfield(j->right_key);
 	    		if (!next_val) {
-				j->next_dobj->decref();
+				
 				j->next_dobj = NULL;
 			} else {
 	  			j->next_val = dts_data_as(next_val, double);
 				/* Success: found the next key */
-	  			next_val->decref();
+	  			
 			}
 		}
           }
@@ -70,7 +70,7 @@ smacq_result ndjoinModule::consume(DtsObject * datum, int * outchan) {
 
 	  if (left_val > j->next_val) {
 		/* We skipped over this object */
-		j->next_dobj->decref();
+		
 		j->next_dobj = NULL;
 		//fprintf(stderr, "skipped over %g to %g\n", j->next_val, left_val);
 	  } else if (left_val == j->next_val) {
@@ -100,11 +100,11 @@ ndjoinModule::ndjoinModule(struct smacq_init * context) : SmacqModule(context) {
   }
 }
 
-smacq_result ndjoinModule::produce(DtsObject ** datump, int * outchan) {
+smacq_result ndjoinModule::produce(DtsObject & datump, int * outchan) {
   smacq_result status;
 
   if (product) {
-    *datump = product;
+    datump = product;
     status = SMACQ_PASS;
   } else {
     status = SMACQ_FREE;

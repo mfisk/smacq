@@ -2,7 +2,7 @@
 #include <smacq-parser.h>
 
 static struct smacq_options options[] = {
-  {NULL, {string_t:NULL}, NULL, 0}
+  END_SMACQ_OPTIONS
 };
 
 SMACQ_MODULE(expr,
@@ -45,8 +45,8 @@ exprModule::exprModule(struct smacq_init * context) : SmacqModule(context) {
   }
 }
 
-smacq_result exprModule::consume(DtsObject * datum, int * outchan) {
-  DtsObject * msgdata;
+smacq_result exprModule::consume(DtsObject datum, int * outchan) {
+  DtsObject msgdata;
   double val;
 
   assert(datum);
@@ -61,7 +61,7 @@ smacq_result exprModule::consume(DtsObject * datum, int * outchan) {
 
   if (as_field) {
     datum->attach_field(as_field, msgdata); 
-    msgdata->incref();
+    
   }
 
   return SMACQ_PASS;

@@ -2,13 +2,13 @@
 #define SMACQ_PRODUCEQ_C
 
 struct smacq_outputq {
-	DtsObject * o;
+	DtsObject o;
 	int outchan;
 	struct smacq_outputq * next;
 	struct smacq_outputq * end;
 };
 
-static inline DtsObject * smacq_produce_peek(struct smacq_outputq ** qp) {
+static inline DtsObject smacq_produce_peek(struct smacq_outputq ** qp) {
   if (*qp) {
   	return((*qp)->o);
   } else { 
@@ -16,7 +16,7 @@ static inline DtsObject * smacq_produce_peek(struct smacq_outputq ** qp) {
   }
 }
   
-static inline void smacq_produce_enqueue(struct smacq_outputq ** qp, DtsObject * o, int outchan) {
+static inline void smacq_produce_enqueue(struct smacq_outputq ** qp, DtsObject o, int outchan) {
   struct smacq_outputq * nq = (struct smacq_outputq*)malloc(sizeof(struct smacq_outputq));
   assert(nq);
   assert(qp);
@@ -44,14 +44,14 @@ static inline smacq_result smacq_produce_canproduce(struct smacq_outputq ** qp) 
   }
 }
 
-static inline smacq_result smacq_produce_dequeue(struct smacq_outputq ** qp, DtsObject ** o, int * outchan) {
+static inline smacq_result smacq_produce_dequeue(struct smacq_outputq ** qp, DtsObject o, int * outchan) {
   struct smacq_outputq * head = *qp;
 
   if (!head) {
 	  return SMACQ_FREE;
   }
 
-  *o = head->o;
+  o = head->o;
   *outchan = head->outchan;
   *qp = head->next;
 

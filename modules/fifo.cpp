@@ -5,11 +5,11 @@
 /* Programming constants */
 
 static struct smacq_options options[] = {
-  {NULL, {string_t:NULL}, NULL, 0}
+  END_SMACQ_OPTIONS
 };
 
 struct obj_list{
-  DtsObject * obj;
+  DtsObject obj;
   struct obj_list * next;
 };
 
@@ -24,9 +24,9 @@ SMACQ_MODULE(fifo,
 
 fifoModule::fifoModule(smacq_init * context) : SmacqModule(context) { ; }
 
-smacq_result fifoModule::consume(DtsObject * datum, int * outchan) {
+smacq_result fifoModule::consume(DtsObject datum, int * outchan) {
   struct obj_list * newo = g_new(struct obj_list, 1);
-  newo->obj = (DtsObject*)datum;
+  newo->obj = (DtsObject)datum;
   newo->next = NULL;
 
   if (fifo) {
@@ -35,16 +35,16 @@ smacq_result fifoModule::consume(DtsObject * datum, int * outchan) {
 	  fifo = newo;
   }
   last = newo;
-  datum->incref();
+  
   return (smacq_result)(SMACQ_FREE|SMACQ_CANPRODUCE);
 }
 
-smacq_result fifoModule::produce(DtsObject ** datum, int * outchan) {
+smacq_result fifoModule::produce(DtsObject & datum, int * outchan) {
   if (fifo) {
     struct obj_list * old = fifo;
     fifo = fifo->next;
 
-    *datum = old->obj;
+    datum = old->obj;
     free(old);
   } else {
     return(SMACQ_END);

@@ -22,7 +22,7 @@ static inline int lt(DTS * tenv, const dts_comparison * c) {
 	    (tenv->dts_lt(c->op1->valueo->gettype(), c->op1->valueo->getdata(), c->op1->valueo->getsize(), c->op2->valueo->getdata(), c->op2->valueo->getsize())));
 }
 
-int DtsObject::match_one(dts_comparison * c) {
+int DtsObject_::match_one(dts_comparison * c) {
   int retval = 0;
 
   switch (c->op) {

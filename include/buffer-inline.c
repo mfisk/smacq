@@ -6,7 +6,7 @@
 #include <pthread.h>
 #include <smacq.h>
 
-static inline void ring_enqueue(smacq_graph * f, DtsObject * d) {
+static inline void ring_enqueue(smacq_graph * f, DtsObject d) {
   pthread_mutex_lock(&f->qlock);
 
   while (f->q[f->ring_produce]) 
@@ -19,8 +19,8 @@ static inline void ring_enqueue(smacq_graph * f, DtsObject * d) {
   pthread_mutex_unlock(&f->qlock);
 }
 
-static inline DtsObject * ring_dequeue(smacq_graph * f) {
-  DtsObject * d;
+static inline DtsObject ring_dequeue(smacq_graph * f) {
+  DtsObject d;
 
   pthread_mutex_lock(&f->qlock);
 
@@ -36,7 +36,7 @@ static inline DtsObject * ring_dequeue(smacq_graph * f) {
   return d;
 }
 
-static void smacq_passalong(smacq_graph * f, DtsObject * d, int outchan) {
+static void smacq_passalong(smacq_graph * f, DtsObject d, int outchan) {
   int i;
 
   if (!f->child) return;
@@ -56,7 +56,7 @@ static void smacq_passalong(smacq_graph * f, DtsObject * d, int outchan) {
 }
 
 
-static inline void smacq_passall(smacq_graph * f, DtsObject * d) {
+static inline void smacq_passall(smacq_graph * f, DtsObject d) {
   smacq_graph * top = f;
   while(top->previous) top = top->previous;
   

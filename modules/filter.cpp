@@ -18,10 +18,10 @@ SMACQ_MODULE(filter,
 		     );
 
 static struct smacq_options options[] = {
-  {NULL, {string_t:NULL}, NULL, 0}
+  END_SMACQ_OPTIONS
 };
 
-smacq_result filterModule::consume(DtsObject * datum, int * outchan) {
+smacq_result filterModule::consume(DtsObject datum, int * outchan) {
   assert(datum);
   assert(argv[0]);
   

@@ -1,43 +1,122 @@
 #include <glib.h>
 #include <sys/uio.h>
 #include <stdint.h>
+#include <IoVec.h>
+#include <set>
+#include <utility>
+#include <vector>
+#include <ext/hash_map>
+ 
+/* Bloom filter configuration */
+#define DEFAULTNUMFUNCS 4
+#define DEFAULTRANGE 640000
 
-#ifndef BEGIN_C_DECLS
-# ifdef __cplusplus
-#   define BEGIN_C_DECLS extern "C" {
-#   define END_C_DECLS }
-# else
-#   define BEGIN_C_DECLS
-#   define END_C_DECLS
-# endif
-#endif
+template <class T, class HFN>
+  class Bloom {
+ public:
+  Bloom(int r) : numfilters(DEFAULTNUMFUNCS), range(r) 
+  { 
+    //HFN * h;
+    //hash_fn = new h; //HFN::operator size_t ()(T,int); 
+  }
+  
+  void setfilters(int n) { numfilters = n; }
+  int getfilters() { return numfilters; }
+  
+  void setrange(int n) { range = n; }
+  int getrange() { return range; }
+  
+ protected:
+  //size_t (* hash_fn)(T, int);
+  HFN * hash_fn;
 
-#define WORDTYPE uint32_t
+  int numfilters;
+  int range;
+  
+  size_t inrange(T n, int i) { return (((*hash_fn)(n,i)) % range); }
+};
 
-BEGIN_C_DECLS
-extern struct bloom_summary * bloom_summary_init(int maxkeybytes, unsigned long long size);
-extern struct bloom_summary * bloom_counter_init(int maxkeybytes, unsigned long long size);
-extern int bloom_test_or_set(struct bloom_summary * b, unsigned char * key, 
-		      int keysize, int op);
-extern int bloom_test_or_setv(struct bloom_summary * b, struct iovec *, int count, int op);
-extern struct bloom_summary * bloom_load(char * filename);
-extern void bloom_save(char * filename, struct bloom_summary *);
-int bloom_set_hash_functions(struct bloom_summary * b, int numfilterfuncs);
-double bloom_get_usage(struct bloom_summary * b);
-unsigned long bloom_get_uniq(struct bloom_summary * b);
-unsigned long bloom_get_falsepositives(struct bloom_summary * b);
-inline int TestOrSetBit(WORDTYPE * array, unsigned int number, int op);
-void bloom_make_perfect(struct bloom_summary * b);
-int bloom_incrementv(struct bloom_summary * b, struct iovec * key, int keys);
-double bloom_deviation(struct bloom_summary * b, int);
+template <class T, class HFN>
+  class BloomSet : std::vector<bool>, Bloom<T, HFN> {
+ public:
+    
+    BloomSet(int size = DEFAULTRANGE) 
+      : Bloom<T,HFN>(size) {}
+    
+    bool test(T n) {
+      for (int i = 0; i < numfilters; i++) {
+	if (! this[inrange(n, i)]) {
+	  return false;
+	}
+      }
+      
+      return true;
+    }
+    
+    std::pair<T,bool> insert(T n) {
+		       std::pair<T,bool> p;
+		       
+		       bool isnew = false;	     
+		       for (int i = 0; i < numfilters; i++) {
+			 int x = inrange(n,i);
+			 if (! this->operator[](x)) 
+			   isnew = true;
+			 this->operator[](x) = true;
+		       }
+		       
+		       p.first = n;
+		       p.second = isnew;
+		       return p;
+		     }
+  };
 
-#define BIT_SET 1
-#define BIT_TEST 0
-/* #define SetBit(array, number) TestOrSetBit(array, number, BIT_SET); */
-#define bloom_insert(bloom, key, keysize) bloom_test_or_set(bloom, key, keysize, BIT_SET)
-#define bloom_check(bloom, key, keysize) bloom_test_or_set(bloom, key, keysize, BIT_TEST)
+class IoVecBloomSet : public BloomSet<IoVec, hash_iovec> {};
 
-#define bloom_insertv(bloom, vec, count) bloom_test_or_setv(bloom, vec, count, BIT_SET)
-#define bloom_checkv(bloom, vec, count) bloom_test_or_setv(bloom, vec, count, BIT_TEST)
+template <class T, class HFN, class COUNTER>
+  class BloomCounters : std::vector<COUNTER>, Bloom<T,HFN> {
+ public:
+    COUNTER get(T n) {
+      COUNTER min = 0;
+      
+      for (int i = 0; i < numfilters; i++) {
+	COUNTER x = (*this)[inrange(n, i)];
+	if (min && (x < min)) min = x;
+      }
+      
+      return min;
+    }
+    
+    COUNTER increment(T n) {
+      COUNTER min = get(n);
+      
+      for (int i =0; i < numfilters; i++) {
+	if (min == (*this)[inrange(n, i)]) 
+	  ++((*this)[inrange(n, i)]);
+      }
+      
+      counttotal++;
 
-END_C_DECLS
+      return (min+1);
+    }
+    
+    double deviation(int v) {
+      return (v * range / counttotal);
+    }
+    
+    BloomCounters(int size=DEFAULTRANGE) 
+      : Bloom<T,HFN>(size), counttotal(0) 
+    {}
+    
+ private:
+    unsigned long long counttotal;
+    
+  };
+
+class IoVecBloomCounters : public BloomCounters<IoVec, hash_iovec, unsigned int> {
+ public:
+  IoVecBloomCounters(int size=DEFAULTRANGE) 
+    : BloomCounters<IoVec, hash_iovec, unsigned int> (size) 
+			     {}
+};
+
+typedef int bar;

@@ -4,7 +4,7 @@
 #include <netinet/in.h>
 #include <dts-module.h>
 
-static int smacqtype_netlong_get_string(DtsObject * o, DtsObject * field) {
+static int smacqtype_netlong_get_string(DtsObject o, DtsObject field) {
   field->setsize(64); // Only has to hold log10(2**32)
   snprintf((char*)field->getdata(), 64, "%u", dts_data_as(o, unsigned int));
   return 1;

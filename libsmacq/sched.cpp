@@ -4,7 +4,7 @@
 #include <DTS.h>
 
 static int smacq_start_single(smacq_graph * objs, enum smacq_scheduler scheduler, DTS * tenv) {
-  DtsObject * record;
+  DtsObject record;
   struct runq * runq = NULL;
 
   if (!tenv) {

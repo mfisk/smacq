@@ -3,8 +3,8 @@
 #include <math.h>
 #include <assert.h>
 #include <smacq.h>
-#include <fields.h>
-#include <bytehash.h>
+#include <FieldVec.h>
+#include <IoVec.h>
 
 /* Programming constants */
 
@@ -14,36 +14,33 @@ enum mode { ROUND_ROBIN, UNIQUE, BUCKET };
 
 static struct smacq_options options[] = {
   {"b", {int_t:0}, "Number of ways to split", SMACQ_OPT_TYPE_INT},
-  {NULL, {string_t:NULL}, NULL, 0}
+  END_SMACQ_OPTIONS
 };
 
 SMACQ_MODULE(split,
   PROTO_CTOR(split);
   PROTO_CONSUME();
 
-  struct fieldset fieldset;
+  FieldVec fieldvec;
   int children;
   int bucket;
   enum mode mode;
   smacq_graph * self;
-
-  struct iovec_hash * hashtable;
+  IoVecHash<int> hashtable;
 ); 
 
-smacq_result splitModule::consume(DtsObject * datum, int * outchan) {
+smacq_result splitModule::consume(DtsObject datum, int * outchan) {
   int bucket;
-  struct iovec * partitionv = datum->fields2vec(&fieldset);
+  fieldvec.getfields(datum);
 	
   if (mode == ROUND_ROBIN) {
     // Round-robin
-    bucket = bucket;
-    bucket = ((bucket+1)  % children);
-  } else if (!partitionv) {
-    bucket = 0;
+    this->bucket = ((this->bucket)  % children);
+    bucket = this->bucket;
   } else if (mode == BUCKET) {
-    bucket = bytes_hashv_into(partitionv, fieldset.num, children);
+    bucket = fieldvec.hash() % children;
   } else if (mode == UNIQUE) {
-    bucket = (int)bytes_hash_table_lookupv(hashtable, partitionv, fieldset.num);
+    bucket = hashtable[fieldvec];
     if (!bucket) {
 	smacq_graph * newClone;
 	bucket = bucket++;
@@ -52,7 +49,7 @@ smacq_result splitModule::consume(DtsObject * datum, int * outchan) {
 	smacq_init_modules(newClone, dts);
 
 	// 0 return value is error, so everything is inflated by 1
-    	bytes_hash_table_setv(hashtable, partitionv, fieldset.num, (gpointer)bucket);
+    	hashtable[fieldvec] = bucket;
     } else { 
 	// 0 return value is error, so everything is inflated by 1
 	bucket--;
@@ -67,7 +64,10 @@ smacq_result splitModule::consume(DtsObject * datum, int * outchan) {
   return SMACQ_PASS;
 }
 
-splitModule::splitModule(struct smacq_init * context) : SmacqModule(context) {
+splitModule::splitModule(struct smacq_init * context)
+  : SmacqModule(context),
+    bucket(0)
+{
   int argc = 0;
   char ** argv;
   int i;
@@ -95,8 +95,7 @@ splitModule::splitModule(struct smacq_init * context) : SmacqModule(context) {
 	}
 
   	mode = UNIQUE;
-  	dts->fields_init(&fieldset, argc, argv);
-  	hashtable = bytes_hash_table_new(KEYBYTES, CHAIN|NOFREE);
+  	fieldvec.init(dts, argc, argv);
   } else if (!children) {
 	fprintf(stderr, "Must specify either -b or fields\n");
 	assert(0);

@@ -12,16 +12,16 @@ SMACQ_MODULE(msgtest,
 );
 
 static struct smacq_options options[] = {
-  {NULL, {string_t:NULL}, NULL, 0}
+  END_SMACQ_OPTIONS
 };
 
 /* 
  * This is abstraction violation.  comp_new() is currently in a different .h file.
  * We don't provide a string constant and instead prime the comparison object cache.
  */
-smacq_result msgtestModule::consume(DtsObject * datum, int * outchan) {
+smacq_result msgtestModule::consume(DtsObject datum, int * outchan) {
   dts_comparison * comp = comp_new(EQ, comp_operand(FIELD, "srcip"), comp_operand(CONST, ""));
-  DtsObject * msgdata, * srcip;
+  DtsObject msgdata, srcip;
 
   // datum = dts_writable(env, datum);
   
@@ -31,12 +31,12 @@ smacq_result msgtestModule::consume(DtsObject * datum, int * outchan) {
   /* Get current address as matching criteria (msg destination) */
   srcip = datum->getfield(dts->requirefield("srcip"));
   comp->op2->valueo = srcip->dup();
-  srcip->decref();
+  
 
   /* Send it to everybody else */
   msgdata->dup()->send(dts->requirefield("prior"), comp);
 
-  msgdata->decref();
+  
 
   return SMACQ_PASS;
 }

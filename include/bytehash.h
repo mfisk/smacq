@@ -1,5 +1,6 @@
 #include <sys/uio.h>
 #include <stdint.h>
+#include <ccpp.h>
 
 struct element;
 
@@ -11,15 +12,6 @@ typedef bool bytes_boolean;
 typedef enum { false=0, true=1 } bytes_boolean;
 #endif
 
-#ifndef BEGIN_C_DECLS
-# ifdef __cplusplus
-#   define BEGIN_C_DECLS extern "C" {
-#   define END_C_DECLS }
-# else
-#   define BEGIN_C_DECLS
-#   define END_C_DECLS
-# endif
-#endif
 
 BEGIN_C_DECLS
 

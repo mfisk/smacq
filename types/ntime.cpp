@@ -6,25 +6,25 @@
 #include <netinet/in.h>
 #include <dts-module.h>
 
-static int smacqtype_ntime_get_double(DtsObject * o, DtsObject * field) {
+static int smacqtype_ntime_get_double(DtsObject o, DtsObject field) {
   time_t t = dts_data_as(o, time_t);
   double d = ntohl(t);
   return dts_set(field, double, d);
 }
 
-static int smacqtype_ntime_get_time(DtsObject * o, DtsObject * field) {
+static int smacqtype_ntime_get_time(DtsObject o, DtsObject field) {
   time_t t = dts_data_as(o, time_t);
   return dts_set(field, time_t, ntohl(t));
 }
 
-static int smacqtype_ntime_get_string(DtsObject * o, DtsObject * field) {
+static int smacqtype_ntime_get_string(DtsObject o, DtsObject field) {
   time_t t = dts_data_as(o, time_t);
   field->setsize(64);
   snprintf((char*)field->getdata(), 64, "%lu", (time_t)ntohl(t));
   return 1;
 }
 
-static int smacqtype_ntime_get_ctime(DtsObject * o, DtsObject * field) {
+static int smacqtype_ntime_get_ctime(DtsObject o, DtsObject field) {
   struct tm tm;
   time_t t = ntohl(dts_data_as(o, time_t));
   field->setsize(32);
@@ -33,7 +33,7 @@ static int smacqtype_ntime_get_ctime(DtsObject * o, DtsObject * field) {
   return 1;
 }
 
-static int smacqtype_ntime_get_date(DtsObject * o, DtsObject * field) {
+static int smacqtype_ntime_get_date(DtsObject o, DtsObject field) {
   struct tm tm;
   time_t t = ntohl(dts_data_as(o, time_t));
   field->setsize(32);

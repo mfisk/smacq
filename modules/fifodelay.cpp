@@ -8,11 +8,11 @@ static struct smacq_options options[] = {
   {"t", {double_t:0}, "Lag time", SMACQ_OPT_TYPE_TIMEVAL},
   {"i", {string_t:"timeseries"}, "Time field used to update time", SMACQ_OPT_TYPE_STRING},
   {"o", {string_t:"timeseries"}, "Time field to gate output data", SMACQ_OPT_TYPE_STRING},
-  {NULL, {string_t:NULL}, NULL, 0},
+  END_SMACQ_OPTIONS,
 };
 
 struct obj_list{
-  DtsObject * obj;
+  DtsObject obj;
   struct obj_list * next;
   struct timeval ts;
 };
@@ -29,7 +29,7 @@ SMACQ_MODULE(fifodelay,
   struct timeval edge;
   struct timeval interval;
 
-  struct obj_list * fifo_insert(DtsObject * datum, struct timeval ts);
+  struct obj_list * fifo_insert(DtsObject datum, struct timeval ts);
 );
 
 static void timeval_minus(struct timeval x, struct timeval y, struct timeval * result) {
@@ -51,10 +51,10 @@ static int timeval_past(struct timeval x, struct timeval y) {
   return 0;
 }
 
-struct obj_list * fifodelayModule::fifo_insert(DtsObject * datum, struct timeval ts) {
+struct obj_list * fifodelayModule::fifo_insert(DtsObject datum, struct timeval ts) {
   struct obj_list * newo = g_new(struct obj_list, 1);
   struct obj_list * i;
-  newo->obj = (DtsObject*)datum;
+  newo->obj = (DtsObject)datum;
   newo->next = NULL;
   newo->ts = ts;
 
@@ -86,13 +86,13 @@ struct obj_list * fifodelayModule::fifo_insert(DtsObject * datum, struct timeval
     last = newo;
  }
 
-  datum->incref();
+  
 
   return newo;
 }
 
-smacq_result fifodelayModule::consume(DtsObject * datum, int * outchan) {
-  DtsObject * dtime;
+smacq_result fifodelayModule::consume(DtsObject datum, int * outchan) {
+  DtsObject dtime;
 
   /* Add this entry to the queue */
   dtime = datum->getfield(ts_field);
@@ -139,7 +139,7 @@ fifodelayModule::fifodelayModule(struct smacq_init * context) : SmacqModule(cont
   }
 }
 
-smacq_result fifodelayModule::produce(DtsObject ** datum, int * outchan) {
+smacq_result fifodelayModule::produce(DtsObject & datum, int * outchan) {
   if (fifo) {
     struct obj_list * old = fifo;
 
@@ -155,13 +155,13 @@ smacq_result fifodelayModule::produce(DtsObject ** datum, int * outchan) {
     }
     fifo = fifo->next;
 
-    *datum = old->obj;
+    datum = old->obj;
     free(old);
 
-    (*datum)->incref();
+    
     return (smacq_result)(SMACQ_PASS|(fifo ? SMACQ_PRODUCE : 0));
   } else {
-    *datum = NULL;
+    datum = NULL;
     return(SMACQ_FREE);
   }
 }

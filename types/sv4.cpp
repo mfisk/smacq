@@ -2,12 +2,12 @@
 #include <netinet/in.h>
 #include <dts-module.h>
 
-static int get_sv4_data(DtsObject * datum, DtsObject * data) {
+static int get_sv4_data(DtsObject datum, DtsObject data) {
 	data->setdata(datum->getdata() + 51);
 	data->setsize(datum->getsize() - 51);
 	return (data->getsize() > 0);
 }
-static int get_sv4_prompt(DtsObject * o, DtsObject * stro) {
+static int get_sv4_prompt(DtsObject o, DtsObject stro) {
 	void * p = o->getdata()+ 47;
 	ushort prompt = ntohs( *(ushort*)p );
 	stro->setsize(6);

@@ -4,8 +4,8 @@
 #include <assert.h>
 #include <smacq.h>
 #include <smacq.h>
-#include <fields.h>
-#include <bytehash.h>
+#include <FieldVec.h>
+#include <IoVec.h>
 
 /* Programming constants */
 
@@ -14,7 +14,7 @@
 enum mode { ROUND_ROBIN, UNIQUE, BUCKET };
 
 static struct smacq_options options[] = {
-  {NULL, {string_t:NULL}, NULL, 0}
+  END_SMACQ_OPTIONS
 };
 
 SMACQ_MODULE(sync,
@@ -22,16 +22,15 @@ SMACQ_MODULE(sync,
   PROTO_CONSUME();
   PROTO_PRODUCE();
 
-  DtsObject * product;
+  DtsObject product;
   struct runq * runq;
   smacq_graph * graph;
   int done; 
   int isfirst;
 ); 
 
-smacq_result syncModule::consume(DtsObject * datum, int * outchan) {
- int more = smacq_sched_iterative(graph, datum, &product, 
-			     &runq, isfirst);
+smacq_result syncModule::consume(DtsObject datum, int * outchan) {
+ int more = smacq_sched_iterative(graph, datum, &product, &runq, isfirst);
 
  more = (more ? 0 : SMACQ_END);
 
@@ -63,12 +62,12 @@ syncModule::syncModule(struct smacq_init * context) : SmacqModule(context) {
   smacq_start(graph, ITERATIVE, dts);
 }
 
-smacq_result syncModule::produce(DtsObject ** datump, int * outchan) {
+smacq_result syncModule::produce(DtsObject & datump, int * outchan) {
   if (isfirst && !product) {
 	consume(NULL, outchan);
   }
   if (product) {
-	*datump = product;
+	datump = product;
 	product = NULL;
 	if (isfirst) {
 		return (smacq_result) (SMACQ_PASS| (done ? SMACQ_END : SMACQ_PRODUCE));

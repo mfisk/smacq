@@ -1,9 +1,10 @@
+#include <math.h>
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <glib.h>
 #include <smacq_args.h>
-#include <math.h>
 
 struct smacq_options * get_optstruct_byname(struct smacq_options * opts, char * name) {
 	assert(opts);

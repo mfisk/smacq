@@ -23,42 +23,42 @@ SMACQ_MODULE(entropy,
   int refreshtype;
   int probtype;
 
-  DtsObject * lasto;
+  DtsObject lasto;
 ); 
  
 static struct smacq_options options[] = {
-  {NULL, {string_t:NULL}, NULL, 0}
+  END_SMACQ_OPTIONS
 };
 
-smacq_result entropyModule::consume(DtsObject * datum, int * outchan) {
+smacq_result entropyModule::consume(DtsObject datum, int * outchan) {
 	if (datum->gettype() == refreshtype) {
 		double total = total / log(2);
-    		DtsObject * msgdata = dts->construct(probtype, &total);
+    		DtsObject msgdata = dts->construct(probtype, &total);
 		// fprintf(stderr, "Got refresh\n");
     		datum->attach_field(entropyfield, msgdata); 
-		//msgdata->incref();
+		
 
 		prev_total = total;
 		total = 0;
 	
 		return SMACQ_PASS;
 	} else {
-		DtsObject * probo;
+		DtsObject probo;
 		double prob;
 
 		// Keep last datum around so we can use it to spit out data when we're ready
 		// fprintf(stderr, "replacing cache of %p(%d) with %p(%d)\n", lasto, lasto ? lasto->gettype() : -1, datum, datum->gettype());
 		assert(lasto != datum);
-		if (lasto) lasto->decref();
+		if (lasto) 
 		lasto = datum;
-		datum->incref();
+		
 
 		if (!(probo = datum->getfield(probfield))) {
 			fprintf(stderr, "No probability field\n");
 			return SMACQ_PASS;
 		}
 		prob = dts_data_as(probo, double);
-		probo->decref();
+		
 		total -= prob * log(prob);
   		
 		return SMACQ_FREE;
@@ -84,7 +84,7 @@ entropyModule::entropyModule(struct smacq_init * context) : SmacqModule(context)
   entropyfield = dts->requirefield("entropy");
 }
 
-smacq_result entropyModule::produce(DtsObject ** datum, int * outchan) {
+smacq_result entropyModule::produce(DtsObject & datum, int * outchan) {
   double total = total;
   if (!total) total = prev_total;
 
@@ -94,11 +94,11 @@ smacq_result entropyModule::produce(DtsObject ** datum, int * outchan) {
   if (!total) {
     return SMACQ_END;
   } else {
-    //DtsObject * refresh = dts->construct(refreshtype, NULL);
-    DtsObject * msgdata = dts->construct(probtype, &total);
+    //DtsObject refresh = dts->construct(refreshtype, NULL);
+    DtsObject msgdata = dts->construct(probtype, &total);
     lasto->attach_field(entropyfield, msgdata); 
-    //msgdata->incref();
-    *datum = lasto;
+    
+    datum = lasto;
 
     // net refcount change of 0
   }

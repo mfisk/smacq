@@ -10,7 +10,7 @@ struct thread_args {
 
 // Return 0 iff module has nothing more to produce at the moment
 static inline int sched_force_produce(smacq_graph * f) {
-  DtsObject * d = NULL;
+  DtsObject d = NULL;
   int output = -1;
   int retval = f->ops.produce(f->state, &d, &output);
 
@@ -60,7 +60,7 @@ static inline int sched_produce(smacq_graph * f) {
  *                  3. Our module's produce function returned 0 (unexpected)
  */
 void thread_sched(smacq_graph * f) {
-  DtsObject * d;
+  DtsObject d;
   int outchan;
 
   while (1) {

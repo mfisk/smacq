@@ -51,11 +51,11 @@
  * of bytes.  No alignment or length assumptions are made about
  * the input key.
  */
-static inline uint32_t bhash(void *key, uint32_t length,
+static inline uint32_t bhash(const unsigned char *key, const uint32_t length,
 		uint32_t initval)
 {
 	uint32_t a, b, c, len;
-	unsigned char *k = key;
+	const unsigned char *k = key;
 
 	len = length;
 	a = b = BHASH_GOLDEN_RATIO;
@@ -92,11 +92,5 @@ static inline uint32_t bhash(void *key, uint32_t length,
 	return c;
 }
 
-static inline uint32_t iov_hash_with(struct iovec * vecs, int n, uint32_t result) {
-	while( (--n) >= 0 ) {
-		result = bhash(vecs[n].iov_base, vecs[n].iov_len, result);
-	}
-	return result;
-}
 
 #endif 

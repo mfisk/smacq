@@ -11,9 +11,9 @@
 #include <math.h>
 #include <assert.h>
 #include <smacq.h>
-#include <fields.h>
+#include <FieldVec.h>
 #include <bloom.h>
-#include "bytehash.h"
+#include <IoVec.h>
 
 /* Programming constants */
 #define KEYBYTES 128
@@ -22,9 +22,9 @@ SMACQ_MODULE(top,
   PROTO_CTOR(top);
   PROTO_CONSUME();
 
-  struct fieldset fieldset;
-  struct iovec_hash *drset;
-  struct bloom_summary *summary;
+  FieldVec fieldvec;
+  IoVecHash<int> counters;
+  IoVecBloomCounters * pcounters;
   double prob; // Use probabilistic algebraorithms?
   int threshold;
 
@@ -43,37 +43,30 @@ static struct smacq_options options[] = {
   {"m", {double_t:0}, "Max amount of memory (MB) (forces probabilistic mode)", SMACQ_OPT_TYPE_DOUBLE},
   {"r", {double_t:1}, "Minimum ratio to average", SMACQ_OPT_TYPE_DOUBLE},
   {"f", {string_t:"pcount"}, "Count field", SMACQ_OPT_TYPE_STRING},
-  {NULL, {string_t:NULL}, NULL, 0}
+  END_SMACQ_OPTIONS
 };
 
 /*
  * Check presense in set.
  */
-smacq_result topModule::consume(DtsObject * datum, int * outchan) {
-  struct iovec * domainv = datum->fields2vec(&fieldset);
+smacq_result topModule::consume(DtsObject datum, int * outchan) {
   double deviation;
   int val;
 
-  if (!domainv) {
-    //fprintf(stderr, "Skipping datum\n");
-    return SMACQ_FREE;
-  }
+  fieldvec.getfields(datum);
 
   if (!prob) {
-    val = bytes_hash_table_incrementv(drset, domainv, fieldset.num);
+    val = ++counters[fieldvec];
 
-    if (val == 0) numentries++;   // New entry
+    if (val == 1) numentries++;   // New entry
     
     totalcount++;
   } else {
-    val = bloom_incrementv(summary, domainv, fieldset.num);
+    val = pcounters->increment(fieldvec);
   }
 
-  /* Move val from old value to new value */
-  val++;
-
   if (do_count) {
-    DtsObject * msgdata = dts->construct(int_type, &val);
+    DtsObject msgdata = dts->construct(int_type, &val);
     datum->attach_field(count_field, msgdata);   
   }
 
@@ -81,7 +74,7 @@ smacq_result topModule::consume(DtsObject * datum, int * outchan) {
 
   /* Compute deviation */
   if (prob) {
-        deviation = bloom_deviation(summary, val);
+        deviation = pcounters->deviation(val);
   } else {
         deviation = (double)(val) * (double)numentries / (double)totalcount;
   }
@@ -112,17 +105,15 @@ topModule::topModule(struct smacq_init * context) : SmacqModule(context) {
 			       &argc, &argv,
 			       options, optvals);
 
-	prob = prob_opt.double_t;
-	threshold = thresh.double_t;
+	prob = (int) prob_opt.double_t;
+	threshold = (int) thresh.double_t;
   }
 
   // Consume rest of arguments as fieldnames
-  dts->fields_init(&fieldset, argc, argv);
+  fieldvec.init(dts, argc, argv);
 
-  if (!prob) {
-    drset = bytes_hash_table_new(KEYBYTES, CHAIN|NOFREE);
-  } else {
-    summary = bloom_counter_init(KEYBYTES, prob/4 * 1024 * 1024);
+  if (prob) {
+    pcounters = new IoVecBloomCounters(prob/4 * 1024 * 1024);
   }
 
   do_filter = (threshold == 0);

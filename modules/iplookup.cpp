@@ -91,12 +91,12 @@ void iplookupModule::add_entry(char * field, char * needle, int output) {
   node->data = (void*)output;
 }
 
-smacq_result iplookupModule::produce(DtsObject ** datum, int * outchan) {
+smacq_result iplookupModule::produce(DtsObject & datum, int * outchan) {
   return smacq_produce_dequeue(&outputq, datum, outchan);
 }
 
-smacq_result iplookupModule::consume(DtsObject * datum, int * outchan) {
-  DtsObject * field;
+smacq_result iplookupModule::consume(DtsObject datum, int * outchan) {
+  DtsObject field;
   int matched = 0;
   int chan;
   int i;
@@ -124,16 +124,12 @@ smacq_result iplookupModule::consume(DtsObject * datum, int * outchan) {
 	  	chan = (int)node->data;
 		if (matched) {
 			smacq_produce_enqueue(&outputq, datum, chan);
-			datum->incref();
+			
 	  	} else {
 	  		matched = 1;
 			*outchan = chan;
 		} 
      }
-
-     if (mybatch->field) 
-	  field->decref();
-
   }
 
   if (matched) {

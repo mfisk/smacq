@@ -18,17 +18,17 @@ static struct smacq_options options[] = {
   {"v", {boolean_t:0}, "Verbose mode: print field names", SMACQ_OPT_TYPE_BOOLEAN},
   {"d", {string_t:"\t"}, "Delimiter", SMACQ_OPT_TYPE_STRING},
   {"B", {boolean_t:0}, "Disable buffering: flush output after each line", SMACQ_OPT_TYPE_BOOLEAN},
-  {NULL, {string_t:NULL}, NULL, 0}
+  END_SMACQ_OPTIONS
 };
 
-smacq_result printModule::produce(DtsObject ** datum, int * outchan) {
+smacq_result printModule::produce(DtsObject & datum, int * outchan) {
   return SMACQ_ERROR;
 }
 
-smacq_result printModule::consume(DtsObject * datum, int * outchan) {
+smacq_result printModule::consume(DtsObject datum, int * outchan) {
   int i,j;
   int printed = 0;
-  DtsObject *field;
+  DtsObjectfield;
   assert(datum);
 
   for (i = 0; i < argc; i++) {
@@ -46,7 +46,7 @@ smacq_result printModule::consume(DtsObject * datum, int * outchan) {
 	} else {
 		printf("%s", (char*)field->getdata());
 	}
-        field->decref();
+        
     } else if (verbose) {
       fprintf(stderr, "Warning: print: no field %s.string\n", argv[i]);
     }

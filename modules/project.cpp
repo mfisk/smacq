@@ -2,10 +2,10 @@
 #include <math.h>
 #include <assert.h>
 #include <smacq.h>
-#include <fields.h>
+#include <FieldVec.h>
 
 static struct smacq_options options[] = {
-  {NULL, {string_t:NULL}, NULL, 0}
+  END_SMACQ_OPTIONS
 };
 
 SMACQ_MODULE(project,
@@ -13,27 +13,26 @@ SMACQ_MODULE(project,
   PROTO_CONSUME();
   PROTO_PRODUCE();
 
-  struct fieldset fieldset;
+  FieldVec fieldvec;
   int empty_type;
-  DtsObject * product;
+  DtsObject product;
 ); 
  
-smacq_result projectModule::consume(DtsObject * datum, int * outchan) {
-  DtsObject * newo;
-  int i;
+smacq_result projectModule::consume(DtsObject datum, int * outchan) {
+  DtsObject newo;
+  FieldVec::iterator i;
 
   newo = dts->construct(empty_type, NULL);
   assert(newo);
 
-  for (i = 0; i < fieldset.num; i++) {
-	DtsObject * newf;
+  for (i = fieldvec.begin(); i != fieldvec.end(); i++) {
+	DtsObject newf;
 
-  	if (!(newf = datum->getfield(fieldset.fields[i].num))) {
-		fprintf(stderr, "project: no %s field\n", 
-				fieldset.fields[i].name);
+  	if (!(newf = datum->getfield((*i)->num))) {
+	  fprintf(stderr, "project: no %s field\n", (*i)->name);
 		continue;
 	}
-    	newo->attach_field(fieldset.fields[i].num, newf); 
+    	newo->attach_field((*i)->num, newf); 
   }
 
   product = newo;
@@ -45,14 +44,14 @@ projectModule::projectModule(struct smacq_init * context) : SmacqModule(context)
   char ** argv = context->argv+1;;
 
   assert(argc>=1);
-  dts->fields_init(&fieldset, argc, argv);
+  fieldvec.init(dts, argc, argv);
 
   empty_type = dts->requiretype("empty");
 }
 
-smacq_result projectModule::produce(DtsObject ** datum, int * outchan) {
+smacq_result projectModule::produce(DtsObject & datum, int * outchan) {
   if (product) {
-	  *datum = product;
+	  datum = product;
 	  product = NULL;
 	  return SMACQ_PASS;
   }

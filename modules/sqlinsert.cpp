@@ -23,7 +23,7 @@ static struct smacq_options options[] = {
   {"d", {string_t:NULL}, "Database to connect to", SMACQ_OPT_TYPE_STRING},
   {"t", {string_t:NULL}, "Table to insert into", SMACQ_OPT_TYPE_STRING},
   {"p", {string_t:"SQLite"}, "Provider name", SMACQ_OPT_TYPE_STRING},
-  {NULL, {string_t:NULL}, NULL, 0}
+  END_SMACQ_OPTIONS
 };
 
 static void print_gda_errors(GdaConnection * conn) {
@@ -44,11 +44,11 @@ static void print_gda_errors(GdaConnection * conn) {
 }
 
 
-smacq_result sqlinsertModule::consume(DtsObject * datum, int * outchan) {
+smacq_result sqlinsertModule::consume(DtsObject datum, int * outchan) {
   char values [BUFSIZE] = "";
   char query [BUFSIZE] = "";
   int i, gdares;
-  DtsObject *field;
+  DtsObjectfield;
   assert(datum);
 
   for (i = 0; i < argc; i++) {

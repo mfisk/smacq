@@ -22,22 +22,22 @@
 
 #define field_offset(s,f) ((int)&(((struct s *)0)->f))
 
-static inline struct dts_pkthdr * get_pcap(DtsObject * datum) {
+static inline struct dts_pkthdr * get_pcap(DtsObject datum) {
 	return (struct dts_pkthdr*)datum->getdata();
 }
 
-static inline struct ether_header * get_ether(DtsObject * datum) {
-	struct ether_header * ethhdr = (struct ether_header*)(get_pcap(datum)+1);
+static inline struct ether_header * get_ether(DtsObject datum) {
+	return (struct ether_header*)(get_pcap(datum)+1);
 }
 
-static inline struct ip * get_ip(DtsObject * datum) {
+static inline struct ip * get_ip(DtsObject datum) {
 	struct ether_header * ethhdr = get_ether(datum);
 
 	if (ethhdr->ether_type != htons(ETHERTYPE_IP)) return NULL; // Not IP
 	else return (struct ip*)(ethhdr+1);
 }
 
-static inline struct tcphdr * get_tcp(DtsObject * datum) {
+static inline struct tcphdr * get_tcp(DtsObject datum) {
 	struct ip * iphdr = get_ip(datum);
 	if (!iphdr) return NULL;
 	if (iphdr->ip_p != 6) return NULL;
@@ -45,7 +45,7 @@ static inline struct tcphdr * get_tcp(DtsObject * datum) {
 	return (struct tcphdr *)((char *)iphdr + (iphdr->ip_hl<<2));
 }
 
-static inline struct icmp * get_icmp(DtsObject * datum) {
+static inline struct icmp * get_icmp(DtsObject datum) {
 	struct ip * iphdr = get_ip(datum);
 	if (!iphdr) return NULL;
 	if (iphdr->ip_p != 1) return NULL;
@@ -53,7 +53,7 @@ static inline struct icmp * get_icmp(DtsObject * datum) {
 	return (struct icmp *)((char *)iphdr + (iphdr->ip_hl<<2));
 }
 
-static inline struct udphdr * get_udp(DtsObject * datum) {
+static inline struct udphdr * get_udp(DtsObject datum) {
 	struct ip * iphdr = get_ip(datum);
 	if (!iphdr) return NULL;
 	if (iphdr->ip_p != 17) return NULL;
@@ -61,7 +61,7 @@ static inline struct udphdr * get_udp(DtsObject * datum) {
 	return (struct udphdr *)((char *)iphdr + (iphdr->ip_hl<<2));
 }
 
-static inline int gettcpfield(DtsObject * datum, DtsObject * data, int offset) {
+static inline int gettcpfield(DtsObject datum, DtsObject data, int offset) {
 	struct tcphdr * tcphdr = get_tcp(datum);
 	if (!tcphdr) return 0;
 	
@@ -69,7 +69,7 @@ static inline int gettcpfield(DtsObject * datum, DtsObject * data, int offset) {
 	return 1;
 }
 
-static inline int getudpfield(DtsObject * datum, DtsObject * data, int offset) {
+static inline int getudpfield(DtsObject datum, DtsObject data, int offset) {
 	struct udphdr * udphdr = get_udp(datum);
 	if (!udphdr) return 0;
 	
@@ -77,7 +77,7 @@ static inline int getudpfield(DtsObject * datum, DtsObject * data, int offset) {
 	return 1;
 }
 
-static inline int getipfield(DtsObject * datum, DtsObject * data, int offset) {
+static inline int getipfield(DtsObject datum, DtsObject data, int offset) {
 	struct ip * iphdr = get_ip(datum);
 	if (!iphdr) return 0;
 	
@@ -88,13 +88,13 @@ static inline int getipfield(DtsObject * datum, DtsObject * data, int offset) {
 /*
 * Methods
 */
-int dts_pkthdr_get_packet(DtsObject * datum, DtsObject * data) {
+int dts_pkthdr_get_packet(DtsObject datum, DtsObject data) {
 	data->setdata((void *)( (int)datum->getdata() + sizeof(struct dts_pkthdr)));
 	data->setsize(get_pcap(datum)->pcap_pkthdr.caplen);
 	return 1;
 }
 
-int dts_pkthdr_get_payload(DtsObject * datum, DtsObject * data) {
+int dts_pkthdr_get_payload(DtsObject datum, DtsObject data) {
 	//struct ip * iphdr = get_ip(datum);
 	struct tcphdr * tcphdr = get_tcp(datum);
 	struct udphdr * udphdr;
@@ -115,7 +115,7 @@ int dts_pkthdr_get_payload(DtsObject * datum, DtsObject * data) {
 	return 0;
 }
 
-int dts_pkthdr_get_dstport(DtsObject * datum, DtsObject * data) {
+int dts_pkthdr_get_dstport(DtsObject datum, DtsObject data) {
 	if (!gettcpfield(datum, data, field_offset(tcphdr, th_dport))) 
 		if (!getudpfield(datum, data, field_offset(udphdr, uh_dport))) 
 			return 0;
@@ -123,7 +123,7 @@ int dts_pkthdr_get_dstport(DtsObject * datum, DtsObject * data) {
 	return 1;
 }
 
-int dts_pkthdr_get_srcport(DtsObject * datum, DtsObject * data) {
+int dts_pkthdr_get_srcport(DtsObject datum, DtsObject data) {
 	if (!gettcpfield(datum, data, field_offset(tcphdr, th_sport))) 
 		if (!getudpfield(datum, data, field_offset(udphdr, uh_sport)))
 			return 0;
@@ -131,47 +131,47 @@ int dts_pkthdr_get_srcport(DtsObject * datum, DtsObject * data) {
 	return 1;
 }
 
-int dts_pkthdr_get_seq(DtsObject * datum, DtsObject * data) {
+int dts_pkthdr_get_seq(DtsObject datum, DtsObject data) {
 	return gettcpfield(datum, data, field_offset(tcphdr, th_seq));
 }
 
-int dts_pkthdr_get_ack(DtsObject * datum, DtsObject * data) {
+int dts_pkthdr_get_ack(DtsObject datum, DtsObject data) {
 	return gettcpfield(datum, data, field_offset(tcphdr, th_ack));
 }
 
-int dts_pkthdr_get_dstip(DtsObject * datum, DtsObject * data) {
+int dts_pkthdr_get_dstip(DtsObject datum, DtsObject data) {
 	return getipfield(datum, data, field_offset(ip, ip_dst));
 }
 
-int dts_pkthdr_get_srcip(DtsObject * datum, DtsObject * data) {
+int dts_pkthdr_get_srcip(DtsObject datum, DtsObject data) {
 	return getipfield(datum, data, field_offset(ip, ip_src));
 }
 
-int dts_pkthdr_get_ipid(DtsObject * datum, DtsObject * data) {
+int dts_pkthdr_get_ipid(DtsObject datum, DtsObject data) {
 	return getipfield(datum, data, field_offset(ip, ip_id));
 }
 
-int dts_pkthdr_get_ttl(DtsObject * datum, DtsObject * data) {
+int dts_pkthdr_get_ttl(DtsObject datum, DtsObject data) {
 	return getipfield(datum, data, field_offset(ip, ip_ttl));
 }
 
-int dts_pkthdr_get_srcmac(DtsObject * datum, DtsObject * data) {
+int dts_pkthdr_get_srcmac(DtsObject datum, DtsObject data) {
 	struct ether_header * ethhdr = get_ether(datum);
 	data->setdata(&(ethhdr->ether_shost));
 	return 1;
 }
 
-int dts_pkthdr_get_dstmac(DtsObject * datum, DtsObject * data) {
+int dts_pkthdr_get_dstmac(DtsObject datum, DtsObject data) {
 	struct ether_header * ethhdr = get_ether(datum);
 	data->setdata(&(ethhdr->ether_dhost));
 	return 1;
 }
 
-int dts_pkthdr_get_protocol(DtsObject * datum, DtsObject * data) {
+int dts_pkthdr_get_protocol(DtsObject datum, DtsObject data) {
 	return getipfield(datum, data, field_offset(ip, ip_p));
 }
 		  
-int dts_pkthdr_get_ts(DtsObject * datum, DtsObject * data) {
+int dts_pkthdr_get_ts(DtsObject datum, DtsObject data) {
 	data->setdata(&(get_pcap(datum)->pcap_pkthdr.ts));
 	return 1;
 }
@@ -179,7 +179,7 @@ int dts_pkthdr_get_ts(DtsObject * datum, DtsObject * data) {
 static int ZERO = 0;
 static int ONE = 1;
 
-int dts_pkthdr_get_urg(DtsObject * datum, DtsObject * data) {
+int dts_pkthdr_get_urg(DtsObject datum, DtsObject data) {
 	struct tcphdr * tcphdr = get_tcp(datum);
 	if (!tcphdr) return 0;
 
@@ -187,7 +187,7 @@ int dts_pkthdr_get_urg(DtsObject * datum, DtsObject * data) {
 	return 1;
 }
 
-int dts_pkthdr_get_tcpwindow(DtsObject * datum, DtsObject * data) {
+int dts_pkthdr_get_tcpwindow(DtsObject datum, DtsObject data) {
 	struct tcphdr * tcphdr = get_tcp(datum);
 	if (!tcphdr) return 0;
 	
@@ -195,11 +195,11 @@ int dts_pkthdr_get_tcpwindow(DtsObject * datum, DtsObject * data) {
 	return 1;
 }
 
-int dts_pkthdr_get_urgptr(DtsObject * datum, DtsObject * data) {
+int dts_pkthdr_get_urgptr(DtsObject datum, DtsObject data) {
 	return gettcpfield(datum, data, field_offset(tcphdr, th_urp));
 }
 
-int dts_pkthdr_get_icmp_type(DtsObject * datum, DtsObject * data) {
+int dts_pkthdr_get_icmp_type(DtsObject datum, DtsObject data) {
 	struct icmp * icmphdr = get_icmp(datum);
 	if (!icmphdr) return 0;
 	
@@ -207,7 +207,7 @@ int dts_pkthdr_get_icmp_type(DtsObject * datum, DtsObject * data) {
 	return 1;
 }
 
-int dts_packet_get_wtap_field(DtsObject * datum, DtsObject * wtapo, dts_field_element field) {
+int dts_packet_get_wtap_field(DtsObject datum, DtsObject wtapo, dts_field_element field) {
 	return 0;
 }
 
@@ -264,7 +264,7 @@ struct dts_type_info dts_type_packet_table = {
 size: -1
 };
 #else
-int epan_getfield(DtsObject * packet, DtsObject * fieldo, dts_field_element element);
+int epan_getfield(DtsObject packet, DtsObject fieldo, dts_field_element element);
 
 struct dts_type_info dts_type_packet_table = {
 size: -1, 
@@ -284,7 +284,7 @@ ts_type timestamp_type = ABSOLUTE;
 
 static int did_epan_init = 0;
 
-int epan_getfield(DtsObject * packet, DtsObject * fieldo, dts_field_element element) {
+int epan_getfield(DtsObject packet, DtsObject fieldo, dts_field_element element) {
 int len;
 int field_id;
 field_info * finfo;

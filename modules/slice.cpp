@@ -7,8 +7,8 @@
 #include <math.h>
 #include <assert.h>
 #include <smacq.h>
-#include <fields.h>
-#include "bytehash.h"
+#include <FieldVec.h>
+#include <IoVec.h>
 
 /* Programming constants */
 
@@ -19,7 +19,7 @@
 static struct smacq_options options[] = {
   {"s", {string_t:NULL}, "Start point", SMACQ_OPT_TYPE_STRING},
   {"e", {string_t:NULL}, "End point", SMACQ_OPT_TYPE_STRING},
-  {NULL, {string_t:NULL}, NULL, 0}
+  END_SMACQ_OPTIONS
 };
 
 struct state {
@@ -33,7 +33,7 @@ struct state {
 
 
 static void printout(struct state * state) {
-  if (!fieldset.num) { 
+  if (!fieldvec.num) { 
     if (hasinterval)
       printf("%lu.%06lu\t%lu\n", nextinterval.tv_sec, nextinterval.tv_usec, counter);
     else 
@@ -43,15 +43,15 @@ static void printout(struct state * state) {
     if (hasinterval) 
       printf("\fCounters at %lu.%06lu\n", nextinterval.tv_sec, nextinterval.tv_usec);
 
-    bytes_hash_table_foreach(counters, print_counter, state);
+    counters->foreach(print_counter, state);
   }
 }
   
-smacq_result sliceModule::consume(DtsObject * datum, int * outchan) {
+smacq_result sliceModule::consume(DtsObject datum, int * outchan) {
   int c;
 
   if (hasinterval) {
-    DtsObject * ts;
+    DtsObject ts;
     int type;
 
     if (! (ts =datum->getfield(ts_field)) {
@@ -73,17 +73,17 @@ smacq_result sliceModule::consume(DtsObject * datum, int * outchan) {
     }
   }
 
-  if (!fieldset.num) {
+  if (!fieldvec.num) {
     counter++;
   } else {
-    struct iovec * domainv = datum->fields2vec(&fieldset);
+    fieldvec.getfields(datum);
 
     if (!domainv) {
       //fprintf(stderr, "Skipping datum\n");
       return SMACQ_FREE;
     }
 
-    c = bytes_hash_table_incrementv(counters, domainv, fieldset.num);
+    c = counters->increment(fieldvec);
   }
 
   return SMACQ_PASS;
@@ -117,7 +117,7 @@ sliceModule::sliceModule(struct smacq_init * context) {
   // Consume rest of arguments as fieldnames
   dts->fields_init(argc, argv);
 
-  counters = bytes_hash_table_new(KEYBYTES, CHAIN|NOFREE);
+  counters = new BytesHashTable(KEYBYTES, CHAIN|NOFREE);
 
   return 0;
 }
@@ -129,7 +129,7 @@ sliceModule::~sliceModule(struct state * state) {
 }
 
 
-smacq_result sliceModule::produce(DtsObject ** datum, int * outchan) {
+smacq_result sliceModule::produce(DtsObject & datum, int * outchan) {
   return SMACQ_ERROR;
 }
 

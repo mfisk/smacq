@@ -7,8 +7,8 @@
 #include <math.h>
 #include <assert.h>
 #include <smacq.h>
-#include <fields.h>
-#include "bytehash.h"
+#include <FieldVec.h>
+#include <IoVec.h>
 
 #define LOOPSIZE 1e7
 
@@ -17,7 +17,7 @@ extern int function_bench(int);
 
 static struct smacq_options options[] = {
   {"f", {string_t:"ts"}, "Field to get", SMACQ_OPT_TYPE_STRING},
-  {NULL, {string_t:NULL}, NULL, 0}
+  END_SMACQ_OPTIONS
 };
 
 struct state {
@@ -40,8 +40,8 @@ static double tv_diff(struct timeval tvstart, struct timeval tvstop) {
   return (sec + (usec * 1e-6));
 }
 
-static smacq_result bench_field_consume DtsObject * datum, int * outchan) {
-  DtsObject * x;
+static smacq_result bench_field_consume DtsObject datum, int * outchan) {
+  DtsObject x;
   double val;
   double len_cache, len_nocache, len_fn;
   struct timeval tvstart, tvstop;
@@ -69,7 +69,7 @@ static smacq_result bench_field_consume DtsObject * datum, int * outchan) {
     dts_fieldcache_flush(datum, dts_field_first(field));
     x = datum->getfield(field);
     val = dts_data_as(x, double);
-    x->decref();
+    
   }
 
   gettimeofday(&tvstop, NULL);
@@ -127,7 +127,7 @@ static smacq_result bench_field_shutdown(struct state * state) {
 }
 
 
-static smacq_result bench_field_produce DtsObject ** datum, int * outchan) {
+static smacq_result bench_field_produce DtsObject datum, int * outchan) {
   return SMACQ_END;
 }
 

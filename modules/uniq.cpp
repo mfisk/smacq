@@ -7,24 +7,25 @@
 #include <math.h>
 #include <assert.h>
 #include <smacq.h>
-#include <fields.h>
+#include <FieldVec.h>
 #include <bloom.h>
-#include <bytehash.h>
+#include <IoVec.h>
 
-/* Programming constants */
+/* Really it's an ulonglong, but STL doesn't come with a hash function
+   for that, so we're lazy and truncate to ulong. */
+typedef unsigned int idtype;
 
-#define VECTORSIZE 21
-#define ALARM_BITS 15
-#define KEYBYTES 128
+class IdSet : public stdext::hash_set<idtype> {};
 
 SMACQ_MODULE(uniq,
-	PROTO_CTOR(uniq);
-	PROTO_DTOR(uniq);
-	PROTO_CONSUME();
-
-	     struct fieldset fieldset;
-	     struct iovec_hash *drset;
-	     struct bloom_summary *summary;
+	     PROTO_CTOR(uniq);
+	     PROTO_DTOR(uniq);
+	     PROTO_CONSUME();
+	     
+	     FieldVec fieldvec;
+	     IoVecSet * perfectset;
+	     IoVecBloomSet * probset;
+	     IdSet * idset;
 	     double prob; // Use probabilistic algorithms?
 	     int use_obj_id;
 );
@@ -32,45 +33,38 @@ SMACQ_MODULE(uniq,
 static struct smacq_options options[] = {
   {"m", {double_t:0}, "Max amount of memory (MB) (forces probabilistic mode)", SMACQ_OPT_TYPE_DOUBLE},
   {"o", {boolean_t:0}, "Use object ID instead of fields", SMACQ_OPT_TYPE_BOOLEAN},
-  {NULL, {string_t:NULL}, NULL, 0}
+  END_SMACQ_OPTIONS
 };
 
 /*
- * Check presense in set.
+ * Check presence in set.
  */
-smacq_result uniqModule::consume(DtsObject * datum, int * outchan) {
-  struct iovec obj_domainv[2];
-  struct iovec * domainv;
-  int numfields = fieldset.num;
-  
+smacq_result uniqModule::consume(DtsObject datum, int * outchan) {
+  bool isnew;
+
   if (use_obj_id) {
-	  domainv = obj_domainv;
-	  unsigned long long base = datum->getid();
-	  obj_domainv[0].iov_base = (char *)&base;
-	  obj_domainv[0].iov_len = sizeof(unsigned long long);
-	  numfields = 1;
+    // Danger: truncating long long to long
+    idtype id = (idtype)datum->getid();
+    isnew = idset->insert(id).second;
+  } else if (prob) {
+    fieldvec.getfields(datum);
+    isnew = probset->insert(fieldvec).second;
   } else {
-	  domainv = datum->fields2vec(&fieldset);
+    fieldvec.getfields(datum);
+    isnew = perfectset->insert(fieldvec).second; 
   }
 
-  if (!domainv) {
-    //fprintf(stderr, "Skipping datum\n");
+  if (isnew) {
+    // New entry in set
+    return SMACQ_PASS;
+  } else {
     return SMACQ_FREE;
   }
-
-  if (!prob) {
-    if (!bytes_hash_table_setv(drset, domainv, numfields, (void*)1)) 
-      // New entry in set
-      return SMACQ_PASS;
-  } else {
-    if (bloom_insertv(summary, domainv, numfields)) 
-      return SMACQ_PASS;
-  }
-    
-  return SMACQ_FREE;
 }
 
-uniqModule::uniqModule(struct smacq_init * context) : SmacqModule(context) {
+uniqModule::uniqModule(struct smacq_init * context) 
+  : SmacqModule(context), perfectset(NULL), probset(NULL), idset(NULL)
+{
   int argc;
   char ** argv = NULL;
 
@@ -91,23 +85,21 @@ uniqModule::uniqModule(struct smacq_init * context) : SmacqModule(context) {
   }
 
   // Consume rest of arguments as fieldnames
-  dts->fields_init(&fieldset, argc, argv);
+  fieldvec.init(dts, argc, argv);
 
-  if (!prob) {
-    drset = bytes_hash_table_new(KEYBYTES, CHAIN|NOFREE);
+  if (use_obj_id) {
+    idset = new IdSet;
+  } else if (!prob) {
+    perfectset = new IoVecSet();
   } else {
-		// summary argument is number of bits, module argument is MB
-    summary = bloom_summary_init(KEYBYTES, (long long unsigned)(prob * 1024 * 1024 * 8));
+    probset = new IoVecBloomSet();
+    // XXX: use prob to constrain memory
   }
 }
 
 uniqModule::~uniqModule() {
-  if (!prob) {
-    bytes_hash_table_destroy(drset);
-  } else {
-    //XXX: bloom_summary_destroy(summary);
-  }
-
-  fieldset_destroy(&fieldset);
+  delete perfectset;
+  delete probset;
+  delete idset;
 }
 

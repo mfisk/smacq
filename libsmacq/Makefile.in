@@ -151,6 +151,7 @@ sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 INCLUDES = @GLOBAL_INCLUDES@ -I$(top_srcdir)/include
+EXTRA_DIST = parser.h
 BUILT_SOURCES = scanner.cpp parser.cpp expr-parser.cpp filter-parser.cpp
 #BUILT_SOURCES = 	filter-parser.c expr-parser.c expr-parser.y filter-parser.y
 SUFFIXES = .ypp .ym
@@ -159,7 +160,7 @@ noinst_LTLIBRARIES = libsmacq.la @ETHEREAL_LIBRARY@
 EXTRA_LTLIBRARIES = #libethereal.la
 
 #libethereal_la_SOURCES=`find @ETHEREAL_DIR@ \( -name plugins -prune \) , \( -name \*.lo -print \)` 
-libsmacq_la_SOURCES = mem.c bytehash.c fields.cpp bloom.c args.c pickle.cpp sched-iter.cpp construct.cpp optimize.c sched.cpp msg.cpp filter.cpp ThreadedSmacqModule.cpp dynloader.c parsing.cpp cmalloc.c parser.ym scanner.lpp filter-parser.ym expr-parser.ym strucio.cpp SmacqModule.cpp SmacqModuleWrapper.cpp DTS.cpp DtsObject.cpp
+libsmacq_la_SOURCES = mem.c args.c pickle.cpp sched-iter.cpp construct.cpp optimize.cpp sched.cpp msg.cpp filter.cpp ThreadedSmacqModule.cpp dynloader.c parsing.cpp cmalloc.c parser.ym scanner.lpp filter-parser.ym expr-parser.ym strucio.cpp DTS.cpp DtsObject.cpp smacq_result.cpp
 
 libsmacq_la_LIBADD = 
 libsmacq_la_LDFLAGS = -rpath /bogus
@@ -171,31 +172,28 @@ CONFIG_CLEAN_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
 
 libsmacq_la_DEPENDENCIES =
-am_libsmacq_la_OBJECTS = mem.lo bytehash.lo fields.lo bloom.lo args.lo \
-	pickle.lo sched-iter.lo construct.lo optimize.lo sched.lo \
-	msg.lo filter.lo ThreadedSmacqModule.lo dynloader.lo parsing.lo \
-	cmalloc.lo parser.lo scanner.lo filter-parser.lo expr-parser.lo \
-	strucio.lo SmacqModule.lo SmacqModuleWrapper.lo DTS.lo \
-	DtsObject.lo
+am_libsmacq_la_OBJECTS = mem.lo args.lo pickle.lo sched-iter.lo \
+	construct.lo optimize.lo sched.lo msg.lo filter.lo \
+	ThreadedSmacqModule.lo dynloader.lo parsing.lo cmalloc.lo \
+	parser.lo scanner.lo filter-parser.lo expr-parser.lo strucio.lo \
+	DTS.lo DtsObject.lo smacq_result.lo
 libsmacq_la_OBJECTS = $(am_libsmacq_la_OBJECTS)
 
 DEFAULT_INCLUDES =  -I. -I$(srcdir) -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
 @AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/DTS.Plo ./$(DEPDIR)/DtsObject.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/SmacqModule.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/SmacqModuleWrapper.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/ThreadedSmacqModule.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/args.Plo ./$(DEPDIR)/bloom.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/bytehash.Plo ./$(DEPDIR)/cmalloc.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/args.Plo ./$(DEPDIR)/cmalloc.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/construct.Plo ./$(DEPDIR)/dynloader.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/expr-parser.Plo ./$(DEPDIR)/fields.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/expr-parser.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/filter-parser.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/filter.Plo ./$(DEPDIR)/mem.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/msg.Plo ./$(DEPDIR)/optimize.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/parser.Plo ./$(DEPDIR)/parsing.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/pickle.Plo ./$(DEPDIR)/scanner.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/sched-iter.Plo ./$(DEPDIR)/sched.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/smacq_result.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/strucio.Plo
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -252,17 +250,12 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DTS.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/DtsObject.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SmacqModule.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SmacqModuleWrapper.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ThreadedSmacqModule.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/args.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bloom.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/bytehash.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cmalloc.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/construct.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dynloader.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/expr-parser.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/fields.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter-parser.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/filter.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mem.Plo@am__quote@
@@ -274,6 +267,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/scanner.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sched-iter.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sched.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/smacq_result.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/strucio.Plo@am__quote@
 
 distclean-depend:
@@ -480,10 +474,10 @@ maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
 	-rm -f filter-parser.cpp
-	-rm -f parser.cpp
+	-rm -f scanner.cpp
 	-rm -f expr-parser.cpp
 	-test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
-	-rm -f scanner.cpp
+	-rm -f parser.cpp
 clean: clean-am
 
 clean-am: clean-generic clean-libtool clean-noinstLTLIBRARIES \

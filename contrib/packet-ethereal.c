@@ -14,7 +14,7 @@ ts_type timestamp_type = ABSOLUTE;
 
 static int did_epan_init = 0;
 
-int epan_getfield(DtsObject * packet, DtsObject * fieldo, dts_field_element element) {
+int epan_getfield(DtsObject packet, DtsObject fieldo, dts_field_element element) {
   int len;
   int field_id;
   field_info * finfo;

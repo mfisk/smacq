@@ -1,6 +1,8 @@
-#include <smacq.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <dlfcn.h>
+#include <gmodule.h>
+#include <assert.h>
 
 static inline void * smacq_try_dlsym(void * module, GModule * gmodule, char * trysym) {
 

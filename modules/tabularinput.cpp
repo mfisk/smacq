@@ -11,7 +11,7 @@
 static struct smacq_options options[] = {
   {"d", {string_t:"\t"}, "Delimiter", SMACQ_OPT_TYPE_STRING},
   {"f", {string_t:"-"}, "Input File", SMACQ_OPT_TYPE_STRING},
-  {NULL, {string_t:NULL}, NULL, 0}
+  END_SMACQ_OPTIONS
 };
 
 SMACQ_MODULE(tabularinput,
@@ -29,14 +29,14 @@ SMACQ_MODULE(tabularinput,
   int double_type;
   int empty_type;
 
-  DtsObject * default_parse(char * startp, char * endp);
+  DtsObject default_parse(char * startp, char * endp);
 );
 
 #define MAX_STR 4096
 
-DtsObject * tabularinputModule::default_parse(char * startp, char * endp) {
+DtsObject tabularinputModule::default_parse(char * startp, char * endp) {
       char * badp;
-      DtsObject * msgdata;
+      DtsObject msgdata;
       double d = strtod(startp, &badp);
 
       if (badp && badp != endp) {
@@ -50,12 +50,12 @@ DtsObject * tabularinputModule::default_parse(char * startp, char * endp) {
       return msgdata;
 }
 
-smacq_result tabularinputModule::produce(DtsObject ** datump, int * outchan) {
+smacq_result tabularinputModule::produce(DtsObject & datump, int * outchan) {
   int i;
   char * startp, * stopp, * endp, line[MAX_STR];
-  DtsObject * msgdata;
+  DtsObject msgdata;
   char * result;
-  DtsObject * datum;
+  DtsObject datum;
   dts_field field;
 
   datum = dts->newObject(empty_type);
@@ -111,7 +111,7 @@ smacq_result tabularinputModule::produce(DtsObject ** datump, int * outchan) {
     //fprintf(stderr, "Attached field %d (type %d) to %p\n", field[0], msgdata->type, datum);
   }
 
-  *datump = datum;
+  datump = datum;
   return (smacq_result)(SMACQ_PASS|SMACQ_PRODUCE);
 }
 

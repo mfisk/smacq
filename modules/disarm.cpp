@@ -52,7 +52,7 @@ static struct smacq_options options[] = {
   {"srcip", {string_t:""}, "Source IP", SMACQ_OPT_TYPE_STRING},
   {"p", {int_t:9096}, "Port Number", SMACQ_OPT_TYPE_INT},
   {"h", {string_t:"disarm5.lanl.gov"}, "Host Name", SMACQ_OPT_TYPE_STRING},
-  {NULL, {string_t:NULL}, NULL, 0}
+  END_SMACQ_OPTIONS
 };
 
 #define XX 127
@@ -134,12 +134,12 @@ int disarmModule::get_line(char ** buf, struct get_line * s) {
 	}
 }
 
-smacq_result disarmModule::produce(DtsObject ** datump, int * outchan) {
+smacq_result disarmModule::produce(DtsObject & datump, int * outchan) {
 	char * hex;
 	unsigned char * decode;
 	int i;
 	int len;
-	DtsObject * datum;
+	DtsObject datum;
 
 	len = get_line(&hex, &linebuf);
 	if (len == 0) {
@@ -178,7 +178,7 @@ smacq_result disarmModule::produce(DtsObject ** datump, int * outchan) {
 
 	memcpy(decode+49, hex+98, len-49);
 
-	*datump = datum;
+	datump = datum;
 	return (smacq_result)(SMACQ_PASS|SMACQ_PRODUCE);
 }
 
