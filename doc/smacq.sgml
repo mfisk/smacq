@@ -12,7 +12,7 @@
       <firstname>Mike</firstname>
       <surname>Fisk</surname>
     </author>
-    <date>$Date: 2003/08/26 23:02:26 $</date>
+    <date>$Date: 2003/12/12 03:42:04 $</date>
   </refentryinfo>
   <refmeta>
     <refentrytitle>smacq</refentrytitle>
@@ -227,6 +227,25 @@
     <title>FILTER MODULES (BOOLEAN FUNCTIONS)</title>
 
     <refsect2>
+      <title>IP Address Mask Lookup</title>
+      <cmdsynopsis>
+	<command>iplookup</command>
+	<arg choice=req><replaceable>field</replaceable></arg>
+      </cmdsynopsis>
+
+      <para>
+	The "addr/cidr" argument is a CIDR netmask. 
+	An object is filtered out if
+	and only if the specified field does not exist or does not
+	match the given netmask.
+      </para>
+      <para>
+        Unlike the mask module, this module uses an efficient Patricia Trie
+	to efficiently lookups in large vectors of masks.
+      </para>
+    </refsect2>
+
+    <refsect2>
       <title>IP Address Mask</title>
       <cmdsynopsis>
 	<command>mask</command>
@@ -240,7 +259,10 @@
 	and only if the specified field does not exist or does not
 	match the given netmask.  If the address begins with a '!',
 	then the logic is reversed and the object is filtered out if
-	the field does match the netmask.
+	the field does match the netmask.  
+      </para>
+      <para>
+        See also the iplookup module.
       </para>
     </refsect2>
 
