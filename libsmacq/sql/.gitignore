@@ -1,3 +1,4 @@
 *.lo
 *.la
 .libs
+*.output
