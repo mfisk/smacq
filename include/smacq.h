@@ -157,7 +157,6 @@ static inline void smacq_log(char * name, enum smacq_log_level level, char * msg
 }
 
 #include "smacq-internal.h"
-#include "types-inline.c"
 
 #ifdef __cplusplus
 
