@@ -1631,20 +1631,19 @@ smacq_graph * smacq_build_query(dts_environment * tenv, int argc, char ** argv) 
   /* UNLOCK */
 
   if (res) {
-    perror("parse error");
+    fprintf(stderr, "smacq_build_query: error parsing query: %s\n", qstr);
     return NULL;
   }
 
   if (!graph) {
-    fprintf(stderr, "parse error\n");
+    fprintf(stderr, "unknown parse error\n");
   }
 
   return graph;
 }
 
 void yyerror(char * msg) {
-  fprintf(stderr, "Error: %s near %s\n", msg, yytext);
-  exit(-1);
+  fprintf(stderr, "%s near %s\n", msg, yytext-1);
 }
 
 static struct vphrase newvphrase(char * verb, struct arglist * args) {

@@ -48,6 +48,7 @@ int main(int argc, char ** argv) {
       smacq_graph * graphs = NULL;
       const dts_object * product;
       struct runq * runq = NULL;
+      int qno=1;
 
       queryline = malloc(MAX_QUERY_SIZE);
 
@@ -57,9 +58,19 @@ int main(int argc, char ** argv) {
       }
 
       while(fgets(queryline, MAX_QUERY_SIZE, stdin)) {
-	      smacq_graph * newgraph = smacq_build_query(tenv, 1, &queryline);
-	      assert(newgraph);
+	      smacq_graph * newgraph;
+
+	      /* Chomp newline */
+	      if (queryline[strlen(queryline)-1] == '\n')
+		      queryline[strlen(queryline)-1] = '\0';
+
+	      newgraph = smacq_build_query(tenv, 1, &queryline);
+	      if (!newgraph) {
+		      fprintf(stderr, "Fatal error at line %d\n", qno);
+		      exit(-1);
+	      }
       	      graphs = smacq_graph_add_graph(graphs, newgraph);
+	      qno++;
       }
 
       if (optimize.boolean_t) {
