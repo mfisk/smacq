@@ -83,7 +83,7 @@ LIBS_MODULES_SHARED=`for f in $SHAREDONLY_MODULES; do echo -n " smacq_$f.la "; d
 AC_SUBST(LIBS_MODULES_SHARED)
 
 if test -n "$GCC"; then
-	CFLAGS="$CFLAGS -Wall"
+	CFLAGS="$CFLAGS -Wall -O9"
 fi
 
 AC_ARG_ENABLE(debug,
