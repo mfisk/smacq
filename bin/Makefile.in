@@ -59,35 +59,18 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 host_alias = @host_alias@
 host_triplet = @host@
-AR = @AR@
-AS = @AS@
 CC = @CC@
 CXX = @CXX@
-CXXCPP = @CXXCPP@
-DLLTOOL = @DLLTOOL@
-ECHO = @ECHO@
-EGREP = @EGREP@
-EXEEXT = @EXEEXT@
-F77 = @F77@
-GCJ = @GCJ@
-GCJFLAGS = @GCJFLAGS@
 GLOBAL_INCLUDES = @GLOBAL_INCLUDES@
 LEX = @LEX@
 LIBS_MODULES_ALL = @LIBS_MODULES_ALL@
 LIBS_MODULES_SHARED = @LIBS_MODULES_SHARED@
 LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
-MAKEINFO = @MAKEINFO@
-OBJDUMP = @OBJDUMP@
 OBJECTS_MODULES_BUILTIN = @OBJECTS_MODULES_BUILTIN@
-OBJEXT = @OBJEXT@
-PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
-RC = @RC@
 SOURCES_MODULES_BUILTIN = @SOURCES_MODULES_BUILTIN@
 SOURCES_TYPES_BUILTIN = @SOURCES_TYPES_BUILTIN@
-STRIP = @STRIP@
-VERSION = @VERSION@
 YACC = @YACC@
 
 INCLUDES = -I$(top_srcdir)/include @GLOBAL_INCLUDES@
@@ -99,7 +82,6 @@ smacqq_LDFLAGS = -export-dynamic -static $(BUILTINS) -lglib-2.0 -lgmodule-2.0 -l
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = ../config.h
 CONFIG_CLEAN_FILES = 
-bin_PROGRAMS =  smacqq$(EXEEXT)
 PROGRAMS =  $(bin_PROGRAMS)
 
 
@@ -108,7 +90,7 @@ CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
 smacqq_SOURCES = smacqq.c
-smacqq_OBJECTS =  smacqq.$(OBJEXT)
+smacqq_OBJECTS =  smacqq.o
 smacqq_LDADD = $(LDADD)
 smacqq_DEPENDENCIES = 
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -118,17 +100,20 @@ LINK = $(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(LDFLAGS) -o $@
 DIST_COMMON =  Makefile.am Makefile.in
 
 
+PACKAGE = @PACKAGE@
+VERSION = @VERSION@
+
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
 TAR = tar
 GZIP_ENV = --best
 DEP_FILES =  .deps/smacqq.P
 SOURCES = smacqq.c
-OBJECTS = smacqq.$(OBJEXT)
+OBJECTS = smacqq.o
 
 all: all-redirect
 .SUFFIXES:
-.SUFFIXES: .S .c .lo .o .obj .s
+.SUFFIXES: .S .c .lo .o .s
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.ac $(ACLOCAL_M4) 
 	cd $(top_srcdir) && $(AUTOMAKE) --gnu bin/Makefile
 
@@ -162,11 +147,6 @@ uninstall-binPROGRAMS:
 	  rm -f $(DESTDIR)$(bindir)/`echo $$p|sed 's/$(EXEEXT)$$//'|sed '$(transform)'|sed 's/$$/$(EXEEXT)/'`; \
 	done
 
-# FIXME: We should only use cygpath when building on Windows,
-# and only if it is available.
-.c.obj:
-	$(COMPILE) -c `cygpath -w $<`
-
 .s.o:
 	$(COMPILE) -c $<
 
@@ -175,7 +155,6 @@ uninstall-binPROGRAMS:
 
 mostlyclean-compile:
 	-rm -f *.o core *.core
-	-rm -f *.$(OBJEXT)
 
 clean-compile:
 
@@ -200,8 +179,8 @@ distclean-libtool:
 
 maintainer-clean-libtool:
 
-smacqq$(EXEEXT): $(smacqq_OBJECTS) $(smacqq_DEPENDENCIES)
-	@rm -f smacqq$(EXEEXT)
+smacqq: $(smacqq_OBJECTS) $(smacqq_DEPENDENCIES)
+	@rm -f smacqq
 	$(LINK) $(smacqq_LDFLAGS) $(smacqq_OBJECTS) $(smacqq_LDADD) $(LIBS)
 
 tags: TAGS
