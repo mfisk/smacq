@@ -1,6 +1,5 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-CFLAGS=  #Don't use default CFLAGS
 
 AC_PREREQ(2.57)
 AC_INIT(SMACQ, , mfisk@lanl.gov)
