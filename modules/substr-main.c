@@ -34,7 +34,7 @@ static int cdecode(unsigned char * needle) {
   unsigned char * dp = decoded;
   unsigned char * np = needle;
 
-  for (i=0; i < len; i++) {
+  while (np < needle + len) {
 	  if (esc) {
 		esc = 0;
 		if (*np == 'x') {
@@ -56,7 +56,6 @@ static int cdecode(unsigned char * needle) {
 	  } else if (*np == '\\') {
 		esc = 1;
 		np++;
-
           } else {
 	  	*dp++ = *np++;
 	  }
@@ -104,14 +103,15 @@ static void add_entry(struct state * state, char * field, char * needle, int out
 	}
   }
 
-#ifdef DEBUG
-  fprintf(stderr, "searching for '%s'\n", needle);
-#endif
   nlen = strlen(needle);
 
-  //fprintf(stderr, "decoded %s(%d) to ", needle, nlen);
+#ifdef DEBUG
+  fprintf(stderr, "decoded %s(%d) to search string of ", needle, nlen);
+#endif
   nlen = cdecode(needle);
-  //fprintf(stderr, "%s(%d)\n", needle, nlen);
+#ifdef DEBUG
+  fprintf(stderr, "%s(%d)\n", needle, nlen);
+#endif
 
   substr_add(batch->set, nlen, needle, 0, (void*)output, 0, 0);
 }
