@@ -16,6 +16,7 @@ struct state {
   smacq_environment * env;
   dts_field field;
   struct mask mask;
+  int ip_type;
 };
 
 static struct smacq_options options[] = {
@@ -34,13 +35,16 @@ static smacq_result mask_consume(struct state * state, const dts_object * datum,
   if (state->field) {
   	field = smacq_getfield(state->env, datum, state->field, NULL);
   	if (!field) return SMACQ_FREE;
+	assert(dts_gettype(field) == state->ip_type);
 
         f = dts_data_as(field, in_addr_t);
   	dts_decref(field);
   } else {
+	assert(dts_gettype(datum) == state->ip_type);
         f = dts_data_as(datum, in_addr_t);
   }
- 
+
+  //fprintf(stderr, "%x & %x =? %x\n", f, state->mask.mask.s_addr, state->mask.addr.s_addr); 
   if ((f & state->mask.mask.s_addr) == state->mask.addr.s_addr) {
 	  found = 1;
   }
@@ -71,6 +75,7 @@ static int mask_init(struct smacq_init * context) {
   }
 
   state->field = smacq_requirefield(state->env, argv[0]);
+  state->ip_type = smacq_requiretype(state->env, "ip");
 
   assert(argc==2);
   for (i = 1; i < argc; i++) {
