@@ -309,7 +309,9 @@ static smacq_result disarm_init(struct smacq_init * context) {
 
   state->sv4_type = smacq_requiretype(state->env, "sv4");
 
-  if (strcmp(infile.string_t, "")) {
+  if (!strcmp(infile.string_t, "-")) {
+	state->datafh = stdin;
+  } else if (strcmp(infile.string_t, "")) {
 	state->datafh = fopen(infile.string_t, "r");
         assert(state->datafh);
   } else {
