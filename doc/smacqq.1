@@ -1,25 +1,23 @@
-.\" This -*- nroff -*- file has been generated from
-.\" DocBook SGML with docbook-to-man on Debian GNU/Linux.
-...\"
-...\"	transcript compatibility for postscript use.
-...\"
-...\"	synopsis:  .P! <file.ps>
-...\"
+.\" $Header: /aolnet/dev/src/CVS/sgml/docbook-to-man/cmd/docbook-to-man.sh,v 1.1.1.1 1998/11/13 21:31:59 db3l Exp $
+.\"
+.\"	transcript compatibility for postscript use.
+.\"
+.\"	synopsis:  .P! <file.ps>
+.\"
 .de P!
-\\&.
+.fl
+\!!1 setgray
+.fl
+\\&.\"
+.fl
+\!!0 setgray
 .fl			\" force out current output buffer
-\\!%PB
-\\!/showpage{}def
-...\" the following is from Ken Flowers -- it prevents dictionary overflows
-\\!/tempdict 200 dict def tempdict begin
+\!!save /psv exch def currentpoint translate 0 0 moveto
+\!!/showpage{}def
 .fl			\" prolog
-.sy cat \\$1\" bring in postscript file
-...\" the following line matches the tempdict above
-\\!end % tempdict %
-\\!PE
-\\!.
-.sp \\$2u	\" move below the image
-..
+.sy sed -e 's/^/!/' \\$1\" bring in postscript file
+\!!psv restore
+.
 .de pF
 .ie     \\*(f1 .ds f1 \\n(.f
 .el .ie \\*(f2 .ds f2 \\n(.f
@@ -68,7 +66,7 @@ The primary difference from standard databases, is that data is
 not stored in preloaded tables, but is instead produced by data 
 source modules.  Also, the select operation does not 
 automatically print fields.  If printable output is desired, use 
-the \fBprint\fP command. 
+the \fBprint\fR command. 
  
 .PP 
 The following example prints the "srcip" and "dstip" fields from 
@@ -134,7 +132,7 @@ all equivalent:
  
 .PP 
 SMACQ is an extensible system that the user can add modules to. 
-See the \fBsmacqp\fP(1) manpage for a detailed 
+See the \fBsmacqp\fR(1) manpage for a detailed 
 description of modules.  Many modules take flags which, like all 
 arguments, can be separated with commas or spaces: 
  
@@ -147,4 +145,4 @@ Joins are not yet supported.  They will be supported in multiple
 forms:  joins within a buffer window, joins between 
 nondecreasing streams, etc. 
  
-...\" created by instant / docbook-to-man, Mon 20 Oct 2003, 16:48 
+.\" created by instant / docbook-to-man, Fri 10 Sep 2004, 08:30 

@@ -1,66 +1,448 @@
+smacq(1)                                                              smacq(1)
 
 
 
+NNAAMMEE
+       smacq -- System for Modular Analysis and Continuous Queries
 
+DDEESSCCRRIIPPTTIIOONN
+       The  System  for  Modular Analysis and Continuous Queries (SMACQ) is an
+       extensible component system for analyzing streams of  structured  data.
+       This manpage describes the modules included with the system by default.
 
 
+       These modules are used by SMACQ's command-line utilities ssmmaaccqqpp((11))  and
+       ssmmaaccqqpp((11))       as well as a C API described in ssmmaaccqq--eemmbbeedd((33)).
 
 
+       The  function  modules included in the system are described in the fol-
+       lowing sections:  I/O, Boolean, Annotation, and Miscellaneous  Analysis
+       functions.
 
 
+QQUUEERRYY SSYYNNTTAAXX
+       Smacq queries are specified using the following SQL-like grammer:
 
 
+       query : action from [WHERE boolean] [GROUP BY args [HAVING boolean]]
+       | action [WHERE boolean]
+       | WHERE boolean
+       | query '|' action [WHERE boolean] [GROUP BY args [HAVING boolean]]
 
+       action : function args
+       | function ( args )
+       | ( query )
+       | ( parenquery + parenquery )
 
+       parenquery : ( query )
+       | function ( args )
+       | function
 
+       from : FROM action [from]
 
 
+       Arguments  can  be given in a space separated list or a comma separated
+       list.  Any argument can be followed by the  phrase  "AS  alias"  to  be
+       given the specified alias.
 
 
+       argument: word
+       | function ( args )
+       | '[' expression ']'
 
+       boolean : ( boolean )
+       | boolean AND boolean
+       | boolean OR boolean
+       | NOT boolean
+       | operand
+       | subexpression op subexpression
+       | function ( args )
+       ;
 
 
+IINNPPUUTT//OOUUTTPPUUTT FFUUNNCCTTIIOONNSS
+   PPrriinntt
+       pprriinntt [-x]  [-v]  [-B]  [-d _d_e_l_i_m_i_t_e_r] fields ...
 
+       Print  the  specified  fields  for every record that has them If the --vv
+       option is given, then warnings are printed when fields aren't  present,
+       and  field  values  are  preceded  by  the field name.  If --xx option is
+       given, fields are surrounded with XML-style tags.  If the --BB option  is
+       specified,  then  output  is not buffered (output is flushed after each
+       record).  Fields are separated by a delimiter string which can be spec-
+       ified by --dd and defaults to TAB.
 
 
+   TTaabbuullaarr IInnppuutt
+       ttaabbuullaarriinnppuutt [-d _d_e_l_i_m_i_t_e_r]  [-f _f_i_l_e_n_a_m_e]  [field [:type]  ...]
 
+       Read records from STDIN by default, or a filename specified with the --ff
+       option, one per line, with fields  delimited  by  TAB  or  an  alterate
+       delimiter  specified by --dd.  If field names are specified, data columns
+       are assigned those names sequentially.  If no field  names  are  speci-
+       fied,  or  there  are more columns that field names, unnamed fields are
+       named numericaly starting at 1.
 
 
+       Field types can be specified by appending a colon and the type name  to
+       the end of the field name.  If no type is sepecified for a field, it is
+       treated as a double if possible, or a string otherwise.
 
 
+   PPaacckkeett CCaappttuurree
+       ppccaapplliivvee [-i _i_n_t_e_r_f_a_c_e]  [-s _s_n_a_p_l_e_n]  [-p]  [_f_i_l_t_e_r ...]
 
+       The ppccaapplliivvee module reads packets from a network interfaces using libp-
+       cap.   It can only be used at the beginning of a pipeline.  Root privi-
+       leges are typically required to run this module.
 
 
+       The --ii option specifies an interface to listen  on  (default  is  aannyy).
+       The  --ss option specifies the maximum number of bytes per packet to cap-
+       ture (default is 68).  The --pp specifies that the interface  should  NOT
+       be placed in promiscuous mode.
 
 
+       An optional filter string is a BPF filter string (see ttccppdduummpp(1)).
 
 
+   PPaacckkeett TTrraaccee FFiillee
+       ppccaappffiillee _f_i_l_e_n_a_m_e ...
 
+       ppccaappffiillee -w _f_i_l_e_n_a_m_e  [-l ]  [-s _m_e_g_a_b_y_t_e_s]
 
+       The  ppccaappffiillee  module  either  reads from or writes to a tcpdump-style,
+       libpcap packet trace file.  If the module is  at  the  beginning  of  a
+       pipeline, it reads from a file.  Otherwise it writes data to a file.
 
 
+       When  reading,  one  or more files must be specified.  Use -- for stdin.
+       Input files that are compressed with ggzziipp are supported  automatically.
+       If the --ll option is specified then files are read from STDIN instead of
+       the arguments.
 
 
+       When writing, a single output file must be specified with --ww.
 
 
+       The --ss option specifies the maximum file size (in megabytes) for output
+       files.  If specified, the output file will have a two-digit suffix num-
+       ber appended and output will be split between as many files  as  neces-
+       sary.
 
 
+   ccfflloowwdd RRaaww FFllooww FFiillee
+       ccffllooww _f_i_l_e_n_a_m_e ...  [-l ]
 
+       The  ccffllooww module reads from a raw flow file as created by cflowd.  One
+       or more files must be specified.  Use -- for stdin.   Input  files  that
+       are compressed with ggzziipp are supported automatically.  If the --ll option
+       is specified then files are read from STDIN instead of the arguments.
 
 
+   SSoocckkeett
+       ssoocckkeett [-p _p_o_r_t]  [-h _h_o_s_t]  [-d]
 
+       The ssoocckkeett module is used to send records across the network to another
+       instantiation  of  the  ssoocckkeett module.  It can be used in two different
+       ways: as a producer who receives data from the network, or  as  a  con-
+       sumer that writes data to a network.  If the module is at the beginning
+       of a pipeline, it is assumed to be a server.  Otherwise it  is  a  con-
+       sumer that writes data to the network.
 
 
+       The  --hh and --pp options specify a host and port, respectively.  The host
+       option is required for a consumer.  The default port is 3000.
 
 
+       The --dd option is only valid in the server context.  If  specified,  the
+       module  will  continue to accept new connections forever and will never
+       exit.  Without this option, the server will accept a single connection,
+       process it until it closes, and then terminate.
 
 
+BBOOOOLLEEAANN FFUUNNCCTTIIOONNSS
 
+       Boolean  functions  immediately  either filter-out or pass-on each data
+       object they are given.
 
 
+   IIPP AAddddrreessss MMaasskk LLooookkuupp
+       iippllooookkuupp_f_i_e_l_d
 
+       The "addr/cidr" argument is a CIDR netmask.  An object is filtered  out
+       if and only if the specified field does not exist or does not match the
+       given netmask.
 
 
+       Unlike the mask module, this module uses an efficient Patricia Trie  to
+       efficiently lookups in large vectors of masks.
 
 
+   IIPP AAddddrreessss MMaasskk
+       mmaasskk_f_i_e_l_d [!]_a_d_d_r_/_c_i_d_r
 
+       The  "addr/cidr"  argument  is a CIDR netmask.  If the mask size is not
+       specified, 32 is assumed.  An object is filtered out if and only if the
+       specified field does not exist or does not match the given netmask.  If
+       the address begins with a '!', then  the  logic  is  reversed  and  the
+       object is filtered out if the field does match the netmask.
+
+
+       See also the iplookup module.
+
+
+   SSuubbssttrriinngg
+       ssuubbssttrr [_f_i_e_l_d] _s_t_r_i_n_g  [ ; _s_t_r_i_n_g ...]
+
+       Search  for  each  byte  string in the specified field, or in the whole
+       data object if no field is given.  If multiple strings are given,  then
+       each  string  corresponds  to an output channel, and the object will be
+       output only on the channel(s) that match.
+
+
+   FFiilltteerr
+       ffiilltteerr _f_i_e_l_d _[_[_<_=_>_] _v_a_l_u_e_] _._._. ...
+
+       Filter out all objects in the stream that do not  satisfy  all  of  the
+       specified criteria.  Expressions can be arbitrarily complex and include
+       AND and OR statements and parentheses for grouping.
+
+
+       This is the select (sigma) operation from relational  algebra  ("where"
+       in SQL).
+
+
+   UUnniiqquuee FFiilltteerr
+       uunniiqq [-m _m_e_g_a_b_y_t_e_s]  _f_i_e_l_d_s ...
+
+       Treat  the specified field(s) as a tuple and filter out all occurrences
+       of duplicate values of that tuple.
+
+
+       The --mm option specifies that a probabilistic algorithm  using  a  fixed
+       amount  of  memory  (specified  in megabytes) should be employed.  Some
+       records may be mistakenly filtered, but some large datasets  cannot  be
+       processed with a perfect algorithm.
+
+
+   TToopp
+       ttoopp [-m _m_e_g_a_b_y_t_e_s]  [-r _d_e_v_i_a_t_i_o_n]  _f_i_e_l_d_s ...
+
+       Treat  the specified field(s) as a tuple and count the number of occur-
+       rences of each values of that tuple.  Filter  out  all  records  except
+       those  whose occurrence deviates from the average by more than a factor
+       of ddeevviiaattiioonn.  If no --rr option  is  specified,  the  default  deviation
+       threshold is 1.
+
+
+       If  --mm  is specified, then probabilistic counters are used, consuming a
+       max of mmeeggaabbyytteess memory, at the expense of some records not being  fil-
+       tered even though they're value is rare.
+
+
+       It  is  often  useful  to  follow this module with uunniiqq in order to get
+       exact counts for all records that pass this filter.
+
+
+   HHeeaadd
+       hheeaadd _n_u_m_b_e_r
+
+       Pass the first nnuummbbeerr records through and then end the pipeline.  Those
+       records will be processed by all subsequent modules in the pipeline and
+       the program will then terminate.
+
+
+AANNNNOOTTAATTIIOONN FFUUNNCCTTIIOONNSS
+
+       An annotation function always adds a field to every data object and the
+       name of that field is identical to the name of the function.
+
+
+   CClloocckk
+       cclloocckk [ -t _s_e_c_o_n_d_s]  _f_i_e_l_d
+
+       The clock module is used to bin input data into discrete clock periods.
+       Each object is annotated with a clock field  containing  the  numerical
+       value  of  the current clock.  The current clock value is determined by
+       keeping track of the largest value seen for the specified  field  (pre-
+       sumably  a  time)  and dividing that value by the optional time period,
+       which defaults to 1.  The input is assumed to be sorted  in  increasing
+       order.
+
+
+   CCoonnssttaanntt AAnnnnoottaattiioonn
+       ccoonnsstt _s_t_r_i_n_g  [_f_i_e_l_d]
+
+       Annotate  each object with a field containing the specified string con-
+       stant.  If a field name is specified, it will be used.  Otherwise,  the
+       name will be "const".
+
+
+   DDeellttaa
+       ddeellttaa _x_f_i_e_l_d
+
+       For  each data object seen, compute the delta from the previous x field
+       to this current xfield.  The data object is  annotate  with  a  "ddeellttaa"
+       field of type "ddoouubbllee" containing the result.  The x field must be con-
+       vertable to doubles as well.
+
+
+   DDeerriivvaattiivvee
+       ddeerriivvaattiivvee _y_f_i_e_l_d _x_f_i_e_l_d
+
+       For each data object seen, compute the derivative of the y  field  with
+       respect  to  the  x  field between this point and the last object seen.
+       The data object is annotate with a "ddeerriivvaattiivvee" field of type  "ddoouubbllee"
+       containing  the result.  The x and y fields must be convertable to dou-
+       bles as well.
+
+
+   FFllooww IIDD
+       fflloowwiidd [-t _t_i_m_e]  [-r ]  _f_i_e_l_d_s ...
+
+       Treat the specified field(s) as a tuple and assign  a  unique  flow  id
+       number to each object based on the typle value.  The annotated field is
+       called "flowid".  All but the first packet will be filtered out.
+
+
+       The --rr option specifies that the same flow id  should  be  assigned  to
+       packets  in  the  reverse  direction.  Separate flow statistics will be
+       kept for each direction.
+
+
+       The --tt option specifies a number of seconds idle time before a flow  is
+       timed out.  When it times out a REFRESH record with the flows identify-
+       ing fields (as specified in the arguments),  the  current  time  (time-
+       series)  and  the  packet  and byte counters ("packets", "packetsback",
+       "bytes", "bytesout") and the "start" and "finish" times.
+
+
+MMIISSCCEELLLLAANNEEOOUUSS AANNAALLYYSSIISS FFUUNNCCTTIIOONNSS
+   CCoouunntteerr
+       ccoouunntt [-a]  [-f _c_o_u_n_t_n_a_m_e]  [-p]  [_f_i_e_l_d_s ...]
+
+       If no fields are specified, simply count the number  of  records  seen.
+       If  one or more fields are specified, treat those fields as a tuple and
+       count the number of occurrences of each value for that tuple.
+
+
+       Unless  the  "-p"  flag  is  specified,  then  a  double  value   named
+       "probability" is annotated instead.  The "-f" flag can still be used to
+       specify an alternate field name.
+
+
+       Normally an annotation is made to only the final object and  all  other
+       objects  are  filtered  out.   However, if the "-a" flag is given, then
+       every object is passed and annotated with a running value.
+
+
+   SSttaatteeffuull MMaattcchhiinngg
+       ddffaa _s_t_a_t_e_f_i_l_e
+
+       The DFA module takes a input file describing  transitions  in  a  state
+       machine.  Each line contains a current state, a subsequent state, and a
+       predicate for the transition between those states.  The predicate is in
+       normal  SMACQ syntax for a "where" clause.  States named START and STOP
+       are required.  All other states can be named  with  any  non-whitespace
+       word.
+
+
+       The  DFA  module will create multiple instantiations of the given state
+       machine.  However, a given input object is used by at most 1  of  those
+       instantiations.   When  the  DFA  module  receives an input object, any
+       existing state machines are checked for possible transitions that would
+       be  satisfied  by the object.  If none of the transitions from the cur-
+       rent state of that machine are matched, then that machine  will  remain
+       in  the current state.  After a machine does match and transition on an
+       input, no other machines will  receive  that  input.   If  no  existing
+       machines  can  use the input, then transitions from the START state are
+       checked.  If the START state can be left, then a new  machine  is  cre-
+       ated.
+
+
+   LLaasstt
+       llaasstt [-t _t_i_m_e]  [_f_i_e_l_d_s ...]
+
+       If  any  fields  are  specified, treat those fields as a tuple and keep
+       track of the last object seen with that tuple value.  After there is no
+       more data, output the objet for each tuple value.
+
+
+       The  --tt  option  specifies,  as  a  real  number, the number of seconds
+       between periodic updates.  After the specified amount of time, the last
+       object  seen  for  each tuple value will be emitted (just as is done at
+       the end of the data stream).  At the end of the update,  an  object  of
+       type "rreeffrreesshh" will be sent with a "ttiimmeesseerriieess" field of type "ttiimmeevvaall"
+       containing the time.  Note: Time is not the  wall-clock  time,  but  is
+       instead the time stored in the record in the "ttiimmeesseerriieess" field of type
+       "ttiimmeevvaall".  The --tt cannot be used with records that do  not  have  this
+       field.
+
+
+   DDiissccrreettee PPrroobbaabbiilliittyy DDeennssiittyy FFuunnccttiioonn
+       ppddff
+
+       Assemble  a  stream  of  input  records  with  "count"  fields.  When a
+       "refresh" record is received or  the  data  flow  ends,  then  use  the
+       "count"  fields to calculate the fraction of the total that each record
+       is responsible.  Attach this value as a  "probability"  field  of  type
+       "double".  calculate then use the
+
+
+   PPrroojjeecctt
+       pprroojjeecctt _f_i_e_l_d_s ...
+
+       Replace  all  objects  in  the input stream with new objects containing
+       only the specified fields.  This is the  project  (Pi)  operation  from
+       relational algebra ("select <fields>" in SQL).
+
+
+   RReennaammee
+       rreennaammee _o_l_d_f_i_e_l_d _n_e_w_f_i_e_l_d ...
+
+       Given a list of alternating old and new field names, make a copy of the
+       old field with the new name.  Combined with the  Project  module,  this
+       can  implement the rename (rho) operation from relational algebra ("as"
+       in SQL).
+
+
+   EEnnttrrooppyy
+       eennttrrooppyy
+
+       This module expects a series of data objects with "pprroobbaabbiilliittyy"  fields
+       and computes the Shannon entropy for that series.  When the data stream
+       ends or a "rreeffrreesshh" object is seen, it is assumed that  every  ocurring
+       value  has  been  seen and the entropy for the series is calculated and
+       added as an annotation of type ddoouubbllee to a  refresh  object.   See  the
+       "llaasstt" module for more information on rreeffrreesshh objects.
+
+
+   GGrroouupp--BByy
+       ggrroouuppbbyy _f_i_e_l_d_s ...  --   _q_u_e_r_y ...
+
+       Treat  the  specified field(s) as a tuple and instantiate the specified
+       query for each tuple.  If a record of type "refresh" is received,  then
+       the pipeline for that tuple will be gracefully terminated.
+
+
+   TTiimmee SSoorrtt
+       ffiiffooddeellaayy [-t _t_i_m_e]  [-i _i_n_p_u_t_-_t_i_m_e_-_f_i_e_l_d]  [-o _o_u_t_p_u_t_-_t_i_m_e_-_f_i_e_l_d]
+
+       Sort a series of input records and output them sorted by an output time
+       field that is specified with the  --oo  option  and  defaults  to  "time-
+       series".   All  records  that  are  past  the edge time are immediately
+       updated.  The edge time is determined by the input time  field  (speci-
+       fied  with  the  --ii  option  and defaullting to "timseries") and a time
+       delay which is specified with the --tt         option which defaults to 0
+       seconds.
+
+
+SSEEEE AALLSSOO
+       ssmmaaccqqqq(1),  ssmmaaccqqpp(1), ddttss(3), ddttss--mmoodduulleess(3), ssmmaaccqq--mmoodduulleess(3), ssmmaaccqq--
+       eemmbbeedd(3)
+
+
+
+
+                                                                      smacq(1)
