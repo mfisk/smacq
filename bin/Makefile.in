@@ -149,7 +149,7 @@ BUILTINS = -dlopen self -dlopen $(top_builddir)/modules/libsmacq_modules.la -dlo
 AM_CFLAGS = @CFLAGS@ -DSMACQ_BUILD_DATE=\"`date '+%Y-%m-%d'`\"
 
 bin_PROGRAMS = smacqq pgsmacqd #smacqq_static smacqq_dynamic #iterative-example
-pgsmacqd_SOURCES = pgsmacqd.h
+pgsmacqd_SOURCES = pgsmacqd.c pgsmacqd.h
 
 AM_LDFLAGS = @LDFLAGS@ $(BUILTINS) -export-dynamic -static 
 LDADD = $(top_builddir)/modules/libsmacq_modules.la $(top_builddir)/libsmacq/libsmacq.la $(top_builddir)/types/libdts_modules.la -lpthread @LDADDS@
@@ -161,7 +161,7 @@ CONFIG_CLEAN_FILES =
 bin_PROGRAMS = smacqq$(EXEEXT) pgsmacqd$(EXEEXT)
 PROGRAMS = $(bin_PROGRAMS)
 
-am_pgsmacqd_OBJECTS =
+am_pgsmacqd_OBJECTS = pgsmacqd.$(OBJEXT)
 pgsmacqd_OBJECTS = $(am_pgsmacqd_OBJECTS)
 pgsmacqd_LDADD = $(LDADD)
 pgsmacqd_DEPENDENCIES = $(top_builddir)/modules/libsmacq_modules.la \
@@ -179,7 +179,7 @@ smacqq_LDFLAGS =
 DEFAULT_INCLUDES =  -I. -I$(srcdir) -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
-@AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/smacqq.Po
+@AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/pgsmacqd.Po ./$(DEPDIR)/smacqq.Po
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) \
@@ -242,6 +242,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pgsmacqd.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/smacqq.Po@am__quote@
 
 .c.o:
