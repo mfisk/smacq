@@ -174,7 +174,7 @@ smacqq_SOURCES = smacqq.cpp
 
 #EXTRA_DIST = pgsmacqd.h
 AM_LDFLAGS = @LDFLAGS@ @LDFLAGS_PYTHON@ $(BUILTINS) -export-dynamic -static 
-LDADD = $(top_builddir)/modules/libsmacq_modules.la $(top_builddir)/libsmacq/libsmacq.la $(top_builddir)/types/libdts_modules.la $(top_builddir)/libgnu/libgnu.la -lpthread 
+LDADD = $(top_builddir)/modules/libsmacq_modules.la $(top_builddir)/libsmacq/libsmacq.la $(top_builddir)/types/libdts_modules.la $(top_builddir)/libgnu/libgnu.la  
 subdir = bin
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 mkinstalldirs = $(SHELL) $(top_srcdir)/config/mkinstalldirs
