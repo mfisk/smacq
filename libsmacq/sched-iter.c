@@ -3,9 +3,17 @@
 
 /*
  * Note:  This scheduler uses the "status" element of the smacq_graph structure. 
- * Normally it is unset, but when a module's shutdown is pending, it is SMACQ_END.
- * In this state, it is in last call until it's produce method fails to produce.
- * After the shutdown, it is SMACQ_END|SMACQ_FREE and should no longer be used.
+ * Normally it is unset, but when a module is politely asked to shutdown,
+ * it is set to SMACQ_END|SMACQ_PRODUCE and a produce trigger is enqueue.
+ * It will stay in this state ("last call") until the produce method fails to
+ * return new data.  At that point, it will go to just SMACQ_END and do_shutdown()
+ * will be called.
+ *
+ * When do_shutdown() is called, it checks that no consumes are pending for the module.
+ * If so, then it enqueues a produce for later.  Otherwise it calls the shutdown method
+ * and sets the state to SMACQ_END|SMACQ_FREE at which point the module cannot be used 
+ * again.  The produce handler will call do_shutdown() again whenver it gets a 
+ * SMACQ_END without SMACQ_PRODUCE.
  */
 
 
@@ -181,23 +189,40 @@ void check_for_shutdown(struct runq * runq, smacq_graph *f) {
   do_shutdown(runq, f);
 }
 
+static int pending(struct runq * runq, smacq_graph * f) {
+	struct qel * q = runq->head;
+	while (q) {
+		if (q->d && (q->f == f)) {
+			return 1;
+		}
+		q = q->next;
+#ifdef SMACQ_OPT_RUNRING
+		if (q == runq->tail) return 0;
+#endif
+	}
+	return 0;
+}
+
 void do_shutdown(struct runq * runq, smacq_graph *f) {
   int i;
 
   if (f->status & SMACQ_FREE) {
-	  /* Already shutdown, so do nothing */
-	  return;
+	/* Already shutdown, so do nothing */
+	return;
+  }
+  if (pending(runq, f)) {
+	/* Defer */
+	runable(runq, f, NULL);
+	return;
   }
 
-  //fprintf(stderr, "shutting down %p %s\n", f, f->name);
+  fprintf(stderr, "shutting down %p %s with state %p\n", f, f->name, f->state);
 
   if (f->ops.shutdown) {
     f->ops.shutdown(f->state);
   }
   f->state = NULL;  /* Just in case somebody tries to use it */
   f->status = SMACQ_END|SMACQ_FREE;
-
-  // fprintf(stderr, "module %p %s ended\n", f, f->name);
 
   /* Propagate to children */
   for (i=0; i < f->numchildren; i++) {
@@ -211,6 +236,8 @@ void do_shutdown(struct runq * runq, smacq_graph *f) {
   for (i=0; i< f->numparents; i++) {
     check_for_shutdown(runq, f->parent[i]);
   }
+
+  return;
 }
 
 static int smacq_sched_iterative_graph_alive (smacq_graph *f) {
@@ -232,32 +259,30 @@ static int smacq_sched_iterative_graph_alive (smacq_graph *f) {
 }
 
 void smacq_sched_iterative_shutdown(smacq_graph * f, struct runq * runq) {
-  f->status |= SMACQ_END;
+  f->status |= (SMACQ_END|SMACQ_PRODUCE);
 
   runable(runq, f, NULL);
 }
 
-static int pending(struct runq * runq, smacq_graph * f) {
-	struct qel * q = runq->head;
-	while (q) {
-		if (q->d && (q->f == f)) {
-			return 1;
-		}
-		q = q->next;
-#ifdef SMACQ_OPT_RUNRING
-		if (q == runq->tail) return 0;
-#endif
-	}
-	return 0;
-}
-
-static inline int run_produce(smacq_graph * f, struct runq * runq) {
+static inline void run_produce(smacq_graph * f, struct runq * runq) {
 	const dts_object * d = NULL;
 	int outchan = -1;
-	int pretval;
+
+	if (f->status & SMACQ_END) {
+		/* Defer last call until everything consumed */
+		if (pending(runq,f)) {
+			runable(runq, f, NULL);
+			return;
+		}
+
+		if (! (f->status & SMACQ_PRODUCE)) {
+			do_shutdown(runq, f);
+			return;
+		}
+	}
 
         if (! (f->status & SMACQ_FREE)) {
-		pretval = f->ops.produce(f->state, &d, &outchan);
+		int pretval = f->ops.produce(f->state, &d, &outchan);
 
 		if (pretval & SMACQ_PASS) {
 			queue_children(runq, f, d, outchan);
@@ -271,37 +296,27 @@ static inline int run_produce(smacq_graph * f, struct runq * runq) {
 
 		if (f->status & SMACQ_END) {
 			if (! (pretval & (SMACQ_PASS|SMACQ_PRODUCE|SMACQ_CANPRODUCE))) {
-				if (pending(runq, f)) {
-					/* Defer shutdown */
-					runable(runq, f, NULL);
-				} else {
-					/* Produced nothing */
-					pretval |= SMACQ_END;
-					//fprintf(stderr, "%s:%p produced nothing while ending\n", f->name, f);
-				}
+				/* Produced nothing; last call is over */
+				f->status = SMACQ_END;
+				pretval |= SMACQ_END;
+				//fprintf(stderr, "%s:%p produced nothing while ending\n", f->name, f);
 			}
 		}
 
 		if (pretval & SMACQ_END) {
-	  		do_shutdown(runq, f);
-
 			assert(!(pretval & (SMACQ_PRODUCE|SMACQ_CANPRODUCE)));
 
-			return 1;
+	  		do_shutdown(runq, f);
 		}
 	}
-
-	return 0;
 }
       
-static inline int run_consume(smacq_graph * f, const dts_object * d, struct runq * runq) {
+static inline void run_consume(smacq_graph * f, const dts_object * d, struct runq * runq) {
         int outchan = -1;
-	int result = 0;
 	smacq_result retval;
 	
 	assert(! (f->status & SMACQ_FREE));
 	retval = f->ops.consume(f->state, d, &outchan);
-
 
 	if (retval & SMACQ_PASS) {
 	  //fprintf(stderr, "Pass on %p by %p\n", d, f);
@@ -310,17 +325,12 @@ static inline int run_consume(smacq_graph * f, const dts_object * d, struct runq
 	dts_decref(d);
 
         if (retval & (SMACQ_PRODUCE|SMACQ_CANPRODUCE)) {
-	      if (run_produce(f, runq)) {
-		      result = 1;
-	      }
+	      run_produce(f, runq);
         }
 
         if (retval & SMACQ_END) {
  	  do_shutdown(runq, f);
-	  result = 1;
         }
-
-	return result;
 }
 
 
@@ -362,8 +372,6 @@ int smacq_sched_iterative(smacq_graph * startf, const dts_object * din, const dt
   }
 
   if (pop_runable(runq, &f, &d)) {
-      int shutdown;
-
       if (!f) {
 	/* Datum fell off end of data-flow graph */
 
@@ -377,16 +385,12 @@ int smacq_sched_iterative(smacq_graph * startf, const dts_object * din, const dt
       } 
       
       if (d) {
-	shutdown = run_consume(f, d, runq);
+	run_consume(f, d, runq);
       } else {
 	/* Force produce */
-	shutdown = run_produce(f, runq);
+	run_produce(f, runq);
       }
-
-      if (shutdown && (! ((!runq_empty(runq)) || smacq_sched_iterative_graph_alive(startf)))) 
-  	return SMACQ_END;
-
-  } else if (produce_first) {
+  } else if (produce_first || (!smacq_sched_iterative_graph_alive(startf)) ) {
     return SMACQ_END;
   }
 
