@@ -284,7 +284,7 @@ static inline void run_produce(smacq_graph * f, struct runq * runq) {
 		}
 	}
 
-        if (! (f->status & SMACQ_FREE)) {
+        if (f->status & (SMACQ_PRODUCE|SMACQ_CANPRODUCE) || (! f->status & SMACQ_FREE)) {
 		int pretval = f->ops.produce(f->state, &d, &outchan);
 
 		if (pretval & SMACQ_PASS) {
