@@ -1,14 +1,15 @@
 SUBDIRS=substr patricia
 INCLUDES = @GLOBAL_INCLUDES@ -I$(top_srcdir)/include -I/usr/include/pcap
 noinst_LTLIBRARIES = libsmacq_modules.la libtest_dynamic.la 
-EXTRA_LTLIBRARIES = libpcaplive.la libpython.la libreassemble.la libbench_field.la 
+EXTRA_LTLIBRARIES = #libpcaplive.la libpython.la libreassemble.la libbench_field.la 
 BUILT_SOURCES = count.c
 SUFFIXES = .sc
 
-libsmacq_modules_la_SOURCES = print.c pcaplive.c pcapfile.c socket.c uniq.c count.c last.c top.c head.c filter.c msgtest.c entropy.c derivative.c split.c encrypt.c warden.c pdf.c fifo.c delta.c tabularinput.c sync.c rusage.c groupby.c flowid.c sum.c fifodelay.c project.c rename.c join.c bench_field.la mask.c const.c ndjoin.c lor.c counter_loop.c dfa.c noop.c expr.c equals.c cflow.c clock.c disarm.c substr-main.c iplookup.c sqlinsert.c #sqlclient.c
-libsmacq_modules_la_LIBADD = substr/libsubstr.la patricia/libpatricia.la
-libsmacq_modules_la_LDFLAGS = -lpcap
-libsmacq_modules_la_DEPENDENCIES = $(libsmacq_modules_la_LIBADD)
+libsmacq_modules_la_SOURCES = print.c pcaplive.c pcapfile.c socket.c uniq.c count.c last.c top.c head.c filter.c msgtest.c entropy.c derivative.c split.c encrypt.c warden.c pdf.c fifo.c delta.c tabularinput.c sync.c rusage.c groupby.c flowid.c sum.c fifodelay.c project.c rename.c join.c mask.c const.c ndjoin.c lor.c counter_loop.c dfa.c noop.c expr.c equals.c cflow.c clock.c disarm.c substr-main.c iplookup.c #sqlinsert.c #sqlclient.c
+EXTRA_libsmacq_modules_la_SOURCES = sqlinsert.c
+
+libsmacq_modules_la_LIBADD = -lpcap substr/libsubstr.la patricia/libpatricia.la @EXTRA_MODULE_SOURCES@ 
+libsmacq_modules_la_DEPENDENCIES = $(libsmacq_modules_la_LIBADD) @EXTRA_MODULE_SOURCES@ 
 
 libtest_dynamic_la_SOURCES = test_dynamic.c
 
@@ -29,9 +30,8 @@ libbench_field_la_SOURCES = bench_field-main.c bench_field-virtual.C
 libpcaplive_la_SOURCES = pcaplive.c
 libpcaplive_la_LDFLAGS = -lpcap
 
-libpython_la_LIBADD = python.lo
 python_lo_CFLAGS = -I$(USR)/include/python2.2
-libpython_la_LIBADD = -L/usr/lib/python2.2/config -lpython2.2 -lpthread -lutil 
+libpython_la_LIBADD = python.lo -L/usr/lib/python2.2/config -lpython2.2 -lpthread -lutil 
 
 libreassemble_la_LIBADD = reassemble.lo spp_export_pkt.lo  
 reassemble_lo_CFLAGS = -I$(SNORT_HOME)
