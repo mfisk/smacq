@@ -1,18 +1,16 @@
-BUILDDIR=build/`uname -sm| sed 's/  */-/g'`
+#
+# This file is just a wrapper to find and run GNU Make
+#
+MAKE=`(type gmake || type gnumake || type make) 2>/dev/null | cut -d\  -f3`
 
-all: platform dirs
-	@echo "Executables are in build/":
-	@ls -al build/*/bin/smacqq
-	@ln -fs $(BUILDDIR)/bin/smacqq smacqq
+auto: all
 
-platform:
-	misc/config-env # Make the build directory and its config.mk
-	@mkdir -p $(BUILDDIR)
-	@ln -sf `pwd`/Makefile.top $(BUILDDIR)/Makefile
+*: .PHONY
+	@echo $(MAKE) -f GNUmakefile $@ 
+	@$(MAKE) -f GNUmakefile $@ 
 
-%: .ALWAYS
-	@echo $(MAKE) -C $(BUILDDIR) $@ 
-	@$(MAKE) -C $(BUILDDIR) $@ 
+.DEFAULT: .PHONY
+	@echo $(MAKE) -f GNUmakefile $@ 
+	@$(MAKE) -f GNUmakefile $@ 
 
-.ALWAYS:
-	@true
+
