@@ -10,13 +10,13 @@ all: $(PRODUCTS)
 LIBSMACQ=$(TOPBINDIR)/libsmacq/libsmacq.la
 
 %: %.lo  ../include/smacq.h $(LIBSMACQ) $(BUILTINS)
-	$(LIBTOOL) $(LDXX) -o $@ -static $< $(BUILTIN_FLAGS) $(LDFLAGS)
+	$(LIBTOOL) $(LDXX) -o $@ -export-dynamic -static $< $(BUILTIN_FLAGS) $(LDFLAGS)
 
 %-static: %.lo ../include/smacq.h $(LIBSMACQ) $(BUILTINS)
-	-$(LIBTOOL) $(LDXX) -o $@ -all-static $< $(BUILTIN_FLAGS) $(LDFLAGS) 
+	-$(LIBTOOL) $(LDXX) -o $@ -export-dynamic -all-static $< $(BUILTIN_FLAGS) $(LDFLAGS) 
 
 %-dynamic: %.lo ../include/smacq.h $(LIBSMACQ)  
-	$(LIBTOOL) $(CC) -o $@ -dynamic $< $(LDFLAGS) 
+	$(LIBTOOL) $(CC) -o $@ -export-dynamic -dynamic $< $(LDFLAGS) 
 
 %.lo: %.c ../include/smacq.h 
 	$(LIBTOOL) $(CC) -c $(CFLAGS) $< 
