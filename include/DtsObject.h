@@ -25,7 +25,7 @@ class DtsObject{
 
 	unsigned long getid() { return(id); }
 
-	char * getdata() { return((char*)data); }
+	unsigned char * getdata() { return((unsigned char*)data); }
 	void setdata(void * data) { this->data = data; }
 	void setdatacopy(void * src);
 	int set_fromstring(char * datastr);
