@@ -20,8 +20,8 @@ static struct smacq_options options[] = {
 
 SMACQ_MODULE(clock,
   PROTO_CTOR(clock);
+  PROTO_DTOR(clock);
   PROTO_CONSUME();
-  PROTO_PRODUCE();
 
   DtsField timefield;
   DtsField clockfield;
@@ -97,10 +97,9 @@ clockModule::clockModule(struct SmacqModule::smacq_init * context) : SmacqModule
   ticktype = dts->requiretype("int");
 }
 
-smacq_result clockModule::produce(DtsObject & datum, int & outchan) {
-	/* Forced last call */
-	datum = dts->construct(refreshtype, NULL);
-	datum->attach_field(clockfield, current_ticko);
-	return (SMACQ_PASS|SMACQ_END);
+clockModule::~clockModule() {
+  DtsObject datum = dts->construct(refreshtype, NULL);
+  datum->attach_field(clockfield, current_ticko);
+  enqueue(datum);
 }
 
