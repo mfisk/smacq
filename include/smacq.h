@@ -10,8 +10,14 @@
 #define SMACQ_OPT_NOPTHREADS
 #define SMACQ_OPT_NOMSGS
 #define SMACQ_OPT_FORCEFIELDCACHE
-#define SMACQ_OPT_VECTORS
 #define SMACQ_OPT_RUNRING
+
+#ifndef SMACQ_NO_OPT
+#define SMACQ_OPT_VECTORS
+#define SMACQ_OPT_CHILDREN
+#define SMACQ_OPT_HEADS
+#define SMACQ_OPT_TAILS
+#endif
 
 #ifdef __cplusplus
 #   define EXTERN extern "C"
