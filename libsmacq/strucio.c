@@ -122,7 +122,7 @@ static char * filelist_bounded(struct strucio * r, void * user) {
 
 static char * filelist_stdin(struct strucio * r, void * user) {
   int res;
-  char * filename = NULL;
+  char filename[4096];
 
   res = scanf("%4096s", filename);
 
