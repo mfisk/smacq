@@ -51,7 +51,6 @@ like|LIKE                      return YYLIKE;
 	"\\r"		*yystring++ = '\r';
 	"\\t"		*yystring++ = '\t';
 	"\\f"		*yystring++ = '\f';
-	\\(.)		*yystring++ = yytext[1];
 	{dquote}		{
 				*yystring = '\0'; 
 			 	yystring = strdup(string_buf);
