@@ -31,6 +31,7 @@
 
 static struct smacq_options options[] = {
   {"t", {double_t:0}, "Threshold quiet time", SMACQ_OPT_TYPE_TIMEVAL},
+  {"r", {boolean_t:0}, "Reverse each pair of fields for bidirectional flows", SMACQ_OPT_TYPE_BOOLEAN},
   {NULL, {string_t:NULL}, NULL, 0}
 };
 
@@ -42,7 +43,7 @@ struct srcstat {
 
 struct state {
   smacq_environment * env;
-  struct fieldset fieldset;
+  struct fieldset fieldset, fieldset2;
   GHashTableofBytes *stats;
 
   struct timeval interval;
@@ -65,6 +66,8 @@ struct state {
   
   // Output 
   dts_object * product;
+
+  int reverse;
 }; 
 
 static void timeval_minus(struct timeval x, struct timeval y, struct timeval * result) {
@@ -153,12 +156,19 @@ static smacq_result flowid_consume(struct state * state, const dts_object * datu
 
   // Make new entry if necessary 
   if (!s || s->expired) {
-    s = g_new(struct srcstat, 1);
-    s->expired = 0;
-    s->id = state->flowid++;
-    s->starttime = *tsnow;
-    bytes_hash_table_insertv(state->stats, domainv, state->fieldset.num, s);
-    state->active++;
+    if (state->reverse) {
+      struct iovec * domain2v =  fields2vec(state->env, datum, &state->fieldset2);
+      s = bytes_hash_table_lookupv(state->stats, domain2v, state->fieldset2.num);
+    }
+
+    if (!s || s->expired) {
+      s = g_new(struct srcstat, 1);
+      s->expired = 0;
+      s->id = state->flowid++;
+      s->starttime = *tsnow;
+      bytes_hash_table_insertv(state->stats, domainv, state->fieldset.num, s);
+      state->active++;
+    }
   }
 
   // Update state
@@ -192,10 +202,11 @@ static int flowid_init(struct flow_init * context) {
   state->timeseries = flow_requirefield(state->env, "timeseries");
 
   {
-	smacq_opt interval;
+	smacq_opt interval, reverse;
 
   	struct smacq_optval optvals[] = {
     		{ "t", &interval}, 
+    		{ "r", &reverse}, 
     		{NULL, NULL}
   	};
   	flow_getoptsbyname(context->argc-1, context->argv+1,
@@ -204,11 +215,26 @@ static int flowid_init(struct flow_init * context) {
 
 	state->interval = interval.timeval_t;
 	state->hasinterval = (state->interval.tv_usec || state->interval.tv_sec); 
-
+	state->reverse = reverse.boolean_t;
   }
 
   // Consume rest of arguments as field names
   fields_init(state->env, &state->fieldset, argc, argv);
+
+  if (state->reverse) {
+    int i;
+    char ** rargv = g_new(char*, argc);
+    for (i = 0; i < argc; i++) {
+      if (i %2) {
+	assert(i > 0);
+	rargv[i] = argv[i-1];
+      } else {
+	assert(i < (argc-1));
+	rargv[i] = argv[i+1];
+      }
+    }
+    fields_init(state->env, &state->fieldset2, argc, rargv);
+  }
 
   state->stats = bytes_hash_table_new(KEYBYTES, CHAIN, FREE);
 
