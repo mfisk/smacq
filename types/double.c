@@ -9,7 +9,7 @@ static int smacqtype_double_get_double(const dts_object * o, dts_object * field)
 
 static int smacqtype_double_get_string(const dts_object * o, dts_object * field) {
   dts_setsize(field, 64);
-  snprintf(field->data, 64, "%f", dts_data_as(o, double));
+  snprintf(field->data, 64, "%g", dts_data_as(o, double));
   return 1;
 }
 
