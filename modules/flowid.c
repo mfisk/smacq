@@ -181,8 +181,9 @@ static inline int expired(struct state * state, struct iovec * domainv, struct s
     // Cleanup
     free(s->fields);
 
-    if (!bytes_hash_table_removev(state->stats, domainv, state->fieldset.num))
- 		assert(0);
+    if (!bytes_hash_table_removev(state->stats, domainv, state->fieldset.num)) {
+ 		// assert(0);
+    }
 
     if (do_free)	
 	free(domainv);
