@@ -4,6 +4,8 @@
 /* This is a "cached malloc" optimized for fixed or similar size
  * data structures */
 
+#ifndef SMACQ_NO_OPT_CMALLOC
+
 struct cmalloc_element {
 	int size;
 };
@@ -78,4 +80,27 @@ void cmalloc_destroy(struct cmalloc * m) {
 	free(m->freelist);
 	free(m);
 }
+#else
+#warning "SMACQ_NO_OPT_CMALLOC is set"
 
+struct cmalloc * cmalloc_init(int minsize, int maxfree) {
+	return NULL;
+}
+
+void * cmrealloc(void * data, int size) {
+	return realloc(data, size);
+}
+
+void * cmalloc(struct cmalloc * m, int size) {
+	return malloc(size);
+}
+
+void cmfree(struct cmalloc * m, void * base) {
+	free(base);
+}
+
+void cmalloc_destroy(struct cmalloc * m) {
+	return;
+}
+
+#endif
