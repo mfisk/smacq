@@ -1,13 +1,20 @@
 VERSION 2.2 - unreleased
 ========================
-2004-12 - SmacqModule enqueue() is now a callback to the scheduler:
+2004-12 - changes module: detects(/filters for) changes in dynamics
+2004-12 - print module: '*' removed; specifying no fields now prints all fields
+2004-12 - bugfix: DtsObject reference counting now handles uses cycles (memory leak)
+2004-12 - SmacqModule::enqueue() is now a callback to the scheduler:
            - SmacqModule::canproduce() and dequeue() are obsoleted
            - Module destructors can now enqueue()
            - Last-call semantics on produce() removed
            - Most modules no longer implement produce()
-2004-12 - smacq_getoptsbyname() now prints help on error
-2004-12 - smacq_getoptsbyname() now handles -xy as -x -y and not as --xy
-2004-11 - Added "-t" option to smacqq to describe a type
+           - enqueue() object proceeds before object being consumed
+2004-12 - smacq_getoptsbyname():
+           - now prints help on error
+           - now handles -xy as -x -y and not as --xy
+2004-11 - smacqq: 
+           - Added "-t" option to describe a type
+           - Added "-q" option to avoid new warnings
 2004-11 - Refactored smacq(1) and smacqq(1) manpages
 
 VERSION 2.1 - 15 November 2004

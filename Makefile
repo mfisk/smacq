@@ -17,7 +17,7 @@ cvsinterforce: cvsinter
 
 cvsinter:
 		# All the intermediate files that may change
-	cvs commit -m 'intermediate file' *.in `find * -name \*.in` configure stamp-h.in config config.h.in doc/smacq.1* doc/smacqq.1* #libsmacq/parser.h libsmacq/*parser.[yc]pp libsmacq/scanner.cpp
+	cvs commit -m 'intermediate file' *.in `find * -name \*.in` aclocal.m4 configure stamp-h.in config config.h.in doc/smacq.1* doc/smacqq.1* #libsmacq/parser.h libsmacq/*parser.[yc]pp libsmacq/scanner.cpp
 
 %:
 	misc/buildarch $@

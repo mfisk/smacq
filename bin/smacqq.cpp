@@ -20,12 +20,13 @@ static struct smacq_options options[] = {
   {"O", {boolean_t:0}, "Optimize multiple queries", SMACQ_OPT_TYPE_BOOLEAN},
   {"f", {string_t:"-"}, "File to read queries from", SMACQ_OPT_TYPE_STRING},
   {"g", {boolean_t:0}, "Show final graph", SMACQ_OPT_TYPE_BOOLEAN},
+  {"q", {boolean_t:0}, "Ignore warnings", SMACQ_OPT_TYPE_BOOLEAN},
   END_SMACQ_OPTIONS
 };
 
 
 int main(int argc, char ** argv) {
-  smacq_opt multiple, optimize, qfile, showgraph, showtype;
+  smacq_opt multiple, optimize, qfile, showgraph, showtype, quiet;
   int qargc;
   char ** qargv;
   DTS dts;
@@ -40,16 +41,19 @@ int main(int argc, char ** argv) {
 	  return -1;
   }
 
-  {
-	  struct smacq_optval optvals[] = {
+  struct smacq_optval optvals[] = {
 		  {"t", &showtype},
 		  {"m", &multiple},
 		  {"f", &qfile},
 		  {"O", &optimize},
 		  {"g", &showgraph},
+		  {"q", &quiet},
 		  {NULL, NULL}
-	  };
-	  smacq_getoptsbyname(argc-1, argv+1, &qargc, &qargv, options, optvals);
+  };
+  smacq_getoptsbyname(argc-1, argv+1, &qargc, &qargv, options, optvals);
+
+  if (quiet.boolean_t) {
+	dts.set_no_warnings();
   }
 
   if (showtype.string_t) {

@@ -12,7 +12,7 @@
       <firstname>Mike</firstname>
       <surname>Fisk</surname>
     </author>
-    <date>$Date: 2004/12/12 20:41:02 $</date>
+    <date>$Date: 2004/12/12 22:50:35 $</date>
   </refentryinfo>
   <refmeta>
     <refentrytitle>smacq</refentrytitle>
@@ -172,7 +172,7 @@
 	<arg choice="opt">-v</arg>
 	<arg choice="opt">-B</arg>
 	<arg choice="opt">-d <replaceable>delimiter</replaceable></arg>
-	<arg choice="req" rep="repeat">fields</arg>
+	<arg choice="opt" rep="repeat">fields</arg>
       </cmdsynopsis>
 
       <para>
@@ -185,7 +185,8 @@
 	is specified, then output is not buffered (output is flushed
 	after each record).  Fields are separated by a delimiter
 	string which can be specified by <option>-d</option> and
-	defaults to TAB.
+	defaults to TAB.  If no fields are specified, then all fields
+	are printed.
       </para>
     </refsect2>
 
