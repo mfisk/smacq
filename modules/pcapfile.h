@@ -32,6 +32,7 @@ struct state {
 
   int produce;			/* Does this instance produce */
   gzFile * gzfile;
+  FILE * fh;
   struct pcap_file_header pcap_file_header;
   int swapped;
   int extended;
