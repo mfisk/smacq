@@ -18,7 +18,7 @@ booleanline: boolean YYSTOP 	{
 %%
 
 static dts_environment * tenv;
-//void yyfilter_scan_string(char *);
+extern void yyfilter_scan_string(char *);
 
 static void print_comp(dts_environment * tenv, dts_comparison * c) {
 	char * op;
@@ -43,6 +43,7 @@ static void print_comp(dts_environment * tenv, dts_comparison * c) {
 		case FUNC: op = "FN"; break;
 	}
 
+#if DEBUG
 	switch(c->op) {
 		case AND:
 		case OR:
@@ -58,6 +59,8 @@ static void print_comp(dts_environment * tenv, dts_comparison * c) {
 			break;
 			
 	}
+#endif
+
 	print_comp(tenv, c->group);
 	print_comp(tenv, c->next);
 
@@ -85,7 +88,7 @@ dts_comparison * dts_parse_tests(dts_environment * localtenv, int argc, char ** 
   	strcatn(qstr, size, " ");
   }
   yy_scan_string(qstr);
-  fprintf(stderr, "parsing filter buffer: %s\n", qstr); 
+  //fprintf(stderr, "parsing filter buffer: %s\n", qstr); 
 
   if (yyfilterparse()) {
   	/* Should free the comparisons? */

@@ -208,10 +208,10 @@ char * opstr(dts_comparison * comp) {
     return "[FUNC]";
 
  case AND:
-    return "[AND]";
+    return "AND";
 
  case OR:
-    return "[OR]";
+    return "OR";
   }
 
   return "[ERR]";
@@ -247,7 +247,7 @@ char * print_comparison(dts_comparison * comp) {
     }
     strcatn(buf, size, ")");
 
-  } else if (comp->op == OR) {
+  } else if (comp->op == OR || comp->op == AND) {
     buf[0] = '\0';
 
     for (c = comp->group; c; c=c->next) {
@@ -259,7 +259,11 @@ char * print_comparison(dts_comparison * comp) {
       free(b);
 
       if (c->next) {
-	strcatn(buf, size, " or ");
+	if (comp->op == AND) {
+		strcatn(buf, size, " AND ");
+	} else {
+		strcatn(buf, size, " OR ");
+	}
       }
     }
   } else {
@@ -269,9 +273,15 @@ char * print_comparison(dts_comparison * comp) {
   return(buf);
 }
 
+static inline struct arglist * arglist_append2(struct arglist * old, struct arglist * append) {
+	if (!old) return append;
+	arglist_append(old, append);
+	return old;
+}
+
 struct graph optimize_bools(dts_comparison * comp) {
   dts_comparison *c;
-  struct arglist * arglist;
+  struct arglist * arglist = NULL;
   struct graph g;
 
   g.head = NULL; g.tail = NULL;
@@ -283,8 +293,17 @@ struct graph optimize_bools(dts_comparison * comp) {
     } else if (c->op == FUNC) {
       graph_join(&g, newmodule(c->fieldname, c->arglist));
     } else if (c->op == OR) {
-      arglist = newarg(print_comparison(c), 0, NULL);
-      graph_join(&g, newmodule("filter", arglist)); 
+      dts_comparison * p;
+
+      for (p=c->group; p; p=p->next) {
+	if (p->op != FUNC) {
+		arglist = arglist_append2(arglist, newarg("where", 0, NULL));
+	}
+      	arglist = arglist_append2(arglist, newarg(print_comparison(p), 0, NULL));
+      	arglist = arglist_append2(arglist, newarg(";", 0, NULL));
+      }
+
+      graph_join(&g, newmodule("lor", arglist)); 
     } else {
       arglist = newarg(print_comparison(c), 0, NULL);
       graph_join(&g, newmodule("filter", arglist));

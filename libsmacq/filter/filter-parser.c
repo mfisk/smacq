@@ -335,10 +335,10 @@ static const yysigned_char yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const unsigned char yyrline[] =
 {
-       0,    70,    80,   145,   146,   149,   152,   153,   154,   157,
-     158,   161,   162,   183,   201,   202,   205,   206,   209,   216,
-     217,   218,   219,   222,   223,   224,   232,   233,   234,   235,
-     236,   237,   238,   243
+       0,    70,    80,   151,   152,   155,   158,   159,   160,   163,
+     164,   167,   168,   189,   207,   208,   211,   212,   215,   222,
+     223,   224,   225,   228,   229,   230,   238,   239,   240,   241,
+     242,   243,   244,   249
 };
 #endif
 
@@ -1005,87 +1005,87 @@ yyreduce:
   switch (yyn)
     {
         case 5:
-#line 149 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 155 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
     { yyval.string = yystring; }
     break;
 
   case 6:
-#line 152 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 158 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
     { yyval.string = yystring; }
     break;
 
   case 7:
-#line 153 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 159 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
     { yyval.string = "or"; }
     break;
 
   case 8:
-#line 154 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 160 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
     { yyval.string = "and"; }
     break;
 
   case 10:
-#line 158 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 164 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
     { yyval.arglist->rename = yyvsp[0].string; }
     break;
 
   case 11:
-#line 161 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 167 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
     { yyval.arglist = newarg(yyvsp[0].string, 0, NULL); }
     break;
 
   case 12:
-#line 162 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 168 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
     { yyval.arglist = newarg(yyvsp[-3].string, 1, yyvsp[-1].arglist); }
     break;
 
   case 14:
-#line 201 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 207 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
     { yyval.arglist = NULL; }
     break;
 
   case 15:
-#line 202 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 208 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
     { yyval.arglist = yyvsp[-1].arglist; yyval.arglist->next = yyvsp[0].arglist; }
     break;
 
   case 16:
-#line 205 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 211 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
     { yyval.arglist = NULL; }
     break;
 
   case 17:
-#line 206 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 212 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
     { yyval.arglist = yyvsp[-1].arglist; yyval.arglist->next = yyvsp[0].arglist; }
     break;
 
   case 19:
-#line 216 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 222 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
     { yyval.comp = yyvsp[-1].comp; }
     break;
 
   case 20:
-#line 217 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 223 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
     { yyval.comp = comp_join(yyvsp[-2].comp, yyvsp[0].comp, 1); }
     break;
 
   case 21:
-#line 218 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 224 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
     { yyval.comp = comp_join(yyvsp[-2].comp, yyvsp[0].comp, 0); }
     break;
 
   case 23:
-#line 222 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 228 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
     { yyval.comp = comp_new(yyvsp[0].string, EXIST, NULL, 0); }
     break;
 
   case 24:
-#line 223 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 229 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
     { yyval.comp = comp_new(yyvsp[-2].string, yyvsp[-1].op, &(yyvsp[0].string), 1); }
     break;
 
   case 25:
-#line 224 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 230 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
     {
 					int argc; char ** argv;
 					arglist2argv(yyvsp[-1].arglist, &argc, &argv);
@@ -1095,42 +1095,42 @@ yyreduce:
     break;
 
   case 26:
-#line 232 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 238 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
     { yyval.op = EQ; }
     break;
 
   case 27:
-#line 233 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 239 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
     { yyval.op = GT; }
     break;
 
   case 28:
-#line 234 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 240 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
     { yyval.op = LT; }
     break;
 
   case 29:
-#line 235 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 241 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
     { yyval.op = GEQ; }
     break;
 
   case 30:
-#line 236 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 242 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
     { yyval.op = LEQ; }
     break;
 
   case 31:
-#line 237 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 243 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
     { yyval.op = NEQ; }
     break;
 
   case 32:
-#line 238 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 244 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
     { yyval.op = LIKE; }
     break;
 
   case 33:
-#line 243 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 249 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
     {
 					Comp = yyvsp[-1].comp;
 					return 0;
@@ -1360,11 +1360,11 @@ yyreturn:
 }
 
 
-#line 249 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 255 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
 
 
 static dts_environment * tenv;
-//void yyfilter_scan_string(char *);
+extern void yyfilter_scan_string(char *);
 
 static void print_comp(dts_environment * tenv, dts_comparison * c) {
 	char * op;
@@ -1389,6 +1389,7 @@ static void print_comp(dts_environment * tenv, dts_comparison * c) {
 		case FUNC: op = "FN"; break;
 	}
 
+#if DEBUG
 	switch(c->op) {
 		case AND:
 		case OR:
@@ -1404,6 +1405,8 @@ static void print_comp(dts_environment * tenv, dts_comparison * c) {
 			break;
 			
 	}
+#endif
+
 	print_comp(tenv, c->group);
 	print_comp(tenv, c->next);
 
@@ -1431,7 +1434,7 @@ dts_comparison * dts_parse_tests(dts_environment * localtenv, int argc, char ** 
   	strcatn(qstr, size, " ");
   }
   yy_scan_string(qstr);
-  fprintf(stderr, "parsing filter buffer: %s\n", qstr); 
+  //fprintf(stderr, "parsing filter buffer: %s\n", qstr); 
 
   if (yyfilterparse()) {
   	/* Should free the comparisons? */

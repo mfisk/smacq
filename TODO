@@ -1,3 +1,7 @@
+OR:
+	We currently use the lor module for all boolean or operations, even if the
+	tests are simple and the OR could be done within the filter module.
+	
 Resolve:
 	Join needs where information to determine type of join
 	Pcaplive and Disarm modules could take advantage of where information

@@ -219,7 +219,7 @@ void do_shutdown(struct runq * runq, smacq_graph *f) {
 	return;
   }
 
-  fprintf(stderr, "shutting down %p %s with state %p\n", f, f->name, f->state);
+  //fprintf(stderr, "shutting down %p %s with state %p\n", f, f->name, f->state);
 
   if (f->ops.shutdown) {
     f->ops.shutdown(f->state);
@@ -406,7 +406,7 @@ static inline smacq_result smacq_sched_iterative_once(smacq_graph * startf, cons
   }
 }
 
-static inline smacq_result smacq_sched_iterative_busy(smacq_graph * startf, const dts_object ** dout, struct runq * runq, int produce_first) {
+smacq_result smacq_sched_iterative_busy(smacq_graph * startf, const dts_object ** dout, struct runq * runq, int produce_first) {
   const dts_object * d;
   smacq_graph * f;
   *dout = NULL;
@@ -415,7 +415,7 @@ static inline smacq_result smacq_sched_iterative_busy(smacq_graph * startf, cons
 	  smacq_sched_iterative_element(d, f, dout, runq);
   }
 
-  return SMACQ_FREE;
+  return 0;
 }
 
 /*
