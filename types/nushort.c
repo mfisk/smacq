@@ -5,14 +5,12 @@
 #include <stdlib.h>
 #include "smacq.h"
 
-static int smacqtype_nushort_get_string(void * data, int dlen, void ** transform, int * tlen) {
+static int smacqtype_nushort_get_string(const dts_object * obj, void ** transform, int * tlen) {
   char buf[64]; // Only has to hold log10(2**32)
 
-  assert(dlen==sizeof(unsigned short));
-
-  snprintf(buf, 64, "%hu", ntohs(*(unsigned short*)data));
+  snprintf(buf, 64, "%hu", ntohs(dts_data_as(obj, unsigned short)));
   *transform = strdup(buf);
-  *tlen = strlen(data);
+  *tlen = strlen(buf);
 
   return 1;
 }
@@ -38,9 +36,9 @@ int nushort_lt(void * num1, int size1, void * num2, int size2) {
 
 	return(a < b);
 }
-      
-struct dts_transform_descriptor dts_type_nushort_transforms[] = {
-	{ "string",   smacqtype_nushort_get_string },
+
+struct dts_field_descriptor dts_type_nushort_fields[] = {
+	{ "string",   "string",	smacqtype_nushort_get_string },
         { END,        NULL }
 };
 

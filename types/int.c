@@ -3,20 +3,19 @@
 #include <string.h>
 #include "smacq.h"
 
-static int smacqtype_int_get_string(void * data, int dlen, void ** transform, int * tlen) {
+static int smacqtype_int_get_string(const dts_object * o, void ** transform, int * tlen) {
   char buf[64]; // Only has to hold log10(2**32)
 
-  snprintf(buf, 64, "%d", *(int*)data);
+  snprintf(buf, 64, "%d", dts_data_as(o, int));
   *transform = strdup(buf);
-  *tlen = strlen(data);
+  *tlen = strlen(buf);
 
   return 1;
 }
 
-static int smacqtype_int_get_double(void * data, int dlen, void ** transform, int * tlen) {
+static int smacqtype_int_get_double(const dts_object * o, void ** transform, int * tlen) {
   double * d = g_new(double, 1);
-  int * i = (int*)data;
-  *d = *i;
+  *d = dts_data_as(o, int);
   *transform = d;
   *tlen = sizeof(double);
 
@@ -45,11 +44,11 @@ int int_lt(void * num1, int size1, void * num2, int size2) {
 
 	return(*a < *b);
 }
-	
-struct dts_transform_descriptor dts_type_int_transforms[] = {
-	{ "string",   smacqtype_int_get_string },
-	{ "double",   smacqtype_int_get_double },
-        { END,        NULL }
+
+struct dts_field_descriptor dts_type_int_fields[] = {
+  { "string",   "string",	smacqtype_int_get_string },
+  { "double",   "double",	smacqtype_int_get_double },
+  { END,        NULL }
 };
 
 struct dts_type_info dts_type_int_table = {

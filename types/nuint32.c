@@ -5,14 +5,12 @@
 #include <netinet/in.h>
 #include "smacq.h"
 
-static int smacqtype_nuint32_get_string(void * data, int dlen, void ** transform, int * tlen) {
+static int smacqtype_nuint32_get_string(const dts_object * o, void ** transform, int * tlen) {
   char buf[64]; // Only has to hold log10(2**32)
 
-  assert(dlen==sizeof(unsigned int));
-
-  snprintf(buf, 64, "%u", ntohl(*(unsigned int*)data));
+  snprintf(buf, 64, "%u", ntohl(dts_data_as(o, unsigned int)));
   *transform = strdup(buf);
-  *tlen = strlen(data);
+  *tlen = strlen(buf);
 
   return 1;
 }
@@ -28,8 +26,8 @@ static int parse_nuint32(char * buf, void ** resp, int * reslen) {
   return 1;
 }
 
-struct dts_transform_descriptor dts_type_nuint32_transforms[] = {
-  { "string",   smacqtype_nuint32_get_string },
+struct dts_field_descriptor dts_type_nuint32_fields[] = {
+  { "string",   "string",	smacqtype_nuint32_get_string },
   { END,        NULL }
 };
 

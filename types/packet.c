@@ -215,5 +215,5 @@ struct dts_field_descriptor dts_type_packet_fields[] = {
 
 	{ "timeval",	"timeseries",    dts_pkthdr_get_ts },
 
-        { (char *)END,	NULL,		NULL }
+        { END,	NULL,		NULL }
 };

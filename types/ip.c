@@ -7,11 +7,10 @@
 #include <stdlib.h>
 #include <smacq.h>
 
-static int smacqtype_ip_get_string(void * data, int dlen, void ** transform, int * tlen) {
-  assert(dlen==4);
-  *transform = malloc(16);
-  strncpy(*transform, inet_ntoa(*(struct in_addr*)data), 16);
-  *tlen = 16;
+static int smacqtype_ip_get_string(const dts_object * datum, void ** data, int * len) {
+  *len = 16;
+  *data = malloc(16);
+  strncpy(*data, inet_ntoa(dts_data_as(datum, struct in_addr)), 16);
 
   return 1;
 }
@@ -30,9 +29,9 @@ static int parse_ip(char * buf, void ** resp, int * reslen) {
   }
 }
 
-struct dts_transform_descriptor dts_type_ip_transforms[] = {
-	{ "string",   smacqtype_ip_get_string },
-        { END,        NULL }
+struct dts_field_descriptor dts_type_ip_fields[] = {
+        { "string",    "string",	smacqtype_ip_get_string },
+        { END,        NULL,     	NULL }
 };
 
 struct dts_type_info dts_type_ip_table = {

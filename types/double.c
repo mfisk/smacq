@@ -3,22 +3,22 @@
 #include <string.h>
 #include "smacq.h"
 
-static int smacqtype_double_get_double(void * data, int dlen, void ** transform, int * tlen) {
+static int smacqtype_double_get_double(const dts_object * o, void ** transform, int * tlen) {
   double * dbl = malloc(sizeof(double));
-  *dbl = *(double*)data;
+  *dbl = dts_data_as(o, double);
   *transform = dbl;
   *tlen = sizeof(double);
 
   return 1;
 }
 
-static int smacqtype_double_get_string(void * data, int dlen, void ** transform, int * tlen) {
+static int smacqtype_double_get_string(const dts_object * o, void ** transform, int * tlen) {
   char buf[64]; 
 
-  snprintf(buf, 64, "%g", *(double*)data);
+  snprintf(buf, 64, "%g", dts_data_as(o, double));
 
   *transform = strdup(buf);
-  *tlen = strlen(data);
+  *tlen = strlen(buf);
 
   return 1;
 }
@@ -37,10 +37,10 @@ static int parse_string(char * buf, void ** resp, int * reslen) {
   return 1;
 }
 
-struct dts_transform_descriptor dts_type_double_transforms[] = {
-	{ "string",   smacqtype_double_get_string },
-	{ "double",   smacqtype_double_get_double },
-        { END,        NULL }
+struct dts_field_descriptor dts_type_double_fields[] = {
+  { "string",   "string",	smacqtype_double_get_string },
+  { "double",   "double",	smacqtype_double_get_double },
+  { END,        NULL }
 };
 
 struct dts_type_info dts_type_double_table = {

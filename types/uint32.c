@@ -3,33 +3,29 @@
 #include <string.h>
 #include "smacq.h"
 
-static int smacqtype_uint32_get_string(void * data, int dlen, void ** transform, int * tlen) {
+static int smacqtype_uint32_get_string(const dts_object * o, void ** transform, int * tlen) {
   char buf[64]; // Only has to hold log10(2**32)
 
-  assert(dlen==sizeof(unsigned int));
-
-  snprintf(buf, 64, "%u", *(unsigned int*)data);
+  snprintf(buf, 64, "%u", dts_data_as(o, unsigned int));
   *transform = strdup(buf);
-  *tlen = strlen(data);
+  *tlen = strlen(buf);
 
   return 1;
 }
 
-static int smacqtype_uint32_get_double(void * data, int dlen, void ** transform, int * tlen) {
+static int smacqtype_uint32_get_double(const dts_object * o, void ** transform, int * tlen) {
   double * d = g_new(double, 1);
-  unsigned int * i = (unsigned int*)data;
-  *d = *i;
+  *d = dts_data_as(o, unsigned int);
   *transform = d;
   *tlen = sizeof(double);
 
   return 1;
 }
 
-
-struct dts_transform_descriptor dts_type_uint32_transforms[] = {
-	{ "string",   smacqtype_uint32_get_string },
-	{ "double",   smacqtype_uint32_get_double },
-        { END,        NULL }
+struct dts_field_descriptor dts_type_uint32_fields[] = {
+  { "string",   "string",	smacqtype_uint32_get_string },
+  { "double",   "double",	smacqtype_uint32_get_double },
+  { END,        NULL }
 };
 
 struct dts_type_info dts_type_uint32_table = {

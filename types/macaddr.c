@@ -10,11 +10,10 @@
 #include <arpa/inet.h>
 #include "smacq.h"
 
-static int smacqtype_macaddr_get_string(void * data, int dlen, void ** transform, int * tlen) {
+static int smacqtype_macaddr_get_string(const dts_object * o, void ** transform, int * tlen) {
   char buf[36]; 
-  unsigned char * c = data;
+  unsigned char * c = (unsigned char*)o->data;
 
-  assert(dlen==6);
   snprintf(buf, 36, "%02x:%02x:%02x:%02x:%02x:%02x", c[0], c[1], c[2], c[3], c[4], c[5]);
 
   *transform = strdup(buf);
@@ -33,8 +32,8 @@ static int parse_macaddr(char * buf, void ** resp, int * reslen) {
   return 1;
 }
 
-struct dts_transform_descriptor dts_type_macaddr_transforms[] = {
-	{ "string",   smacqtype_macaddr_get_string },
+struct dts_field_descriptor dts_type_macaddr_fields[] = {
+	{ "string",   "string",	smacqtype_macaddr_get_string },
 	{ END,        NULL }
 };
 

@@ -8,8 +8,8 @@
 
 #include <netinet/in.h>
 
-static int smacqtype_timeval_get_double(void * data, int dlen, void ** transform, int * tlen) {
-  struct timeval * t = data;
+static int smacqtype_timeval_get_double(const dts_object * o, void ** transform, int * tlen) {
+  struct timeval * t = dts_getdata(o);
   double * dblp = malloc(sizeof(double));
   *dblp = (double)t->tv_sec + 1e-6 * (double)t->tv_usec;
   *transform = dblp;
@@ -17,15 +17,13 @@ static int smacqtype_timeval_get_double(void * data, int dlen, void ** transform
 
   return 1;
 }
-static int smacqtype_timeval_get_string(void * data, int dlen, void ** transform, int * tlen) {
-  struct timeval * t = data;
+static int smacqtype_timeval_get_string(const dts_object * o, void ** transform, int * tlen) {
+  struct timeval * t = dts_getdata(o);
   char buf[64]; 
-
-  assert(dlen=sizeof(struct timeval));
 
   snprintf(buf, 64, "%lu.%06lu", t->tv_sec, t->tv_usec);
   *transform = strdup(buf);
-  *tlen = strlen(data);
+  *tlen = strlen(buf);
 
   return 1;
 }
@@ -55,10 +53,10 @@ static int timeval_lt(void * p1, int len1, void * p2, int len2) {
   return(!timeval_ge(*(struct timeval*)p1, *(struct timeval*)p2));
 }
 
-struct dts_transform_descriptor dts_type_timeval_transforms[] = {
-	{ "string",   	smacqtype_timeval_get_string },
-	{ "double",   	smacqtype_timeval_get_double },
-        { END,        NULL }
+struct dts_field_descriptor dts_type_timeval_fields[] = {
+  { "string",		"double",	smacqtype_timeval_get_string },
+  { "double", 	"double",	smacqtype_timeval_get_double },
+  { END,        NULL }
 };
 
 struct dts_type_info dts_type_timeval_table = {
