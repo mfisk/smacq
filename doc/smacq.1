@@ -285,7 +285,7 @@ as the value string.
  
 .SS "Counter" 
 .PP 
-\fBcounter\fP [-f \fIcountname\fP]  [\fIfields\fP \&...]  
+\fBcount\fP [-a]  [-f \fIcountname\fP]  [-p]  [\fIfields\fP \&...]  
 .PP 
 If no fields are specified, simply count the number of records 
 seen.  If one or more fields are specified, treat those fields 
@@ -293,8 +293,15 @@ as a tuple and count the number of occurrences of each value
 for that tuple.   
  
 .PP 
-The count value is added to the record as an annotation of type int and name "counter" 
-unless the "-f" is used to specify an alternate name for the field. 
+Unless the "-p" flag is specified, then a double value named 
+"probability" is annotated instead.  The "-f" flag can still 
+be used to specify an alternate field name. 
+ 
+.PP 
+Normally an annotation is made to only the final object and all 
+other objects are filtered out.  However, if the "-a" flag is given,  
+then every object is passed and annotated with a 
+running value. 
  
 .SS "Stateful Matching" 
 .PP 
@@ -430,4 +437,4 @@ a time delay which is specified with the \fB-t\fP 	option which defaults to 0 se
 \fBsmacq-modules\fP(3), 
 \fBsmacq-embed\fP(3) 
  
-...\" created by instant / docbook-to-man, Sun 04 May 2003, 13:40 
+...\" created by instant / docbook-to-man, Mon 26 May 2003, 17:50 
