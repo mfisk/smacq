@@ -216,20 +216,17 @@ char * opstr(dts_comparison * comp) {
   case NEQ:
     return "!=";
 
-  case LIKE:
-    return "like";
-
   case EXIST:
     return "";
-
-  case FUNC:
-    return "[FUNC]";
 
  case AND:
     return "AND";
 
  case OR:
     return "OR";
+ 
+ case FUNC:
+    assert(0);
   }
 
   return "[ERR]";
@@ -504,9 +501,9 @@ struct dts_operand * comp_operand(enum dts_operand_type type, char * str) {
 	case CONST:
 	  break;
 
-                   case ARITH:
-		     assert(0);
-		     break;
+	case ARITH:
+	  assert(0);
+	  break;
      }
 
      return comp;
@@ -520,7 +517,7 @@ void DTS::make_fields_doubles(struct dts_operand * operand) {
 	     char * old = operand->origin.literal.str;
 	     operand->origin.literal.str = dts_fieldname_append(old, "double");
 	     //delete(old);
-
+ 
 	     operand->origin.literal.field = requirefield(operand->origin.literal.str);
      }
 }
@@ -552,9 +549,6 @@ dts_comparison * comp_new(dts_compare_operation op, struct dts_operand * op1, st
        case NEQ:
        case AND:
        case OR:
-       case LIKE:
-	 comp->op = op;
-	 break;
        case GT:
 	 comp->op = LEQ;
 	 break;
@@ -616,12 +610,22 @@ char * expression2fieldname(struct dts_operand * expr) {
     return expr_str;
 }
 
-dts_comparison * DTS::parse_tests(int argc, char ** argv) {
+void SmacqModule::comp_uses(dts_comparison * c) {
+  if (c->op != AND && c->op != OR && c->op != NOT && c->op != FUNC) {
+	if (c->op1->type == FIELD) 
+		usesFields[c->op1->origin.literal.field[0]] = true;
+
+	if (c->op != EXIST && c->op2->type == FIELD) 
+		usesFields[c->op2->origin.literal.field[0]] = true;
+  }
+}
+
+dts_comparison * SmacqModule::parse_tests(int argc, char ** argv) {
   dts_comparison * retval;
 
   /* XXX LOCK */
 
-  parse_dts = this;
+  parse_dts = dts;
   char * qstr = argv2str(argc, argv);
 
   yysmacql_scan_string(qstr);
@@ -639,60 +643,12 @@ dts_comparison * DTS::parse_tests(int argc, char ** argv) {
   }
 
   retval = Comp;
+  comp_uses(Comp);
 
   /* UNLOCK */
-  print_comp(retval);
 
   return retval;
 }
-
-void DTS::print_comp(dts_comparison * c) {
-	char * op;
-	op = "UNDEFINED";
-
-	if (!c) {
-		// fprintf(stderr,". (%p)\n", c);
-		return;
-	}
-
-	switch(c->op) {
-		case AND: op = "AND"; break;
-		case OR: op = "OR"; break;
-		case GT: op = "<"; break;
-		case LT: op = ">"; break;
-		case EQ: op = "="; break;
-		case NEQ: op = "!="; break;
-		case GEQ: op = ">="; break;
-		case LEQ: op = "<="; break;
-		case EXIST: op = "exist"; break;
-		case LIKE: op = "like"; break;
-		case FUNC: op = "FN"; break;
-		case NOT: op = "!"; break;
-	}
-
-#if DEBUG
-	switch(c->op) {
-		case AND:
-		case OR:
-			fprintf(stderr, "Comparison %p: op %s, next %p, group %p\n", c, op, c->next, c->group);
-			break;
-
-		case FUNC:
-			fprintf(stderr, "Comparison %p: FN %s(), next %p, group %p\n", c, c->valstr, c->next, c->group);
-			break;
-
-		default:
-			fprintf(stderr, "Comparison %p: field %d... %s %s, next %p, group %p\n", c, c->field[0], op, c->valstr, c->next, c->group);
-			break;
-			
-	}
-#endif
-
-	print_comp(c->group);
-	print_comp(c->next);
-
-}
-
 
 struct dts_operand * DTS::parse_expr(int argc, char ** argv) {
   struct dts_operand * retval;
