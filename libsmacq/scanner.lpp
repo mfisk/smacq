@@ -95,11 +95,14 @@ having|HAVING	return HAVING;
 .	{ fprintf(stderr, "Unexpected character \"%s\"\n", yytext); return -1; }
 
 %%
-#ifdef linux
-/* gcc will warn that yyunput is declared, but unused, so fool it unto thinking it's used.   blech! */
+
+/*
+// Some versions of Flex (e.g. 2.5.31, but not 2.5.4) declare yyunput even if unused.
+// That causes a gcc warning, that in the case of SMACQ is usually fatal!
+// So we define it and use it in a bogus function.  blech!
 void no_unused_warning() {
 	yyunput(0, '\0');
 	no_unused_warning();
 }
-#endif
+*/
 
