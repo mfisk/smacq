@@ -6,7 +6,7 @@
 #include <dlfcn.h>
 #include <smacq.h>
 
-#define DTS_FREELIST_SIZE 10
+#define DTS_FREELIST_SIZE 100
 
 char * type_typename_bynum(dts_environment * tenv, int num) {
   assert(tenv);
@@ -99,6 +99,8 @@ int type_fromstring_virtual(dts_environment * tenv, int type, char * datastr, dt
   assert(t->info.fromstring);
 
   data->type = type;
+  data->free_data = 1;
+  data->len = data->max_size;
   return t->info.fromstring(datastr, &data->data, &data->len);
 }
 
