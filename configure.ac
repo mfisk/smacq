@@ -44,10 +44,12 @@ if test -n "$GCC"; then
 			;;
 		powerpc-apple-darwin*)
 			ADDCFLAGS="$ADDCFLAGS -force_flat_namespace"
+			LIBGNU_CFLAGS="-Wno-long-double"
 			CO="-fast -fPIC -mcpu="`machine | sed 's/ppc//'`
 			;;
     esac
 fi
+AC_SUBST(LIBGNU_CFLAGS)
 
 ##
 ## pkg-config libraries
@@ -113,18 +115,19 @@ LIBS_MODULES_SHARED=`for f in $SHAREDONLY_MODULES; do echo -n " smacq_$f.la "; d
 AC_SUBST(LIBS_MODULES_SHARED)
 
 ##
+## Checks can add things to these variables
+##
+AC_SUBST(EXTRA_STATIC_MODULES)
+AC_SUBST(OPTIONAL_TESTS)
+
+##
 ## libgda
 ##
 PKG_CHECK_MODULES(GDA, libgda,
-	[LDFLAGS=${GDA_LIBS}
-	SQLINSERT_LIBS="${EXTRA_MODULE_SOURCES} sqlinsert.lo"
+	[EXTRA_STATIC_MODULES="${EXTRA_STATIC_MODULES} libsqlinsert.la"
 	OPTIONAL_TESTS="${OPTIONAL_TESTS} sqlinsert.test"
 	],[echo "$GDA_PKG_ERRORS"
 	echo "Building without sqlinsert module"])
-
-AC_SUBST(SQLINSERT_LIBADD, $SQLINSERT_LIBS)
-AC_SUBST(SQLINSERT_DEPENDENCIES, $SQLINSERT_LIBS)
-AC_SUBST(OPTIONAL_TESTS)
 
 ##
 ## Profiling
@@ -152,6 +155,16 @@ AC_ARG_ENABLE(debug,
 		ADDCFLAGS="$ADDCFLAGS -g"
 	fi],
 	[CO="-O9"])
+
+##
+## Small (-Os)
+##	
+AC_ARG_ENABLE(small,
+	AS_HELP_STRING([--enable-small],
+			[compile with -Os to minize executable size]),
+	[if test -n "$GCC"; then
+		CO="-Os"
+	fi])
 
 ##
 ## Electric Fence
@@ -257,9 +270,8 @@ EOF
 	fi
 	AC_MSG_RESULT($LIBINST_PYTHON)
 
-	PYTHON_LIBADD="$LDFLAGS_PYTHON python.lo"
-	PYTHON_DEPENDENCIES="python.lo"
-	PYTHON_TESTS="python.test"
+	EXTRA_STATIC_MODULES="${EXTRA_STATIC_MODULES} libpython.la"
+	OPTIONAL_TESTS="${OPTIONAL_TESTS} python.test"
 
 	rm -f $PYCONF
 fi
@@ -269,11 +281,8 @@ AC_SUBST(LDFLAGS_PYTHON)
 AC_SUBST(LIBS_PYTHON)
 AC_SUBST(LIBINST_PYTHON)
 AC_SUBST(PYTHON_LIBADD)
-AC_SUBST(PYTHON_DEPENDENCIES)
-AC_SUBST(PYTHON_TESTS)
 
 AM_CONDITIONAL(USE_PYTHON, test x$with_python = xyes)
-
 
 ##
 ## gnulib
