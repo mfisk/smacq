@@ -235,7 +235,6 @@ static smacq_result cflow_init(struct smacq_init * context) {
       { "M", &avoid_mmap}, 
       {NULL, NULL}
     };
-    output.uint32_t = 0;
     smacq_getoptsbyname(context->argc-1, context->argv+1,
 				 &state->argc, &state->argv,
 				 options, optvals);
