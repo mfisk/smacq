@@ -20,3 +20,5 @@ guint32 bytes_hash_valuev(struct iovec_hash * ht, int nvecs, struct iovec *);
 void bytes_hash_table_foreach(struct iovec_hash * ht, GHFunc func, gpointer user_data);
 void bytes_hash_table_foreach_remove(struct iovec_hash * ht, GHRFunc func, gpointer user_data);
 int bytes_mask(const struct element * b1, struct iovec * iovecs, int nvecs);
+struct iovec * bytes_hash_element_iovec(struct element * e);
+int bytes_hash_element_nvecs(struct element * e);
