@@ -18,6 +18,7 @@ dirs:
 reallyclean: clean
 clean:
 	rm -Rf *.o *.so *.a *.lo *.la .libs
+	@set -e; for f in $(DIRS); do $(MAKE) -C $$f clean; done
 
 pcapfile.lo: pcapfile.c pcapfile.h 
 pcaplive.lo: pcaplive.c pcapfile.h 
