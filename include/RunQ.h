@@ -1,3 +1,5 @@
+#ifndef RUNQ_H
+#define RUNQ_H
 #include <DtsObject.h>
 
 enum action { PRODUCE=1, SHUTDOWN=2, CONSUME=4 };
@@ -31,6 +33,8 @@ class runq {
   int empty;
 #endif
 };
+
+#include <SmacqGraph.h>
 
 /* Use a ring of runq elements.  New elements are allocated as necesssary, but
  * we never shrink.  Most of the time we can reuse existing elements. 
@@ -95,6 +99,7 @@ void inline runq::runable(SmacqGraph * f, DtsObject d, enum action action) {
   el->f = f;
   el->d = d;
   el->action = action;
+  f->pending++;
 		
   //fprintf(stderr, "%p now runable\n", el->f);
   
@@ -114,6 +119,7 @@ inline int runq::pop_runable(SmacqGraph * & f, DtsObject &d, enum action & actio
   f = this->head->f;
   action = this->head->action;
   d = this->head->d;
+  f->pending--;
 
   //fprintf(stderr, "%p for %p off queue from %p/%p\n", this->head->d, this->head->f, this, this->head);
 
@@ -150,15 +156,6 @@ inline bool runq::is_empty() {
 }
 
 inline bool runq::pending(SmacqGraph * f) {
-  struct qel * q = this->head;
-  while (q) {
-    if ((q->f == f) && (q->action != SHUTDOWN)) {
-      return true;
-    }
-    q = q->next;
-#ifdef SMACQ_OPT_RUNRING
-    if (q == this->tail) return false;
-#endif
-  }
-  return false;
+  return f->pending; 
 }
+#endif
