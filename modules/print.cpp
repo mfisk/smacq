@@ -11,10 +11,10 @@ SMACQ_MODULE(print,
 	     char ** argv;
 	     int argc;
 	     FILE * outputfh;
-	     bool verbose, tagged, flush, internals, boulder, binary;
+	     bool verbose, tagged, flush, internals, boulder, binary, use_file_pattern;
 	     std::vector<DtsField> fields;
-	     DtsField string_transform;
-	     char * delimiter, * record_delimiter;
+	     DtsField string_transform, filefield;
+	     char * delimiter, * record_delimiter, * output_name;
 	     
 	     int print_field(DtsObject field, char * fname, int printed, int column);
 	     );
@@ -29,6 +29,7 @@ static struct smacq_options options[] = {
   {"binary", {boolean_t:0}, "Binary output", SMACQ_OPT_TYPE_BOOLEAN},
   {"B", {boolean_t:0}, "Disable buffering: flush output after each line", SMACQ_OPT_TYPE_BOOLEAN},
   {"f", {string_t:"-"}, "Output file", SMACQ_OPT_TYPE_STRING},
+  {"filefield", {string_t:NULL}, "Field substituted into file name pattern", SMACQ_OPT_TYPE_STRING},
   END_SMACQ_OPTIONS
 };
 
@@ -64,6 +65,20 @@ smacq_result printModule::consume(DtsObject datum, int & outchan) {
   DtsObject field;
   assert(datum);
 
+  if (use_file_pattern) {
+    char buf[4096];
+    DtsObject ff = datum->getfield(filefield);
+    if (!ff) {
+	return SMACQ_PASS;
+    }
+    snprintf(buf, 4095, output_name, (char*)ff->getdata());
+    if (outputfh) fclose(outputfh);  
+    outputfh = fopen(buf, "a");
+    if (!outputfh) {
+	perror("open");
+	return SMACQ_PASS;
+    }
+  }
   if (!fields.size()) {
     /* Print all fields */
 
@@ -123,9 +138,11 @@ smacq_result printModule::consume(DtsObject datum, int & outchan) {
   return SMACQ_PASS;
 }
 
-printModule::printModule(struct smacq_init * context) : SmacqModule(context) {
+printModule::printModule(struct smacq_init * context) 
+ : SmacqModule(context), use_file_pattern(false) {
   smacq_opt boulder_opt, record_delimiter_opt, tagged_opt, verbose_opt, 
-    flush_opt, delimiter_opt, internals_opt, output_opt, binary_opt;
+    flush_opt, delimiter_opt, internals_opt, output_opt, binary_opt,
+    filefield_opt;
   int i;
   
   {
@@ -136,6 +153,7 @@ printModule::printModule(struct smacq_init * context) : SmacqModule(context) {
       {"d", &delimiter_opt},
       {"B", &flush_opt},
       {"f", &output_opt},
+      {"filefield", &filefield_opt},
       {"boulder", &boulder_opt},
       {"binary", &binary_opt},
       {"i", &internals_opt},
@@ -155,7 +173,14 @@ printModule::printModule(struct smacq_init * context) : SmacqModule(context) {
   boulder = boulder_opt.boolean_t;
   binary = binary_opt.boolean_t;
   tagged = tagged_opt.boolean_t;
-  if (strcmp(output_opt.string_t, "-")) {
+
+  if (filefield_opt.string_t) {
+    filefield = dts->requirefield(dts_fieldname_append(filefield_opt.string_t, "string"));
+    use_file_pattern = true;
+    outputfh = NULL;
+    output_name = output_opt.string_t;
+    // defer until we have data
+  } else if (strcmp(output_opt.string_t, "-")) {
     outputfh = fopen(output_opt.string_t, "w");
     if (!outputfh) {
       fprintf(stderr, "print: error writing to %s\n", output_opt.string_t);
