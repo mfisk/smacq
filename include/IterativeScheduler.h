@@ -28,9 +28,10 @@ class IterativeScheduler {
   smacq_result get(DtsObject &dout);
 
   /// Process a single action or object
-  smacq_result element(DtsObject &dout);
+  smacq_result IterativeScheduler::decide(DtsObject din);
 
-  /// Run to completion.
+  /// Run to completion.  
+  /// Return false iff error.
   bool busy_loop();
 
  private:
@@ -41,6 +42,9 @@ class IterativeScheduler {
   void check_for_shutdown(SmacqGraph *f);
   smacq_result run_produce(SmacqGraph * f);
   bool run_consume(SmacqGraph * f, DtsObject d);
+
+  /// Process a single action or object
+  smacq_result element(DtsObject &dout);
 
   runq q;
   SmacqGraph * graph;
@@ -205,25 +209,23 @@ inline bool IterativeScheduler::run_consume(SmacqGraph * f, DtsObject d) {
 	return status;
 }
 
-/// Handle one thing on the run queue
+/// Handle one thing on the run queue.
+/// Return SMACQ_PASS iff an object falls off the end of the graph.
+/// Return SMACQ_NONE iff there is no work we can do.
+/// Otherwise, return SMACQ_FREE.
 inline smacq_result IterativeScheduler::element(DtsObject &dout) {
   SmacqGraph * f;
   DtsObject d;
   enum action action;
   
-  if (!q.pop_runable(f, d, action)) return SMACQ_ERROR;
+  if (!q.pop_runable(f, d, action)) return SMACQ_NONE;
   
   if (!f) {
     /* Datum fell off end of data-flow graph */
     //fprintf(stderr, "IterativeScheduler::element returning %p\n", d.get());
     
-    if (dout) {
-      dout = d;
-      return SMACQ_PASS;
-    } else {
-	  
-      return SMACQ_FREE;
-    }
+    dout = d;
+    return SMACQ_PASS;
   } else if (! (f->status & SMACQ_FREE)) {
     switch (action) {
 
@@ -265,7 +267,7 @@ inline smacq_result IterativeScheduler::once(DtsObject &dout) {
   smacq_result r = element(dout);
 
   // Run until something falls off the edge, or until the queue is empty 
-  if (r != SMACQ_ERROR) {
+  if (!r || (r & SMACQ_ERROR)) {
 	return r;
   } else if (produce_first || !graphs_alive(graph) ) {
     	return SMACQ_END;
@@ -282,7 +284,7 @@ inline bool IterativeScheduler::busy_loop() {
   smacq_result done = SMACQ_ERROR|SMACQ_END;
   do {
     r = element(dout);
-  } while (! (r & done));
+  } while (r != SMACQ_NONE && ! (r & done));
 
   if (r & SMACQ_ERROR) {
     return false;
@@ -291,15 +293,35 @@ inline bool IterativeScheduler::busy_loop() {
   }
 }
 
-
 inline smacq_result IterativeScheduler::get(DtsObject &dout) {
   dout = NULL;
   smacq_result r;
   smacq_result done = SMACQ_ERROR|SMACQ_END|SMACQ_PASS;
   do {
     r = element(dout);
-  } while (! (r & done));
+  } while (r != SMACQ_NONE && ! (r & done));
 
+  return r;
+}
+
+/// Take an input and run it through a graph.
+/// The graph may filter or modify it, but it shouldn't reorder things.
+/// Return SMACQ_PASS or SMACQ_FREE.
+inline smacq_result IterativeScheduler::decide(DtsObject din) {
+  DtsObject dout;
+  smacq_result r;
+  smacq_result done = SMACQ_ERROR|SMACQ_END|SMACQ_PASS;
+
+  input(din);
+  do {
+    r = element(dout);
+  } while (r != SMACQ_NONE && ! (r & done));
+
+  if (dout) assert(dout.get() == din.get());
+
+  if (r == SMACQ_NONE) {
+	r = SMACQ_FREE;
+  }
   return r;
 }
 

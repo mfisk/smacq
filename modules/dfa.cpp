@@ -80,22 +80,15 @@ int dfaModule::try_transition(DtsObject datum, struct transition & t) {
   DtsObject output;
   smacq_result more;
 
-  t.sched->input(datum);
   t.graph->print(stderr, 2);
-  more = t.sched->element(output);
+  more = t.sched->decide(datum);
 
   if ((SMACQ_END|SMACQ_ERROR) & more) {
     assert(0);
   }
 
   if (more & SMACQ_PASS) {
-	if (datum == output) {
-		fprintf(stderr, "got a transition\n");
-    		return t.next_state;
-  	} else if (output) {
-    		smacq_log("dfa", ERROR, "Transition test was non-boolean");
-    		return -1;
-	}
+    	return t.next_state;
   }
 
   return -1;
