@@ -159,6 +159,7 @@ smacq_graph * smacq_clone_child(smacq_graph * parent, int child);
 smacq_graph * smacq_clone_tree(smacq_graph * donorParent, smacq_graph * newParent, int child);
 
 int smacq_graph_print(FILE * fh, smacq_graph * f, int indent);
+int smacq_graphs_print(FILE * fh, smacq_graph * f, int indent);
 double smacq_graph_count_nodes(smacq_graph * f);
 
 enum smacq_log_level { INFO, WARN, ERROR, };
