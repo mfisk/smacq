@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <SmacqGraph.h>
 
 struct list {

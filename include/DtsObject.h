@@ -2,6 +2,7 @@
 #define DTSOBJECT_H
 
 #include <dts.h>
+#include <assert.h>
 
 #ifndef __cplusplus
 typedef void * DtsObject;

@@ -5,6 +5,7 @@
 #include <DynamicArray.h>
 #include <set>
 #include <vector>
+#include <assert.h>
 
 #define FOREACH_CHILD(x, y)					    \
   for (unsigned int i = 0; i < (x)->children.size(); i ++)	    \
