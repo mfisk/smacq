@@ -174,11 +174,11 @@ void check_for_shutdown(struct runq * runq, smacq_graph *f) {
   }
 
   /* No more active children.  Clean-up self and parents. */
-  for (i=0; i < f->numchildren; i++) {
-    if (f->child[i] && (! (f->child[i]->status & SMACQ_FREE))) 
-      smacq_sched_iterative_shutdown(f->child[i], runq);
+  for (i=0; i < f->numparents; i++) {
+    if (f->parent[i] && (! (f->parent[i]->status & SMACQ_FREE))) 
+      smacq_sched_iterative_shutdown(f->parent[i], runq);
   }
-  //do_shutdown(runq, f);
+  do_shutdown(runq, f);
 }
 
 void do_shutdown(struct runq * runq, smacq_graph *f) {
@@ -195,9 +195,9 @@ void do_shutdown(struct runq * runq, smacq_graph *f) {
     f->ops.shutdown(f->state);
   }
   f->state = NULL;  /* Just in case somebody tries to use it */
+  f->status = SMACQ_END|SMACQ_FREE;
 
   // fprintf(stderr, "module %p %s ended\n", f, f->name);
-  f->status = SMACQ_END|SMACQ_FREE;
 
   /* Propagate to children */
   for (i=0; i < f->numchildren; i++) {
@@ -277,7 +277,7 @@ static inline int run_produce(smacq_graph * f, struct runq * runq) {
 				} else {
 					/* Produced nothing */
 					pretval |= SMACQ_END;
-					//fprintf(stderr, "%s produced nothing while ending\n", f->name);
+					//fprintf(stderr, "%s:%p produced nothing while ending\n", f->name, f);
 				}
 			}
 		}
