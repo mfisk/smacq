@@ -10,7 +10,7 @@ MODULES=$(BUILTIN_MODULES) #python #reassemble
 MODULES_SHOBJS=$(patsubst %,smacq_%.la,$(MODULES))
 MODULES_OBJS=$(patsubst %,%.lo,$(BUILTIN_MODULES))
 
-all: dirs $(MODULES_OBJS) $(MODULES_SHOBJS) libsmacq-modules.lo
+all: dirs $(MODULES_OBJS) $(MODULES_SHOBJS) libsmacq-modules.la
 
 dirs: 
 	@set -e; for f in $(DIRS); do $(MAKE) -C $$f; done
@@ -30,8 +30,8 @@ substr.lo: substr-main.lo ../include/smacq.h substr/libsubstr.la
 bench_field.lo: bench_field-main.lo bench_field-virtual.lo ../include/smacq.h substr/libsubstr.la
 	$(LIBTOOL) $(CC) -o $@ $(CFLAGS) $< bench_field-virtual.lo
 
-libsmacq-modules.lo: $(MODULES_OBJS) 
-	$(LIBTOOL) $(CC) -o $@ $+ 
+libsmacq-modules.la: $(MODULES_OBJS) 
+	$(LIBTOOL) $(CC) -o $@ -static $+ 
 
 smacq_%.la: %.lo
 	$(LIBTOOL) $(CC) -module -rpath /usr/local/lib $(LDFLAGS) -o $@ $+

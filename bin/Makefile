@@ -1,8 +1,9 @@
 CFLAGS= -Winline -Wall -I$(USR)/include/glib-2.0 -I$(USR)/lib/glib-2.0/include -I../include $(COPTS)
 
+LIBTOOL=libtool
 LIBSMACQ=../libsmacq/libsmacq.la
-BUILTINS=../modules/libsmacq-modules.lo ../types/libdts-modules.lo 
-DYNAMIC_LDFLAGS=$(LIBSMACQ) -lpthread -lz -lm -ldl -lpcap ../libsmacq/libsmacq.la -lgmodule-2.0 -lglib-2.0 #-lutil
+BUILTINS=../modules/libsmacq-modules.la ../types/libdts-modules.la 
+DYNAMIC_LDFLAGS=../libsmacq/libsmacq.la
 LDFLAGS=$(CFLAGS) $(LDOPTS) -export-dynamic $(DYNAMIC_LDFLAGS)
 
 PRODUCTS=smacqp smacqq iterative-example	smacqp-dynamic
@@ -10,10 +11,10 @@ PRODUCTS=smacqp smacqq iterative-example	smacqp-dynamic
 all: $(PRODUCTS)
 
 %: %.c ../include/smacq.h $(LIBSMACQ) $(BUILTINS)
-	$(LIBTOOL) $(CC) -o $@ -static $(CFLAGS) $(BUILTINS) $(LDFLAGS) $< 
+	$(LIBTOOL) $(CC) -o $@ -static $(LDFLAGS) $(BUILTINS) $< 
 
 %-static: %.c ../include/smacq.h $(LIBSMACQ) $(BUILTINS)
-	$(LIBTOOL) $(CC) -o $@ -all-static $(CFLAGS) $(BUILTINS) $(LDFLAGS) $<  
+	$(LIBTOOL) $(CC) -o $@ -all-static $(LDFLAGS) $(BUILTINS) $<  
 
 %-dynamic: %.lo ../include/smacq.h $(LIBSMACQ)  
 	$(LIBTOOL) $(CC) -o $@ -dynamic $(LDFLAGS) $<

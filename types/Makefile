@@ -5,15 +5,15 @@ TYPES=packet int ushort ubyte timeval uint32 bytes netlong ip nushort nuint32 ma
 TYPEMODULES=$(patsubst %,dts_%.la,$(TYPES))
 TYPEOBJS=$(patsubst %,%.lo,$(TYPES))
 
-all: $(TYPEMODULES) libdts-modules.lo
+all: $(TYPEMODULES) libdts-modules.la
 
 reallyclean: clean
 
 clean:
 	rm -Rf *.o *.so *.a *.la *.lo .libs
 
-libdts-modules.lo: $(TYPEOBJS)
-	$(LIBTOOL) $(CC) -o $@ $+
+libdts-modules.la: $(TYPEOBJS)
+	$(LIBTOOL) $(CC) -o $@ -static $+
 
 smacqtype_packet.so: ../include/dts_packet.h
 
