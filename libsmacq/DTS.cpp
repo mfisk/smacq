@@ -263,7 +263,7 @@ DtsObject DTS::newObject(dts_typeid type, int size) {
 #endif
 
 void DTS::send_message(DtsObject msgo, dts_field_element fieldnum, dts_comparison * comparisons) {
-  dts_message * msg = (dts_message*)malloc(sizeof(dts_message));
+  dts_message * msg = new dts_message;
 
   msg->field_data = msgo;
   msg->criteria = comparisons;
