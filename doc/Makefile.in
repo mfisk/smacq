@@ -418,7 +418,7 @@ api: .ALWAYS
 .ALWAYS:
 
 publish:
-	(cd $(srcdir); rsync -a -e ssh -Ltv *.pdf *.png *.html html $(top_srcdir)/build/iso/smacq*.tar.gz ../smacq.iso smacq.sourceforge.net:smacqweb/)
+	(cd $(srcdir); rsync -a -e ssh -Ltv *.pdf *.png *.html api smacq.sourceforge.net:smacqweb/)
 
 api/refman.pdf: api api/latex/refman.tex
 	make -C $(srcdir)/api/latex && cp $(srcdir)/api/latex/refman.pdf $(srcdir)/api/
