@@ -1,16 +1,3 @@
-0x809e378:  tabularinput -f test/multistr.test cmd arg
-        + Child 0 is 0x809e570:  substr cmd print
-          + Child 0 is 0x809e630:  print cmd
-0x809e948:  tabularinput -d   -f test/multistr.test cmd arg
-        + Child 0 is 0x809eaa0:  substr cmd bin
-          + Child 0 is 0x809eb60:  print cmd
---- optimized to ---
-0x809e378:  tabularinput -f test/multistr.test cmd arg
-        + Child 0 is 0x809e570:  substr cmd print
-          + Child 0 is 0x809eb60:  print cmd
-0x809e948:  tabularinput -d   -f test/multistr.test cmd arg
-        + Child 0 is 0x809eaa0:  substr cmd bin
-          + Child 0 is 0x809eb60:  print cmd
 print cmd from tabularinput(-f, test/multistr.test, cmd, arg) where substr(cmd, "print")
 #!/bin/sh
 print cmd from tabularinput(-d, " ", -f, test/multistr.test, cmd, arg) where substr(cmd, "bin")
