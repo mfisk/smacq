@@ -13,7 +13,6 @@ class SmacqGraphNode{
   void init(struct SmacqModule::smacq_init &);
 
  protected:
-  char * name; // set by set()
   char ** argv;  // set by set()
   int argc; // set by set()
   struct SmacqModule::algebra algebra; // set by load_module()
@@ -60,7 +59,6 @@ inline SmacqGraphNode::~SmacqGraphNode() {
 
 /// Setup a graph node based on the given argument vector.
 inline bool SmacqGraphNode::set(int argc, char ** argv) {
-  this->name = *argv;
   this->argv = argv;
   this->argc = argc;
   

@@ -409,11 +409,11 @@ inline SmacqGraph::~SmacqGraph() {
 }
 
 inline void SmacqGraph::downstream_filter_one(smacq_filter_callback_fn callback, void * data) {
-  if (!strcmp(name, "where") || !strcmp(name, "equals")) {
-    //fprintf(stderr, "downstream_filters got a known op: %s\n", name);
-    callback(name, argc, argv, data);
+  if (!strcmp(argv[0], "where") || !strcmp(argv[0], "equals")) {
+    //fprintf(stderr, "downstream_filters got a known op: %s\n", argv[0]);
+    callback(argv[0], argc, argv, data);
   } else {
-    //fprintf(stderr, "don't know anything about %s\n", name);
+    //fprintf(stderr, "don't know anything about %s\n", argv[0]);
     return;
   }
 
