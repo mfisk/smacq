@@ -7,7 +7,7 @@
 #include "smacq.h"
 
 static int smacqtype_ipproto_get_string(const dts_object * obj, dts_object * field) {
-  struct protoent * p = getprotobynumber((dts_data_as(obj, unsigned char)));
+  struct protoent * p = getprotobyname(dts_getdata(obj));
 
   if (p) {
 	dts_setsize(field, strlen(p->p_name)+1);
