@@ -15,7 +15,7 @@
 \!!save /psv exch def currentpoint translate 0 0 moveto
 \!!/showpage{}def
 .fl			\" prolog
-.sy sed \-e 's/^/!/' \\$1\" bring in postscript file
+.sy sed -e 's/^/!/' \\$1\" bring in postscript file
 \!!psv restore
 .
 .de pF
@@ -63,10 +63,15 @@ SMACQ is an extensible tool for performing queries on streams of data.
 .PP 
 \fBsmacqq\fR [-m]  [-O]  [-g]  [-t \fItype\fR] query  
 .PP 
-The \fB\-g\fP option describes the query graph created by 
-the given query or queries.  The \fB\-t\fP option outputs a 
-description of the given type.  The \fB\-m\fP option causes 
+The \fB-g\fP option describes the query graph created by 
+the given query or queries.  The \fB-t\fP option outputs a 
+description of the given type.  The \fB-m\fP option causes 
 multiple query lines to be read from STDIN instead of the command 
-line.  The \fB\-O\fP option causes optional query 
+line.  The \fB-O\fP option causes optional query 
 optimizations to be made. 
-.\" created by instant / docbook-to-man, Tue 23 Nov 2004, 17:49 
+ 
+.SH "SEE ALSO" 
+.PP 
+\fBsmacq\fR(1) 
+ 
+.\" created by instant / docbook-to-man, Wed 15 Dec 2004, 10:20 

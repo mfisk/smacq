@@ -22,7 +22,9 @@ publish:
 	(cd $(srcdir); rsync -a -e ssh -Ltv *.pdf *.png *.html api ../ChangeLog smacq.sourceforge.net:smacqweb/)
 
 api/refman.pdf: api api/latex/refman.tex
-	make -C $(srcdir)/api/latex && cp $(srcdir)/api/latex/refman.pdf $(srcdir)/api/
+	(make -C $(srcdir)/api/latex && cp $(srcdir)/api/latex/refman.pdf $(srcdir)/api/) || \
+	(make -C $(srcdir)/api/latex && cp $(srcdir)/api/latex/refman.pdf $(srcdir)/api/) || \
+	(cat $(srcdir)/api/latex/refman.log 1>&2 && false)
 api/man3: api
 api/html: api
 
