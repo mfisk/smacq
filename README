@@ -26,6 +26,11 @@ and execute this package:
 		libpcap0 libpcap-dev \
 		libtool groff #python2.2-dev 
 
+Red Hat Linux:
+--------------
+The following packages are required:
+	glib2-devel
+
 MacOS/X - Fink:
 ----------------
 Run the following command to install the Fink packages require to compile

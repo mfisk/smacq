@@ -10,7 +10,8 @@
 #define YY_FLEX_MINOR_VERSION 5
 
 #include <stdio.h>
-#include <errno.h>
+#include <unistd.h>
+
 
 /* cfront 1.2 defines "c_plusplus" instead of "__cplusplus" */
 #ifdef c_plusplus
@@ -23,9 +24,6 @@
 #ifdef __cplusplus
 
 #include <stdlib.h>
-#ifndef _WIN32
-#include <unistd.h>
-#endif
 
 /* Use prototypes in function declarations. */
 #define YY_USE_PROTOS
@@ -430,7 +428,7 @@ char *yystring;
 
 #define xquote 2
 
-#line 434 "scanner.c"
+#line 432 "scanner.c"
 
 /* Macros after this point can all be overridden by user definitions in
  * section 1.
@@ -530,20 +528,9 @@ YY_MALLOC_DECL
 			YY_FATAL_ERROR( "input in flex scanner failed" ); \
 		result = n; \
 		} \
-	else \
-		{ \
-		errno=0; \
-		while ( (result = fread(buf, 1, max_size, yyin))==0 && ferror(yyin)) \
-			{ \
-			if( errno != EINTR) \
-				{ \
-				YY_FATAL_ERROR( "input in flex scanner failed" ); \
-				break; \
-				} \
-			errno=0; \
-			clearerr(yyin); \
-			} \
-		}
+	else if ( ((result = fread( buf, 1, max_size, yyin )) == 0) \
+		  && ferror( yyin ) ) \
+		YY_FATAL_ERROR( "input in flex scanner failed" );
 #endif
 
 /* No semi-colon after return; correct usage is to write "yyterminate();" -
@@ -589,13 +576,13 @@ YY_MALLOC_DECL
 YY_DECL
 	{
 	register yy_state_type yy_current_state;
-	register char *yy_cp, *yy_bp;
+	register char *yy_cp = NULL, *yy_bp = NULL;
 	register int yy_act;
 
 #line 26 "scanner.l"
 
 
-#line 599 "scanner.c"
+#line 586 "scanner.c"
 
 	if ( yy_init )
 		{
@@ -852,7 +839,7 @@ YY_RULE_SETUP
 #line 85 "scanner.l"
 ECHO;
 	YY_BREAK
-#line 856 "scanner.c"
+#line 843 "scanner.c"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -1414,15 +1401,6 @@ YY_BUFFER_STATE b;
 	}
 
 
-#ifndef _WIN32
-#include <unistd.h>
-#else
-#ifndef YY_ALWAYS_INTERACTIVE
-#ifndef YY_NEVER_INTERACTIVE
-extern int isatty YY_PROTO(( int ));
-#endif
-#endif
-#endif
 
 #ifdef YY_USE_PROTOS
 void yy_init_buffer( YY_BUFFER_STATE b, FILE *file )

@@ -1,0 +1,35 @@
+#!/bin/sh
+
+has() {
+	which "$1" > /dev/null 2>&1
+}
+
+	MAKE=${MAKE:-make}
+	LIBTOOL=${LIBTOOL:-libtool}
+	if [ `uname -s` == "Darwin" ]; then 
+		MAKE=gnumake
+		COPTS="-I/sw/include/glib-2.0 -I/sw/lib/glib-2.0/include/ -I/sw/include"
+		LIBTOOL=glibtool
+		LDOPTS="-L/sw/lib"
+	else 
+		# Red Hat 8.0: 
+		if has g++296; then 
+			CXX="--mode=compile g++296"
+		fi 
+		if has gcc296; then 
+			CC=gcc296
+		fi 
+
+		# Red Hat 7.3: 
+		if [ -d /usr/include/pcap ]; then 
+			COPTS="-I/usr/include/pcap"
+		fi 
+	fi 
+	export MAKE COPTS LIBTOOL LDOPTS CC CXX 
+	echo "CC=$CC"
+	echo "CXX=$CXX"
+	echo "LIBTOOL=$LIBTOOL"
+	echo "LDOPTS=$LDOPTS"
+	echo "COPTS=$COPTS"
+	echo "CFLAGS=$CFLAGS"
+	echo "MAKE=$MAKE" 
