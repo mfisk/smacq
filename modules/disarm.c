@@ -9,10 +9,13 @@
 #include <signal.h>
 #include <netdb.h>
 
+#define MAX_LINE 1000000
+
 struct state {
   smacq_environment * env;
   int datasock;
   FILE * datafh;
+  unsigned long lineno;
   int sv4_type;
 };
 
@@ -49,39 +52,47 @@ static unsigned char hex2val[256] = {
     XX,XX,XX,XX, XX,XX,XX,XX, XX,XX,XX,XX, XX,XX,XX,XX, /* 240 - 255 */
 };
 
-char * fgets_sock(char * buf, int len, FILE * fh) {
-	char * res = buf;
-	int left = len;
-	while(1) {
-		res = fgets(res, left, fh);
-		if (res == NULL) return NULL;
-		if (strlen(buf) == (len - 1)) return buf;
-		if (res[strlen(res)-1] == '\n') return buf;
-		left -= strlen(res);
-		//fprintf(stderr, "fgets retrying for newline\n");
+
+/* Fills buffer upto a newline or EOF.  There is no NULL terminator. */
+/* Return value is string length */
+int get_line(char * buf, int buflen, FILE * fh) {
+	/* 
+	 * Having to use fgetc really sucks. What we need is an fgets
+   	 * that stops at newlines or NULLs.  NULLs in a line screws up fgets. 
+         */
+	char * p = buf;
+	int c;
+	while (buflen > 0) {
+		c = fgetc(fh);
+		if (c == EOF || c == '\n') break;
+		*p = c;
+		buflen--;
+		p++;
 	}
+	return p - buf;
 }
 
 static smacq_result disarm_produce(struct state * state, const dts_object ** datump, int * outchan) {
-	char hex[99999];
+	char hex[MAX_LINE];
 	unsigned char * decode;
 	int i;
 	int len;
 	const dts_object * datum;
-	char * res;
 
-	res = fgets_sock(hex, 99999, state->datafh);
-	if (res == NULL) {
+	len = get_line(hex, MAX_LINE, state->datafh);
+	assert(len < MAX_LINE);
+	if (len == 0) {
 		return SMACQ_END;
 	}
+	assert(len >= 98);
+
+	state->lineno++;
 
 	//fprintf(stderr, "Got sv4 hex line: %s\n", hex);
 
 	/* Now we decode the hex into the binary data object */
 
-	len = strlen(hex) - 1;
 	len -= 49;
-
   	datum = (dts_object*)smacq_alloc(state->env, len+2, state->sv4_type);
 	decode = dts_getdata(datum);
 
@@ -93,7 +104,10 @@ static smacq_result disarm_produce(struct state * state, const dts_object ** dat
 	for (i=0; i<49; i++) {
 	 	unsigned char c = hex2val[(unsigned int)hex[i*2]];	
 		//fprintf(stderr, "char %c has value %d\n", hex[i*2], c);
-		assert(c != XX);
+		if (c == XX) {
+			fprintf(stderr, "line %ld character %d invalid: %c\n", state->lineno, i*2, hex[i*2]);
+			exit(-1);
+		}
 		decode[i] = c << 4;
 		c = hex2val[(unsigned int)hex[i*2+1]];
 		//fprintf(stderr, "char %c has value %d\n", hex[i*2+1], c);
