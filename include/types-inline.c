@@ -92,7 +92,7 @@ static void dts_decref(const dts_object * d_const) {
     //fprintf(stderr, "freeing %p\n", d);
 
     darray_free(&d->fields);
-    if (d->free_data) free(d->data);
+    //XXX: if (d->free_data) free(d->data);
     free(d);
 #ifndef SMACQ_OPT_NOPTHREADS
   } else {

@@ -384,6 +384,8 @@ smacq_graph * smacq_merge_graphs(smacq_graph * g) {
   }
   
 
+  return g;
+
   /* Do the merge again from the tails up */
   for (bp = g; bp && bp->next_graph; bp=bp->next_graph) {
     for (ap = g; ap->next_graph; ap=ap->next_graph) {
