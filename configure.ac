@@ -114,8 +114,6 @@ AC_CONFIG_FILES([Makefile
                  bin/Makefile
                  doc/Makefile
                  libsmacq/Makefile
-                 libsmacq/filter/Makefile
-                 libsmacq/sql/Makefile
                  misc/Makefile
                  modules/Makefile
                  modules/substr/Makefile
