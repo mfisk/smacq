@@ -1,21 +1,19 @@
 SUBDIRS=substr 
 INCLUDES = @GLOBAL_INCLUDES@ -I$(top_srcdir)/include
-noinst_LTLIBRARIES = libsmacq_modules.la libtest_dynamic.la libsmacq_modules_builtin.la libsubstr.la
+noinst_LTLIBRARIES = libsmacq_modules.la libtest_dynamic.la libsubstr.la #libsmacq_modules_builtin.la 
 EXTRA_LTLIBRARIES = libpcaplive.la libpython.la libreassemble.la libbench_field.la 
+
+libsmacq_modules_la_SOURCES = print.c pcaplive.c pcapfile.c socket.c uniq.c count.c last.c top.c head.c filter.c msgtest.c entropy.c derivative.c split.c encrypt.c warden.c pdf.c fifo.c delta.c tabularinput.c sync.c rusage.c groupby.c flowid.c sum.c fifodelay.c project.c rename.c join.c bench_field.la mask.c const.c ndjoin.c lor.c counter_loop.c dfa.c noop.c expr.c equals.c cflow.c clock.c disarm.c
+
+libtest_dynamic_la_SOURCES = test_dynamic.c
+
+libsmacq_modules_la_LIBADD = libsubstr.la 
+libsmacq_modules_la_DEPENDENCIES = $(libsmacq_modules_la_LIBADD)
 
 # What we really want is a convenience library that we can link into binaries
 # with a "--whole-archive" flag.  However, libtool doesn't do "--whole-archive"
 # on convenience libraries, so we make libtool think this is a module that
 # we can preopen
-
-#libsmacq_modules_builtin_la_SOURCES = print.c pcapfile.c head.c groupby.c uniq.c @SOURCES_MODULES_BUILTIN@ 
-libsmacq_modules_builtin_la_SOURCES = print.c pcaplive.c pcapfile.c socket.c uniq.c count.c last.c top.c head.c filter.c msgtest.c entropy.c derivative.c split.c encrypt.c warden.c pdf.c fifo.c delta.c tabularinput.c sync.c rusage.c groupby.c flowid.c sum.c fifodelay.c project.c rename.c join.c bench_field.la mask.c const.c ndjoin.c lor.c counter_loop.c dfa.c noop.c expr.c equals.c cflow.c clock.c disarm.c
-
-libtest_dynamic_la_SOURCES = test_dynamic.c
-
-libsmacq_modules_la_SOURCES = #@SOURCES_MODULES_BUILTIN@
-libsmacq_modules_la_LIBADD = libsmacq_modules_builtin.la libsubstr.la #@OBJECTS_MODULES_BUILTIN@ libsmacq_modules_builtin.la
-libsmacq_modules_la_DEPENDENCIES = $(libsmacq_modules_la_LIBADD)
 libsmacq_modules_la_LDFLAGS = -rpath /bogus
 
 SUFFIXIES = .la 
