@@ -28,14 +28,19 @@ static inline void dts_init_object(dts_object * d) {
 SDEBUG(static int dts_object_count = 0);
 SDEBUG(static int dts_object_virtual_count = 0);
 
+static inline void dts_free_object(const dts_object * d) {
+	//fprintf(stderr,"dts_free freeing %p\n", d);
+  	darray_free((struct darray *)(&d->fields));
+	free((void*)d);
+	SDEBUG(dts_object_count--);
+}
+
 static inline const dts_object* dts_alloc_slow(dts_environment * tenv, int size, int type) {
   dts_object * d;
   int max_size;
 
   max_size = max(size, MINSIZE);
   d = g_malloc0(sizeof(dts_object) + max_size);
-  SDEBUG(dts_object_count++);
-  SDEBUG(fprintf(stderr, "%d DTS objects in existence, %d virtual objects used\n", dts_object_count, dts_object_virtual_count));
 
 #ifndef SMACQ_OPT_NOPTHREADS
   pthread_mutex_init(&d->mutex, NULL);
@@ -50,6 +55,17 @@ static inline const dts_object* dts_alloc_slow(dts_environment * tenv, int size,
   dts_init_object(d);
   return d;
 }
+
+#ifndef SMACQ_OPT_DTS_FREELIST
+#warning "SMACQ_OPT_DTS_FREELIST not set"
+
+const dts_object* dts_alloc(dts_environment * tenv, int size, int type) {
+	return dts_alloc_slow(tenv, size, type);
+}
+void dts_free(const dts_object * d) {
+	dts_free_object(d);
+}
+#else
 
 const dts_object* dts_alloc(dts_environment * tenv, int size, int type) {
   const dts_object * o;
@@ -83,9 +99,8 @@ void dts_free(const dts_object * d) {
   	d->tenv->freelist.p++;
   	*d->tenv->freelist.p = d;
   } else {
-	//fprintf(stderr,"dts_free freeing %p\n", d);
-  	darray_free((struct darray *)(&d->fields));
-	free((void*)d);
-	SDEBUG(dts_object_count--);
+	dts_free_object(d);
   }
 }
+
+#endif
