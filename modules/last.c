@@ -72,7 +72,7 @@ static int emit_last(struct element * key, void * value, void * userdata) {
   dts_object * d = value;
   struct state * state = userdata;
 
-  fprintf(stderr, "emit_last on obj %p\n", value);
+  /* fprintf(stderr, "emit_last on obj %p\n", value); */
 
   smacq_produce_enqueue(&state->outputq, d, -1);
   dts_incref(d, 1);
