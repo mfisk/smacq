@@ -52,10 +52,8 @@
 #define _PTHREAD_H
 #endif
 
-typedef enum _smacq_result { SMACQ_FREE=1, SMACQ_PASS=2, SMACQ_ERROR=4, SMACQ_END=8} smacq_result;
+typedef enum _smacq_result { SMACQ_FREE=1, SMACQ_PASS=2, SMACQ_ERROR=4, SMACQ_END=8, SMACQ_CANPRODUCE=256, SMACQ_PRODUCE=512} smacq_result;
 
-#define SMACQ_CANPRODUCE 256
-#define SMACQ_PRODUCE 512
 #define SMACQ_MULTITHREAD 65536
 
 struct smacq_init;
