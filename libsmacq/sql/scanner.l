@@ -51,6 +51,10 @@ like|LIKE                      return YYLIKE;
 	"\\r"		*yystring++ = '\r';
 	"\\t"		*yystring++ = '\t';
 	"\\f"		*yystring++ = '\f';
+	\\\\		{
+				*yystring++ = yytext[0]; 
+				*yystring++ = yytext[1];
+			}
 	\\{dquote}	*yystring++ = yytext[1];
 	{dquote}	{
 				*yystring = '\0'; 
