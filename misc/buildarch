@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -e
 
 targets="$@"
 if [ "$targets" = "" ]; then
@@ -37,5 +37,4 @@ build() {
 	make $targets
 }
 
-(build)
-ln -sf $builddir/bin/smacqq
+build && ln -sf $builddir/bin/smacqq
