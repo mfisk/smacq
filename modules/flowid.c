@@ -157,7 +157,8 @@ static inline void finalize(struct state * state, struct srcstat * s) {
     output(state, s);
 
     state->active--;
-    fprintf(stderr, "%d active flows, timer list has %d\n", state->active, g_list_length(state->timers));
+    /* fprintf(stderr, "%d active flows, timer list has %d\n", state->active, g_list_length(state->timers));*/
+
     // Cleanup
     /* Don't have to decref fields, since their refcount will be picked up from being attached in the output routine */
     g_free(s->fields);
