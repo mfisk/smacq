@@ -1,5 +1,5 @@
 #!/bin/sh
 
-${BINDIR}smacqq -m -O <<EOF 2>/dev/null
+${BINDIR}smacqq -m <<EOF 2>/dev/null
 print -v, ipid.uint32.hexstring from pcapfile($TEST/0325@1112-snort.pcap)
 EOF

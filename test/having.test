@@ -1,5 +1,5 @@
 #!/bin/sh
 
-${BINDIR}smacqq -m -g -O <<EOF 
+${BINDIR}smacqq -m -g <<EOF 
 print srcip, count from pcapfile($TEST/0325@1112-snort.pcap) group by srcip having count() and count > 10
 EOF

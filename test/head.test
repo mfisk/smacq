@@ -1,5 +1,5 @@
 #!/bin/sh
 
-${BINDIR}smacqq -m -O <<EOF 
+${BINDIR}smacqq -m <<EOF 
 print -v, ts from (head 10 from pcapfile($TEST/0325@1112-snort.pcap))
 EOF

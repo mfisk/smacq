@@ -2,6 +2,6 @@
 
 TESTFILE=$TEST/0325@1112-snort.pcap
 
-${BINDIR}smacqq -g -m -O <<EOF 
+${BINDIR}smacqq -g -m <<EOF 
 pcapfile $TESTFILE | uniq srcip dstip where srcip != 192.168.0.200 | print srcip dstip where dstip = 192.168.0.200
 EOF

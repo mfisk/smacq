@@ -2,6 +2,6 @@
 
 TESTFILE=$TEST/0325@1112-snort.pcap
 
-${BINDIR}smacqq -m -O <<EOF 2>/dev/null
+${BINDIR}smacqq -m <<EOF 2>/dev/null
 print srcip, ipid, payload from pcapfile($TESTFILE) where ipid > 1000 or (mask(srcip, 192.168.0.54/32) and ipid < 400)
 EOF
