@@ -35,7 +35,7 @@ libsmacq-engine.a: $(ENGINEOBJS)
 	$(LIBTOOL) $(CC) -o $@ $+
 
 libsmacq.la: $(USEROBJS)
-	$(LIBTOOL) $(CC) -o $@ $+ 
+	$(LIBTOOL) $(CC) -rpath /usr/local/lib -o $@ $+ 
 
 %-static.la: %.la
 	cp $< $@

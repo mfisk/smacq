@@ -12,13 +12,20 @@ int flow_load_module(struct filter * module) {
 
     assert(module);
     assert(module->name);
-    snprintf(buf, 1024, "smacq_%s_table", module->name);
     self = dlopen(NULL, RTLD_NOW);
     if (!self) {
 	fprintf(stderr, "Warning: %s\n", dlerror());
 	return 0;
     } else {
+	// Linux has no leading underscore
+        snprintf(buf, 1024, "smacq_%s_table", module->name);
     	modtable = dlsym(self, buf);
+	if (!modtable) {
+		// Darwin has leading underscore
+        	snprintf(buf, 1024, "_smacq_%s_table", module->name);
+    		modtable = dlsym(self, buf);
+	}
+
 	if (modtable) {
 		// fprintf(stderr, "Info: found module %s internally\n", module->name);
 		module->produce = modtable->produce;
@@ -36,12 +43,12 @@ int flow_load_module(struct filter * module) {
       char * path = getenv("SMACQ_HOME");
       if (!path) path = "modules";
 
-      snprintf(modfile, 256, "%s/smacq_%s", path, module->name);
+      snprintf(modfile, 256, "%s/smacq_%s.la", path, module->name);
 
       assert(g_module_supported());
 
       if (! (module->module = g_module_open(modfile, 0))) {
-         fprintf(stderr, "%s: %s (Need to set SMACQ_HOME?)\n", module->name, g_module_error());
+         fprintf(stderr, "%s (%s): %s (Need to set SMACQ_HOME?)\n", module->name, modfile, g_module_error());
          return 0;
       }
     }
