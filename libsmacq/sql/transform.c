@@ -620,8 +620,6 @@ int transformTargetList(SelectStmt * stmt, list * func_list)
 #endif
 			// build 'print' list (eg. 'print srcip dstport cnt dstip counter')
 			//
-		    fprintf(stderr, "isSelect = '%i', str_name = %s\n", isSelect, li->str_name);
-
 			if (is_annotation_function(li->str_name, &func_idx)) {
               if (isPrint) {
                 append_print_array(ali->str_name);
@@ -1059,6 +1057,11 @@ struct filter * parse_stmt(int argc, char ** argv)
   //
   yyresult = yyparse();
 
+  if (yyresult) {
+	fprintf(stderr, "Error parsing statement into parsetree.\n");
+	return(struct filter *)NULL;
+  }
+
 #ifdef SM_DEBUG
   fprintf(stderr, "\nyyresult = %d\n", yyresult);
   fprintf(stderr, "parsetree = %p\n", parsetree);
@@ -1067,7 +1070,7 @@ struct filter * parse_stmt(int argc, char ** argv)
   last = transformStmt(parsetree);
 
   if (rc != 0) {
-	fprintf(stderr, "Error transforming parsetree into SMACQ stmt.\n");
+	fprintf(stderr, "Error transforming parsetree into SMACQ children.\n");
   }
 
   return last;

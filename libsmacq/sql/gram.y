@@ -13,7 +13,7 @@
  *
  *
  * IDENTIFICATION
- *	  $Header: /cvsroot/smacq/smacq/libsmacq/sql/gram.y,v 1.2 2002/12/10 22:34:47 wbarber Exp $
+ *	  $Header: /cvsroot/smacq/smacq/libsmacq/sql/gram.y,v 1.3 2002/12/12 18:33:29 wbarber Exp $
  *
  * HISTORY
  *	  AUTHOR			DATE			MAJOR EVENT
@@ -478,7 +478,24 @@ data_func:
 					FuncCall *n = makeNode(FuncCall);
 					List * al;
 					A_Const * c = (A_Const *)makeStringConst($3, NULL);
-					//fprintf(stderr, "table_ref: func_name '(' SCONST ')'\n"); // wbarber
+#ifdef SM_DEBUG
+					fprintf(stderr, "table_ref: func_name '(' SCONST ')'\n");
+#endif
+					al = makeList1(c);
+					n->funcname = $1;
+					n->args = al;
+					n->agg_star = FALSE;
+					n->agg_distinct = FALSE;
+					$$ = (Node *)n;
+				}
+		| func_name ColId // wbarber FNC
+				{
+					FuncCall *n = makeNode(FuncCall);
+					List * al;
+					A_Const * c = (A_Const *)makeStringConst($2, NULL);
+#ifdef SM_DEBUG
+					fprintf(stderr, "table_ref: func_name ColId\n");
+#endif
 					al = makeList1(c);
 					n->funcname = $1;
 					n->args = al;
@@ -794,6 +811,19 @@ c_expr:  attr
 					A_Const * c = (A_Const *)makeStringConst($3, NULL);
 					al = makeList1(c); // wbarber
 					fprintf(stderr, "c_expr: func_name '(' SCONST ')'\n");
+					n->funcname = $1;
+					n->args = al;
+					n->agg_star = FALSE;
+					n->agg_distinct = FALSE;
+					$$ = (Node *)n;
+				}
+		| func_name ColId  // wbarber FNC
+				{
+					FuncCall *n = makeNode(FuncCall);
+					List * al;
+					A_Const * c = (A_Const *)makeStringConst($2, NULL);
+					al = makeList1(c); // wbarber
+					fprintf(stderr, "c_expr: func_name ColId \n");
 					n->funcname = $1;
 					n->args = al;
 					n->agg_star = FALSE;
