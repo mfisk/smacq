@@ -104,13 +104,4 @@ static inline const dts_object * smacq_getfield(smacq_environment * env, const d
   return(dts_getfield(env->types, datum, field));
 }
 
-/* Same as above, but return a new copy of the data */
-static inline const dts_object * smacq_getfield_copy(smacq_environment * env, const dts_object * datum, dts_field fieldspec, dts_object * field_data) {
-	dts_object * field = (dts_object*)smacq_getfield(env, datum, fieldspec, field_data);
-	dts_object * fieldcopy = (dts_object*)dts_alloc(env->types, field->len, field->type);
-	memcpy(dts_getdata(fieldcopy), dts_getdata(field), field->len);
-	dts_decref(field);
-	return fieldcopy;
-}
-
 #endif
