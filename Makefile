@@ -3,7 +3,7 @@ BUILDDIR=build/`uname -sm| sed 's/  */-/g'`
 all: platform dirs
 	@echo "Executables are in build/":
 	@ls -al build/*/bin/smacqq
-	@ln -fs build/*/bin/smacqq smacqq
+	@ln -fs $(BUILDDIR)/bin/smacqq smacqq
 
 platform:
 	misc/config-env # Make the build directory and its config.mk
