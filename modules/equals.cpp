@@ -27,7 +27,6 @@ class PerType {
     : id(idt) 
   {
     for (unsigned int i=0; i < argv.size(); i++) {
-      fprintf(stderr, "Set %p contains %s\n", this, argv[i]);
       DtsObject valo = dts->construct_fromstring(id, argv[i]);
       outChan[valo] = i;
     }
@@ -50,25 +49,25 @@ SMACQ_MODULE(equals,
  * Check presense in set
  */
 smacq_result equalsModule::consume(DtsObject datum, int & outchan) {
-  FieldVecHash<int>::iterator i;
-	
   DtsObject f = datum->getfield(field);
-  if (! f) 
+
+  if (! f) {
   	return SMACQ_FREE;
+  }
 
   PerType * t = typeSet[f->gettype()];
   if (!t) {
     t = new PerType(dts, f->gettype(), argv);
+    //fprintf(stderr, "new set %p\n", t);
     typeSet[f->gettype()] = t;
   }
 
   //fprintf(stderr, "looking in set %p\n", t);
-  i = t->outChan.find(f);
+  FieldVecHash<int>::iterator i = t->outChan.find(f);
 
   if (i == t->outChan.end()) {
     return SMACQ_FREE;
   } else {
-    fprintf(stderr, "equal\n");
     outchan = i->second;
     return SMACQ_PASS;
   }
