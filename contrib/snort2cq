@@ -59,7 +59,7 @@ while(<>) {
       $content = $arg; 
       $content =~ s/\|([^|]*)\|/&hex2octalstr($1)/eg;
 
-      &notany("substr(payload, \"%ARG%\")", $content);
+      &notany("substr(payload, \"ARG\")", $content);
     } elsif ($op eq "msg" || $op eq "reference" || $op eq "classtype" || $op eq "rev" || $op eq "depth" || $op eq "nocase") {
       
     } else {
