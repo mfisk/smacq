@@ -126,16 +126,18 @@ DtsObject DtsObject_::getfield_new(dts_field_element fnum) {
     } else {
       //fprintf(stderr, "getfield has helper func\n");
       if (!d->desc.getfunc(this, field)) {
-	/* getfunc failed, release memory */
-	return NULL;
+	     /* getfunc failed, release memory */
+	     return NULL;
       }
     }
     field->uses = this;
+	this->usecount++;
     return field;
 
   } else if (t->info.getfield) {
     field = (DtsObject)dts->newObject(t->num);
     field->uses = this;
+	this->usecount++;
 
     if (!t->info.getfield(this, field, fnum)) {
       return NULL;
@@ -156,14 +158,13 @@ DtsObject DtsObject_::getfield_single(dts_field_element fnum) {
 
   cached = fields[fnum];
   if (cached) {
-    //cached->incref(); // now auto
     return cached;
   } else {
     DtsObject field = getfield_new(fnum);
 
-#ifdef SMACQ_OPT_FORCEFIELDCACHE
+#ifndef SMACQ_OPT_NOFIELDCACHE
     if (field) {
-      //field->incref(); // now auto
+	  //fprintf(stderr, "caching ptr %p\n", field.get());
       fields[fnum] = field;
     }
 #endif
@@ -178,7 +179,14 @@ DtsObject DtsObject_::getfield(DtsField &fieldv) {
 
   for (i = fieldv.begin(); i != fieldv.end(); ++i) {
 	f = f->getfield_single(*i);
-	if (!f) return f;
+	if (!f) {
+    	if (dts->warn_missing_fields()) {
+			fprintf(stderr, "Warning: requested field %s not present\n",
+				dts->field_getname(fieldv));
+		}
+
+		return f;
+	}
   }
 
   return f;
@@ -190,6 +198,10 @@ void DtsObject_::freeObject() {
     free(this->data);
     this->data = NULL;
   }
+  if (this->uses) {
+	this->uses->usecount--;
+	this->uses = NULL;
+  }
 
 #ifndef SMACQ_OPT_DTS_FREELIST
   delete this;
@@ -197,7 +209,7 @@ void DtsObject_::freeObject() {
 
   if (dts->freelist.size() < DTS_FREELIST_SIZE) {
 	// Flush field cache too then
-	fields.empty();
+	fields.clear();
 
 	dts->freelist.push(this);
   } else {

@@ -116,7 +116,7 @@ class DtsObject_ {
 	/// Programmers should NOT use these methods directly
 	/// @{
 
-	/// Increment reference count by 1
+	/// Increment reference count
 	void incref();
 
 	/// Decrement reference count by 1
@@ -131,17 +131,18 @@ class DtsObject_ {
 	/// Plain-C Wrapper
 	//friend void dts_decref(DtsObject d) { d->decref(); }
 
-
 	/// @}
 
 
- private:
 	/// Increment refcount by the given number
-	void incref(int);
+	//void incref(int);
+
+    void lock();
+	void unlock();
 
 	//int getrefcount() const { return refcount; }
 
-	int refcount;
+	int refcount, usecount;
 
 	/// Keep a reference to what we were derived from so it doesn't
 	/// get reused.
@@ -194,7 +195,7 @@ inline void DtsObject_::setdatacopy(const void * src) {
 }
 
 inline DtsObject_::~DtsObject_() {
-  fields.empty();
+  fields.clear();
   if (buffer)
         free(buffer);
   SMDEBUG(DtsObject_count--;)
@@ -213,7 +214,7 @@ inline void DtsObject_::setsize(int size) {
 }
 
 inline DtsObject_::DtsObject_(DTS * dts, int size, int type)
-  : refcount(0), dts(dts)
+  : refcount(0), usecount(0), dts(dts)
 {
 #ifndef SMACQ_OPT_NOPTHREADS
   pthread_mutex_init(&this->mutex, NULL);
@@ -237,44 +238,51 @@ inline int DtsObject_::set_fromstring(char * datastr) {
   return t->info.fromstring(datastr, this);
 }
 
-inline void DtsObject_::incref(int i) {
+inline void DtsObject_::lock() {
 #ifndef SMACQ_OPT_NOPTHREADS
   pthread_mutex_lock(&this->mutex);
 #endif
-  this->refcount += i;
+}
+	
+inline void DtsObject_::unlock() {
 #ifndef SMACQ_OPT_NOPTHREADS
   pthread_mutex_unlock(&this->mutex);
 #endif
 }
-
+	
 inline void DtsObject_::incref() {
-#ifndef SMACQ_OPT_NOPTHREADS
-  pthread_mutex_lock(&this->mutex);
-#endif
-  this->refcount++;
-#ifndef SMACQ_OPT_NOPTHREADS
-  pthread_mutex_unlock(&this->mutex);
-#endif
+  lock();
+  ++this->refcount;
+  unlock();
 }
 
 inline void DtsObject_::decref() {
   //DUMP_p(this);
-  assert(this->refcount > 0);
+  assert(refcount > 0);
+  lock();
+  --refcount;
+  unlock();
 
-#ifndef SMACQ_OPT_NOPTHREADS
-  pthread_mutex_lock(&this->mutex);
-#endif
-  this->refcount--;
-  if (!this->refcount) {
-#ifndef SMACQ_OPT_NOPTHREADS
-    pthread_mutex_unlock(&this->mutex);
-#endif
+  if (refcount && refcount == usecount) {
+    /* All of the things that refer to us have us as a "uses".
+	   Flush our fieldcache sense it's unnecessary.  
+	   This will probably remove some or all of the uses references
+	   and may get our refcount down to 0
+     */
+	//fprintf(stderr, "%p, cycle of %d ", this, usecount);
 
-    this->freeObject();
-#ifndef SMACQ_OPT_NOPTHREADS
-  } else {
-    pthread_mutex_unlock(&this->mutex);
-#endif
+	/* Increment the refcount so that if when clear() recurses into decref()
+	   we don't destroy ourselves there.  We'll decrement
+	   it back to reality when we're done.
+     */
+	refcount++;
+	fields.clear();
+	refcount--;
+	//fprintf(stderr, "now %d, %d\n", refcount, usecount);
+  }
+
+  if (!refcount) {
+    freeObject();
   }
 }
 
