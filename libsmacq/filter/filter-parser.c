@@ -116,7 +116,7 @@
 #endif
 
 #ifndef YYSTYPE
-#line 38 "filter-parser.y"
+#line 37 "filter-parser.y"
 typedef union {
   char * string;
   struct list list;
@@ -314,8 +314,8 @@ static const yysigned_char yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const unsigned char yyrline[] =
 {
-       0,    45,    45,    61,    62,    63,    64,    67,    68,    71,
-      72,    73,    74,    77,    78,    81,    83
+       0,    44,    44,    60,    61,    62,    63,    66,    67,    70,
+      71,    72,    73,    76,    77,    80,    82
 };
 #endif
 
@@ -962,7 +962,7 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 45 "filter-parser.y"
+#line 44 "filter-parser.y"
     { 
 					if (yyvsp[-1].list.isor) {
 						Comp = calloc(1,sizeof(dts_comparison));
@@ -980,57 +980,57 @@ yyreduce:
     break;
 
   case 3:
-#line 61 "filter-parser.y"
+#line 60 "filter-parser.y"
     { yyval.list = yyvsp[-1].list; }
     break;
 
   case 4:
-#line 62 "filter-parser.y"
+#line 61 "filter-parser.y"
     { yyval.list = list_join(yyvsp[-2].list, yyvsp[0].list, 1); }
     break;
 
   case 5:
-#line 63 "filter-parser.y"
+#line 62 "filter-parser.y"
     { yyval.list = list_join(yyvsp[-2].list, yyvsp[0].list, 0); }
     break;
 
   case 7:
-#line 67 "filter-parser.y"
+#line 66 "filter-parser.y"
     { yyval.list = newlist(yyvsp[0].string, EXIST, NULL); }
     break;
 
   case 8:
-#line 68 "filter-parser.y"
+#line 67 "filter-parser.y"
     { yyval.list = newlist(yyvsp[-2].string, yyvsp[-1].op, yyvsp[0].string); }
     break;
 
   case 9:
-#line 71 "filter-parser.y"
+#line 70 "filter-parser.y"
     { yyval.op = EQUALITY; }
     break;
 
   case 10:
-#line 72 "filter-parser.y"
+#line 71 "filter-parser.y"
     { yyval.op = GT; }
     break;
 
   case 11:
-#line 73 "filter-parser.y"
+#line 72 "filter-parser.y"
     { yyval.op = LT; }
     break;
 
   case 12:
-#line 74 "filter-parser.y"
+#line 73 "filter-parser.y"
     { yyval.op = LIKE; }
     break;
 
   case 15:
-#line 81 "filter-parser.y"
+#line 80 "filter-parser.y"
     { yyval.string = yystring; }
     break;
 
   case 16:
-#line 83 "filter-parser.y"
+#line 82 "filter-parser.y"
     { yyval.string = yystring; }
     break;
 
@@ -1257,7 +1257,7 @@ yyreturn:
 }
 
 
-#line 86 "filter-parser.y"
+#line 85 "filter-parser.y"
 
 
 static dts_environment * tenv;

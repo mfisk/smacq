@@ -26,7 +26,6 @@
 
 %}
 
-/* %pure-parser 	/* Make reentrant */
 %token YYSTOP YYLIKE YYOR YYAND YYSTRING YYID
 
 %left YYAND YYOR

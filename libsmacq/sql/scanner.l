@@ -60,9 +60,9 @@ having|HAVING	return HAVING;
 
 [\ \n\t]	{ ; }
 
-[,>()]    	return yytext[0];
+[\,\=\<\>\(\)]    	return yytext[0];
 
-{id}		{ 
+{id}|{number}	{ 
 			yystring = strdup((char *)yytext); 
 			return ID; 
 		}

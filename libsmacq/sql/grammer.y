@@ -68,7 +68,7 @@
 %token AS
 %token HAVING
 
-%type <arglist> having booleans arg argument args arglist moreargs
+%type <arglist> having arg argument boolarg boolargs args moreargs moreboolargs
 %type <group> group 
 %type <graph> where query from source pverbphrase  
 %type <vphrase> verbphrase
@@ -117,9 +117,8 @@ source : pverbphrase
 	| '(' query ')'	{ $$ = $2; }
 	;
 
-
-where : null 		{ $$ = nullgraph; }
-	| WHERE args 	{ $$ = newmodule("filter", $2); }
+where : null 			{ $$ = nullgraph; }
+	| WHERE boolargs 	{ $$ = newmodule("filter", $2); }
 	;
 
 group : null 			{ $$.args = NULL; $$.having = NULL;}
@@ -127,10 +126,7 @@ group : null 			{ $$.args = NULL; $$.having = NULL;}
 	;
 
 having : null			{ $$ = NULL; }
-	| HAVING booleans	{ $$ = $2; }
-	;
-
-booleans : args
+	| HAVING boolargs	{ $$ = $2; }
 	;
 
 word:	id 		
@@ -146,24 +142,36 @@ arg: argument
 	;
 
 argument : word 			{ $$ = newarg($1, 0, NULL); } 
-	| function '(' arglist ')' 	{ $$ = newarg($1, 1, $3); }
+	| function '(' args ')' 	{ $$ = newarg($1, 1, $3); }
+	;
+
+boolarg : word				{ $$ = newarg($1, 0, NULL); }
+	| '<'				{ $$ = newarg("<", 0, NULL); }
+	| '>'				{ $$ = newarg(">", 0, NULL); }
+	| '='				{ $$ = newarg("=", 0, NULL); }
+	| '('				{ $$ = newarg("(", 0, NULL); }
+	| ')'				{ $$ = newarg(")", 0, NULL); }
+	| '!'				{ $$ = newarg("!", 0, NULL); }
 	;
 
 function : id 
 	;
 
 pverbphrase: verb 		{ $$ = newmodule($1, NULL); }
-	| verb '(' arglist ')' 	{ $$ = newmodule($1, $3); }
+	| verb '(' args ')' 	{ $$ = newmodule($1, $3); }
 	;
 
 verbphrase : verb args 		{ $$ = newvphrase($1, $2); }
 	;
 
-args : 	'(' arglist ')' 	{ $$ = $2; }
-	| arglist 
+boolargs : boolarg moreboolargs	{ $$ = $1; $$->next = $2; }
 	;
 
-arglist : null 			{ $$ = NULL; }
+moreboolargs : null		{ $$ = NULL; }
+	| boolarg moreboolargs	{ $$ = $1; $$->next = $2; }
+	;
+
+args : null 			{ $$ = NULL; }
 	| arg moreargs 		{ $$ = $1; $$->next = $2; }
 	;
 
