@@ -23,14 +23,14 @@ SMACQ_MODULE(foo,
 #define PROTO_CTOR(name) public: name##Module::name##Module(struct SmacqModule::smacq_init *); private:
 #define PROTO_DTOR(name) public: name##Module::~name##Module(); private:
 
-#define SMACQ_MODULE(name,defs) \
+#define SMACQ_MODULE(name,defs...) \
  class name##Module : public SmacqModule {	\
   private:					\
       defs					\
   };					        \
   EXPORT_SMACQ_MODULE(name, MODULE_ALGEBRA)
 
-#define SMACQ_MODULE_THREAD(name,defs) \
+#define SMACQ_MODULE_THREAD(name,defs...) \
  class name##Module : public ThreadedSmacqModule {	\
   public:					\
    smacq_result thread(struct SmacqModule::smacq_init* context);		\
