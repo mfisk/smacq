@@ -1,3 +1,15 @@
+Resolve:
+	Join needs where information to determine type of join
+	Pcaplive and Disarm modules could take advantage of where information
+
+	Should modules volunteer to take care of where info (and then delegate if necessary)?
+
+	How do you specify different types of joins?
+
+getfield():
+	Who allocates, who frees?
+
+
 modules/intervals.c:
 	BUG: Doesn't do well when fields change in size and type.
 	Fix: Need to save field vectors rather than bytearray
