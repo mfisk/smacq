@@ -2,7 +2,7 @@
 IFACE=eth1
 OUTPUT=/tmp/smacq.out
 OUTPUT=/huge1/mfisk/flatland/sessions
-FILTER="net 204.121.0.0/16"
+FILTER="'net 204.121.0.0/16'"
 FILTER="ip"
 
             #from (fifodelay -t, 5, -i, timeseries, -o, timeseries \
