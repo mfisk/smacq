@@ -23,6 +23,16 @@ static int parse_string(char * buf,  const dts_object * d) {
   return dts_set(d, double, dbl);
 }
 
+static int double_lt(void * num1, int size1, void * num2, int size2) {
+        double * a = num1;
+        double * b = num2;
+
+        assert(size1 == sizeof(double));
+        assert(size2 == sizeof(double));
+
+        return(*a < *b);
+}
+
 struct dts_field_spec dts_type_double_fields[] = {
   { "string",   "string",	smacqtype_double_get_string },
   { "double",   "double",	smacqtype_double_get_double },
@@ -31,6 +41,7 @@ struct dts_field_spec dts_type_double_fields[] = {
 
 struct dts_type_info dts_type_double_table = {
         size: sizeof(double),
-  	fromstring: parse_string
+  	fromstring: parse_string,
+	lt: double_lt
 };
 
