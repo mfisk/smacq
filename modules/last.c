@@ -12,19 +12,11 @@
 #include "bytehash.h"
 
 /* Programming constants */
-
-#define VECTORSIZE 21
-#define ALARM_BITS 15
 #define KEYBYTES 128
 
 static struct smacq_options options[] = {
   {"t", {double_t:0}, "Update interval", SMACQ_OPT_TYPE_TIMEVAL},
   {NULL, {string_t:NULL}, NULL, 0}
-};
-
-struct obj_list{
-  dts_object * obj;
-  struct obj_list * next;
 };
 
 struct state {
@@ -35,7 +27,7 @@ struct state {
   struct timeval interval, nextinterval;
   int istarted, hasinterval;
 
-  struct obj_list * outputq;
+  struct smacq_outputq * outputq;
 
   dts_field timeseries; // Field number
   int refreshtype, timevaltype;
@@ -80,34 +72,29 @@ static inline void timeval_minus(struct timeval x, struct timeval y, struct time
 static void emit_last(gpointer key, gpointer value, gpointer userdata) {
   dts_object * d = value;
   struct state * state = userdata;
-  struct obj_list * newo = g_new(struct obj_list, 1);
- 
-  //fprintf(stderr, "last enqueue %p\n", d);
+
+  smacq_produce_enqueue(&state->outputq, d, -1);
   dts_incref(d, 1);
-  newo->next = state->outputq;
-  newo->obj = d;
-  state->outputq = newo;
 }
 	
 static void emit_all(struct state * state) {
-  // Build LIFO stack of objects to send
+  assert (!state->outputq);
+  bytes_hash_table_foreach(state->last, emit_last, state);
 
   // Last entry to be sent is a refresh message:
   if (state->fieldset.num) {
-  	struct obj_list * newo = g_new(struct obj_list, 1);
-  	newo->obj = smacq_dts_construct(state->env, state->refreshtype, NULL);
+	dts_object * obj = smacq_dts_construct(state->env, state->refreshtype, NULL);
+
   	if (state->hasinterval) {
   		dts_object * timefield;
   		timefield = smacq_dts_construct(state->env, state->timevaltype, &state->nextinterval);
-  		dts_attach_field(newo->obj, state->timeseries, timefield);
+  		dts_attach_field(obj, state->timeseries, timefield);
   	}
-  	newo->next = NULL;
-  	assert (!state->outputq);
-  	state->outputq = newo;
-	//fprintf(stderr, "last enqueue refresh %p\n", newo->obj);
+
+  	smacq_produce_enqueue(&state->outputq, obj, -1);
+	//fprintf(stderr, "last enqueue refresh %p\n", obj);
   }
 
-  bytes_hash_table_foreach(state->last, emit_last, state);
 }
   
 static smacq_result last_consume(struct state * state, const dts_object * datum, int * outchan) {
@@ -198,6 +185,7 @@ static int last_init(struct smacq_init * context) {
 }
 
 static int last_shutdown(struct state * state) {
+	fprintf(stderr, "lsat shutodwn\n");
   return 0;
 }
 
@@ -206,16 +194,8 @@ static smacq_result last_produce(struct state * state, const dts_object ** datum
   if (!state->outputq) {
     emit_all(state);
   }
-    
-  if (state->outputq) {
-    *datum = state->outputq->obj;
-    state->outputq = state->outputq->next;
-  } else {
-    return SMACQ_END;
-  }
 
-  //fprintf(stderr, "last producing %p\n", *datum);
-  return(SMACQ_PASS|(state->outputq ? SMACQ_PRODUCE : 0));
+  return smacq_produce_dequeue(&state->outputq, datum, outchan);
 }
 
 /* Right now this serves mainly for type checking at compile time: */
