@@ -11,7 +11,7 @@ static int get_sv4_prompt(DtsObject o, DtsObject stro) {
 	void * p = o->getdata()+ 47;
 	ushort prompt = ntohs( *(ushort*)p );
 	stro->setsize(6);
-	char * str = stro->getdata();
+	unsigned char * str = stro->getdata();
 
 	str[0] = ((prompt & 16) ? '<' : ' ');
 	str[1] = ((prompt & 8) ? '<' : ' ');

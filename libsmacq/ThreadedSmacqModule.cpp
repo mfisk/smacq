@@ -69,7 +69,7 @@ ThreadedSmacqModule::ThreadedSmacqModule(struct smacq_init * volatile_context) :
   this->loop_context.uc_stack.ss_sp = stack;
   this->loop_context.uc_stack.ss_size = STACK_SIZE;
   makecontext(&this->loop_context, (void (*) (void)) run_thread, 
-		  2, this->context, this->thread_fn);
+		  1, this);
 
   if (!setjmp(this->event_stack)) {
 	//fprintf(stderr, "Starting up new stack\n");

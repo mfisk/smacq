@@ -13,7 +13,7 @@
 static int smacqtype_macaddr_get_string(DtsObject o, DtsObject field) {
   unsigned char * c = (unsigned char*)o->getdata();
   field->setsize(36); 
-  snprintf(field->getdata(), 36, "%02x:%02x:%02x:%02x:%02x:%02x", c[0], c[1], c[2], c[3], c[4], c[5]);
+  snprintf((char*)field->getdata(), 36, "%02x:%02x:%02x:%02x:%02x:%02x", c[0], c[1], c[2], c[3], c[4], c[5]);
   return 1;
 }
 

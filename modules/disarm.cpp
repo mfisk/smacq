@@ -81,7 +81,7 @@ static unsigned char hex2val[256] = {
 void disarmModule::init_get_line(struct get_line * s, FILE * fh) {
 	s->fh = fh;
 	s->buffer_size = GETLINEBUFSIZE;
-	s->read_buffer = malloc(s->buffer_size);
+	s->read_buffer = (char*)malloc(s->buffer_size);
 	s->leading = 0;
 	s->buffer_used = 0;
 }
@@ -185,7 +185,7 @@ smacq_result disarmModule::produce(DtsObject & datump, int * outchan) {
 int disarmModule::server_init(struct sockaddr_in * addrp) {
   struct sockaddr_in my_addr;
   int listen_fd;
-  int len;
+  socklen_t len;
   
   if ((listen_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
 	perror("disarm server socket");
@@ -221,7 +221,7 @@ int disarmModule::client_init(int port, char * hostname, char ** ipstr) {
   struct sockaddr_in their_addr;
   struct hostent *hostn;
   struct sockaddr_in myaddr;
-  int len;
+  socklen_t len;
 
   //fprintf(stderr, "Initiating Client\n");
   if ((client_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
@@ -332,7 +332,7 @@ disarmModule::disarmModule(struct smacq_init * context) : SmacqModule(context) {
 	FILE * fh;
 	char myip_buf[INET_ADDRSTRLEN];
 	char * myip = myip_buf;
-	int sin_size;
+	socklen_t sin_size;
 
   	if (!date_string) {
 		fprintf(stderr, "disarm: date must be specified!\n");

@@ -70,6 +70,10 @@ class DtsObject_ {
 	  dts->send_message(this, fieldnum, comparisons);
 	}
 
+	void send(dts_field field, dts_comparison * comparisons) {
+	  dts->send_message(this, field[0], comparisons);
+	}
+
 	friend DtsObject DTS::msg_check(DtsObject, dts_field_element);
 	
 	int match(dts_comparison * comps) { 

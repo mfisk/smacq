@@ -38,7 +38,7 @@ SMACQ_MODULE(ndjoin,
 ); 
 
 smacq_result ndjoinModule::consume(DtsObject datum, int * outchan) {
-  	int more;
+  	smacq_result more;
   	double left_val;
 
 	struct join * j = &join;

@@ -6,10 +6,14 @@ typedef void * DtsObject;
 typedef void DTS;
 #else
 
-#include <intrusive_ptr.hpp>
 
 class DTS;
 class DtsObject_;
+
+extern void intrusive_ptr_add_ref(DtsObject_ *);
+extern void intrusive_ptr_release(DtsObject_ *);
+
+#include <intrusive_ptr.hpp>
 
 #ifdef DOXYGEN_KLUDGE
 typedef DtsObject_* DtsObject;

@@ -5,7 +5,7 @@
 #include <smacq.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <Strucio.h>
+#include <strucio.h>
 
 static struct smacq_options options[] = {
   {"starttime", {double_t:0}, "Start time for input files", SMACQ_OPT_TYPE_DOUBLE},

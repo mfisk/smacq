@@ -45,7 +45,7 @@ struct transition {
 
 int dfaModule::try_transition(DtsObject datum, struct transition * t) {
   DtsObject output;
-  int more;
+  smacq_result more;
 
   smacq_sched_iterative_input(t->graph, datum, t->runq);
   more = smacq_sched_iterative_busy(t->graph, &output, t->runq, 0);
@@ -207,13 +207,13 @@ int dfaModule::parse_dfa(char * filename) {
       }
 
       if (0 != smacq_start(transition->graph, ITERATIVE, dts)) {
-        return SMACQ_ERROR;
+        return -1;
       }
       smacq_sched_iterative_init(transition->graph, &transition->runq, 0);
     }
 
     if (this_state_num > -1) {
-    	this_state = darray_get(&states, this_state_num);
+    	this_state = (dfa_state*)darray_get(&states, this_state_num);
     	if (!this_state) {
       		this_state = g_new0(struct dfa_state, 1);
       		darray_init(&this_state->transitions, 0);

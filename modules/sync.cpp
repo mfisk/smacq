@@ -25,12 +25,12 @@ SMACQ_MODULE(sync,
   DtsObject product;
   struct runq * runq;
   smacq_graph * graph;
-  int done; 
+  smacq_result done; 
   int isfirst;
 ); 
 
 smacq_result syncModule::consume(DtsObject datum, int * outchan) {
- int more = smacq_sched_iterative(graph, datum, &product, &runq, isfirst);
+ smacq_result more = smacq_sched_iterative(graph, datum, &product, &runq, isfirst);
 
  more = (more ? 0 : SMACQ_END);
 

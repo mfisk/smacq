@@ -5,13 +5,13 @@
 
 static int smacqtype_uint64_get_string(DtsObject o, DtsObject field) {
   field->setsize(64); // Only has to hold log10(2**64)
-  snprintf(field->getdata(), 64, "%llu", dts_data_as(o, uint64_t));
+  snprintf((char*)field->getdata(), 64, "%llu", dts_data_as(o, uint64_t));
   return 1;
 }
 
 static int smacqtype_uint64_get_hexstring(DtsObject o, DtsObject field) {
   field->setsize(16); // 4 bytes -> 8 chars + 3 = 11
-  snprintf(field->getdata(), 64, "0x%llx", dts_data_as(o, uint64_t));
+  snprintf((char*)field->getdata(), 64, "0x%llx", dts_data_as(o, uint64_t));
   return 1;
 }
 
@@ -32,8 +32,8 @@ static int parse_string(char * buf, DtsObject d) {
 }
  
 static int uint64_lt(void * num1, int size1, void * num2, int size2) {
-        uint64_t * a = num1;
-        uint64_t * b = num2;
+        uint64_t * a = (uint64_t*)num1;
+        uint64_t * b = (uint64_t*)num2;
  
         assert(size1 == sizeof(uint64_t));
         assert(size2 == sizeof(uint64_t));

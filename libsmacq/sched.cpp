@@ -1,7 +1,7 @@
 #include <smacq.h>
 #include <smacq-dataflow.h>
 #include <stdio.h>
-#include <DTS.h>
+#include <dts.h>
 
 static int smacq_start_single(smacq_graph * objs, enum smacq_scheduler scheduler, DTS * tenv) {
   DtsObject record;
@@ -36,7 +36,7 @@ static int smacq_start_single(smacq_graph * objs, enum smacq_scheduler scheduler
     case THREADED:
 #ifndef SMACQ_OPT_NOPTHREADS
     	smacq_start_threads(objs);
-    	pthread_exit(0);
+	smacq_pthread_exit(0);
 #else
 	fprintf(stderr, "Threads not enabled\n");
 	return -1;

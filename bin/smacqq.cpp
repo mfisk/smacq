@@ -16,7 +16,7 @@ static struct smacq_options options[] = {
   {"O", {boolean_t:0}, "Optimize multiple queries", SMACQ_OPT_TYPE_BOOLEAN},
   {"f", {string_t:"-"}, "File to read queries from", SMACQ_OPT_TYPE_STRING},
   {"g", {boolean_t:0}, "Show final graph", SMACQ_OPT_TYPE_BOOLEAN},
-  {NULL, {string_t:NULL}, NULL, 0}
+  END_SMACQ_OPTIONS
 };
 
 
@@ -51,7 +51,7 @@ int main(int argc, char ** argv) {
       char * queryline;
       int qno=1;
 
-      queryline = malloc(MAX_QUERY_SIZE);
+      queryline = (char*)malloc(MAX_QUERY_SIZE);
 
       if (qargc) {
 	      fprintf(stderr, "Cannot specify query on command line with -m option\n");

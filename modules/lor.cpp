@@ -48,7 +48,7 @@ int lorModule::build_clause(char ** argv, int num) {
 		  }
 
 		  num_clauses++;
-		  clause = realloc(clause, num_clauses * sizeof(struct clause));
+		  clause = (struct clause*)realloc(clause, num_clauses * sizeof(struct clause));
 		  g = smacq_build_query(dts, num, argv);
 		  if (0 != smacq_start(g, ITERATIVE, dts)) {
 			  return 0;
@@ -70,7 +70,7 @@ smacq_result lorModule::consume(DtsObject datum, int * outchan) {
   for (i=0; i < num_clauses; i++) {
   	DtsObject output = NULL;
 	struct clause * j = &clause[i];
-	int more = 0;
+	smacq_result more = 0;
 
 	if (!j) continue;
 

@@ -26,7 +26,7 @@ SMACQ_MODULE(mask,
 static struct smacq_options options[] = {
   //{"f", {string_t:NULL}, "Field to inspect (full data is default)", SMACQ_OPT_TYPE_STRING},
   //{"m", {boolean_t:0}, "OR multiple fields and demux to individual outputs", SMACQ_OPT_TYPE_BOOLEAN},
-  {NULL, {NULL}, NULL, 0}
+  END_SMACQ_OPTIONS
 };
 
 smacq_result maskModule::consume(DtsObject datum, int * outchan) {
@@ -85,7 +85,7 @@ maskModule::maskModule(struct smacq_init * context) : SmacqModule(context) {
 
 	  if (slash) {
 		  slash[0] = '\0';
-		  cidr = atof(slash+1);
+		  cidr = atoi(slash+1);
 	  } else {
 		  cidr = 32;
 	  }

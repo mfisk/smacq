@@ -139,9 +139,9 @@ smacq_graph * smacq_new_module(int argc, char ** argv){
   newo->q.resize(newo->ringsize);
  
 #ifndef SMACQ_OPT_NOPTHREADS
-  pthread_mutex_init(&newo->qlock, NULL);
-  pthread_cond_init(&newo->ring_notfull, NULL);
-  pthread_cond_init(&newo->ring_notempty, NULL);
+ smacq_pthread_mutex_init(&newo->qlock, NULL);
+ smacq_pthread_cond_init(&newo->ring_notfull, NULL);
+ smacq_pthread_cond_init(&newo->ring_notempty, NULL);
 #endif
 
   assert(newo);
@@ -154,9 +154,9 @@ smacq_graph * smacq_new_module(int argc, char ** argv){
 
 void smacq_free_module(smacq_graph * f) {
 #ifndef SMACQ_OPT_NOPTHREADS
-  pthread_mutex_destroy(&f->qlock);
-  pthread_cond_destroy(&f->ring_notfull);
-  pthread_cond_destroy(&f->ring_notempty);
+ smacq_pthread_mutex_destroy(&f->qlock);
+ smacq_pthread_cond_destroy(&f->ring_notfull);
+ smacq_pthread_cond_destroy(&f->ring_notempty);
 #endif
 
   free(f->parent);

@@ -34,7 +34,7 @@ struct batch {
 static struct smacq_options options[] = {
   {"f", {string_t:NULL}, "Field to inspect (full data is default)", SMACQ_OPT_TYPE_STRING},
   {"m", {boolean_t:0}, "OR multiple fields and demux to individual outputs", SMACQ_OPT_TYPE_BOOLEAN},
-  {NULL, {NULL}, NULL, 0}
+  END_SMACQ_OPTIONS
 };
 
 struct batch * iplookupModule::get_batch(char * field) {
@@ -50,7 +50,7 @@ struct batch * iplookupModule::get_batch(char * field) {
 	dts_field_free(f);
 
 	num_batches++;
-	batch = realloc(batch, num_batches * sizeof(struct batch));
+	batch = (struct batch*)realloc(batch, num_batches * sizeof(struct batch));
 	mybatch = &batch[num_batches-1];
 
  	mybatch->field = dts->requirefield(field);
@@ -148,7 +148,7 @@ iplookupModule::iplookupModule(struct smacq_init * context) : SmacqModule(contex
   char * pattern = NULL;
   int output = 0;
 
-  batch = calloc(sizeof(struct batch), 1);
+  batch = (struct batch*)calloc(sizeof(struct batch), 1);
 
   {
     struct smacq_optval optvals[] = {

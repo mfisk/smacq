@@ -5,7 +5,7 @@ EXTRA_LTLIBRARIES = #libpcaplive.la libpython.la libreassemble.la libbench_field
 #BUILT_SOURCES = count.cpp
 SUFFIXES = .sc
 
-libsmacq_modules_la_SOURCES = print.cpp pcaplive.cpp pcapfile.cpp socket.cpp uniq.cpp count.cpp last.cpp top.cpp head.cpp filter.cpp msgtest.cpp entropy.cpp derivative.cpp split.cpp encrypt.cpp warden.cpp pdf.cpp fifo.cpp delta.cpp tabularinput.cpp sync.cpp rusage.cpp groupby.cpp flowid.cpp sum.cpp fifodelay.cpp project.cpp rename.cpp join.cpp mask.cpp const.cpp ndjoin.cpp lor.cpp counter_loop.cpp dfa.cpp expr.cpp equals.cpp cflow.cpp clock.cpp disarm.cpp substr-main.cpp iplookup.cpp #sqlinsert.c #sqlclient.c
+libsmacq_modules_la_SOURCES = print.cpp pcaplive.cpp pcapfile.cpp socket.cpp uniq.cpp count.cpp last.cpp top.cpp head.cpp filter.cpp msgtest.cpp entropy.cpp derivative.cpp split.cpp encrypt.cpp pdf.cpp fifo.cpp delta.cpp tabularinput.cpp sync.cpp rusage.cpp groupby.cpp flowid.cpp sum.cpp fifodelay.cpp project.cpp rename.cpp join.cpp mask.cpp const.cpp ndjoin.cpp lor.cpp counter_loop.cpp dfa.cpp expr.cpp equals.cpp cflow.cpp clock.cpp disarm.cpp substr-main.cpp iplookup.cpp #sqlinsert.c #sqlclient.c
 
 EXTRA_libsmacq_modules_la_SOURCES = sqlinsert.cpp
 

@@ -32,19 +32,17 @@
 	#define inline __inline 
 #endif
 
-#ifndef SMACQ_OPT_NOPTHREADS
 #include <pthread.h>
-#else
-#define pthread_mutex_init(x,y)
-#define pthread_mutex_destroy(x)
-#define pthread_mutex_lock(x)
-#define pthread_mutex_unlock(x)
+#ifdef SMACQ_OPT_NOPTHREADS
+#define smacq_pthread_mutex_init(x,y)
+#define smacq_pthread_mutex_destroy(x)
+#define smacq_pthread_mutex_lock(x)
+#define smacq_pthread_mutex_unlock(x)
 
-#define pthread_cond_init(x,y)
-#define pthread_cond_destroy(x)
-#define pthread_cond_wait(x,y)
-#define pthread_cond_broadcast(x)
-#define _PTHREAD_H
+#define smacq_pthread_cond_init(x,y)
+#define smacq_pthread_cond_destroy(x)
+#define smacq_pthread_cond_wait(x,y)
+#define smacq_pthread_cond_broadcast(x)
 #endif
 
 #ifndef __cplusplus

@@ -31,16 +31,16 @@ struct batch {
 static struct smacq_options options[] = {
   {"f", {string_t:NULL}, "Field to inspect (full data is default)", SMACQ_OPT_TYPE_STRING},
   {"m", {boolean_t:0}, "OR multiple fields and demux to individual outputs", SMACQ_OPT_TYPE_BOOLEAN},
-  {NULL, {NULL}, NULL, 0}
+  END_SMACQ_OPTIONS
 };
 
-static int cdecode(unsigned char * needle) {
+static int cdecode(char * needle) {
   int used;
   int esc = 0;
-  int len = strlen(needle);
-  unsigned char * decoded = (unsigned char*)malloc(len+1);
-  unsigned char * dp = decoded;
-  unsigned char * np = needle;
+  int len = strlen((char*)needle);
+  char * decoded = (char*)malloc(len+1);
+  char * dp = decoded;
+  char * np = needle;
 
   while (np < needle + len) {
 	  if (esc) {
@@ -84,7 +84,7 @@ void substrModule::add_entry(char * field, char * needle, int output) {
   if (!field && !needle) return;
 
   if (!needle) {
-  	needle = field;
+  	needle = (char*)field;
 	field = NULL;
   }
 
@@ -111,7 +111,7 @@ void substrModule::add_entry(char * field, char * needle, int output) {
 	}
   }
 
-  nlen = strlen(needle);
+  nlen = strlen((char*)needle);
 #ifdef DEBUG
   fprintf(stderr, "decoded %s(%d) to search string of ", needle, nlen);
 #endif
@@ -120,7 +120,7 @@ void substrModule::add_entry(char * field, char * needle, int output) {
   fprintf(stderr, "%s(%d)\n", needle, nlen);
 #endif
 
-  substr_add(mybatch->set, nlen, needle, 0, (void*)output, 0, 0);
+  substr_add(mybatch->set, nlen, (unsigned char*)needle, 0, (void*)output, 0, 0);
 }
 
 smacq_result substrModule::produce(DtsObject & datum, int * outchan) {
@@ -208,7 +208,7 @@ substrModule::substrModule(struct smacq_init * context) : SmacqModule(context), 
 	  } else if (!field) {
 		field = argv[i];
 	  } else {
-		pattern = argv[i];
+		pattern = (char*)argv[i];
 	  }
   }
   if (pattern) {

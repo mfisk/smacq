@@ -37,7 +37,7 @@ SMACQ_MODULE(join,
 ); 
 
 smacq_result joinModule::consume(DtsObject datum, int * outchan) {
-  int more;
+  smacq_result more;
   int i;
 
   for (i=0; i<numjoins; i++) {

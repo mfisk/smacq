@@ -32,7 +32,6 @@ smacq_result msgtestModule::consume(DtsObject datum, int * outchan) {
   srcip = datum->getfield(dts->requirefield("srcip"));
   comp->op2->valueo = srcip->dup();
   
-
   /* Send it to everybody else */
   msgdata->dup()->send(dts->requirefield("prior"), comp);
 

@@ -157,7 +157,7 @@ EXTRA_LTLIBRARIES = #libpcaplive.la libpython.la libreassemble.la libbench_field
 #BUILT_SOURCES = count.cpp
 SUFFIXES = .sc
 
-libsmacq_modules_la_SOURCES = print.cpp pcaplive.cpp pcapfile.cpp socket.cpp uniq.cpp count.cpp last.cpp top.cpp head.cpp filter.cpp msgtest.cpp entropy.cpp derivative.cpp split.cpp encrypt.cpp warden.cpp pdf.cpp fifo.cpp delta.cpp tabularinput.cpp sync.cpp rusage.cpp groupby.cpp flowid.cpp sum.cpp fifodelay.cpp project.cpp rename.cpp join.cpp mask.cpp const.cpp ndjoin.cpp lor.cpp counter_loop.cpp dfa.cpp expr.cpp equals.cpp cflow.cpp clock.cpp disarm.cpp substr-main.cpp iplookup.cpp #sqlinsert.c #sqlclient.c
+libsmacq_modules_la_SOURCES = print.cpp pcaplive.cpp pcapfile.cpp socket.cpp uniq.cpp count.cpp last.cpp top.cpp head.cpp filter.cpp msgtest.cpp entropy.cpp derivative.cpp split.cpp encrypt.cpp pdf.cpp fifo.cpp delta.cpp tabularinput.cpp sync.cpp rusage.cpp groupby.cpp flowid.cpp sum.cpp fifodelay.cpp project.cpp rename.cpp join.cpp mask.cpp const.cpp ndjoin.cpp lor.cpp counter_loop.cpp dfa.cpp expr.cpp equals.cpp cflow.cpp clock.cpp disarm.cpp substr-main.cpp iplookup.cpp #sqlinsert.c #sqlclient.c
 
 EXTRA_libsmacq_modules_la_SOURCES = sqlinsert.cpp
 
@@ -205,12 +205,12 @@ LTLIBRARIES = $(noinst_LTLIBRARIES)
 
 am_libsmacq_modules_la_OBJECTS = print.lo pcaplive.lo pcapfile.lo \
 	socket.lo uniq.lo count.lo last.lo top.lo head.lo filter.lo \
-	msgtest.lo entropy.lo derivative.lo split.lo encrypt.lo \
-	warden.lo pdf.lo fifo.lo delta.lo tabularinput.lo sync.lo \
-	rusage.lo groupby.lo flowid.lo sum.lo fifodelay.lo project.lo \
-	rename.lo join.lo mask.lo const.lo ndjoin.lo lor.lo \
-	counter_loop.lo dfa.lo expr.lo equals.lo cflow.lo clock.lo \
-	disarm.lo substr-main.lo iplookup.lo
+	msgtest.lo entropy.lo derivative.lo split.lo encrypt.lo pdf.lo \
+	fifo.lo delta.lo tabularinput.lo sync.lo rusage.lo groupby.lo \
+	flowid.lo sum.lo fifodelay.lo project.lo rename.lo join.lo \
+	mask.lo const.lo ndjoin.lo lor.lo counter_loop.lo dfa.lo \
+	expr.lo equals.lo cflow.lo clock.lo disarm.lo substr-main.lo \
+	iplookup.lo
 libsmacq_modules_la_OBJECTS = $(am_libsmacq_modules_la_OBJECTS)
 libtest_dynamic_la_LDFLAGS =
 libtest_dynamic_la_LIBADD =
@@ -241,8 +241,7 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@	./$(DEPDIR)/sqlinsert.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/substr-main.Plo ./$(DEPDIR)/sum.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/sync.Plo ./$(DEPDIR)/tabularinput.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/top.Plo ./$(DEPDIR)/uniq.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/warden.Plo
+@AMDEP_TRUE@	./$(DEPDIR)/top.Plo ./$(DEPDIR)/uniq.Plo
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 LTCXXCOMPILE = $(LIBTOOL) --mode=compile $(CXX) $(DEFS) \
@@ -336,7 +335,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tabularinput.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/top.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/uniq.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/warden.Plo@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	if $(CXXCOMPILE) -MT $@ -MD -MP -MF "$(DEPDIR)/$*.Tpo" \

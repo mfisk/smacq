@@ -6,18 +6,21 @@
 
 #define BUFSIZE 8192
 
-struct state {
+SMACQ_MODULE(sqlinsert,
+  PROTO_CTOR(sqlinsert);
+  PROTO_DTOR(sqlinsert);
+  PROTO_CONSUME();
+
   GdaCommand * gda_cmd;  
   GdaClient * gda_client;
   GdaConnection * gda_connection;
   char insert_format[BUFSIZE];
 
-  DTS * env;
   char ** argv;
   int argc;
   dts_field * fields;
   dts_field string_transform;
-};
+);
 
 static struct smacq_options options[] = {
   {"d", {string_t:NULL}, "Database to connect to", SMACQ_OPT_TYPE_STRING},
@@ -48,7 +51,7 @@ smacq_result sqlinsertModule::consume(DtsObject datum, int * outchan) {
   char values [BUFSIZE] = "";
   char query [BUFSIZE] = "";
   int i, gdares;
-  DtsObjectfield;
+  DtsObject field;
   assert(datum);
 
   for (i = 0; i < argc; i++) {
@@ -78,16 +81,13 @@ smacq_result sqlinsertModule::consume(DtsObject datum, int * outchan) {
   }
 }
 
-sqlinsertModule::sqlinsertModule(struct smacq_init * context) {
-  struct state * state;
+sqlinsertModule::sqlinsertModule(struct smacq_init * context)
+  : SmacqModule(context)
+{
   char qbuf[BUFSIZE];
   smacq_opt table_name, database_name, provider_name;
   int i;
 
-  context->state = state = (struct state*) calloc(sizeof(struct state),1);
-  assert(state);
-
-  env = context->env;
   {
     struct smacq_optval optvals[] = {
       {"t", &table_name},
@@ -105,7 +105,7 @@ sqlinsertModule::sqlinsertModule(struct smacq_init * context) {
   assert(database_name.string_t);
   assert(provider_name.string_t);
 
-  fields = malloc(argc * sizeof(dts_field));
+  fields = (dts_field_element**)malloc(argc * sizeof(dts_field));
   string_transform = dts->requirefield("string");
 
   gda_init("SMACQ-GDA-sqlinsert", "0.1", 0, NULL);
@@ -113,7 +113,7 @@ sqlinsertModule::sqlinsertModule(struct smacq_init * context) {
   gda_client = gda_client_new();
 
   gda_connection = 
-    gda_client_open_connection_from_string(gda_client, provider_name.string_t, database_name.string_t, 0);
+    gda_client_open_connection_from_string(gda_client, provider_name.string_t, database_name.string_t, (GdaConnectionOptions)(0));
 
   assert(gda_connection);
 
@@ -145,10 +145,9 @@ sqlinsertModule::sqlinsertModule(struct smacq_init * context) {
     	print_gda_errors(gda_connection);
 	/* return(SMACQ_ERROR|SMACQ_END); */
   }
-  return 0;
 }
 
-sqlinsertModule::~sqlinsertModule(struct state * state) {
+sqlinsertModule::~sqlinsertModule() {
   int i;
 
   gda_command_free(gda_cmd);
@@ -159,12 +158,5 @@ sqlinsertModule::~sqlinsertModule(struct state * state) {
 	  dts_field_free(fields[i]);
 
   free(fields);
-  return 0;
 }
-
-struct smacq_functions smacq_sqlinsert_table = {
-  consume: &sqlinsert_consume,
-  init: &sqlinsert_init,
-  shutdown: &sqlinsert_shutdown,
-};
 

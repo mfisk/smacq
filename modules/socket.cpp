@@ -72,7 +72,7 @@ int socketModule::close_it(int closefd) {
 smacq_result socketModule::produce(DtsObject & datump, int * outchan) {
   struct sockaddr_in their_addr;
   int i, new_fd;
-  int sin_size;
+  socklen_t sin_size;
   int num_ready_fds, picked_fd = 0;
   fd_set tempset;  
 

@@ -807,7 +807,7 @@ smacq_graph * smacq_build_query(DTS * tenv, int argc, char ** argv) {
   }
 
   /* LOCK */
-  pthread_mutex_lock(&local_lock);
+  smacq_pthread_mutex_lock(&local_lock);
 
   yysmacql_scan_string(qstr);
   //fprintf(stderr, "parsing buffer: %s\n", qstr); 
@@ -817,7 +817,7 @@ smacq_graph * smacq_build_query(DTS * tenv, int argc, char ** argv) {
   graph = Graph;
 
   /* UNLOCK */
-  pthread_mutex_unlock(&local_lock);
+ smacq_pthread_mutex_unlock(&local_lock);
 
   if (res) {
     fprintf(stderr, "smacq_build_query: error parsing query: %s\n", qstr);

@@ -34,7 +34,7 @@ class Strucio {
 
   	/* For zlib */
   	int use_gzip;
-  	gzFile * gzfh;
+  	gzFile gzfh;
 
   	/* For rotation */
   	long long outputleft;

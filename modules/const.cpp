@@ -13,7 +13,7 @@ SMACQ_MODULE(const,
 );
 
 static struct smacq_options options[] = {
-  {NULL, {NULL}, NULL, 0}
+  END_SMACQ_OPTIONS
 };
 
 smacq_result constModule::consume(DtsObject datum, int * outchan) {

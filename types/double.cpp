@@ -9,7 +9,7 @@ static int smacqtype_double_get_double(DtsObject o, DtsObject field) {
 
 static int smacqtype_double_get_string(DtsObject o, DtsObject field) {
   field->setsize(64);
-  snprintf(field->getdata(), 64, "%g", dts_data_as(o, double));
+  snprintf((char*)field->getdata(), 64, "%g", dts_data_as(o, double));
   return 1;
 }
 
@@ -24,8 +24,8 @@ static int parse_string(char * buf,  DtsObject d) {
 }
 
 static int double_lt(void * num1, int size1, void * num2, int size2) {
-        double * a = num1;
-        double * b = num2;
+        double * a = (double*)num1;
+        double * b = (double*)num2;
 
         assert(size1 == sizeof(double));
         assert(size2 == sizeof(double));

@@ -9,6 +9,9 @@ class ThreadedSmacqModule : public SmacqModule	{
   smacq_result consume(DtsObject, int*);
   ThreadedSmacqModule(smacq_init *);
   ~ThreadedSmacqModule();
+  friend void run_thread(int args, ThreadedSmacqModule * ths) {
+      ths->thread(ths->context);
+  }
 
  protected: 
   DtsObject smacq_read();
@@ -19,7 +22,6 @@ class ThreadedSmacqModule : public SmacqModule	{
   virtual smacq_result thread(smacq_init * context) = 0;
 
  private:
-
   jmp_buf event_stack;
   jmp_buf loop_stack;
   ucontext_t loop_context;
