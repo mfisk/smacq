@@ -17,6 +17,11 @@ static smacq_result msgtest_produce(struct state* state, const dts_object ** dat
   return SMACQ_ERROR;
 }
 
+#include <smacq-parser.h>
+/* 
+ * This is abstraction violation.  comp_new() is currently in a different .h file.
+ * We don't provide a string constant and instead prime the comparison object cache.
+ */
 static smacq_result msgtest_consume(struct state * state, const dts_object * datum, int * outchan) {
   dts_comparison * comp = comp_new(EQ, comp_operand(FIELD, "srcip"), comp_operand(CONST, ""));
   const dts_object * msgdata;
