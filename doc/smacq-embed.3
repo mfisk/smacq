@@ -73,7 +73,7 @@ data.  This manpage describes the API used by applications that wish to use this
 .nf 
 .ta 8n 16n 24n 32n 40n 48n 56n 64n 72n 
 .sp 1 
-\fBstruct filter * \fBsmacq_build_pipeline\fP\fR( 
+\fBsmacq_graph * \fBsmacq_build_pipeline\fP\fR( 
 \fB       int argc\fR, 
 \fB       char ** argv\fR); 
 .fi 
@@ -86,8 +86,8 @@ argument of "|" is used to delimit modules in the pipeline.
 .nf 
 .ta 8n 16n 24n 32n 40n 48n 56n 64n 72n 
 .sp 1 
-\fBstruct filter * \fBsmacq_start\fP\fR( 
-\fB       struct filter * graph\fR, 
+\fBsmacq_graph * \fBsmacq_start\fP\fR( 
+\fB       smacq_graph * graph\fR, 
 \fB       enum smacq_scheduler\fR, 
 \fB       dts_environment * tenv\fR); 
 .fi 
@@ -109,7 +109,7 @@ graphs, the same type environment must be used by those graphs.
 .ta 8n 16n 24n 32n 40n 48n 56n 64n 72n 
 .sp 1 
 \fBint \fBsmacq_sched_iterative\fP\fR( 
-\fB        struct filter * graph\fR, 
+\fB        smacq_graph * graph\fR, 
 \fB        const 	dts_object * data_in\fR, 
 \fB        dts_object ** data_out\fR, 
 \fB        void ** state\fR, 
@@ -139,4 +139,4 @@ void * initialized to NULL.
 .SH "SEE ALSO" 
 .PP 
 smacqp(1), smacq-modules(3) 
-...\" created by instant / docbook-to-man, Sat 30 Nov 2002, 20:32 
+...\" created by instant / docbook-to-man, Sat 04 Jan 2003, 21:20 

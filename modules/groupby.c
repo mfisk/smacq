@@ -18,7 +18,7 @@ static struct smacq_options options[] = {
 struct state {
   smacq_environment * env;
   struct fieldset fieldset;
-  struct filter * self;
+  smacq_graph * self;
   int queryargc;
   char ** queryargv;
   const dts_object * product;
@@ -31,7 +31,7 @@ struct state {
 }; 
 
 struct output {
-  struct filter * graph;
+  smacq_graph * graph;
   void * runq;
 };
 

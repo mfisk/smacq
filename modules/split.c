@@ -23,7 +23,7 @@ struct state {
   int children;
   int bucket;
   enum mode mode;
-  struct filter * self;
+  smacq_graph * self;
 
   GHashTableofBytes * hashtable;
 }; 
@@ -43,7 +43,7 @@ static smacq_result split_consume(struct state * state, const dts_object * datum
   } else if (state->mode == UNIQUE) {
     bucket = (int)bytes_hash_table_lookupv(state->hashtable, partitionv, state->fieldset.num);
     if (!bucket) {
-	struct filter * newClone;
+	smacq_graph * newClone;
 	bucket = state->bucket++;
 	//fprintf(stderr, "Cloning %d\n", state->bucket);
         newClone = smacq_clone_tree(state->self, state->self, 0);

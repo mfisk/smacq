@@ -1,4 +1,4 @@
-.TH smacq-modules 3 "$Date: 2002/12/28 04:19:17 $" "LANL"
+.TH smacq-modules 3 "$Date: 2003/01/03 23:18:03 $" "LANL"
 .SH NAME
 smacq-modules - pipeline module programming guide
 .SH SYNOPSIS
@@ -62,7 +62,7 @@ struct smacq_init {
 	int argc;
 	smacq_environment * env;
 	void * state;
-	struct filter * self;
+	smacq_graph * self;
 };
 .ta
 .fi

@@ -12,7 +12,7 @@
       <firstname>Mike</firstname>
       <surname>Fisk</surname>
     </author>
-    <date>$Date: 2002/10/31 01:00:59 $</date>
+    <date>$Date: 2002/12/01 03:32:54 $</date>
   </refentryinfo>
   <refmeta>
     <refentrytitle>libsmacq-embed</refentrytitle>
@@ -42,7 +42,7 @@
 
     <funcsynopsis>
       <funcprototype>
-	<funcdef>struct filter * <function>smacq_build_pipeline</function></funcdef>
+	<funcdef>smacq_graph * <function>smacq_build_pipeline</function></funcdef>
 	<paramdef>       int argc</paramdef>
 	<paramdef>       char ** argv</paramdef>
       </funcprototype>
@@ -56,8 +56,8 @@
 
     <funcsynopsis>
       <funcprototype>
-	<funcdef>struct filter * <function>smacq_start</function></funcdef>
-	<paramdef>       struct filter * graph</paramdef>
+	<funcdef>smacq_graph * <function>smacq_start</function></funcdef>
+	<paramdef>       smacq_graph * graph</paramdef>
 	<paramdef>       enum smacq_scheduler</paramdef>
 	<paramdef>       dts_environment * tenv</paramdef>
 	</funcprototype>
@@ -81,7 +81,7 @@
     <funcsynopsis>
       <funcprototype>
 	<funcdef>int <function>smacq_sched_iterative</function></funcdef>
-	<paramdef>        struct filter * graph</paramdef>
+	<paramdef>        smacq_graph * graph</paramdef>
 	<paramdef>        const 	dts_object * data_in</paramdef>
 	<paramdef>        dts_object ** data_out</paramdef>
 	<paramdef>        void ** state</paramdef>

@@ -16,7 +16,7 @@ static struct smacq_options options[] = {
 };
 
 struct join {
-  struct filter * graph;
+  smacq_graph * graph;
   dts_field field;
   void * runq;
 };

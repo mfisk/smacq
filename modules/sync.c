@@ -21,7 +21,7 @@ struct state {
   smacq_environment * env;
   const dts_object * product;
   void * runq;
-  struct filter * graph;
+  smacq_graph * graph;
   int done; 
   int isfirst;
 }; 
