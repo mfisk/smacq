@@ -28,11 +28,14 @@ static smacq_result print_produce(struct state* state, const dts_object ** datum
 static int print_field(struct state * state, const dts_object * field, char * fname, int printed, int column) {
         if (printed) {
       	   printf(state->delimiter);
-    	} else {
+    	} else if (field) {
 	   int j;
     	   for (j=0; j<column; j++) 
     		printf(state->delimiter);
         }
+
+	if (state->verbose) printed = 1;
+	if (!field) return printed;
 
 	if (state->verbose) {
 		printf("%.20s = %s", fname, (char *)dts_getdata(field));
@@ -69,11 +72,13 @@ static smacq_result print_consume(struct state * state, const dts_object * datum
 	}
 	column--;
 
-    } else if ((field = smacq_getfield(state->env, datum, state->fields[i], NULL))) {
+    } else {
+	field = smacq_getfield(state->env, datum, state->fields[i], NULL);
 	printed = print_field(state, field, state->argv[i], printed, column);
 
-    } else if (state->verbose) {
-        fprintf(stderr, "Warning: print: no field %s.string\n", state->argv[i]);
+        if (!field && state->verbose) {
+        	fprintf(stderr, "Warning: print: no field %s.string\n", state->argv[i]);
+	}
     }
     column++;
   }
