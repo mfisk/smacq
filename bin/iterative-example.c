@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <glib.h>
-#include <gmodule.h>
 #include <smacq.h>
 #include <stdlib.h>
 #include <assert.h>
