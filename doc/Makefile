@@ -5,7 +5,7 @@ DOCDSTS=$(patsubst %,$(SRCDIR)/%,$(DOCS))
 DOCTXTS=$(patsubst %,$(SRCDIR)/%.txt,$(DOCS))
 DOCPDFS=$(patsubst %,$(SRCDIR)/%.pdf,$(DOCS))
 
-all: $(DOCDSTS) $(PRODUCTS)
+all: $(DOCDSTS) $(DOCTXTS) $(DOCPDFS)
 
 reallyclean: clean
 	rm -f $(DOCDSTS) 
