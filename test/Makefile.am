@@ -1,21 +1,6 @@
-TESTS = $(srcdir)/*.test
-TESTS_ENVIRONMENT = SRCDIR=$(srcdir) TOP_BUILDDIR=$(top_builddir) $(top_srcdir)/misc/runtest
+TESTS = arith.test bag.test bagfirst.test bagtail.test dfa.test dynamic.test expr.test flowid.test groupby.test groupby2.test having.test head.test iplookup.test last.test mask.test multistr.test or.test orand.test orfunc.test pipe.test subfield.test uniq.test unixq.test @OPTIONAL_TESTS@
+EXTRA_TESTS = sqlinsert.test
 
-oldall: 
-	@TEST=$(srcdir); export TEST; \
-	pass=0; fail=0; \
-	for f in $(srcdir)/*.test; do \
-		err=`basename $$f`.err; \
-		out=`basename $$f`.out; \
-		(set -e; cd ..; $$f) > $$out 2>$$err; \
-		diff -U3 $$f.out $$out; \
-		if [ "$$?" = "0" ]; then \
-			pass=`expr $$pass + 1`; \
-		else \
-			echo "======== Errors from $$f: ========"; \
-			cat $$err; \
-			echo "======== End of errors from $$f ========"; \
-			fail=`expr $$fail + 1`; \
-		fi; \
-	done; echo $$fail tests failed, $$pass tests passed; \
-	exit $$fail
+#Disabled tests: pcapfile.test (false alarm on big-endian platforms)
+
+TESTS_ENVIRONMENT = SRCDIR=$(srcdir) TOP_BUILDDIR=$(top_builddir) $(top_srcdir)/misc/runtest
