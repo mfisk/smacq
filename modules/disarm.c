@@ -130,9 +130,13 @@ static smacq_result disarm_produce(struct state * state, const dts_object ** dat
 	if (len == 0) {
 		return SMACQ_END;
 	}
-	assert(len >= 98);
 
 	state->lineno++;
+
+	if (len < 98) {
+		fprintf(stderr, "Skipping invalid sv4 record on line %lud: %*s\n", state->lineno, len, hex);
+		return disarm_produce(state, datump, outchan);
+        }
 
 	//fprintf(stderr, "Got sv4 hex line: %s\n", hex);
 
