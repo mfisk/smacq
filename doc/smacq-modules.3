@@ -1,4 +1,4 @@
-.TH smacq-modules 3 "$Date: 2003/03/19 03:25:49 $" "LANL"
+.TH smacq-modules 3 "$Date: 2003/04/14 17:05:59 $" "LANL"
 .SH NAME
 smacq-modules - pipeline module programming guide
 .SH SYNOPSIS
@@ -169,6 +169,9 @@ queue is a struct smacq_outputq * and is initialized to NULL.
 
 .TP
 .BI "smacq_result smacq_produce_dequeue(struct smacq_outputq ** qp, const dts_object ** o, int * outchan)"
+
+.TP
+.BI "smacq_result smacq_produce_canproduce(struct smacq_outputq ** qp)"
 
 .SH "HASH TABLES"
 
