@@ -45,14 +45,14 @@ SMACQ_MODULE(disarm,
 );
 
 static struct smacq_options options[] = {
-  {"f", {string_t:""}, "Input File", SMACQ_OPT_TYPE_STRING},
-  {"date", {string_t:""}, "Date", SMACQ_OPT_TYPE_STRING},
-  {"dstport", {string_t:""}, "Destination Port", SMACQ_OPT_TYPE_STRING},
-  {"srcport", {string_t:""}, "Source Port", SMACQ_OPT_TYPE_STRING},
-  {"dstip", {string_t:""}, "Destination IP", SMACQ_OPT_TYPE_STRING},
-  {"srcip", {string_t:""}, "Source IP", SMACQ_OPT_TYPE_STRING},
+  {"f", {string_t:NULL}, "Input File", SMACQ_OPT_TYPE_STRING},
+  {"date", {string_t:NULL}, "Date", SMACQ_OPT_TYPE_STRING},
+  {"dstport", {string_t:NULL}, "Destination Port", SMACQ_OPT_TYPE_STRING},
+  {"srcport", {string_t:NULL}, "Source Port", SMACQ_OPT_TYPE_STRING},
+  {"dstip", {string_t:NULL}, "Destination IP", SMACQ_OPT_TYPE_STRING},
+  {"srcip", {string_t:NULL}, "Source IP", SMACQ_OPT_TYPE_STRING},
   {"p", {int_t:9096}, "Port Number", SMACQ_OPT_TYPE_INT},
-  {"h", {string_t:"disarm1.lanl.gov"}, "Host Name", SMACQ_OPT_TYPE_STRING},
+  {"host", {string_t:"disarm1.lanl.gov"}, "Host Name", SMACQ_OPT_TYPE_STRING},
   END_SMACQ_OPTIONS
 };
 
@@ -292,7 +292,7 @@ disarmModule::disarmModule(struct SmacqModule::smacq_init * context) : SmacqModu
       { "dstport", &dstport},
       { "srcport", &srcport},
       { "p", &port},
-      { "h", &hostname},
+      { "host", &hostname},
       {NULL, NULL}
     };
 
@@ -300,19 +300,19 @@ disarmModule::disarmModule(struct SmacqModule::smacq_init * context) : SmacqModu
 				 NULL, NULL,
 				 options, optvals);
 
-	if (strcmp("", date.string_t)) {
+	if (date.string_t) {
 		date_string = date.string_t;
 	}
-	if (strcmp("", srcip.string_t)) {
+	if (srcip.string_t) {
 		srcip_string = srcip.string_t;
 	}
-	if (strcmp("", dstip.string_t)) {
+	if (dstip.string_t) {
 		dstip_string = dstip.string_t;
 	}
-	if (strcmp("", srcport.string_t)) {
+	if (srcport.string_t) {
 		srcport_string = srcport.string_t;
 	}
-	if (strcmp("", dstport.string_t)) {
+	if (dstport.string_t) {
 		dstport_string = dstport.string_t;
 	}
   }
@@ -322,9 +322,9 @@ disarmModule::disarmModule(struct SmacqModule::smacq_init * context) : SmacqModu
 
   sv4_type = dts->requiretype("sv4");
 
-  if (!strcmp(infile.string_t, "-")) {
+  if (infile.string_t && !strcmp(infile.string_t, "-")) {
 	datafh = stdin;
-  } else if (strcmp(infile.string_t, "")) {
+  } else if (infile.string_t) {
 	datafh = fopen(infile.string_t, "r");
         assert(datafh);
   } else {
@@ -361,12 +361,13 @@ disarmModule::disarmModule(struct SmacqModule::smacq_init * context) : SmacqModu
 		fprintf(fh, " dstip=\"%s\"", dstip_string);
 
 	fprintf(fh, "><Date start=\"%s\"", date_string);
-	if (end_date && strcmp("", end_date)) {
+	if (end_date) {
 		fprintf(fh, " end=\"%s\"", end_date);
 	}
 
 	fprintf(fh, "/> <SocketResult type=\"tcp\" host=\"%s\" port=\"%d\" />", myip, ntohs(myaddr.sin_port));
 	fprintf(fh, "</Query>\n<--DiSARM: end query-->\n");
+	fflush(fh);
 	fclose(fh);
 
 	sin_size = sizeof(struct sockaddr_in);
