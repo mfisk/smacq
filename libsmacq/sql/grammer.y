@@ -1,3 +1,11 @@
+/*
+ * BUGS:
+ *
+ *    - Use of renamed arguments later in the argument list is not supported:
+ *		select counter() as count, count ....
+ *      This is because renames are done as a batch just before the VERB
+ */
+ 
 %{
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,7 +24,8 @@
     char * arg;
     char * rename;
     struct arglist * next;
-    struct graph func;
+    struct arglist * func_args;
+    int isfunc;
   };
 
   static struct graph newmodule(char * module, struct arglist * alist);
@@ -217,32 +226,62 @@ static void graph_append(struct graph * graph, struct filter * newmod) {
 	if (! graph->head) 
 		graph->head = newmod;
 }
+
+/*
+static struct arglist * arglist_alloc(struct arglist * addition) {
+	struct arglist * newa = malloc(sizeof(struct arglist));
+	newa->arg = addition;
+	newa->NULL;
+	return newa;
+}
+*/
+	
+static struct arglist * arglist_append(struct arglist * tail, struct arglist * addition) {
+	for (; tail->next; tail=tail->next) ;
+	tail->next = addition;
+	for (; tail->next; tail=tail->next) ;
+
+	return tail;
+}
 	
 static struct graph newgroup(struct arglist * alist, struct vphrase vphrase) {
+	/*
+	 * This function violates some abstractions by knowing the 
+	 * calling syntax for "groupby" and constructing arguments for it.
+	 */
+	struct arglist * atail;
 	struct graph g;
-	struct arglist anew = { NULL };
-	struct arglist anew2 = { NULL };
-	struct arglist * al;
+	struct arglist * ap;
 
-	assert(alist);
+	if (!alist) { 
+		/* Do nothing if this was "group by" NULL */
+		return newmodule(vphrase.verb, vphrase.args);
+	}
 
-	for (al = alist; al->next; al=al->next) ;
+	atail = arglist_append(alist, newarg("--", 0, NULL));
 
-	al->next = &anew;
-	anew.arg = "--";
-	anew.next = &anew2;
+	/* Insert function operations */
+        for(ap=vphrase.args; ap; ap=ap->next) {
+	   fprintf(stderr, "group arg %s isfunc = %d\n", ap->arg, ap->isfunc);
+     	   if (ap->isfunc) {
+	        atail = arglist_append(atail, newarg(ap->arg, 0, NULL));
+	        atail = arglist_append(atail, ap->func_args);
+	        atail = arglist_append(atail, newarg("|", 0, NULL));
+		ap->isfunc = 0;
+ 	   }
+	}
 
-	anew2.arg = vphrase.verb;
-	anew2.next = vphrase.args;
+	atail = arglist_append(atail, newarg(vphrase.verb, 0, NULL));
+	atail = arglist_append(atail, vphrase.args);
 
 	g = newmodule("groupby", alist);
-	al->next = NULL; /* Just in case somebody tries to use alist again */
+
 	return g;
 }
 
 
 static struct graph newmodule(char * module, struct arglist * alist) {
-     struct arglist anew;
+     struct arglist * anew;
      struct graph graph = { head: NULL, tail: NULL };
 
      int argc;
@@ -252,16 +291,14 @@ static struct graph newmodule(char * module, struct arglist * alist) {
      char ** rename_argv = NULL;
      struct arglist * ap;
 
-     anew.arg = module;
-     anew.rename = NULL;
-     anew.func.head = NULL;
      if (!strcmp(module, "select")) {
      	/* SQL's select is really a projection operation */
-     	anew.arg = "project";
+     	module = "project";
      }
-     anew.next = alist;
+     anew = newarg(module, 0, NULL);
+     arglist_append(anew, alist);
 
-     for(ap=&anew; ap; ap=ap->next) {
+     for(ap=anew; ap; ap=ap->next) {
         /* Check for rename options on arguments */
      	if (ap->rename) {
 		rename_argc += 2;
@@ -272,8 +309,8 @@ static struct graph newmodule(char * module, struct arglist * alist) {
 	}
 
 	/* Check for function arguments */
-	if (ap->func.head) 
-		graph_join(&graph, ap->func);
+	if (ap->isfunc) 
+		graph_join(&graph, newmodule(ap->arg, ap->func_args));
      }
 
      if (rename_argc > 1) {
@@ -282,7 +319,7 @@ static struct graph newmodule(char * module, struct arglist * alist) {
         graph_append(&graph, smacq_new_module(rename_argc, rename_argv));
      }
 
-     arglist2argv(&anew, &argc, &argv);
+     arglist2argv(anew, &argc, &argv);
      graph_append(&graph, smacq_new_module(argc, argv));
 
      return graph;
@@ -292,7 +329,8 @@ static struct arglist * newarg(char * arg, int isfunc, struct arglist * func_arg
      struct arglist * al = calloc(1, sizeof(struct arglist));
      al->arg = arg;
      if (isfunc) {
-     	al->func = newmodule(arg, func_args);
+     	al->func_args = func_args;
+	al->isfunc = 1;
      }
 
      return(al);

@@ -75,7 +75,7 @@
 
 
 /* Copy the first part of user declarations.  */
-#line 1 "grammer.y"
+#line 9 "grammer.y"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -94,7 +94,8 @@
     char * arg;
     char * rename;
     struct arglist * next;
-    struct graph func;
+    struct arglist * func_args;
+    int isfunc;
   };
 
   static struct graph newmodule(char * module, struct arglist * alist);
@@ -122,7 +123,7 @@
 #endif
 
 #ifndef YYSTYPE
-#line 50 "grammer.y"
+#line 59 "grammer.y"
 typedef union {
   struct graph graph;
   struct arglist * arglist;
@@ -130,7 +131,7 @@ typedef union {
   char * string;
 } yystype;
 /* Line 193 of /usr/share/bison/yacc.c.  */
-#line 134 "grammer.c"
+#line 135 "grammer.c"
 # define YYSTYPE yystype
 # define YYSTYPE_IS_TRIVIAL 1
 #endif
@@ -151,7 +152,7 @@ typedef struct yyltype
 
 
 /* Line 213 of /usr/share/bison/yacc.c.  */
-#line 155 "grammer.c"
+#line 156 "grammer.c"
 
 #if ! defined (yyoverflow) || YYERROR_VERBOSE
 
@@ -327,10 +328,10 @@ static const yysigned_char yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const unsigned char yyrline[] =
 {
-       0,    58,    58,    67,    69,    82,    83,    86,    87,    91,
-      92,    95,    96,    99,   100,   103,   105,   107,   108,   111,
-     112,   115,   118,   119,   122,   125,   126,   131,   132,   135,
-     136,   141
+       0,    67,    67,    76,    78,    91,    92,    95,    96,   100,
+     101,   104,   105,   108,   109,   112,   114,   116,   117,   120,
+     121,   124,   127,   128,   131,   134,   135,   140,   141,   144,
+     145,   150
 };
 #endif
 
@@ -998,7 +999,7 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 59 "grammer.y"
+#line 68 "grammer.y"
     { 
 #ifdef DEBUG
 	   	print_graph(yyvsp[-1].graph.head); 
@@ -1008,7 +1009,7 @@ yyreduce:
     break;
 
   case 4:
-#line 70 "grammer.y"
+#line 79 "grammer.y"
     {
 	   	yyval.graph.head = (yyval.graph.tail = NULL);
 	   	graph_join(&(yyval.graph), yyvsp[-2].graph);
@@ -1022,102 +1023,102 @@ yyreduce:
     break;
 
   case 5:
-#line 82 "grammer.y"
+#line 91 "grammer.y"
     { yyval.graph.head = NULL; yyval.graph.tail = NULL; }
     break;
 
   case 6:
-#line 83 "grammer.y"
+#line 92 "grammer.y"
     { yyval.graph = yyvsp[0].graph; }
     break;
 
   case 8:
-#line 87 "grammer.y"
+#line 96 "grammer.y"
     { yyval.graph = yyvsp[-1].graph; }
     break;
 
   case 9:
-#line 91 "grammer.y"
+#line 100 "grammer.y"
     { yyval.graph = nullgraph; }
     break;
 
   case 10:
-#line 92 "grammer.y"
+#line 101 "grammer.y"
     { yyval.graph = newmodule("filter", yyvsp[0].arglist); }
     break;
 
   case 11:
-#line 95 "grammer.y"
+#line 104 "grammer.y"
     { yyval.arglist = NULL; }
     break;
 
   case 12:
-#line 96 "grammer.y"
+#line 105 "grammer.y"
     { yyval.arglist = yyvsp[0].arglist; }
     break;
 
   case 15:
-#line 103 "grammer.y"
+#line 112 "grammer.y"
     { yyval.string = yystring; }
     break;
 
   case 16:
-#line 105 "grammer.y"
+#line 114 "grammer.y"
     { yyval.string = yystring; }
     break;
 
   case 18:
-#line 108 "grammer.y"
+#line 117 "grammer.y"
     { yyval.arglist->rename = yyvsp[0].string; }
     break;
 
   case 19:
-#line 111 "grammer.y"
+#line 120 "grammer.y"
     { yyval.arglist = newarg(yyvsp[0].string, 0, NULL); }
     break;
 
   case 20:
-#line 112 "grammer.y"
+#line 121 "grammer.y"
     { yyval.arglist = newarg(yyvsp[-3].string, 1, yyvsp[-1].arglist); }
     break;
 
   case 22:
-#line 118 "grammer.y"
+#line 127 "grammer.y"
     { yyval.graph = newmodule(yyvsp[0].string, NULL); }
     break;
 
   case 23:
-#line 119 "grammer.y"
+#line 128 "grammer.y"
     { yyval.graph = newmodule(yyvsp[-3].string, yyvsp[-1].arglist); }
     break;
 
   case 24:
-#line 122 "grammer.y"
+#line 131 "grammer.y"
     { yyval.vphrase.verb = yyvsp[-1].string; yyval.vphrase.args = yyvsp[0].arglist; }
     break;
 
   case 25:
-#line 125 "grammer.y"
+#line 134 "grammer.y"
     { yyval.arglist = yyvsp[-1].arglist; }
     break;
 
   case 27:
-#line 131 "grammer.y"
+#line 140 "grammer.y"
     { yyval.arglist = NULL; }
     break;
 
   case 28:
-#line 132 "grammer.y"
+#line 141 "grammer.y"
     { yyval.arglist = yyvsp[-1].arglist; yyval.arglist->next = yyvsp[0].arglist; }
     break;
 
   case 29:
-#line 135 "grammer.y"
+#line 144 "grammer.y"
     { yyval.arglist = NULL; }
     break;
 
   case 30:
-#line 136 "grammer.y"
+#line 145 "grammer.y"
     { yyval.arglist = yyvsp[-1].arglist; yyval.arglist->next = yyvsp[0].arglist; }
     break;
 
@@ -1125,7 +1126,7 @@ yyreduce:
     }
 
 /* Line 1016 of /usr/share/bison/yacc.c.  */
-#line 1129 "grammer.c"
+#line 1130 "grammer.c"
 
   yyvsp -= yylen;
   yyssp -= yylen;
@@ -1344,7 +1345,7 @@ yyreturn:
 }
 
 
-#line 144 "grammer.y"
+#line 153 "grammer.y"
 
 
 int smacq_execute_query(int argc, char ** argv) {
@@ -1421,32 +1422,62 @@ static void graph_append(struct graph * graph, struct filter * newmod) {
 	if (! graph->head) 
 		graph->head = newmod;
 }
+
+/*
+static struct arglist * arglist_alloc(struct arglist * addition) {
+	struct arglist * newa = malloc(sizeof(struct arglist));
+	newa->arg = addition;
+	newa->NULL;
+	return newa;
+}
+*/
+	
+static struct arglist * arglist_append(struct arglist * tail, struct arglist * addition) {
+	for (; tail->next; tail=tail->next) ;
+	tail->next = addition;
+	for (; tail->next; tail=tail->next) ;
+
+	return tail;
+}
 	
 static struct graph newgroup(struct arglist * alist, struct vphrase vphrase) {
+	/*
+	 * This function violates some abstractions by knowing the 
+	 * calling syntax for "groupby" and constructing arguments for it.
+	 */
+	struct arglist * atail;
 	struct graph g;
-	struct arglist anew = { NULL };
-	struct arglist anew2 = { NULL };
-	struct arglist * al;
+	struct arglist * ap;
 
-	assert(alist);
+	if (!alist) { 
+		/* Do nothing if this was "group by" NULL */
+		return newmodule(vphrase.verb, vphrase.args);
+	}
 
-	for (al = alist; al->next; al=al->next) ;
+	atail = arglist_append(alist, newarg("--", 0, NULL));
 
-	al->next = &anew;
-	anew.arg = "--";
-	anew.next = &anew2;
+	/* Insert function operations */
+        for(ap=vphrase.args; ap; ap=ap->next) {
+	   fprintf(stderr, "group arg %s isfunc = %d\n", ap->arg, ap->isfunc);
+     	   if (ap->isfunc) {
+	        atail = arglist_append(atail, newarg(ap->arg, 0, NULL));
+	        atail = arglist_append(atail, ap->func_args);
+	        atail = arglist_append(atail, newarg("|", 0, NULL));
+		ap->isfunc = 0;
+ 	   }
+	}
 
-	anew2.arg = vphrase.verb;
-	anew2.next = vphrase.args;
+	atail = arglist_append(atail, newarg(vphrase.verb, 0, NULL));
+	atail = arglist_append(atail, vphrase.args);
 
 	g = newmodule("groupby", alist);
-	al->next = NULL; /* Just in case somebody tries to use alist again */
+
 	return g;
 }
 
 
 static struct graph newmodule(char * module, struct arglist * alist) {
-     struct arglist anew;
+     struct arglist * anew;
      struct graph graph = { head: NULL, tail: NULL };
 
      int argc;
@@ -1456,16 +1487,14 @@ static struct graph newmodule(char * module, struct arglist * alist) {
      char ** rename_argv = NULL;
      struct arglist * ap;
 
-     anew.arg = module;
-     anew.rename = NULL;
-     anew.func.head = NULL;
      if (!strcmp(module, "select")) {
      	/* SQL's select is really a projection operation */
-     	anew.arg = "project";
+     	module = "project";
      }
-     anew.next = alist;
+     anew = newarg(module, 0, NULL);
+     arglist_append(anew, alist);
 
-     for(ap=&anew; ap; ap=ap->next) {
+     for(ap=anew; ap; ap=ap->next) {
         /* Check for rename options on arguments */
      	if (ap->rename) {
 		rename_argc += 2;
@@ -1476,8 +1505,8 @@ static struct graph newmodule(char * module, struct arglist * alist) {
 	}
 
 	/* Check for function arguments */
-	if (ap->func.head) 
-		graph_join(&graph, ap->func);
+	if (ap->isfunc) 
+		graph_join(&graph, newmodule(ap->arg, ap->func_args));
      }
 
      if (rename_argc > 1) {
@@ -1486,7 +1515,7 @@ static struct graph newmodule(char * module, struct arglist * alist) {
         graph_append(&graph, smacq_new_module(rename_argc, rename_argv));
      }
 
-     arglist2argv(&anew, &argc, &argv);
+     arglist2argv(anew, &argc, &argv);
      graph_append(&graph, smacq_new_module(argc, argv));
 
      return graph;
@@ -1496,7 +1525,8 @@ static struct arglist * newarg(char * arg, int isfunc, struct arglist * func_arg
      struct arglist * al = calloc(1, sizeof(struct arglist));
      al->arg = arg;
      if (isfunc) {
-     	al->func = newmodule(arg, func_args);
+     	al->func_args = func_args;
+	al->isfunc = 1;
      }
 
      return(al);
