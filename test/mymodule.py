@@ -14,4 +14,6 @@ class Censor:
         except KeyError:
             print ('call', 'KeyError')
 
+        dts['len'].set(12)
+
 init = Censor

@@ -1,9 +1,10 @@
 #include <Python.h>
+#define DUMP_ENABLE
+#include "dump.h"
+#undef DUMP_ENABLE
 #include <netinet/in.h>
 #include "smacq.h"
 #include "dts.h"
-
-#include "dump.h"
 
 static int init_count = 0;
 
@@ -30,6 +31,7 @@ pythonModule::pythonModule(struct smacq_init *context)
   PyObject *pArgs   = NULL;
   int       passed  = 0;
 
+  DUMP();
   if (context->argc < 2) {
     fprintf(stderr, "No module name provided");
     /* XXX: there's got to be a better way to raise an error... */
@@ -107,7 +109,6 @@ pythonModule::pythonModule(struct smacq_init *context)
     }
 
     /* Call the init function */
-    DUMP();
     this->pConsume = PyObject_CallObject(pInit, pArgs);
     if (! this->pConsume) {
       PyErr_Print();
@@ -142,8 +143,6 @@ smacq_result pythonModule::consume(DtsObject datum, int &outchan)
 
   do {
     /* Create a new DTS object */
-    DUMP_p(&datum);
-    DUMP_d(datum->getsize());
     pDts = pydts_create(datum, this->dts);
     if (! pDts) {
       PyErr_Print();
@@ -151,10 +150,7 @@ smacq_result pythonModule::consume(DtsObject datum, int &outchan)
     }
 
     /* Send it to the consume function */
-  DUMP_p(this->pConsume);
-  DUMP_p(pDts);
     pRet = PyObject_CallFunction(this->pConsume, "O", pDts);
-  DUMP();
     if (! pRet) {
       PyErr_Print();
       break;
@@ -210,18 +206,19 @@ static char PyDts_doc[] =
 
 typedef struct {
   PyObject_HEAD
-  DtsObject  d;
+  /* Normally we'd keep d on the stack, not as a pointer.  But we can't
+   * put it on the stack, since Python wants to use its internal memory
+   * allocator.  Therefore, we keep a pointer and use new and delete. */
+  DtsObject *d;
   DTS       *dts;
 } PyDtsObject;
 
 
 static void PyDts_dealloc(PyObject *p)
 {
-#if 0
   PyDtsObject *self = (PyDtsObject *)p;
 
-  self->d->reset();
-#endif
+  delete self->d;
   PyObject_Del(p);
 }
 
@@ -229,6 +226,74 @@ static int PyDts_length(PyObject *p)
 {
   return 0;
 }
+
+static PyObject * PyDts_set(PyObject *p,
+                            PyObject *args)
+{
+  PyDtsObject *self   = (PyDtsObject *)p;
+  PyObject    *pVal;
+  int          size;
+  int          passed = 0;
+
+  if (! PyArg_ParseTuple(args, "O", &pVal)) {
+    return NULL;
+  }
+
+  DUMP();
+  do {
+    size = self->d->get()->getsize();
+
+    if (PyInt_Check(pVal)) {
+      long l;
+
+      l = PyInt_AsLong(pVal);
+      switch (self->d->get()->getsize()) {
+        case sizeof(char):
+          if 
+          DUMP();
+          break;
+        case sizeof(short):
+          DUMP();
+          break;
+        case sizeof(int):
+          DUMP();
+          break;
+#ifdef HAVE_LONG_LONG
+#ifdef NEALE_FIGURED_OUT_HOW_TO_CHECK_IN_CPP_WHETHER_INT_IS_THE_SAME_AS_LONG_INT
+        case sizeof(long):
+          DUMP();
+          break;
+#endif
+        case sizeof(long long):
+          DUMP();
+          break;
+#endif
+    default:
+      PyErr_Format(PyExc_ValueError,
+                   "No integer type for data of length %d",
+                   self->d->get()->getsize());
+      break;
+      }
+    } else {
+      DUMP_s("It's not a trap!");
+    }
+
+    passed = 1;
+  } while (0);
+
+  if (! passed) {
+    return NULL;
+  }
+
+  Py_XINCREF(Py_None);
+  return Py_None;
+}
+
+static PyMethodDef PyDts_methods[] = {
+  {"set", PyDts_set, METH_VARARGS, NULL},
+  {NULL, NULL},
+};
+
 
 /** Retrieve a DTS field by name
  *
@@ -248,13 +313,12 @@ static PyObject *PyDts_subscript(PyObject *p, PyObject *pName)
       break;
     }
 
-    d = self->d->getfield(self->dts->requirefield(name));
+    /* We can't use the overloaded -> operator since self->d is a pointer. */
+    d = self->d->get()->getfield(self->dts->requirefield(name));
     if (! d) {
       PyErr_Format(PyExc_KeyError, "No such field: %s", name);
       break;
     }
-    DUMP_p(&d);
-    DUMP_d(d->getsize());
 
     pDts = pydts_create(d, self->dts);
     if (! pDts) {
@@ -275,11 +339,7 @@ static PyObject *PyDts_subscript(PyObject *p, PyObject *pName)
 static PyMappingMethods PyDts_as_mapping = {
   PyDts_length,                 /* mp_length            */
   PyDts_subscript,              /* mp_subscript         */
-#if 0
-  PyDts_ass_sub,                /* mp_ass_subscript     */
-#else
   NULL,                         /* mp_ass_subscript     */
-#endif
 };
 
 enum datatype {
@@ -294,7 +354,32 @@ static PyObject *PyDts_getdata(PyObject *p, void *closure)
   PyDtsObject *self = (PyDtsObject *)p;
 
   return Py_BuildValue("s#",
-                       self->d->getdata(), self->d->getsize());
+                       self->d->get()->getdata(),
+                       self->d->get()->getsize());
+}
+
+/** Set DtsObject data from a string
+ */
+static int PyDts_setdata(PyObject *p, PyObject *pVal, void *closure)
+{
+  PyDtsObject *self = (PyDtsObject *)p;
+  char        *buf;
+  int          buflen;
+
+  if (PyString_AsStringAndSize(pVal, &buf, &buflen)) {
+    return -1;
+  }
+
+  if (self->d->get()->getsize() != buflen) {
+    PyErr_Format(PyExc_ValueError,
+                 "This field's length is %d, cannot set to string of length %d.",
+                 buflen,
+                 self->d->get()->getsize());
+    return -1;
+  }
+
+  self->d->get()->setcopy(buf);
+  return 0;
 }
 
 /** Return DtsObject data as a signed int
@@ -309,8 +394,8 @@ static PyObject *PyDts_getint(PyObject *p, void *closure)
   PyObject      *pRet = NULL;
   unsigned char *val;
 
-  val = self->d->getdata();
-  switch (self->d->getsize()) {
+  val = self->d->get()->getdata();
+  switch (self->d->get()->getsize()) {
     case sizeof(char):
       pRet = PyInt_FromLong((long)*(char *)val);
       break;
@@ -333,10 +418,48 @@ static PyObject *PyDts_getint(PyObject *p, void *closure)
     default:
       PyErr_Format(PyExc_ValueError,
                    "No integer type for data of length %d",
-                   self->d->getsize());
+                   self->d->get()->getsize());
       break;
   }
   return pRet;
+}
+
+/** Set DtsObject data as a signed int
+ */
+static int PyDts_setint(PyObject *p, PyObject *pVal, void *closure)
+{
+  PyDtsObject *self = (PyDtsObject *)p;
+  long long    l;
+
+  l = PyLong_AsLongLong(l);
+  switch (self->d->get()->getsize()) {
+    case sizeof(char):
+      l = PyInt_AsLongFromLong((long)*(char *)val);
+      break;
+    case sizeof(short):
+      pRet = PyInt_FromLong((long)*(short *)val);
+      break;
+    case sizeof(int):
+      pRet = PyInt_FromLong((long)*(int *)val);
+      break;
+#ifdef HAVE_LONG_LONG
+#ifdef NEALE_FIGURED_OUT_HOW_TO_CHECK_IN_CPP_WHETHER_INT_IS_THE_SAME_AS_LONG_INT
+    case sizeof(long):
+      pRet = PyLong_FromLong(*(long *)val);
+      break;
+#endif
+    case sizeof(long long):
+      pRet = PyLong_FromLongLong(*(long long *)val);
+      break;
+#endif
+    default:
+      PyErr_Format(PyExc_ValueError,
+                   "No integer type for data of length %d",
+                   self->d->get()->getsize());
+      break;
+  }
+
+  return 0;
 }
 
 /** Return DtsObject data as an unsigned int
@@ -349,9 +472,8 @@ static PyObject *PyDts_getuint(PyObject *p, void *closure)
   PyObject      *pRet = NULL;
   unsigned char *val;
 
-  val = self->d->getdata();
-  DUMP_d(self->d->getsize());
-  switch (self->d->getsize()) {
+  val = self->d->get()->getdata();
+  switch (self->d->get()->getsize()) {
     case sizeof(unsigned char):
       pRet = PyInt_FromLong((long)*(unsigned char *)val);
       break;
@@ -374,7 +496,7 @@ static PyObject *PyDts_getuint(PyObject *p, void *closure)
     default:
       PyErr_Format(PyExc_ValueError,
                    "No unsigned integer type for data of length %d",
-                   self->d->getsize());
+                   self->d->get()->getsize());
       break;
   }
   return pRet;
@@ -416,7 +538,7 @@ static PyTypeObject PyDtsType = {
   0,                            /* tp_weaklistoffset */
   0,                            /* tp_iter */
   0,                            /* tp_iternext */
-  0,                            /* tp_methods */
+  PyDts_methods,                /* tp_methods */
   0,                            /* tp_members */
   PyDts_getset,                 /* tp_getset */
   0,                            /* tp_base */
@@ -432,19 +554,20 @@ static PyObject *pydts_create(DtsObject datum, DTS *dts)
   PyDtsObject *pObj   = NULL;
   int          passed = 0;
 
-  DUMP();
   do {
     /* Allocate the new object */
-  DUMP();
     pObj = PyObject_New(PyDtsObject, &PyDtsType);
-  DUMP();
     if (! pObj) {
       break;
     }
 
-  DUMP_p(&datum);
-  memcpy(&(pObj->d), &datum, sizeof(datum));
-  DUMP();
+    /* Boost does some fancy footwork to make things feel nice for the
+     * programmer.  Unfortunately, we can't use it, since our object
+     * isn't on the stack.  So for us, it has to look ugly.  Don't blame
+     * boost; blame C++. */
+    pObj->d = new DtsObject;
+    *(pObj->d) = datum;
+
     pObj->dts = dts;
 
     passed = 1;
@@ -455,7 +578,5 @@ static PyObject *pydts_create(DtsObject datum, DTS *dts)
     return NULL;
   }
 
-  DUMP_p(pObj);
-  DUMP_d(pObj->ob_refcnt);
   return (PyObject *)pObj;
 }

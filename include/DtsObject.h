@@ -248,13 +248,9 @@ inline void DtsObject_::incref() {
 }
 
 inline void DtsObject_::decref() {
-  //fprintf(stdout, "deref called for %p\n", d);
-
-  DUMP_p(this);
-  DUMP_d(this->refcount);
+  //DUMP_p(this);
   assert(this->refcount > 0);
 
-  DUMP();
 #ifndef SMACQ_OPT_NOPTHREADS
   pthread_mutex_lock(&this->mutex);
 #endif
@@ -263,10 +259,8 @@ inline void DtsObject_::decref() {
 #ifndef SMACQ_OPT_NOPTHREADS
     pthread_mutex_unlock(&this->mutex);
 #endif
-  DUMP();
 
     this->freeObject();
-  DUMP();
 #ifndef SMACQ_OPT_NOPTHREADS
   } else {
     pthread_mutex_unlock(&this->mutex);
