@@ -94,17 +94,24 @@ struct annot_func {
 bool is_annotation_function(char * fn, int * idx)
 {
   int i;
-  char * name;
+  char * name = "TEMP";
 
 #ifdef SM_DEBUG
   fprintf(stderr, "is_annotation_function(): looking for func '%s'\n", fn);
 #endif
+
   for (i=0; name != NULL; i++) {
+
+#ifdef SM_DEBUG
+    fprintf(stderr, "is_annotation_function(): testing against '%s'\n", name);
+#endif
     name = annot_funcs[i].name;
 	if (strcmp(fn, name) == 0) {
+
 #ifdef SM_DEBUG
       fprintf(stderr, "is_annotation_function(): found func '%s'\n", fn);
 #endif
+
       *idx = i;
 	  return TRUE;
     }
@@ -600,7 +607,7 @@ int transformTargetList(SelectStmt * stmt, list * func_list)
 #ifdef SM_DEBUG
 	    fprintf(stderr, "*** TargetList arg_list for li %p = %p\n", li, arg_list);
 #endif
-		// eg. 'dstip' or '-f cnt dstip'
+		// eg. 'dstip'
 		if (arg_list) {
 		  list_item * ali; // arg list item eg. srcip
 		  list_item * pli; // print list item (eg. counter1)
@@ -613,6 +620,8 @@ int transformTargetList(SelectStmt * stmt, list * func_list)
 #endif
 			// build 'print' list (eg. 'print srcip dstport cnt dstip counter')
 			//
+		    fprintf(stderr, "isSelect = '%i', str_name = %s\n", isSelect, li->str_name);
+
 			if (is_annotation_function(li->str_name, &func_idx)) {
               if (isPrint) {
                 append_print_array(ali->str_name);
@@ -678,6 +687,7 @@ int transformTargetList(SelectStmt * stmt, list * func_list)
     }
 	else {
       fprintf(stderr, "Unknown target type in target list.\n");
+	  // later, treat empty 'select' as 'select *'
 	}
 
     target_list = lnext(target_list);
