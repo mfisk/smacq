@@ -2,6 +2,7 @@ default:
 	misc/buildarch
 
 bootstrap:
+	rm -Rf autom4te.cache
 	libtoolize --automake
 	aclocal
 	autoconf
