@@ -7,6 +7,8 @@ class SmacqModule;
 
 #include <smacq.h>
 #include <smacq_args.h>
+#include <DynamicArray.h>
+
 #include <list>
 #include <utility>
 
@@ -150,8 +152,39 @@ class SmacqModule {
   /// The produce() method is called when SMACQ expects an object to
   /// produce new data. 
   virtual smacq_result produce(DtsObject & datump, int & outchan);
-  
+
+  /// This method is called by the join optimizer.
+  virtual bool usesOtherFields(DtsField f) {
+	return usesFields.otherEntry(f[0]);
+  }
+
  protected:
+  class UsesArray : public std::vector<bool> {
+	public: 
+	bool otherEntry(unsigned int f) const {
+		std::vector<bool>::const_iterator i;
+		for (i = begin(); i != end(); i++) {
+			if (*i != f) return true;
+		}
+		return false;
+	}
+  };
+
+  UsesArray usesFields;
+
+  void comp_uses(dts_comparison * c);
+
+  dts_comparison * SmacqModule::parse_tests(int argc, char ** argv);
+
+  /// This method wraps DTS::usesfield() but keeps track of what 
+  /// this module uses.
+  virtual DtsField usesfield(char * name) {
+	DtsField res = dts->requirefield(name);	
+	usesFields.resize(res[0]);
+	usesFields[res[0]] = true;
+	return res;	
+  }
+
   /// Each module instance runs in the context of a DTS instance.
   DTS * dts;
 
