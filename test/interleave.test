@@ -1,0 +1,7 @@
+#!/bin/sh
+
+# This query makes it clear how inputs are interleaved when there are multiple sources
+
+${BINDIR}smacqq -g -m -O <<EOF 
+print a.srcip b.srcip from ( (streamalias(a) + streamalias(b)) from pcapfile $TEST/0325@1112-snort.pcap) 
+EOF
