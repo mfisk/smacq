@@ -239,7 +239,7 @@ void smacq_init_modules(smacq_graph * f, smacq_environment * env) {
   struct smacq_init * context = g_new0(struct smacq_init, 1);
   int i;
 
-  if (!f) return;
+  if (!f || f->state) return;
 
   context->islast = !f->child;
   context->isfirst = !f->previous;
