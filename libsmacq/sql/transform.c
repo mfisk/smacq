@@ -628,20 +628,20 @@ int transformTargetList(SelectStmt * stmt, list * func_list)
 			  }
 			  else if (isSelect) { // select
 			    // temp test until other funcs have -f flags
-			    if (strcmp(li->str_name, "counter") == 0) {
+			    //if (strcmp(li->str_name, "counter") == 0) {
                   append_array("-f");
                   append_array(create_annotation_variable(func_idx));
-                }
+                //}
                 append_array(ali->str_name);
 			  }
 			  else { // ! select
 
 			    // temp test until other funcs have -f flags
-			    if (strcmp(li->str_name, "counter") == 0) {
+			    //if (strcmp(li->str_name, "counter") == 0) {
                   append_array("-f");
 				  annot_var = create_annotation_variable(func_idx);
                   append_array(annot_var);
-                }
+                //}
                 append_array(ali->str_name);
 
 			    // temp test until other funcs have -f flags
