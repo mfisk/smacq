@@ -92,7 +92,7 @@
 #include <string.h>
 #include <smacq-internal.h>
 #include "smacq-parser.h"
-#define DEBUG
+//#define DEBUG
   
   extern int yylex();
   extern void yy_scan_string(const char *);
@@ -365,8 +365,8 @@ static const unsigned char yyrline[] =
      173,   176,   178,   179,   180,   183,   184,   187,   188,   191,
      192,   198,   199,   200,   201,   202,   203,   206,   209,   210,
      213,   214,   217,   220,   221,   224,   225,   228,   229,   232,
-     239,   240,   241,   242,   245,   246,   247,   250,   251,   252,
-     253
+     239,   240,   241,   242,   245,   246,   247,   252,   253,   254,
+     255
 };
 #endif
 
@@ -1344,26 +1344,28 @@ yyreduce:
 
   case 56:
 #line 247 "grammer.y"
-    { yyval.comp = comp_new(yyvsp[-3].string, FUNC, arglist2str(yyvsp[-1].arglist)); }
+    { yyval.comp = comp_new(yyvsp[-3].string, FUNC, arglist2str(yyvsp[-1].arglist));
+					  yyval.comp->arglist = yyvsp[-1].arglist;
+	}
     break;
 
   case 57:
-#line 250 "grammer.y"
+#line 252 "grammer.y"
     { yyval.op = EQUALITY; }
     break;
 
   case 58:
-#line 251 "grammer.y"
+#line 253 "grammer.y"
     { yyval.op = GT; }
     break;
 
   case 59:
-#line 252 "grammer.y"
+#line 254 "grammer.y"
     { yyval.op = LT; }
     break;
 
   case 60:
-#line 253 "grammer.y"
+#line 255 "grammer.y"
     { yyval.op = LIKE; }
     break;
 
@@ -1371,7 +1373,7 @@ yyreduce:
     }
 
 /* Line 1016 of /usr/share/bison/yacc.c.  */
-#line 1375 "grammer.c"
+#line 1377 "grammer.c"
 
   yyvsp -= yylen;
   yyssp -= yylen;
@@ -1590,7 +1592,7 @@ yyreturn:
 }
 
 
-#line 256 "grammer.y"
+#line 258 "grammer.y"
 
 
 
@@ -1907,8 +1909,7 @@ static struct graph optimize_bools(dts_comparison * comp) {
       assert (! "untested");
       graph_join(&g, optimize_bools(c->group));
     } else if (c->op == FUNC) {
-      arglist = newarg(c->valstr, 0, NULL);
-      graph_join(&g, newmodule(c->fieldname, arglist));
+      graph_join(&g, newmodule(c->fieldname, c->arglist));
     } else if (c->op == OR) {
       arglist = newarg(print_comparison(c), 0, NULL);
       graph_join(&g, newmodule("filter", arglist)); 

@@ -23,7 +23,7 @@
 #include <string.h>
 #include <smacq-internal.h>
 #include "smacq-parser.h"
-#define DEBUG
+//#define DEBUG
   
   extern int yylex();
   extern void yy_scan_string(const char *);
@@ -244,7 +244,9 @@ boolean : '(' boolean ')'	{ $$ = $2; }
 
 test : word			{ $$ = comp_new($1, EXIST, NULL); }
 	| word op word		{ $$ = comp_new($1, $2, $3); }
-	| verb '(' args ')'		{ $$ = comp_new($1, FUNC, arglist2str($3)); }
+	| verb '(' args ')'		{ $$ = comp_new($1, FUNC, arglist2str($3));
+					  $$->arglist = $3;
+	}
 	;
 
 op : '=' 		{ $$ = EQUALITY; }
@@ -569,8 +571,7 @@ static struct graph optimize_bools(dts_comparison * comp) {
       assert (! "untested");
       graph_join(&g, optimize_bools(c->group));
     } else if (c->op == FUNC) {
-      arglist = newarg(c->valstr, 0, NULL);
-      graph_join(&g, newmodule(c->fieldname, arglist));
+      graph_join(&g, newmodule(c->fieldname, c->arglist));
     } else if (c->op == OR) {
       arglist = newarg(print_comparison(c), 0, NULL);
       graph_join(&g, newmodule("filter", arglist)); 
