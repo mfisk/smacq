@@ -23,12 +23,14 @@ static struct smacq_options options[] = {
 
 
 int main(int argc, char ** argv) {
-  smacq_graph * graph;
   smacq_opt multiple, optimize, qfile, showgraph;
   int qargc;
   char ** qargv;
   dts_environment * tenv = dts_init();
   FILE * fh;
+  smacq_graph * graphs = NULL;
+  const dts_object * product;
+  struct runq * runq = NULL;
 
   if (argc <= 1) {
 	  fprintf(stderr, "Usage: %s [-m] query\n", argv[0]);
@@ -49,9 +51,6 @@ int main(int argc, char ** argv) {
 
   if (multiple.boolean_t) {
       char * queryline;
-      smacq_graph * graphs = NULL;
-      const dts_object * product;
-      struct runq * runq = NULL;
       int qno=1;
 
       queryline = malloc(MAX_QUERY_SIZE);
@@ -86,35 +85,28 @@ int main(int argc, char ** argv) {
       if (optimize.boolean_t) {
 	      graphs = smacq_merge_graphs(graphs);
       }
-
-      if (showgraph.boolean_t) {
-	      smacq_graphs_print(stderr, graphs, 8);
-      }
-
-      if (0 != smacq_start(graphs, ITERATIVE, tenv)) {
-	      return -1;
-      }
-
-      while(1) {
-	       int res = smacq_sched_iterative(graphs, NULL, &product, &runq, 1);
-	       if (product) {
-		       //fprintf(stderr, "smacqq: Got selection!\n");
-		       dts_decref(product);
-	       }
-	       if (res & SMACQ_END) {
-		       return 0;
-	       }
-      }
-      
   } else {
-      graph = smacq_build_query(tenv, qargc, qargv);
-      assert(graph);
+      graphs = smacq_build_query(tenv, qargc, qargv);
+      assert(graphs);
+  }
 
-      if (showgraph.boolean_t) {
-	      smacq_graphs_print(stderr, graph, 8);
-      }
+  if (showgraph.boolean_t) {
+      smacq_graphs_print(stderr, graphs, 8);
+  }
 
-      return smacq_start(graph, RECURSIVE, tenv);
+  if (0 != smacq_start(graphs, ITERATIVE, tenv)) {
+      return -1;
+  }
+
+  while(1) {
+       int res = smacq_sched_iterative(graphs, NULL, &product, &runq, 1);
+       if (product) {
+	       //fprintf(stderr, "smacqq: Got selection!\n");
+	       dts_decref(product);
+       }
+       if (res & SMACQ_END) {
+	       return 0;
+       }
   }
 }
 
