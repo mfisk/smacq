@@ -6,6 +6,12 @@
 
 #define MINSIZE 100
 
+#ifdef SMACQ_DEBUG
+#define SDEBUG(x) x
+#else
+#define SDEBUG(x)
+#endif
+
 static inline void dts_init_object(dts_object * d) {
   d->free_data=0;
   d->refcount=1;
@@ -16,12 +22,17 @@ static inline void dts_init_object(dts_object * d) {
 #define max(a,b) ((a)>(b) ? (a) : (b))
 #endif
 
+SDEBUG(static int dts_object_count = 0);
+SDEBUG(static int dts_object_virtual_count = 0);
+
 static inline const dts_object* dts_alloc_slow(dts_environment * tenv, int size, int type) {
   dts_object * d;
   int max_size;
 
   max_size = max(size, MINSIZE);
   d = g_malloc0(sizeof(dts_object) + max_size);
+  SDEBUG(dts_object_count++);
+  SDEBUG(fprintf(stderr, "%d DTS objects in existence, %d virtual objects used\n", dts_object_count, dts_object_virtual_count));
 
 #ifndef SMACQ_OPT_NOPTHREADS
   pthread_mutex_init(&d->mutex, NULL);
@@ -32,7 +43,7 @@ static inline const dts_object* dts_alloc_slow(dts_environment * tenv, int size,
   d->type=type;
   d->tenv = tenv;
 
-  darray_init(&d->fields, 0);
+  darray_init(&d->fields, tenv->max_field);
   dts_init_object(d);
   return d;
 }
@@ -40,7 +51,13 @@ static inline const dts_object* dts_alloc_slow(dts_environment * tenv, int size,
 const dts_object* dts_alloc(dts_environment * tenv, int size, int type) {
   const dts_object * o = *tenv->freelist.p;
 
-  if (o && (size <= o->max_size)) {
+  SDEBUG(dts_object_virtual_count++);
+
+  if (o) {
+    if (size > o->max_size) {
+	    o = realloc((void*)o, size + sizeof(dts_object));
+	    ((dts_object*)o)->max_size = size;
+    }
 
     dts_init_object((dts_object*)o);
     ((dts_object*)o)->type = type;
@@ -48,10 +65,10 @@ const dts_object* dts_alloc(dts_environment * tenv, int size, int type) {
 
     //fprintf(stderr, "dts_alloc reusing %p\n", o);
 
-    *tenv->freelist.end = NULL;
-
     if (tenv->freelist.p > tenv->freelist.start) {
       tenv->freelist.p--;
+    } else {
+      *tenv->freelist.p = NULL;
     }
   } else {
     o = dts_alloc_slow(tenv, size, type);
@@ -65,5 +82,6 @@ void dts_free(const dts_object * d) {
   	*d->tenv->freelist.p = d;
   } else {
 	free((void*)d);
+	SDEBUG(dts_object_count--);
   }
 }
