@@ -86,6 +86,28 @@ int dts_pkthdr_get_packet(const dts_object * datum, dts_object * data) {
   return 1;
 }
 
+int dts_pkthdr_get_payload(const dts_object * datum, dts_object * data) {
+  //struct ip * iphdr = get_ip(datum);
+  struct tcphdr * tcphdr = get_tcp(datum);
+  struct udphdr * udphdr;
+
+  if (tcphdr) {
+  	data->data = ((char*)tcphdr) + tcphdr->th_off * 4;
+	data->len = datum->data + datum->len - data->data + 1;
+	//((char*)ip) + ip->tot_len - ip->ihl;
+  	return 1;
+  }
+
+  udphdr = get_udp(datum);
+
+  if (udphdr) {
+	data->data = udphdr+1;
+	data->len = udphdr->uh_ulen - sizeof(struct udphdr);
+	return 1;
+  }
+  return 0;
+}
+
 int dts_pkthdr_get_dstport(const dts_object * datum, dts_object * data) {
   if (!gettcpfield(datum, data, field_offset(tcphdr, th_dport))) 
     if (!getudpfield(datum, data, field_offset(udphdr, uh_dport))) 
@@ -211,6 +233,8 @@ struct dts_field_descriptor dts_type_packet_fields[] = {
 	{ "nuint32",	"seq",    dts_pkthdr_get_seq },
 	{ "nushort",	"urgptr",    dts_pkthdr_get_urgptr },
 	{ "ubyte",	"urg",    dts_pkthdr_get_urg },
+
+	{ "bytes",	"payload",    dts_pkthdr_get_payload },
 
 	{ "ubyte",	"icmptype",    dts_pkthdr_get_icmp_type },
 
