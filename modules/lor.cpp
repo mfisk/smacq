@@ -8,10 +8,11 @@
 #include <SmacqGraph.h>
 
 SMACQ_MODULE(lor,
-  PROTO_CTOR(lor);
-
-  SmacqGraph * graphs;
-  void build_clause(char ** argv, int num);
+	     PROTO_CTOR(lor);
+	     
+	     SmacqGraph * graphs;
+	     SmacqScheduler * sched;
+	     void build_clause(char ** argv, int num);
 );
 
 void lorModule::build_clause(char ** argv, int num) {
@@ -25,7 +26,7 @@ void lorModule::build_clause(char ** argv, int num) {
     return;
   }
 
-  g = SmacqGraph::newQuery(dts, num, argv);
+  g = SmacqGraph::newQuery(dts, sched, num, argv);
   assert(g);
 
   if (graphs) {
@@ -36,7 +37,7 @@ void lorModule::build_clause(char ** argv, int num) {
 }
 
 lorModule::lorModule(struct SmacqModule::smacq_init * context)
-  : SmacqModule(context), graphs(NULL)
+  : SmacqModule(context), graphs(NULL), sched(context->scheduler)
 {
   int argc = context->argc-1;
   char ** argv = context->argv+1;

@@ -55,6 +55,7 @@ SMACQ_MODULE(dfa,
   int parse_dfa(char * filename);
   int try_transition(DtsObject datum, struct transition & t);
   int dfa_try(DtsObject datum, int current_state); 
+  SmacqScheduler * sched;
 ); 
 
 struct dfa {
@@ -69,7 +70,6 @@ struct dfa_state {
 struct transition {
   SmacqGraph * graph;
   int next_state;
-  SmacqScheduler * sched;
 };
 
 int dfaModule::try_transition(DtsObject datum, struct transition & t) {
@@ -77,7 +77,7 @@ int dfaModule::try_transition(DtsObject datum, struct transition & t) {
   smacq_result more;
 
   t.graph->print(stderr, 2);
-  more = t.sched->decide(datum);
+  more = sched->decide(t.graph, datum);
 
   if ((SMACQ_END|SMACQ_ERROR) & more) {
     assert(0);
@@ -208,7 +208,7 @@ int dfaModule::parse_dfa(char * filename) {
 	args[0] = "where";
 	args[1] = test;
 
-	transition.graph = SmacqGraph::newQuery(dts, 2, args);
+	transition.graph = SmacqGraph::newQuery(dts, sched, 2, args);
 
 	//transition.graph->print(stderr, 2);
 	
@@ -223,8 +223,6 @@ int dfaModule::parse_dfa(char * filename) {
 		next_state_name, transition.next_state);
 	*/
       }
-
-      transition.sched = new SmacqScheduler(dts, transition.graph, false);
     }
     assert(this_state_num > -1);
 
@@ -252,7 +250,9 @@ int dfaModule::parse_dfa(char * filename) {
 }
 
 
-dfaModule::dfaModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
+dfaModule::dfaModule(struct SmacqModule::smacq_init * context) 
+  : SmacqModule(context), sched(context->scheduler) 
+{
   int argc = context->argc-1;
   char ** argv = context->argv+1;
 
