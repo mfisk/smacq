@@ -28,6 +28,7 @@ from|FROM	return FROM;
 group|GROUP	return GROUP;
 by|BY		return BY;
 as|AS		return AS;
+having|HAVING	return HAVING;
 
 {quote}		BEGIN(xquote);
 <xquote>{

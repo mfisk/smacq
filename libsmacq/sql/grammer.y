@@ -12,7 +12,7 @@
 #include <string.h>
 #include <smacq-internal.h>
 #include "smacq-parser.h"
-#define DEBUG
+#undef DEBUG
   
   extern int yylex();
   extern void yy_scan_string(const char *);
@@ -30,9 +30,10 @@
 
   static struct graph newmodule(char * module, struct arglist * alist);
   static void graph_join(struct graph * graph, struct graph newg);
-  static struct graph newgroup(struct arglist *, struct vphrase);
+  static struct graph newgroup(struct group, struct vphrase);
   static void arglist2argv(struct arglist * al, int * argc, char *** argv);
   static struct arglist * newarg(char * arg, int isfunc, struct arglist * func_args);
+  static struct vphrase newvphrase(char * verb, struct arglist * args);
   void print_graph(struct filter * f);
 
   struct graph nullgraph = { head: NULL, tail: NULL };
@@ -48,8 +49,10 @@
 %token ID
 %token STOP
 %token AS
+%token HAVING
 
-%type <arglist> arg argument group args arglist moreargs
+%type <arglist> having booleans arg argument args arglist moreargs
+%type <group> group 
 %type <graph> where query from source pverbphrase  
 %type <vphrase> verbphrase
 %type <string> function verb word string id 
@@ -61,6 +64,7 @@
   struct arglist * arglist;
   struct vphrase vphrase;
   char * string;
+  struct group group;
 }
 %%
 
@@ -80,7 +84,7 @@ query : verbphrase from where group
 	   	$$.head = ($$.tail = NULL);
 	   	graph_join(&($$), $2);
 		graph_join(&($$), $3);
-		if ($4) {
+		if ($4.args) {
 			graph_join(&($$), newgroup($4, $1));
 		} else {
 			graph_join(&($$), newmodule($1.verb, $1.args));
@@ -101,8 +105,15 @@ where : null 		{ $$ = nullgraph; }
 	| WHERE args 	{ $$ = newmodule("filter", $2); }
 	;
 
-group : null 		{ $$ = NULL; }
-	| GROUP BY args { $$ = $3; }
+group : null 			{ $$.args = NULL; $$.having = NULL;}
+	| GROUP BY args having 	{ $$.args = $3; $$.having = $4; }
+	;
+
+having : null			{ $$ = NULL; }
+	| HAVING booleans	{ $$ = $2; }
+	;
+
+booleans : args
 	;
 
 word:	id 		
@@ -128,7 +139,7 @@ pverbphrase: verb 		{ $$ = newmodule($1, NULL); }
 	| verb '(' arglist ')' 	{ $$ = newmodule($1, $3); }
 	;
 
-verbphrase : verb args 		{ $$.verb = $1; $$.args = $2; }
+verbphrase : verb args 		{ $$ = newvphrase($1, $2); }
 	;
 
 args : 	'(' arglist ')' 	{ $$ = $2; }
@@ -180,6 +191,17 @@ int smacq_execute_query(int argc, char ** argv) {
 void yyerror(char * msg) {
   fprintf(stderr, "Error: %s near %s\n", msg, yytext);
   exit(-1);
+}
+
+static struct vphrase newvphrase(char * verb, struct arglist * args) {
+  	struct vphrase vphrase;
+	vphrase.verb = verb;
+	vphrase.args = args;
+	if (!strcmp(verb, "select")) {
+     		/* SQL's select is really a projection operation */
+     		vphrase.verb = "project";
+	}
+	return vphrase;
 }
 
 static void arglist2argv(struct arglist * alist, int * argc, char *** argvp) {
@@ -244,7 +266,7 @@ static struct arglist * arglist_append(struct arglist * tail, struct arglist * a
 	return tail;
 }
 	
-static struct graph newgroup(struct arglist * alist, struct vphrase vphrase) {
+static struct graph newgroup(struct group group, struct vphrase vphrase) {
 	/*
 	 * This function violates some abstractions by knowing the 
 	 * calling syntax for "groupby" and constructing arguments for it.
@@ -253,12 +275,12 @@ static struct graph newgroup(struct arglist * alist, struct vphrase vphrase) {
 	struct graph g;
 	struct arglist * ap;
 
-	if (!alist) { 
+	if (!group.args) { 
 		/* Do nothing if this was "group by" NULL */
 		return newmodule(vphrase.verb, vphrase.args);
 	}
 
-	atail = arglist_append(alist, newarg("--", 0, NULL));
+	atail = arglist_append(group.args, newarg("--", 0, NULL));
 
 	/* Insert function operations */
         for(ap=vphrase.args; ap; ap=ap->next) {
@@ -270,11 +292,13 @@ static struct graph newgroup(struct arglist * alist, struct vphrase vphrase) {
 		ap->isfunc = 0;
  	   }
 	}
-
 	atail = arglist_append(atail, newarg(vphrase.verb, 0, NULL));
 	atail = arglist_append(atail, vphrase.args);
 
-	g = newmodule("groupby", alist);
+	g = newmodule("groupby", group.args);
+
+	if (group.having) 
+		graph_join(&g, newmodule("filter", group.having));
 
 	return g;
 }
@@ -291,10 +315,6 @@ static struct graph newmodule(char * module, struct arglist * alist) {
      char ** rename_argv = NULL;
      struct arglist * ap;
 
-     if (!strcmp(module, "select")) {
-     	/* SQL's select is really a projection operation */
-     	module = "project";
-     }
      anew = newarg(module, 0, NULL);
      arglist_append(anew, alist);
 
