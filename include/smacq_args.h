@@ -10,7 +10,7 @@ typedef union {
   int int_t;
   double double_t;
   unsigned int uint_t;
-  guint32 uint32_t;
+  uint32_t uint32_t;
   gushort ushort_t;
   gushort ubyte_t;
   struct timeval timeval_t;

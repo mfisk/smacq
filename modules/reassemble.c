@@ -36,7 +36,7 @@ struct state {
   struct pcap_file_header pcap_file_header;
 
   struct fieldset fieldset;
-  guint32 memcap;
+  uint32_t memcap;
   unsigned int timeout;
 
   list_item * list_ptr;

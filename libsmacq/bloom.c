@@ -47,7 +47,7 @@ unsigned long long prime_greater_than(unsigned long long x) {
 }
 
 struct bloom_summary {
-  guint32 * randoms;
+  uint32_t * randoms;
   int numfilterfuncs;
   WORDTYPE * summary;
   WORDTYPE * count;
@@ -149,7 +149,7 @@ struct bloom_summary * bloom_counter_init(int maxkeybytes, unsigned long long si
 
 /* Return whether the bit was previously set */
 int TestOrSetBit(WORDTYPE * array, unsigned int number, int op) {
-  guint32 mask;
+  uint32_t mask;
 
   mask = (1 << ((number % WORDBITS)-1));
   //fprintf(stderr, "\tmaps to %u\t%u\n", number/WORDBITS, number %WORDBITS);
@@ -287,8 +287,8 @@ struct bloom_summary * bloom_load(char * filename) {
     exit(-1);
   }
 
-  b->randoms = (guint32*)g_new(guint32, b->numfilterfuncs*b->maxkeybytes);
-  if (fread(b->randoms, sizeof(guint32) * b->numfilterfuncs*b->maxkeybytes, 1, fh) < 1) {
+  b->randoms = (uint32_t*)g_new(uint32_t, b->numfilterfuncs*b->maxkeybytes);
+  if (fread(b->randoms, sizeof(uint32_t) * b->numfilterfuncs*b->maxkeybytes, 1, fh) < 1) {
     fprintf(stderr, "error loading sources.bitmap randomsorts\n");
     exit(-1);
   }
@@ -322,7 +322,7 @@ void bloom_save(char * filename, struct bloom_summary * b) {
     fprintf(stderr, "error saving sources.bitmap object\n");
     exit(-1);
   }
-  if (fwrite(b->randoms, sizeof(guint32) * b->numfilterfuncs * b->maxkeybytes, 1, fh) < 1) {
+  if (fwrite(b->randoms, sizeof(uint32_t) * b->numfilterfuncs * b->maxkeybytes, 1, fh) < 1) {
     fprintf(stderr, "error saving sources.bitmap randoms\n");
     exit(-1);
   }

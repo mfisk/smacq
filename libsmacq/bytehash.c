@@ -30,7 +30,7 @@ struct element {
 
 struct iovec_hash {
   int maxkeybytes;
-  guint32 * randoms;
+  uint32_t * randoms;
   GHashTable * ht;
 
   struct cmalloc * cm_bytes;
@@ -81,14 +81,14 @@ static void free_value(gpointer v) {
   free(v);
 }
 
-void bytes_init_hash(guint32** randoms, int num, unsigned long prime) {
+void bytes_init_hash(uint32_t** randoms, int num, unsigned long prime) {
   int i;
 
   /* Randombytes is a an array mapping 16-bit key segments to of 32bit random numbers */
   /* There is one entry for each filter function and each allowable 16-bit key */
   /* We avoid having a full 256KB per function by using a user-supplied maximum key size */
 
-  *randoms = g_new(guint32, num);
+  *randoms = g_new(uint32_t, num);
   for (i = 0; i < num; i++) {
     /* Modulo is probably not the right way to get them smaller than HASH_PRIME */
     (*randoms)[i] = (random() % prime);
@@ -96,11 +96,11 @@ void bytes_init_hash(guint32** randoms, int num, unsigned long prime) {
   }
 }
 
-static guint bytes_hash(gconstpointer v) {
+static unsigned int bytes_hash(gconstpointer v) {
   const struct element * s = v;
   int i;
   int j;
-  guint32 index = 0;
+  uint32_t index = 0;
 
   for (i=0; i < s->nvecs; i++) {
     unsigned char * base = s->iovecs[i].iov_base;
@@ -185,7 +185,7 @@ struct iovec_hash * bytes_hash_table_new(int maxbytes, enum chaining_boolean cha
   return myt;
 }
 
-guint bytes_hash_valuev(struct iovec_hash * ht, int nvecs, struct iovec * vecs) {
+unsigned int bytes_hash_valuev(struct iovec_hash * ht, int nvecs, struct iovec * vecs) {
   struct element * s = make_element(ht, vecs, nvecs);
   int val = bytes_hash(s);
   free_element(s);

@@ -130,13 +130,13 @@ int epan_getfield(const dts_object * packet, dts_object * fieldo, dts_field_elem
     
     case FT_UINT16:
       fieldo->type = dts_requiretype(packet->tenv, "ushort");
-      dts_data_as(fieldo, guint16) = fvalue_get_integer(finfo->value);
+      dts_data_as(fieldo, uint16_t) = fvalue_get_integer(finfo->value);
       fieldo->len = 2;
       break;
     
     case FT_UINT32:
       fieldo->type = dts_requiretype(packet->tenv, "uint32");
-      dts_data_as(fieldo, guint32) = fvalue_get_integer(finfo->value);
+      dts_data_as(fieldo, uint32_t) = fvalue_get_integer(finfo->value);
       fieldo->len = 4;
       break;
     

@@ -1,7 +1,8 @@
 #include <glib.h>
 #include <sys/uio.h>
+#include <stdint.h>
 
-#define WORDTYPE guint32
+#define WORDTYPE uint32_t
 
 extern struct bloom_summary * bloom_summary_init(int maxkeybytes, unsigned long long size);
 extern struct bloom_summary * bloom_counter_init(int maxkeybytes, unsigned long long size);

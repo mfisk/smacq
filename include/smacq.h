@@ -1,6 +1,7 @@
 #ifndef SMACQ_H
 #define SMACQ_H
 
+#include <stdint.h>
 #include <stdio.h>
 #include <gmodule.h>
 #include <glib.h>
