@@ -91,6 +91,8 @@ To run the regression tests:
 To only see warning output (less verbose):
 	make warn
 
+To generate documentation:
+	make dist
 
 =============================================================================
 				BUGS
