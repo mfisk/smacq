@@ -159,6 +159,8 @@ static inline int output(struct state * state, struct srcstat * s) {
 }
 
 static inline int expired(struct state * state, struct iovec * domainv, struct srcstat * s) {
+  int i;
+
   if (!state->hasinterval) return 0;
 
   if (!timeval_past(s->lasttime, state->edge)) {
@@ -179,6 +181,9 @@ static inline int expired(struct state * state, struct iovec * domainv, struct s
     }
 	
     // Cleanup
+    for (i = 0; i<state->fieldset.num; i++) {
+	    dts_decref(s->fields[i]);
+    }
     free(s->fields);
 
     if (!bytes_hash_table_removev(state->stats, domainv, state->fieldset.num)) {
