@@ -1,7 +1,7 @@
 all: snort-1.8.6 libpcap.a
 
-clean: distclean
-distclean:
+reallyclean: clean
+clean:
 	rm -Rf .libs libpcap*
 
 snort-1.8.6: snort-1.8.6.tar.gz

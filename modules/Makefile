@@ -36,9 +36,9 @@ smacq-modules.off.a: modules-pass1.la
 	$(LD) -static -r -E -o $@ -all_load modules-pass1.a --no-whole-archive $(STATIC_LDFLAGS) 
 
 
-clean: distclean
+reallyclean: clean
 
-distclean:
+clean:
 	rm -Rf *.o *.so *.a *.lo *.la .libs
 
 spp_export_pkt.lo: spp_export_pkt.c spp_export_pkt.h $(SNORT_HOME)

@@ -27,9 +27,9 @@ scanner.c:: grammer.h
 %.c: %.l 
 	$(FLEX) -i -o$@ $<
 
-clean: distclean
+reallyclean: clean
 	rm -Rf scanner.c grammer.c grammer.h scan.c gram.c gram.h
 
-distclean:
+clean:
 	rm -Rf *.lo *.la *.o *.a .libs
 

@@ -12,12 +12,12 @@ USEROBJS=libsmacq.lo bytehash.lo fields.lo bloom.lo args.lo pickle.lo types.lo s
 
 ENGINEOBJS=types.lo construct.lo $(USEROBJS)
 
-distclean: 
-	for f in $(DIRS); do $(MAKE) -C $$f distclean; done
-	rm -Rf *.o *.so *.a *.lo *.la .libs
-
 clean: 
 	for f in $(DIRS); do $(MAKE) -C $$f clean; done
+	rm -Rf *.o *.so *.a *.lo *.la .libs
+
+reallyclean: 
+	for f in $(DIRS); do $(MAKE) -C $$f reallyclean; done
 	rm -Rf *.o *.so *.a *.lo *.la .libs
 
 %.lo: %.c

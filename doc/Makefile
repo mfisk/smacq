@@ -6,10 +6,10 @@ PRODUCTS=$(DOCTXTS) $(DOCPDFS)
 
 all: $(DOCS) $(PRODUCTS)
 
-clean: distclean
+reallyclean: clean
 	rm -f smacq-embed.3 dts-types.3 smacqq.1 smacqp.1
 
-distclean:
+clean:
 	rm -f $(PRODUCTS)
 
 publish:

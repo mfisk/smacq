@@ -27,9 +27,9 @@ filter-scanner.c: filter-parser.h
 %.c: %.l 
 	$(FLEX) -i -Pyyfilter -o$@ $<
 
-clean: distclean
+reallyclean: clean
 	rm -Rf filter-scanner.c filter-parser.c filter-parser.h 
 
-distclean:
+clean:
 	rm -Rf *.lo *.la *.o *.a .libs
 
