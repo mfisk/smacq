@@ -15,8 +15,20 @@ static int flowtype_uint32_get_string(void * data, int dlen, void ** transform, 
   return 1;
 }
 
+static int flowtype_uint32_get_double(void * data, int dlen, void ** transform, int * tlen) {
+  double * d = g_new(double, 1);
+  unsigned int * i = (unsigned int*)data;
+  *d = *i;
+  *transform = d;
+  *tlen = sizeof(double);
+
+  return 1;
+}
+
+
 struct dts_transform_descriptor dts_type_uint32_transforms[] = {
 	{ "string",   flowtype_uint32_get_string },
+	{ "double",   flowtype_uint32_get_double },
         { END,        NULL }
 };
 
