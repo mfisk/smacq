@@ -144,6 +144,12 @@ smacq_graph * smacq_clone_tree(smacq_graph * donorParent, smacq_graph * newParen
 int smacq_graph_print(FILE * fh, smacq_graph * f, int indent);
 double smacq_graph_count_nodes(smacq_graph * f);
 
+enum smacq_log_level { INFO, WARN, ERROR, };
+
+static inline void smacq_log(char * name, enum smacq_log_level level, char * msg) {
+  fprintf(stderr, "%s: %s\n", name, msg);
+}
+
 #include "smacq-internal.h"
 #include "types-inline.c"
 
