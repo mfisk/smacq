@@ -162,9 +162,12 @@ static smacq_result substr_consume(struct state * state, const dts_object * datu
 
   }
 
-  if (matched) return SMACQ_PASS;
+  if (matched) {
+	return SMACQ_PASS|smacq_produce_canproduce(&state->outputq);
+  } else {
+  	return SMACQ_FREE;
+  }
 
-  return SMACQ_FREE;
 }
 
 static smacq_result substr_init(struct smacq_init * context) {
