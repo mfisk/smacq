@@ -8,19 +8,14 @@
 
 static int smacqtype_ipproto_get_string(const dts_object * obj, dts_object * field) {
   struct protoent * p = getprotobynumber((dts_data_as(obj, unsigned char)));
-  char * buf;
-  char scratch[64]; // Only has to hold log10(2**32)
 
   if (p) {
-	buf = p->p_name;
+	dts_setsize(field, strlen(p->p_name));
+	strcpy(field->data, p->p_name);
   } else {
-	buf = scratch;
-  	snprintf(buf, 64, "%hu", dts_data_as(obj, unsigned char)); 
+	dts_setsize(field, 64);
+  	snprintf(field->data, 64, "%hu", dts_data_as(obj, unsigned char)); 
   }
-
-  field->data = strdup(buf);
-  field->len = strlen(buf);
-  field->free_data = 1;
 
   return 1;
 }

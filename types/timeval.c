@@ -10,23 +10,14 @@
 
 static int smacqtype_timeval_get_double(const dts_object * o, dts_object * field) {
   struct timeval * t = dts_getdata(o);
-  double * dblp = malloc(sizeof(double));
-  *dblp = (double)t->tv_sec + 1e-6 * (double)t->tv_usec;
-  field->data = dblp;
-  field->len = sizeof(double);
-  field->free_data = 1;
-
-  return 1;
+  double dbl = (double)t->tv_sec + 1e-6 * (double)t->tv_usec;
+  return dts_set(field, double, dbl);
 }
+
 static int smacqtype_timeval_get_string(const dts_object * o, dts_object * field) {
   struct timeval * t = dts_getdata(o);
-  char buf[64]; 
-
-  snprintf(buf, 64, "%lu.%06lu", t->tv_sec, t->tv_usec);
-  field->data= strdup(buf);
-  field->len= strlen(buf);
-  field->free_data = 1;
-
+  dts_setsize(field, 64);
+  snprintf(field->data, 64, "%lu.%06lu", t->tv_sec, t->tv_usec);
   return 1;
 }
 
