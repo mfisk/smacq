@@ -1,5 +1,6 @@
 Bugs:
 	- "not function()" in booleans
+	- uniq -o never expires object Ids, so memory grows infinitely
 
 Looking for volunteers:
 	- Regex parsing for tabularinput
