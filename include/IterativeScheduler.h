@@ -20,7 +20,10 @@ public:
   void input(SmacqGraph * g, DtsObject din);
 
   /// Queue a shutdown for the specified graph.
-  void shutdown(SmacqGraph * f);
+  void sched_shutdown(SmacqGraph * f);
+
+  /// Perform an immediate shutdown for the specified graph.  The argument is invalidated.
+  void do_shutdown(SmacqGraph *f);
 
   /// Run until an output object is ready.
   smacq_result get(DtsObject &dout);
@@ -37,15 +40,15 @@ public:
 
  private:
   bool graphs_alive (SmacqGraph *f);
+  void do_delete (SmacqGraph *f);
 
-  void do_shutdown(SmacqGraph *f);
   smacq_result run_produce(SmacqGraph * f);
   bool run_consume(SmacqGraph * f, DtsObject d);
 
   /// Process a single action or object
   smacq_result element(DtsObject &dout);
 
-  runq q;
+  runq consumeq, produceq;
 };
 
 #include <SmacqGraph.h>
@@ -54,7 +57,7 @@ inline void IterativeScheduler::seed_produce(SmacqGraph * startf) {
   while(startf) {
     //fprintf(stderr, "produce_first for %p\n", startf);
     /* Force first guy to produce */
-    q.runable(startf, NULL, PRODUCE);
+    produceq.runable(startf, NULL);
     startf = startf->nextGraph();
   }
 }
@@ -63,7 +66,7 @@ inline void IterativeScheduler::input(SmacqGraph * g, DtsObject din) {
   assert ((unsigned int)g->instance > 1000);
 
   for(; g; g=g->nextGraph()) {
-    q.runable(g, din, CONSUME);
+    consumeq.runable(g, din);
   }
 }
 
@@ -78,14 +81,37 @@ inline void IterativeScheduler::queue_children(SmacqGraph * f, DtsObject d, int 
     for (unsigned int i=0; i < f->children[outchan].size(); i++) {
       assert(f->children[outchan][i]);
       //fprintf(stderr, "\tchild %d: %s (%p)\n", i, f->children[outchan][i]->name, f->children[outchan][i]);
-      q.runable(f->children[outchan][i], d, CONSUME);
+      consumeq.runable(f->children[outchan][i], d);
     }
   } else {
     //fprintf(stderr, "queueing %p falling off leaf %s (%p)\n", d.get(), f->name, f);
-    q.runable(NULL, d, CONSUME);
+    consumeq.runable(NULL, d);
   }
 }
 
+/// Try to delete f
+inline void IterativeScheduler::do_delete(SmacqGraph *f) {
+    assert(!f->numparents);
+    FOREACH_CHILD(f, assert(!child));
+
+    // XXX: These are expensive!
+    produceq.remove(f);
+    consumeq.remove(f);
+
+    /*
+    if (consumeq.find(f)) {
+	fprintf(stderr, "Warning: cannot delete %p because still on consume queue\n", f);
+    } else if (produceq.find(f)) {
+	fprintf(stderr, "Warning: cannot delete %p because still on produce queue\n", f);
+    } else {
+    	//fprintf(stderr, "delete self %p\n", f);
+    	//delete f;
+    }
+    */
+}
+
+
+/// This should destroy the argument, so caller must not refer to it after call.
 inline void IterativeScheduler::do_shutdown(SmacqGraph *f) {
   if (f->shutdown) {
     // Already shutdown, so do nothing 
@@ -104,13 +130,14 @@ inline void IterativeScheduler::do_shutdown(SmacqGraph *f) {
       
       if (!child->shutdown && !child->live_parents()) {
 	// XXX. Child could also be a head that shouldn't be shutdown!
-	shutdown(child);
+	// This shutdown should occur AFTER any pending objects are processed by the child.
+	sched_shutdown(child);
 
       } else if (!child->numparents && child->shutdown) {
 	// If we're the last parent to shutdown, and child is already
 	// shutdown, then free the child.
 	//fprintf(stderr, "delete child %p\n", child);
-	//delete child;
+	do_delete(f);
       } 
   });
     
@@ -118,15 +145,15 @@ inline void IterativeScheduler::do_shutdown(SmacqGraph *f) {
   for (int i=0; i < f->numparents; i++) {
     if (!f->parent[i]->shutdown && !f->parent[i]->live_children()) {
       // No reason to live! 
-      shutdown(f->parent[i]);
+      // This shutdown should be processed soon even if there are pending objects for the child.
+      // Callee will remove parent/child relationship for us.
+      do_shutdown(f->parent[i]);
     }
   }
 
   if (!f->numparents) {
     // Nobody should reference us anymore
-    FOREACH_CHILD(f, assert(!child));
-    //fprintf(stderr, "delete self %p\n", f);
-    //delete f;
+    do_delete(f);
   }
 }
 
@@ -146,14 +173,12 @@ inline bool IterativeScheduler::graphs_alive (SmacqGraph *f) {
     return false;
 }
 
-inline void IterativeScheduler::shutdown(SmacqGraph * f) {
-  if (!f->shutdown_pending) {
+inline void IterativeScheduler::sched_shutdown(SmacqGraph * f) {
     //fprintf(stderr, "shutdown started for %s(%p)\n", f->argv[0], f);
-    f->shutdown_pending = true;
-    q.runable(f, NULL, SHUTDOWN);
-  }
+    consumeq.runable(f, NULL);
 }
 
+/// This should destroy the argument, so caller must not refer to it after call.
 inline smacq_result IterativeScheduler::run_produce(SmacqGraph * f) {
   DtsObject d = NULL;
   int outchan = 0;
@@ -166,19 +191,20 @@ inline smacq_result IterativeScheduler::run_produce(SmacqGraph * f) {
 
   if (pretval & (SMACQ_PRODUCE|SMACQ_CANPRODUCE)) {
     /* Come back for more */
-    q.runable(f, NULL, PRODUCE);
+    produceq.runable(f, NULL);
   }
 
   if (pretval & SMACQ_END) {
     assert(!(pretval & (SMACQ_PRODUCE|SMACQ_CANPRODUCE)));
 
-    shutdown(f);
+    do_shutdown(f);
   }
 
   return pretval;
 }
     
-/* Return 1 iff the datum was passed */
+/// Return 1 iff the datum was passed.
+/// This should destroy the argument, so caller must not refer to it after call.
 inline bool IterativeScheduler::run_consume(SmacqGraph * f, DtsObject d) {
   int outchan = 0;
   smacq_result retval;
@@ -195,12 +221,8 @@ inline bool IterativeScheduler::run_consume(SmacqGraph * f, DtsObject d) {
     status = true;
   }
 	
-  if (retval & (SMACQ_PRODUCE|SMACQ_CANPRODUCE)) {
-    run_produce(f);
-  }
-
   if (retval & SMACQ_END) {
-    shutdown(f);
+    do_shutdown(f);
   }
 
   return status;
@@ -214,42 +236,27 @@ inline bool IterativeScheduler::run_consume(SmacqGraph * f, DtsObject d) {
 inline smacq_result IterativeScheduler::element(DtsObject &dout) {
   SmacqGraph * f;
   DtsObject d;
-  enum action action;
-  
-  if (!q.pop_runable(f, d, action)) return SMACQ_NONE;
-
-  //fprintf(stderr, "popped %p for %p action %d\n", d.get(), f, action);
-  
-  if (!f) {
-    // Datum fell off end of data-flow graph 
-    //fprintf(stderr, "IterativeScheduler::element returning %p\n", d.get());
-    
-    dout = d;
-    return SMACQ_PASS;
-  } else if (! f->shutdown) {
-    switch (action) {
-
-    case CONSUME:
-      //fprintf(stderr, "sched_iterative_element calling consume on %p\n", &d);
-      run_consume(f, d);
-      break;
-      
-    case SHUTDOWN:
-      if (q.pending(f)) {
-	// Defer last call until everything produced and consumed
-	q.runable(f, NULL, SHUTDOWN);
-      } else {
-	// There is nothing pending at all, so it's safe to shutdown
-	do_shutdown(f);
+ 
+  if (consumeq.pop_runable(f,d)) {
+      if (!f) {
+    	// Datum fell off end of data-flow graph 
+    	dout = d;
+    	return SMACQ_PASS;
+      } else if (!f->shutdown) {
+	if (!d) {
+		do_shutdown(f);
+	} else {
+		run_consume(f,d);
+	}
       }
-      break;
-      
-    case PRODUCE:
-      run_produce(f);
-      break;
-    }
+  } else if (produceq.pop_runable(f,d)) {
+      if (!f->shutdown) {
+        run_produce(f);
+      }
+  } else {
+      return SMACQ_NONE;
   }
-  
+
   return SMACQ_FREE;
 }
 
