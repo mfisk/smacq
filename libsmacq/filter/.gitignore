@@ -1,3 +1,4 @@
+*.sw?
 *.lo
 *.la
 .libs
