@@ -37,7 +37,7 @@ static struct smacq_options options[] = {
   {"dstip", {string_t:""}, "Destination IP", SMACQ_OPT_TYPE_STRING},
   {"srcip", {string_t:""}, "Source IP", SMACQ_OPT_TYPE_STRING},
   {"p", {int_t:9096}, "Port Number", SMACQ_OPT_TYPE_INT},
-  {"h", {string_t:"disarm5.lanl.gov"}, "Host Name", SMACQ_OPT_TYPE_STRING},
+  {"h", {string_t:"disarm1.lanl.gov"}, "Host Name", SMACQ_OPT_TYPE_STRING},
   {NULL, {string_t:NULL}, NULL, 0}
 };
 
