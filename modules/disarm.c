@@ -9,7 +9,7 @@
 #include <signal.h>
 #include <netdb.h>
 
-#define MAX_LINE 1200000
+#define MAX_LINE 1e7 /* == 1e7 == 10MB */
 
 struct get_line {
 	FILE * fh;
@@ -102,7 +102,8 @@ int get_line(char ** buf, struct get_line * s) {
 			*buf = s->read_buffer;
 			s->leading = 0;
 			s->buffer_used = 0;
-			return s->buffer_size; 
+			fprintf(stderr, "disarm: error: line too long (> %d bytes)\n", s->buffer_size);
+			return 0;
 		}
 		got = fread(s->read_buffer + s->buffer_used, 1, s->buffer_size - s->buffer_used, s->fh);
 		if (got > 0) {
@@ -150,7 +151,7 @@ static smacq_result disarm_produce(struct state * state, const dts_object ** dat
 	 	unsigned char c = hex2val[(unsigned int)hex[i*2]];	
 		//fprintf(stderr, "char %c has value %d\n", hex[i*2], c);
 		if (c == XX) {
-			fprintf(stderr, "Skipping invalid %d char sv4 record on line %lu: %.*s\n", len, state->lineno, len, hex);
+			fprintf(stderr, "Skipping %d char sv4 record on line %lu; character %d has invalid code 0x%hhx: %.*s\n", len, state->lineno, i*2, hex[i*2], len, hex);
 			//fprintf(stderr, "line %ld character %d invalid: %c\n", state->lineno, i*2, hex[i*2]);
 			return disarm_produce(state, datump, outchan);
 		}
