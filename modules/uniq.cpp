@@ -9,7 +9,6 @@
 #include <smacq.h>
 #include <bloom.h>
 #include <FieldVec.h>
-#include <hash_set>
 
 /* Really it's an ulonglong, but STL doesn't come with a hash function
    for that, so we're lazy and truncate to ulong. */
