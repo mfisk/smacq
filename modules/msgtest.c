@@ -24,22 +24,24 @@ static smacq_result msgtest_produce(struct state* state, const dts_object ** dat
  */
 static smacq_result msgtest_consume(struct state * state, const dts_object * datum, int * outchan) {
   dts_comparison * comp = comp_new(EQ, comp_operand(FIELD, "srcip"), comp_operand(CONST, ""));
-  const dts_object * msgdata;
+  const dts_object * msgdata, * srcip;
 
   // datum = dts_writable(state->env, datum);
   
   /* Get current time as message data */
-  msgdata = smacq_getfield_copy(state->env, datum,
+  msgdata = smacq_getfield(state->env, datum,
 		smacq_requirefield(state->env, "timeseries"), 
 		NULL);
 
   /* Get current address as matching criteria (msg destination) */
-  comp->op2->valueo = smacq_getfield_copy(state->env, datum,
-		smacq_requirefield(state->env, "srcip"), 
-		NULL);
+  srcip = smacq_getfield(state->env, datum, smacq_requirefield(state->env, "srcip"), NULL);
+  comp->op2->valueo = dts_dup(state->env->types, srcip);
+  dts_decref(srcip);
 
   /* Send it to everybody else */
-  smacq_msg_send(state->env, smacq_requirefield(state->env, "prior"), msgdata, comp);
+  smacq_msg_send(state->env, smacq_requirefield(state->env, "prior"), dts_dup(state->env->types, msgdata), comp);
+
+  dts_decref(msgdata);
 
   return SMACQ_PASS;
 }
