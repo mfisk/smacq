@@ -31,7 +31,7 @@ struct runq {
 
 static inline struct qel * insert_before_head(struct runq * runq) {
 	/* Insert new element before head */
- 	struct qel * entry = (struct qel *)calloc(1, sizeof(struct qel));
+ 	struct qel * entry = new qel;
 
 	entry->prev = runq->head->prev;
 	entry->prev->next = entry;
@@ -106,8 +106,8 @@ static void init_runq(struct runq ** runqp) {
 	*runqp = runq;
 
 	/* Make a 2 element ring to start */
-	runq->tail = (struct qel*)calloc(1, sizeof(struct qel));
-	runq->tail->next = (struct qel*)calloc(1, sizeof(struct qel));
+	runq->tail = new qel;
+	runq->tail->next = new qel;
 	runq->tail->next->next = runq->tail;
 
 	runq->tail->next->prev = runq->tail;
@@ -133,7 +133,7 @@ static inline int runq_empty(struct runq * runq) {
  */
 
 void inline runable(struct runq * runq, smacq_graph * f, DtsObject &d, enum action action) {
-	struct qel * entry = calloc(1, sizeof(struct qel));
+	struct qel * entry = new qel;
 	entry->d = d;
 	entry->f = f;
         entry->action = action;
