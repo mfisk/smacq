@@ -1,6 +1,6 @@
-# Makefile.in generated automatically by automake 1.4-p4 from Makefile.am
+# Makefile.in generated automatically by automake 1.4-p6 from Makefile.am
 
-# Copyright (C) 1994, 1995-8, 1999 Free Software Foundation, Inc.
+# Copyright (C) 1994, 1995-8, 1999, 2001 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
@@ -9,6 +9,8 @@
 # but WITHOUT ANY WARRANTY, to the extent permitted by law; without
 # even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 # PARTICULAR PURPOSE.
+
+#LDFLAGS=-lgmodule-2.0 -lglib-2.0 -lm $(LDOPTS)
 
 
 SHELL = @SHELL@
@@ -59,33 +61,29 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 host_alias = @host_alias@
 host_triplet = @host@
-AR = @AR@
 AS = @AS@
 CC = @CC@
 CXX = @CXX@
-CXXCPP = @CXXCPP@
 DLLTOOL = @DLLTOOL@
 ECHO = @ECHO@
-EGREP = @EGREP@
 ETHEREAL_DIR = @ETHEREAL_DIR@
 ETHEREAL_LIBRARY = @ETHEREAL_LIBRARY@
 EXEEXT = @EXEEXT@
-F77 = @F77@
-GCJ = @GCJ@
-GCJFLAGS = @GCJFLAGS@
 GLOBAL_INCLUDES = @GLOBAL_INCLUDES@
+HAVE_LIB = @HAVE_LIB@
 LEX = @LEX@
+LIB = @LIB@
 LIBS_MODULES_ALL = @LIBS_MODULES_ALL@
 LIBS_MODULES_SHARED = @LIBS_MODULES_SHARED@
 LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
+LTLIB = @LTLIB@
 MAKEINFO = @MAKEINFO@
 OBJDUMP = @OBJDUMP@
 OBJECTS_MODULES_BUILTIN = @OBJECTS_MODULES_BUILTIN@
 OBJEXT = @OBJEXT@
 PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
-RC = @RC@
 SOURCES_MODULES_BUILTIN = @SOURCES_MODULES_BUILTIN@
 SOURCES_TYPES_BUILTIN = @SOURCES_TYPES_BUILTIN@
 STRIP = @STRIP@
@@ -95,13 +93,9 @@ YACC = @YACC@
 SUBDIRS = sql filter
 INCLUDES = @GLOBAL_INCLUDES@ -I$(top_srcdir)/include
 
-noinst_LTLIBRARIES = libsmacq.la @ETHEREAL_LIBRARY@
-EXTRA_LTLIBRARIES = libethereal.la
-
+noinst_LTLIBRARIES = libsmacq.la
 libsmacq_la_SOURCES = mem.c bytehash.c fields.c bloom.c args.c pickle.c types.c sched-thread.c sched-mono.c sched-iter.c construct.c optimize.c sched.c msg.c filter.c module-closure.c dynloader.c parsing.c cmalloc.c
-libsmacq_la_LIBADD = sql/libsql.la filter/libfilter.la $(ETHEREAL_LIBRARY)
-
-libethereal_la_SOURCES = `find @ETHEREAL_DIR@ \( -name plugins -prune \) , \( -name \*.lo -print \)` 
+libsmacq_la_LIBADD = sql/libsql.la filter/libfilter.la 
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = ../config.h
 CONFIG_CLEAN_FILES = 
@@ -112,9 +106,6 @@ DEFS = @DEFS@ -I. -I$(srcdir) -I..
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
-libethereal_la_LDFLAGS = 
-libethereal_la_LIBADD = 
-libethereal_la_OBJECTS = 
 libsmacq_la_LDFLAGS = 
 libsmacq_la_DEPENDENCIES =  sql/libsql.la filter/libfilter.la
 libsmacq_la_OBJECTS =  mem.lo bytehash.lo fields.lo bloom.lo args.lo \
@@ -138,8 +129,8 @@ DEP_FILES =  .deps/args.P .deps/bloom.P .deps/bytehash.P .deps/cmalloc.P \
 .deps/mem.P .deps/module-closure.P .deps/msg.P .deps/optimize.P \
 .deps/parsing.P .deps/pickle.P .deps/sched-iter.P .deps/sched-mono.P \
 .deps/sched-thread.P .deps/sched.P .deps/types.P
-SOURCES = $(libethereal_la_SOURCES) $(libsmacq_la_SOURCES)
-OBJECTS = $(libethereal_la_OBJECTS) $(libsmacq_la_OBJECTS)
+SOURCES = $(libsmacq_la_SOURCES)
+OBJECTS = $(libsmacq_la_OBJECTS)
 
 all: all-redirect
 .SUFFIXES:
@@ -199,9 +190,6 @@ distclean-libtool:
 
 maintainer-clean-libtool:
 
-libethereal.la: $(libethereal_la_OBJECTS) $(libethereal_la_DEPENDENCIES)
-	$(LINK)  $(libethereal_la_LDFLAGS) $(libethereal_la_OBJECTS) $(libethereal_la_LIBADD) $(LIBS)
-
 libsmacq.la: $(libsmacq_la_OBJECTS) $(libsmacq_la_DEPENDENCIES)
 	$(LINK)  $(libsmacq_la_LDFLAGS) $(libsmacq_la_OBJECTS) $(libsmacq_la_LIBADD) $(LIBS)
 
@@ -241,7 +229,7 @@ maintainer-clean-recursive:
 	dot_seen=no; \
 	rev=''; list='$(SUBDIRS)'; for subdir in $$list; do \
 	  rev="$$subdir $$rev"; \
-	  test "$$subdir" = "." && dot_seen=yes; \
+	  test "$$subdir" != "." || dot_seen=yes; \
 	done; \
 	test "$$dot_seen" = "no" && rev=". $$rev"; \
 	target=`echo $@ | sed s/-recursive//`; \
@@ -283,7 +271,7 @@ TAGS: tags-recursive $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) $(LISP)
 	  awk '    { files[$$0] = 1; } \
 	       END { for (i in files) print i; }'`; \
 	test -z "$(ETAGS_ARGS)$$unique$(LISP)$$tags" \
-	  || (cd $(srcdir) && etags $(ETAGS_ARGS) $$tags  $$unique $(LISP) -o $$here/TAGS)
+	  || (cd $(srcdir) && etags -o $$here/TAGS $(ETAGS_ARGS) $$tags  $$unique $(LISP))
 
 mostlyclean-tags:
 
@@ -438,8 +426,6 @@ all-redirect all-am all installdirs-am installdirs mostlyclean-generic \
 distclean-generic clean-generic maintainer-clean-generic clean \
 mostlyclean distclean maintainer-clean
 
-
-#$(LIBTOOL) $(CC) `find $(ETHEREAL_DIR) \( -name plugins -prune \) , \( -name \*.lo -print \)` -o $@
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
