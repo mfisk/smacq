@@ -1,8 +1,45 @@
-Building this package depends on the following Debian packages:
-	zlib1g libglib2.0 libpcap0 zlib1g-dev libpcap-dev libglib2.0-dev docbook-to-man groff python2.2-dev wget
+=============================================================================
+			SMACQ BUILD INSTRUCTIONS
 
-The libpcap build depends on:
+Debian GNU/Linux:
+-----------------
+1. Run the following command to install the Debian packages require to compile
+and execute this package:
+	apt-get install \
+		zlib1g zlib1g-dev \
+		libglib2.0 libglib2.0-dev \
+		libpcap0 libpcap-dev \
+		docbook-to-man groff python2.2-dev wget
+
+2. Run "make" to build
+
+MacOS/X - Fink:
+----------------
+1. Run the following command to install the Fink packages require to compile
+and execute this package:
+	fink install \
+		zlib glib2-dev libpcap libpcap-shlibs \
+		docbook-bundle groff python wget 
+
+2. Run "gnumake" to build
+
+Other Operating Systems:
+------------------------
+The SMACQ build procedure depends on GNU Make and the GNU loader.
+By installing the equivalent of the packages listed for the above
+operating systems, and passing the correct arguments to Make, you
+should be able to build SMACQ.  Contributions of documentation for 
+building on other operating systems would be appreciated.
+
+=============================================================================
+		   	    MISCELLANEOUS NOTES
+	
+The libsmacq/sql build depends on:
 	bison flex
 
-The snort build depends on:
+=============================================================================
+See http://smacq.sourceforge.net/ for more information.
+
+
+
 
