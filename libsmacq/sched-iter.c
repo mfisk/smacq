@@ -14,12 +14,13 @@ struct runq {
   struct runq * tail;
 };
 
+// int runqsize = 0;
+
 void runable(struct runq ** runqp, smacq_graph * f, const dts_object * d) {
   struct runq * entry;
 
   if (f && (f->status & SMACQ_FREE)) return;
 
-  //fprintf(stderr, "runable %p for  %p\n", d, f);
   assert(!d || dts_gettype(d));
 
   entry = malloc(sizeof(struct runq));
@@ -35,6 +36,9 @@ void runable(struct runq ** runqp, smacq_graph * f, const dts_object * d) {
 	*runqp = entry;
   }
   (*runqp)->tail = entry;
+
+  // runqsize++;
+  //fprintf(stderr, "runable %p for  %p, qlen = %d\n", d, f, runqsize);
 }
   
 static void pop_runable(struct runq ** runqp) {
@@ -46,6 +50,7 @@ static void pop_runable(struct runq ** runqp) {
 	  (*runqp)->tail = runq->tail;
   }
   free(runq);
+  // runqsize--;
 }
 
 void queue_children(struct runq ** runq, smacq_graph * f, const dts_object * d, int outchan) {
@@ -229,9 +234,7 @@ static int run_consume(smacq_graph * f, const dts_object * d, struct runq ** run
  *      SMACQ_PASS  -  dout was set
  *      SMACQ_END  -  do not call again
  */
-int smacq_sched_iterative(smacq_graph * startf, const dts_object * din, const dts_object ** dout , void ** state, int produce_first) {
-  struct runq ** runqp = (struct runq **)state;
-
+int smacq_sched_iterative(smacq_graph * startf, const dts_object * din, const dts_object ** dout, struct runq ** runqp, int produce_first) {
   if (din) {
     runable(runqp, startf, din);
   }
