@@ -11,6 +11,7 @@ config() {
 	DOCBOOK2MAN=${DOCBOOK2MAN:-docbook-to-man}
 	CFLAGS="-D_ISOC99_SOURCE -D_GNU_SOURCE" #To get NAN, among other things
 	CFLAGS="${CFLAGS} -DSMACQ_BUILD_DATE='\"`date --iso-8601`\"'"
+	CC=cc
 
 	if [ `uname -s` = "Darwin" ]; then 
 		echo 'MAKE=gnumake'
@@ -52,6 +53,14 @@ config() {
 		#	fi
 		#fi
 
+		# gcc-3.3.2 can't inline things that gcc-3.2.3 seems to
+		if $CC --version | grep -q ' 3\.3'; then
+			if has gcc-3.2; then
+				echo 'Using gcc-3.2 instead of 3.3' >&2
+				CC=gcc-3.2
+			fi
+		fi
+
 		# Red Hat 7.3: 
 		if [ -d /usr/include/pcap ]; then 
 			CFLAGS="${CFLAGS}-I/usr/include/pcap "
@@ -65,7 +74,6 @@ config() {
 		LDOPTS="${LDOPTS}-ldl"
 		
 	fi 
-	#export MAKE CFLAGS LIBTOOL LDOPTS CC CXX 
 
 	PWD=`pwd`
 
@@ -74,6 +82,7 @@ config() {
 	echo "LDXX=$LDXX"
 	echo "USR=$USR"
 	echo "LDOPTS=$LDOPTS"
+	echo "CC=$CC"
 	echo "CFLAGS=$CFLAGS"
 	echo "MAKEINCLUDES=$PWD/misc/include.mk"
 	echo "TOPSRCDIR=${TOPSRCDIR:-$PWD}"
