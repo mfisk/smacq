@@ -13,6 +13,7 @@
 #include <assert.h>
 #include <string.h>
 #include <bytehash.h>
+#include <cmalloc.h>
 
 struct bytevec {
   int len;
@@ -31,17 +32,21 @@ struct iovec_hash {
   int maxkeybytes;
   guint32 * randoms;
   GHashTable * ht;
+
+  struct cmalloc * cm_bytes;
+  struct cmalloc * cm_bytevecs;
+  struct cmalloc * cm_elements;
 };
 
 static struct element * make_element(struct iovec_hash * b, struct iovec * iovecs, int nvecs) {
-  struct element * s = g_new(struct element, 1);
+  struct element * s = cm_new(b->cm_elements, struct element, 1);
   int i;
 
-  s->bytevecs = g_new(struct bytevec, nvecs);
+  s->bytevecs = cm_new(b->cm_bytevecs, struct bytevec, nvecs);
   s->nvecs = nvecs;
   
   for (i=0; i < nvecs; i++) {
-    s->bytevecs[i].data = g_new(char, iovecs[i].iov_len);
+    s->bytevecs[i].data = cm_new(b->cm_bytes, char, iovecs[i].iov_len);
     s->bytevecs[i].len = iovecs[i].iov_len;
     memcpy(s->bytevecs[i].data, iovecs[i].iov_base, iovecs[i].iov_len);
   }
@@ -57,10 +62,10 @@ static void free_element(gpointer k) {
   int i;
 
   for (i=0; i<s->nvecs; i++) {
-    free(s->bytevecs[i].data);
+    cmfree(s->table->cm_bytes, s->bytevecs[i].data);
   }
-  free(s->bytevecs);
-  free(s);
+  cmfree(s->table->cm_bytevecs, s->bytevecs);
+  cmfree(s->table->cm_elements, s);
 }
 
 static void free_value(gpointer v) {
@@ -143,18 +148,6 @@ static gint bytes_equal(gconstpointer v, gconstpointer v2) {
   return TRUE;
 }
 
-/*
-struct iovec_hash * bytes_hash_function_new(int keysize) {
-  struct iovec_hash * myt;
-  
-  myt = g_new(struct iovec_hash, 1);
-  myt->maxkeybytes = keysize;
-  bytes_init_hash(&myt->randoms, keysize/2, 419400011);
-
-  return myt;
-}
-*/
-
 struct iovec_hash * bytes_hash_table_new(int maxbytes, enum chaining_boolean chaining, enum free_boolean dofree) {
   struct iovec_hash * myt;
   GDestroyNotify vfree;
@@ -162,6 +155,10 @@ struct iovec_hash * bytes_hash_table_new(int maxbytes, enum chaining_boolean cha
   myt = g_new(struct iovec_hash, 1);
   myt->maxkeybytes = maxbytes;
   bytes_init_hash(&myt->randoms, maxbytes, 419400011);
+
+  myt->cm_bytes = cmalloc_init(0,0);
+  myt->cm_bytevecs = cmalloc_init(0,0);
+  myt->cm_elements = cmalloc_init(0,0);
 
   if (dofree == FREE) {
     vfree = free_value;
@@ -240,7 +237,7 @@ gpointer bytes_hash_table_lookupv(struct iovec_hash * ht, struct iovec * vecs, i
   gpointer retval;
 
   retval = g_hash_table_lookup(ht->ht, s);
-  free(s);
+  free_element(s);
   return retval;
 }
 
@@ -249,7 +246,7 @@ gint bytes_hash_table_lookup_extendedv(struct iovec_hash * ht, struct iovec * ke
   int retval;
 
   retval = g_hash_table_lookup_extended(ht->ht, s, oldkey, current);
-  free(s);
+  free_element(s);
   return retval;
 }
 
@@ -315,5 +312,8 @@ int bytes_hash_table_removev(struct iovec_hash * ht, struct iovec * vecs, int nv
 void bytes_hash_table_destroy(struct iovec_hash * ht) {
   g_hash_table_destroy(ht->ht);
   free(ht->randoms);
+  cmalloc_destroy(ht->cm_bytes);
+  cmalloc_destroy(ht->cm_bytevecs);
+  cmalloc_destroy(ht->cm_elements);
   free(ht);
 }
