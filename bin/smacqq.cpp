@@ -111,7 +111,7 @@ int main(int argc, char ** argv) {
 
   } else {
     graphs = SmacqGraph::newQuery(&dts, &s, qargc, qargv);
-    assert(graphs);
+    if (!graphs) exit(-1);
   }
 
   graphs->init(&dts, &s);
