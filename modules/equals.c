@@ -127,10 +127,12 @@ static inline GHashTableofBytes * get_table(struct state * state, struct set_ele
 			}
 			set->fieldset.currentvecs[0].iov_base = ((dts_object*)k)->data;
 			bytes_hash_table_insertv(table, set->fieldset.currentvecs, set->fieldset.num, (gpointer)v->outchan+1);
+			/*
 			fprintf(stderr, "inserting %lx(len %d), output = %d\n", 
 				*(unsigned long*)set->fieldset.currentvecs[0].iov_base, 
 				set->fieldset.currentvecs[0].iov_len, 
 				v->outchan+1);
+			*/
 			//dts_decref(k);
 		}
 	}
@@ -162,7 +164,7 @@ static smacq_result equals_consume(struct state * state, const dts_object * datu
     domainv = fields2vec(state->env, datum, &state->sets[i].fieldset);
     if ((val = (int)bytes_hash_table_lookupv(table, domainv, state->sets[i].fieldset.num))) {
       // In match set
-      fprintf(stderr, "searching for %lx(len %d), output = %d\n", *(unsigned long*)domainv[0].iov_base, domainv[0].iov_len, val);
+      //fprintf(stderr, "searching for %lx(len %d), output = %d\n", *(unsigned long*)domainv[0].iov_base, domainv[0].iov_len, val);
       if (found) { 
 	smacq_produce_enqueue(&state->outputq, datum, val - 1);
 	dts_incref(datum, 1);

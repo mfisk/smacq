@@ -111,7 +111,7 @@ static inline int smacq_asktype(const dts_object * d, int type) {
 */
 
 static inline int dts_getsize(const dts_object * d) {
- return(d->len);
+  return(d->len);
 }
 
 static inline void * dts_getdata(const dts_object * d) {
@@ -209,6 +209,12 @@ static inline int smacq_match(smacq_environment * env,
 
 static inline struct dts_type * dts_type_bynum(dts_environment * tenv, int num) {
   return darray_get(&tenv->types, num);
+}
+
+static inline int dts_type_size(dts_environment * tenv, int type) {
+  struct dts_type * t = dts_type_bynum(tenv, type);
+  if (!t) return -2;
+  return t->info.size;
 }
 
 static inline const dts_object * dts_construct_fromstring(dts_environment * tenv, int type, void * data) {

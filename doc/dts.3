@@ -1,4 +1,4 @@
-.TH dts 3 "$Date: 2003/04/10 21:16:34 $" "LANL"
+.TH dts 3 "$Date: 2003/05/04 21:17:59 $" "LANL"
 .SH NAME
 dts  \- Dynamic Type System API
 .SH SYNOPSIS
@@ -60,6 +60,11 @@ be used any further and should not be passed on to other modules.
 .TP
 .BI "int dts_getsize(const dts_object * d)"
 Return the size of the data
+
+.TP
+.BI "int dts_type_size(dts_environment * tenv, int type)"
+Return the size of a data type.  -1 indicates a variable-size type.
+-2 indicates an error.
 
 .TP
 .BI "int dts_setsize(const dts_object * cd, int size)"

@@ -2,7 +2,7 @@ include config.mk
 
 LDFLAGS=-lglib-2.0 -lgmodule-2.0 $(LDOPTS)
 
-BUILTIN_TYPES=int ushort ubyte timeval uint32 bytes netlong ip nushort nuint32 macaddr string double refresh empty ipproto packet
+BUILTIN_TYPES=int ushort ubyte timeval uint32 bytes netlong ip nushort nuint32 macaddr string double refresh empty ipproto packet cflow time ntime
 MODULE_TYPES=
 
 LIBS_BUILTIN=$(patsubst %,lib%.la,$(BUILTIN_TYPES))
