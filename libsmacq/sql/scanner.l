@@ -31,6 +31,9 @@ group|GROUP	return GROUP;
 by|BY		return BY;
 as|AS		return AS;
 having|HAVING	return HAVING;
+and|AND                     return YYAND;
+or|OR                           return YYOR;
+like|LIKE                      return YYLIKE;
 
 {quote}		BEGIN(xquote);
 <xquote>{

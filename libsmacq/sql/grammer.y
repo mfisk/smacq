@@ -7,8 +7,6 @@
  *    - Cannot use nested functions as arguments
  *      FIX: we-write arguments recursively or something
  *
- *    - Cannot do group-by on a verb, only on argument functions
- *
  */
 
 /*
@@ -25,7 +23,7 @@
 #include <string.h>
 #include <smacq-internal.h>
 #include "smacq-parser.h"
-//#define DEBUG
+#define DEBUG
   
   extern int yylex();
   extern void yy_scan_string(const char *);
@@ -49,7 +47,9 @@
   static struct arglist * newarg(char * arg, int isfunc, struct arglist * func_args);
   static struct arglist * arglist_append(struct arglist * tail, struct arglist * addition);
   static struct vphrase newvphrase(char * verb, struct arglist * args);
-  static struct graph parse_booleans(struct arglist * args);
+  static struct graph optimize_bools(dts_comparison *);
+  static dts_comparison * comp_join(dts_comparison *, dts_comparison *, int isor);
+  static dts_comparison * comp_new(char * field, dts_compare_operation op, char * value);
 
   struct graph nullgraph = { head: NULL, tail: NULL };
   
@@ -68,11 +68,16 @@
 %token AS
 %token HAVING
 
+%token YYSTOP YYLIKE YYOR YYAND
+%left YYAND YYOR
+
 %type <arglist> joins having arg argument boolarg boolargs args moreargs moreboolargs
 %type <group> group 
 %type <graph> where query from source pverbphrase  
 %type <vphrase> verbphrase
 %type <string> function verb word string id as
+%type <op> op
+%type <comp> boolean test
 
 %start queryline
 
@@ -82,13 +87,15 @@
   struct vphrase vphrase;
   char * string;
   struct group group;
+  dts_compare_operation op;
+  dts_comparison * comp;
 }
 %%
 
 queryline: query STOP	
 	   { 
 #ifdef DEBUG
-	   	smacq_graph_print(STDERR,$1.head); 
+	   	smacq_graph_print(stderr, $1.head, 0); 
 #endif
 		Graph = $1.head;
 		return 0;
@@ -149,9 +156,10 @@ source : pverbphrase
 	;
 
 where : null 		{ $$ = nullgraph; }
-	| WHERE boolargs 	{ $$ = parse_booleans($2); }
-/*	| WHERE boolargs 	{ $$ = newmodule("filter", $2); } */
+                   | WHERE boolean { $$ = optimize_bools($2); }
 	;
+
+
 
 group : null 			{ $$.args = NULL; $$.having = NULL;}
 	| GROUP BY args having 	{ $$.args = $3; $$.having = $4; }
@@ -167,7 +175,10 @@ word:	id
 
 string:	STRING 		{ $$ = yystring; };
 
-id:	ID 		{ $$ = yystring; };
+id:	ID 		{ $$ = yystring; }
+                  | YYOR                         { $$ = "or"; }
+                  | YYAND                       { $$ = "and"; }
+                  ;
 
 arg: argument 
 	| argument AS word		{ $$->rename = $3; }
@@ -221,6 +232,27 @@ moreargs : null			{ $$ = NULL; }
 verb :  id
 	;
 
+
+/************* From boolean parser: **********************/
+
+
+boolean : '(' boolean ')'	{ $$ = $2; }
+	| boolean YYOR boolean	{ $$ = comp_join($1, $3, 1); }
+	| boolean YYAND boolean	{ $$ = comp_join($1, $3, 0); }
+	| test 		
+	;
+
+test : word			{ $$ = comp_new($1, EXIST, NULL); }
+	| word op word		{ $$ = comp_new($1, $2, $3); }
+	| verb '(' args ')'		{ $$ = comp_new($1, FUNC, arglist2str($3)); }
+	;
+
+op : '=' 		{ $$ = EQUALITY; }
+	| '>'		{ $$ = GT; }
+	| '<' 		{ $$ = LT; }
+	| YYLIKE 	{ $$ = LIKE; }		 
+	;
+
 %%
 
 
@@ -259,7 +291,12 @@ smacq_graph * smacq_build_query(dts_environment * tenv, int argc, char ** argv) 
   /* UNLOCK */
 
   if (res) {
-  	return NULL;
+    perror("parse error");
+    return NULL;
+  }
+
+  if (!graph) {
+    fprintf(stderr, "parse error\n");
   }
 
   return graph;
@@ -466,9 +503,14 @@ static char * opstr(dts_comparison * comp) {
   case EXIST:
     return "";
 
+  case FUNC:
+    return "[FUNC]";
+
  case AND:
+    return "[AND]";
+
  case OR:
-    return "[GROUP]";
+    return "[OR]";
   }
 
   return "[ERR]";
@@ -476,36 +518,122 @@ static char * opstr(dts_comparison * comp) {
 
 
 static char * print_comparison(dts_comparison * comp) {
-  char * field = dts_field_getname(Tenv, comp->field);
-  int size = strlen(comp->valstr) + 20 + strlen(field);
-  char * buf  = malloc(size);
+  int size = 20;
+  char * buf;
+  dts_comparison * c;
+  char * b;
 
-  if (comp->op != EXIST) 
-    snprintf(buf, size, "(%s %s \"%s\")", field, opstr(comp), comp->valstr);
-  else 
-    snprintf(buf, size, "(%s)", field);
+  if (comp->fieldname) 
+    size += strlen(comp->fieldname);
 
-  free(field);
+  if (comp->valstr)
+    size += strlen(comp->valstr);
+
+  buf = malloc(size);
+
+  if (comp->op == EXIST) {
+    snprintf(buf, size, "(%s)", comp->fieldname);
+  } else if (comp->op == FUNC) {
+    snprintf(buf, size, "%s(%s)", comp->fieldname, comp->valstr);
+  } else if (comp->op == OR) {
+    buf[0] = '\0';
+
+    for (c = comp->group; c; c=c->next) {
+      assert(c);
+      b = print_comparison(c);
+      size += strlen(b) + 5;
+      buf = realloc(buf, size);
+      strcatn(buf, size, b);
+      free(b);
+
+      if (c->next) {
+	strcatn(buf, size, " or ");
+      }
+    }
+  } else {
+    snprintf(buf, size, "(%s %s \"%s\")", comp->fieldname, opstr(comp), comp->valstr);
+  }
 
   return(buf);
 }
 
-static struct graph parse_booleans(struct arglist * args) {
-  dts_comparison * comp, *c;
-  int argc;
-  char ** argv;
+static struct graph optimize_bools(dts_comparison * comp) {
+  dts_comparison *c;
   struct arglist * arglist;
   struct graph g;
-  
-  g.head = (g.tail = NULL);
-  arglist2argv(args, &argc, &argv);
-  comp = dts_parse_tests(Tenv, argc, argv);
-  
+
+  g.head = NULL; g.tail = NULL;
+ 
   for(c=comp; c; c = c->next) {
-    assert (c->op != AND);
-    arglist = newarg(print_comparison(c), 0, NULL);
-    graph_join(&g, newmodule("filter", arglist));
+    if (c->op == AND) {
+      assert (! "untested");
+      graph_join(&g, optimize_bools(c->group));
+    } else if (c->op == FUNC) {
+      arglist = newarg(c->valstr, 0, NULL);
+      graph_join(&g, newmodule(c->fieldname, arglist));
+    } else if (c->op == OR) {
+      arglist = newarg(print_comparison(c), 0, NULL);
+      graph_join(&g, newmodule("filter", arglist)); 
+    } else {
+      arglist = newarg(print_comparison(c), 0, NULL);
+      graph_join(&g, newmodule("filter", arglist));
+    }
   }
 
   return g;
 }
+
+static dts_comparison * comp_join(dts_comparison * lh, dts_comparison * rh, int isor) {
+  dts_comparison * ret = NULL;
+
+  if (!lh) return rh;
+  if (!rh) return lh;
+
+  if (!isor) {
+   	ret = lh;
+	for (; lh->next; lh=lh->next) ;
+
+	lh->next = rh;
+  } else if (isor) {
+        dts_comparison * left, * right;
+        if (lh->next) {
+		left = calloc(1,sizeof(dts_comparison));
+		left->op = AND;
+		left->group = lh;
+	} else {
+		left = lh;
+	}
+	if (rh->next) {
+		right = calloc(1,sizeof(dts_comparison));
+		right->op = AND;
+		right->group = rh;
+	} else {
+		right = rh;
+	}
+
+        ret = calloc(1,sizeof(dts_comparison));
+	ret->op = OR;
+	ret->group = left;
+	left->next = right;
+  } else {
+  	assert(!"Shouldn't get here!");
+  }
+  	
+  return ret;
+}
+
+
+static dts_comparison * comp_new(char * field, dts_compare_operation op, char * value) {
+     dts_comparison * comp = calloc(1,sizeof(dts_comparison));
+
+     comp->op = op;
+     comp->valstr = value;
+     comp->fieldname = field;
+
+     if (comp->op != FUNC) {
+       comp->field = Tenv->requirefield(Tenv, field);
+     }
+
+     return comp;
+}
+

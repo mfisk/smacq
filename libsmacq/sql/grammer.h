@@ -41,7 +41,11 @@
      ID = 264,
      STOP = 265,
      AS = 266,
-     HAVING = 267
+     HAVING = 267,
+     YYSTOP = 268,
+     YYLIKE = 269,
+     YYOR = 270,
+     YYAND = 271
    };
 #endif
 #define WHERE 258
@@ -54,21 +58,27 @@
 #define STOP 265
 #define AS 266
 #define HAVING 267
+#define YYSTOP 268
+#define YYLIKE 269
+#define YYOR 270
+#define YYAND 271
 
 
 
 
 #ifndef YYSTYPE
-#line 79 "grammer.y"
+#line 84 "grammer.y"
 typedef union {
   struct graph graph;
   struct arglist * arglist;
   struct vphrase vphrase;
   char * string;
   struct group group;
+  dts_compare_operation op;
+  dts_comparison * comp;
 } yystype;
 /* Line 1281 of /usr/share/bison/yacc.c.  */
-#line 72 "grammer.h"
+#line 82 "grammer.h"
 # define YYSTYPE yystype
 #endif
 
