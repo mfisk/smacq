@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <smacq-internal.h>
+#include "smacq-parser.h"
   
   extern int yylex();
   extern void yy_scan_string(const char *);
@@ -10,20 +11,17 @@
   extern char * yytext;
   extern char * yystring;
 
-  struct vphrase {
-    int argc;
-    char ** argv;
-    struct filter * mod;
-  };
- 
   struct arglist {
     char * arg;
+    char * rename;
     struct arglist * next;
   };
- 
-  static struct vphrase * newmodule(char * module, struct arglist * alist);
+
+  static struct graph newmodule(char * module, struct arglist * alist);
   static void arglist2argv(struct arglist * al, int * argc, char *** argv);
   static struct arglist * newarg(char * arg);
+
+  struct graph nullgraph = { head: NULL, tail: NULL };
   
 %}
 
@@ -35,20 +33,16 @@
 %token STRING
 %token ID
 %token STOP
+%token AS
 
-%type <arglist> arg args arglist moreargs
-%type <graph> query from source
-%type <vphrase> pverbphrase verbphrase where group
+%type <arglist> arg argument args arglist moreargs
+%type <graph> where group query from source pverbphrase verbphrase 
 %type <string> function verb word string id 
 
 %start queryline
 
 %union {
-  struct {
-  	struct filter * head;
-	struct filter * tail;
-  } graph;
-  struct vphrase * vphrase;
+  struct graph graph;
   struct arglist * arglist;
   char * string;
 }
@@ -63,14 +57,14 @@ null:   /* empty */ ;
 query : verbphrase from 
            {
 	   	if ($2.head) {
-			smacq_add_child($2.tail, $1->mod);
+			smacq_add_child($2.tail, $1.head);
 			$$.head = $2.head;
 	   		fprintf(stderr, "from head was %p, %s\n", 
 				$2.head, $2.head ? $2.head->name : ""); 
 		} else {
-			$$.head = $1->mod;
+			$$.head = $1.head;
 		}
-		$$.tail = $1->mod;
+		$$.tail = $1.tail;
 		assert($$.head);
 		assert($$.tail);
 	   	fprintf(stderr, "Got a full query! (%s thru %s)\n", 
@@ -78,11 +72,12 @@ query : verbphrase from
 	   }
 	;
 
-where : null 		{ $$ = NULL; }
+
+where : null 		{ $$ = nullgraph; }
 	| WHERE args 	{ $$ = newmodule("filter", $2); }
 	;
 
-group : null 		{ $$ = NULL; }
+group : null 		{ $$ = nullgraph; }
 	| GROUP BY args { $$ = newmodule("groupby", $3); }
 	;
 
@@ -94,7 +89,11 @@ string:	STRING 		{ $$ = yystring; };
 
 id:	ID 		{ $$ = yystring; };
 
-arg : 	word 				{ $$ = newarg($1); } 
+arg: argument 
+	| argument AS word		{ $$->rename = $3; }
+	;
+
+argument : word 			{ $$ = newarg($1); } 
 	| function '(' arglist ')' 	{ $$ = newarg($1); }
 	;
 
@@ -104,18 +103,18 @@ function : id
 from :  null 		{ $$.head = NULL; $$.tail = NULL; } 
 	| FROM source where group 
            {
-	   	if ($3) {
-			if ($4) {
-				smacq_add_child($2.tail, $3->mod);
-				smacq_add_child($3->mod, $4->mod);
-				$$.tail = $4->mod;
+	   	if ($3.head) {
+			if ($4.head) {
+				smacq_add_child($2.tail, $3.head);
+				smacq_add_child($3.tail, $4.head);
+				$$.tail = $4.tail;
 			} else {
-				smacq_add_child($2.tail, $3->mod);
-				$$.tail = $3->mod;
+				smacq_add_child($2.tail, $3.head);
+				$$.tail = $3.tail;
 			}
-		} else if ($4) {
-			smacq_add_child($2.tail, $4->mod);
-			$$.tail = $4->mod;
+		} else if ($4.head) {
+			smacq_add_child($2.tail, $4.head);
+			$$.tail = $4.tail;
 		} else {
 			$$.tail = $2.tail;
 		}
@@ -123,7 +122,7 @@ from :  null 		{ $$.head = NULL; $$.tail = NULL; }
 	   }
 	;
 
-source : pverbphrase		{ $$.tail = ($$.head = $1->mod);} 
+source : pverbphrase		
 	| '(' query ')' 	{ $$ = $2; }
 	;
 
@@ -202,29 +201,63 @@ static void arglist2argv(struct arglist * alist, int * argc, char *** argvp) {
 	}
 }
 
-static struct vphrase * newmodule(char * module, struct arglist * alist) {
+static struct graph newmodule(char * module, struct arglist * alist) {
      struct arglist anew;
-     struct vphrase * vp = malloc(sizeof(struct vphrase));
+     struct graph graph;
+
+     int argc;
+     char ** argv;
+
+     int rename_argc = 1;
+     char ** rename_argv = NULL;
+     struct arglist * ap;
 
      anew.arg = module;
+     anew.rename = NULL;
      if (!strcmp(module, "select")) {
      	/* SQL's select is really a projection operation */
      	anew.arg = "project";
      }
      anew.next = alist;
 
-     arglist2argv(&anew, &(vp->argc), &(vp->argv));
+     /* Check for rename options on arguments */
+     for(ap=&anew; ap; ap=ap->next) {
+     	if (ap->rename) {
+		rename_argc += 2;
+		rename_argv = realloc(rename_argv, rename_argc * sizeof(char*));
+		rename_argv[rename_argc - 2] = ap->arg;
+		rename_argv[rename_argc - 1] = ap->rename;
+		ap->arg = ap->rename;
+	}
+     }
 
-     /* fprintf(stderr,"new module: %s,%s\n", module, vp->argv[0]); */
-     vp->mod = smacq_new_module(vp->argc, vp->argv);
+     arglist2argv(&anew, &argc, &argv);
 
-     return vp;
+     /* fprintf(stderr,"new module: %s,%s\n", module, argv[0]); */
+     graph.tail = smacq_new_module(argc, argv);
+
+     if (rename_argc > 1) {
+        /* We need to splice in a rename module before this module */
+     	int i;
+     	rename_argv[0] = "rename";
+	for(i=0; i<(rename_argc); i++) {
+		printf("rename arg: %s\n", rename_argv[i]);
+	}
+	graph.head = smacq_new_module(rename_argc, rename_argv);
+
+	smacq_add_child(graph.head, graph.tail);
+     } else {
+     	graph.head = graph.tail;
+     }
+
+     return graph;
 }
 
 static struct arglist * newarg(char * arg) {
      struct arglist * al = malloc(sizeof(struct arglist));
      al->arg = arg;
      al->next = NULL;
+     al->rename = NULL;
      return(al);
 }
 

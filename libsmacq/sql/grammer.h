@@ -39,7 +39,8 @@
      SELECT = 262,
      STRING = 263,
      ID = 264,
-     STOP = 265
+     STOP = 265,
+     AS = 266
    };
 #endif
 #define WHERE 258
@@ -50,23 +51,20 @@
 #define STRING 263
 #define ID 264
 #define STOP 265
+#define AS 266
 
 
 
 
 #ifndef YYSTYPE
-#line 46 "grammer.y"
+#line 44 "grammer.y"
 typedef union {
-  struct {
-  	struct filter * head;
-	struct filter * tail;
-  } graph;
-  struct vphrase * vphrase;
+  struct graph graph;
   struct arglist * arglist;
   char * string;
 } yystype;
 /* Line 1281 of /usr/share/bison/yacc.c.  */
-#line 70 "grammer.h"
+#line 68 "grammer.h"
 # define YYSTYPE yystype
 #endif
 

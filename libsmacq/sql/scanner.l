@@ -1,5 +1,6 @@
 %{
 #define YY_NO_UNPUT
+#include "smacq-parser.h"
 #include "grammer.h"
 #include <string.h>
 #define MAX_STR_CONST 1024
@@ -26,6 +27,7 @@ where|WHERE	return WHERE;
 from|FROM	return FROM;
 group|GROUP	return GROUP;
 by|BY		return BY;
+as|AS		return AS;
 
 {quote}		BEGIN(xquote);
 <xquote>{
