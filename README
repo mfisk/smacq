@@ -21,11 +21,11 @@ and execute this package:
 		dlcompat zlib glib2-dev libpcap libpcap-shlibs \
 		libtool docbook-bundle groff python wget 
 
-2. Run "gnumake" to build
+2. Run "make" to build
 
 Other Operating Systems:
 ------------------------
-The SMACQ build procedure depends on GNU Make and the GNU loader.
+The SMACQ build procedure depends on GNU libtool and GNU Make.
 By installing the equivalent of the packages listed for the above
 operating systems, and passing the correct arguments to Make, you
 should be able to build SMACQ.  Contributions of documentation for 
