@@ -16,14 +16,15 @@ static int smacqtype_uint32_get_hexstring(const dts_object * o, dts_object * fie
 }
 
 static int smacqtype_uint32_get_double(const dts_object * o, dts_object * field) {
-  double d = dts_data_as(o, unsigned int);
+  unsigned long l = dts_data_as(o, unsigned long);
+  double d = l;
   return dts_set(field, double, d);
 }
 
 static int parse_string(char * buf, const dts_object * d) {
         unsigned long val;
         char * left = NULL;
-        val = strtol(buf, &left, 10);
+        val = strtoul(buf, &left, 10);
         if (left == buf) {
                 return(0);
         }
