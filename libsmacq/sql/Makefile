@@ -16,13 +16,15 @@ libsql.la: $(OBJS)
 %.lo: %.c
 	$(LIBTOOL) $(CC) -c $(CFLAGS) $<
 
+scanner.c:: grammer.h
+
 %.c: %.y
 	$(BISON) -d -o $@ $<
 
-%.h: %.y
-	$(BISON) -d -o $@ $<
+%.h: %.c
+	@true
 
-%.l.c: %.l %.y.h
+%.c: %.l 
 	$(FLEX) -o$@ $<
 
 clean: distclean
