@@ -20,14 +20,13 @@ static smacq_result null_init(struct smacq_init * context) {
 
 #define FIRST(a,b) ((a) ? (a) : (b))
 
-static inline void read_module(smacq_graph * module, struct smacq_functions * modtable) {
-		module->ops.produce = FIRST(modtable->produce, error_produce);
-		module->ops.consume = FIRST(modtable->consume, error_consume);
-		module->ops.shutdown = FIRST(modtable->shutdown, null_shutdown);
-		module->ops.init = FIRST(modtable->init, null_init);
-		module->ops.thread_fn = modtable->thread;
-
-		module->alg = modtable->alg;
+static inline void read_module(smacq_graph * graph, struct smacq_functions * modtable) {
+		graph->ops.produce = FIRST(modtable->produce, error_produce);
+		graph->ops.consume = FIRST(modtable->consume, error_consume);
+		graph->ops.shutdown = FIRST(modtable->shutdown, null_shutdown);
+		graph->ops.init = FIRST(modtable->init, null_init);
+		graph->ops.thread_fn = modtable->thread;
+		graph->alg = modtable->alg;
 }
 
 void smacq_graph_print(FILE * fh, smacq_graph * f, int indent) {
@@ -48,17 +47,17 @@ void smacq_graph_print(FILE * fh, smacq_graph * f, int indent) {
 
 }
 
-int smacq_load_module(smacq_graph * module) {
+int smacq_load_module(smacq_graph * graph) {
     struct smacq_functions * modtable;
 
-    assert(module);
+    assert(graph);
 
-    if ((modtable = smacq_find_module(&module->module, "SMACQ_HOME", "modules", "%s/smacq_%s", "smacq_%s_table", module->name))) {
-		read_module(module, modtable);
+    if ((modtable = smacq_find_module(&graph->module, "SMACQ_HOME", "modules", "%s/smacq_%s", "smacq_%s_table", graph->name))) {
+		read_module(graph, modtable);
 		return 1;
     }
 
-    fprintf(stderr, "Error: unable to find module %s (Need to set %s?)\n", module->name, "SMACQ_HOME");
+    fprintf(stderr, "Error: unable to find module %s (Need to set %s?)\n", graph->name, "SMACQ_HOME");
     return 0;
 }
 
@@ -223,7 +222,6 @@ void smacq_init_modules(smacq_graph * f, smacq_environment * env) {
 
   context->islast = !f->child;
   context->isfirst = !f->previous;
-  context->state = NULL;
   context->env = env;
   context->argc = f->argc;
   context->argv = f->argv;
@@ -236,6 +234,7 @@ void smacq_init_modules(smacq_graph * f, smacq_environment * env) {
 
   for (i = 0; i < f->numchildren; i++ ) 
     smacq_init_modules(f->child[i], env);
+
   return;
 }
 
