@@ -124,7 +124,7 @@ SmacqGraph * newgroup(struct group group, SmacqGraph * vphrase) {
     vphrase = having;
   }
 
-  sprintf(gp, "%lu", (unsigned long)vphrase);
+  sprintf(gp, "%p", vphrase);
   /* smacq_graph_print(stderr, vphrase, 0); */
 
   arglist = newarg("-p", (argtype)0, NULL);
@@ -618,26 +618,11 @@ char * expression2fieldname(struct dts_operand * expr) {
 
 dts_comparison * DTS::parse_tests(int argc, char ** argv) {
   dts_comparison * retval;
-  int size = 1;
-  int i;
-  char * qstr;
 
   /* XXX LOCK */
 
   parse_dts = this;
-
-  for (i=0; i<argc; i++) {
-  	size += strlen(argv[i]);
-  }
-  size += argc;
-
-  qstr = (char*)malloc(size);
-  qstr[0] = '\0';
-  	
-  for (i=0; i<argc; i++) {
-  	strcatn(qstr, size, argv[i]);
-  	strcatn(qstr, size, " ");
-  }
+  char * qstr = argv2str(argc, argv);
 
   yysmacql_scan_string(qstr);
   //fprintf(stderr, "parsing filter buffer: %s\n", qstr); 
@@ -855,7 +840,7 @@ SmacqGraph * joinlist2graph(joinlist * joinlist, SmacqGraph * where) {
 
 void yyerror(char * msg) {
   if (yytext[0] != '\0') {
-        fprintf(stderr, "Error: %s near %s in line: %s\n", msg, yytext, ParsedString);
+        fprintf(stderr, "Error: %s near \"%s\" in line: %s\n", msg, yytext, ParsedString);
   } else {
         fprintf(stderr, "Error: Unexpected end of statement: %s\n", ParsedString);
   }
