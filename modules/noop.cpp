@@ -6,8 +6,6 @@ SMACQ_MODULE(noop,
 );
 
 smacq_result noopModule::consume(DtsObject datum, int & outchan) {
-  assert(datum);
-
   return SMACQ_FREE;
 }
 
