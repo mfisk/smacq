@@ -7,7 +7,7 @@ OUTPUT=/huge1/mfisk/flatland/sessions
 	    #) \
 
 while [ 1 ]; do 
-	exec bin/smacqq "\
+	bin/smacqq "\
 	print -d,;, flowid, bytes, packets, srcip, srcport, dstport, \
                 dstip, packetsback, bytesback, start, finish \
 		from (flowid -r, -t, 8, srcip, dstip, srcport, dstport \
