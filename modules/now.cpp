@@ -33,7 +33,7 @@ nowModule::nowModule(struct SmacqModule::smacq_init * context)
 	smacq_opt nowfield_name;
 
  	struct smacq_optval optvals[] = {
-		{"now", &nowfield_name},
+		{"f", &nowfield_name},
     		{NULL, NULL}
   	};
   	smacq_getoptsbyname(context->argc-1, context->argv+1,
