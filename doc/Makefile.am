@@ -1,9 +1,10 @@
-man_MANS=smacq.1 smacqq.1 smacqp.1 smacq-modules.3 dts.3 dts-modules.3 smacq-embed.3 bytehash.3
+man_MANS=smacq.1 smacqq.1 smacqp.1 smacq-modules.3 dts.3 dts-modules.3 smacq-embed.3 bytehash.3 strucio.3
 EXTRA_DIST=$(man_MANS)
 
 DOCDSTS=$(patsubst %,$(SRCDIR)/%,$(DOCS))
 DOCTXTS=$(patsubst %,$(SRCDIR)/%.txt,$(DOCS))
 DOCPDFS=$(patsubst %,$(SRCDIR)/%.pdf,$(DOCS))
+DOCBOOK2MAN=docbook2man
 
 all: $(DOCDSTS) $(DOCTXTS) $(DOCPDFS)
 
