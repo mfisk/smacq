@@ -25,8 +25,8 @@ $SMACQ_INPUT 	= "pcapfile";
 
 ############################################################################
 
-sub notany($resultstr, $arg) {
-  local($resultstr, $arg) = @_;
+sub notany() {
+  local($resultstr, $arg, $field) = @_;
 
   if ($arg eq '') { return; }
   if ($arg eq 'any') { return; }
@@ -34,6 +34,8 @@ sub notany($resultstr, $arg) {
   $resultstr =~ s|ARG|$arg|g;
 
   push(@tests, $resultstr);
+  $Clauses{$resultstr} = 1;
+  $Fields{$field} = 1;
 }
 
 sub hex2octalstr() {
@@ -68,6 +70,7 @@ while ($ARGV[0]) {
 
 open(SNORT, ">/tmp/snortcq.conf") || die;
 open(SET, ">/tmp/set.cq") || die;
+open(TERMS, ">/tmp/terms") || die;
 print SET "pcapfile from $SMACQ_INPUT where ";
 
 while(<>) {
@@ -128,7 +131,7 @@ while(<>) {
       }  else {
       	$op = "=";
       }
-      #&notany("payloadsize $op 'ARG'", $arg);
+      #&notany("payloadsize $op 'ARG'", $arg, "payloadsize");
       #$snortrule .= "dsize:$arg; ";
     } elsif ($op eq "content" || $op eq "uricontent") {
       if ($arg =~ /^!/) { next; }
@@ -159,7 +162,7 @@ while(<>) {
   }
 
   if ($ipproto ne "ip") {
-  	&notany("ipprotocol = 'ARG'", $ipproto);
+  	&notany("ipprotocol = 'ARG'", $ipproto, "ipprotocol");
   }
 
   $snortrule = "alert $proto $srcip $srcport -> $dstip $dstport ($snortrule";
@@ -174,30 +177,30 @@ while(<>) {
   if ($seen{$rule}) { next; }
   $seen{$rule} = $sid;
 
-  &notany("mask(dstip, 'ARG')", $dstip);
-  &notany("mask(srcip, 'ARG')", $srcip);
+  &notany("mask(dstip, 'ARG')", $dstip, "dstip");
+  &notany("mask(srcip, 'ARG')", $srcip, "srcip");
 
   if ($srcport =~ /^(\d+):(\d+)$/) {
-  	&notany("srcport >= '$1'", $srcport);
-  	&notany("srcport <= '$2'", $srcport);
+  	&notany("srcport >= '$1'", $srcport, "srcport");
+  	&notany("srcport <= '$2'", $srcport, "srcport");
   } else {
-  	&notany("srcport = 'ARG'", $srcport);
+  	&notany("srcport = 'ARG'", $srcport, "srcport");
   }
 
   if ($dstport =~ /^(\d+):(\d+)$/) {
-  	&notany("dstport >= '$1'", $dstport);
-  	&notany("dstport <= '$2'", $dstport);
+  	&notany("dstport >= '$1'", $dstport, "dstport");
+  	&notany("dstport <= '$2'", $dstport, "dstport");
   } else {
-  	&notany("dstport = 'ARG'", $dstport);
+  	&notany("dstport = 'ARG'", $dstport, "dstport");
   }
 
-  &notany("seq = ARG", $seq);
-  &notany("ipid = ARG", $ipid);
+  &notany("seq = ARG", $seq, "seq");
+  &notany("ipid = ARG", $ipid, "ipid");
   foreach $c (@contents) {
-  	&notany("substr(payload, \"ARG\")", $c);
+  	&notany("substr(payload, \"ARG\")", $c, "payload");
   }
   foreach $c (@uricontents) {
-  	&notany("substr(payload.urldecode, \"ARG\")", $c);
+  	&notany("substr(payload.urldecode, \"ARG\")", $c, "payload.urldecode");
   }
 
   #$q = "print sid, srcip, dstip, ts from (const('$sid', sid) from $SMACQ_INPUT";
@@ -213,4 +216,7 @@ while(<>) {
 }
 
 print SET join(" or ", @SETORS);
-	  
+
+$terms = keys(%Clauses);
+$fields = keys(%Fields);
+print TERMS "$terms\t$fields\tterms, fields\n";
