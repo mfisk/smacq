@@ -1,7 +1,11 @@
 #!/bin/sh
 
-RUNDIR=`echo $0 | sed 's/\/[^/]*$//'`
-PLAT=`uname -sm | sed 's/ /-/g'`/
-CMD=`basename $0`
-LD_LIBRARY_PATH=${RUNDIR}/.lib/${PLAT}:${LD_LIBRARY_PATH} exec -a "$0" "${RUNDIR}/.bin/$PLAT${CMD}" "$@"
-#LD_LIBRARY_PATH=${RUNDIR}/.lib:${LD_LIBRARY_PATH} ${RUNDIR}/.bin/${CMD} "$@"
+RUNDIR=`echo "$0" | sed 's/\/[^/]*$//'`
+PLAT=`uname -sm | sed 's/ /-/g'`
+CMD=`basename "$0"`
+LD_LIBRARY_PATH=${RUNDIR}/.bin/${PLAT}:${LD_LIBRARY_PATH}
+DYLD_LIBRARY_PATH=${RUNDIR}/.bin/${PLAT}:${DYLD_LIBRARY_PATH}
+export LD_LIBRARY_PATH
+export DYLD_LIBRARY_PATH
+
+exec -a "$0" "${RUNDIR}/.bin/$PLAT/${CMD}" "$@"

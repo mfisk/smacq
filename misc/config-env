@@ -13,8 +13,8 @@ config() {
 	if [ `uname -s` = "Darwin" ]; then 
 		echo 'MAKE=gnumake'
 		LIBTOOL=glibtool
-		LDOPTS="${LDOPTS}-L/sw/lib -ldl"
-		COPTS="${COPTS}-I/sw/include "
+		LDOPTS="${LDOPTS}-L/lib -L/usr/lib -L/sw/lib -ldl"
+		COPTS="${COPTS}-I/usr/include -I/sw/include "
 		USR="/sw/"
 
 	elif [ `uname -s` = "FreeBSD" ]; then

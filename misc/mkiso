@@ -5,17 +5,30 @@ REPOSITORY=:pserver:anonymous@cvs.sourceforge.net:/cvsroot/smacq
 
 rm -Rf "$DSTDIR"
 mkdir -p "$DSTDIR/doc/"
-mkdir -p "$DSTDIR/.bin/"
+mkdir -p "$DSTDIR/.bin"
 
 cd $TOPSRCDIR
+
+deps() {
+	   	LIBS=`otool -L "$1" | grep -v : | sed 's/ .*//g'`
+		for f in $LIBS; do
+			echo $f 
+			if [ "$f" != "$1" ]; then
+				deps $f
+			fi
+		done
+}
 
 	cp misc/smacq.ico misc/autorun.inf "$DSTDIR"
 	cp doc/*.txt doc/*.pdf "$DSTDIR/doc/"
 	platforms=`cd build; echo *-*`
 
+	set -x
 	for p in $platforms; do
 		mkdir "$DSTDIR/.bin/$p"
 		cp "build/$p/bin/smacqq" "$DSTDIR/.bin/$p/"
+
+		cp `deps "build/$p/bin/smacqq" | sort | uniq | grep -v '^/usr/'` "$DSTDIR/.bin/$p/"
 	done	
 
 	echo "$REPOSITORY A" > /tmp/cvs.$$
@@ -25,7 +38,10 @@ cd $TOPSRCDIR
 	(cd "$DSTDIR"; ln -f .bin/reloc smacqq)
 
 	cp -rpf misc/SMACQ.app "$DSTDIR/" #For MacOS
-	cp build/Darwin-Power-Macintosh/bin/smacqq "$DSTDIR/SMACQ.app/Contents/Resources/"
+	mkdir -p "$DSTDIR/SMACQ.app/Contents/Resources/.bin/Darwin-Power-Macintosh/"
+	(cd "$DSTDIR" && cp -rpf .bin/Darwin-Power-Macintosh/* "SMACQ.app/Contents/Resources/.bin/Darwin-Power-Macintosh/")
+	(cd "$DSTDIR" && cp -rpf .bin/reloc "SMACQ.app/Contents/Resources/.bin/")
+	(cd "$DSTDIR" && ln "$DSTDIR/SMACQ.app/Contents/Resources/.bin/reloc" "SMACQ.app/Contents/Resources/smacqq")
 
 	# -hidden removes from Unix and requires /A on DOS, but shows on MacOS
 	# -hide-joliet only hides from DOS/MacOSX
