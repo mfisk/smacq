@@ -26,22 +26,22 @@ SMDEBUG(static int DtsObject_virtual_count = 0;)
 
 */
 
-/// DtsObject_ instances should only be used via 
+/// DtsObject_ instances should only be used via
 /// DtsObject auto-pointers (the auto-pointer keeps track of
-/// reference counts or the user).
+/// reference counts for the user).
 class DtsObject_ {
 
-/// This macro casts a datum to a "type*" 
+/// This macro casts a datum to a "type*"
 #define dts_data_as(datum,type) (*((type*)((datum)->getdata())))
 
 /// This macro casts a datum to "type" and sets it to "val"
-#define dts_set(datum,type,val) (datum)->setsize(sizeof(type)) , (*((type*)((datum)->getdata()))) = (val), 1 
+#define dts_set(datum,type,val) (datum)->setsize(sizeof(type)) , (*((type*)((datum)->getdata()))) = (val), 1
 
   public:
 	DtsObject_(DTS * dts, int size, int type);
 	~DtsObject_();
 
-	/// (Re-)initialize the object to the given size and type 
+	/// (Re-)initialize the object to the given size and type
 	void init(int size, dts_typeid type);
 
 	/// Return a duplicate of the object
@@ -52,13 +52,13 @@ class DtsObject_ {
 	void setsize(int size);
 	int getsize() const { return(len); }
 
-	unsigned long getid() const { return(id); }  
+	unsigned long getid() const { return(id); }
 
 	unsigned char * getdata() const { return((unsigned char*)data); }
 
 	dts_typeid gettype() const { return(type); }
-	void settype(int type) { 
-	  this->type = type; 
+	void settype(int type) {
+	  this->type = type;
 	  setsize(dts->type_bynum(type)->info.size);
 	}
 	/// @}
@@ -69,7 +69,7 @@ class DtsObject_ {
 	void setdatacopy(const void * src);
 	int set_fromstring(char * datastr);
 	/// @}
-       
+
 	/// @name Field Access
 	/// @{
 	DtsObject getfield(dts_field fieldv);
@@ -91,9 +91,9 @@ class DtsObject_ {
 	}
 
 	friend DtsObject DTS::msg_check(DtsObject, dts_field_element);
-	
-	int match(dts_comparison * comps) { 
-	  return match_andor(comps, AND); 
+
+	int match(dts_comparison * comps) {
+	  return match_andor(comps, AND);
 	}
 
 	/// Expr module uses this
@@ -118,24 +118,24 @@ class DtsObject_ {
 	/// Used by DtsObject (boost::intrusive_ptr)
         friend void intrusive_ptr_release(DtsObject_*o) { o->decref(); }
 
-	/// Plain-C Wrapper 
+	/// Plain-C Wrapper
 	//friend void dts_decref(DtsObject d) { d->decref(); }
 
 
 	/// @}
-	
-	
+
+
  private:
 	/// Increment refcount by the given number
 	void incref(int);
 
 	//int getrefcount() const { return refcount; }
 
-  	int refcount;
+	int refcount;
 
 	/// Keep a reference to what we were derived from so it doesn't
- 	/// get reused.
- 	DtsObject uses;
+	/// get reused.
+	DtsObject uses;
 
 	void freeObject();
 	void fieldcache_flush(dts_field_element fnum);
@@ -151,27 +151,27 @@ class DtsObject_ {
 	DtsObject getfield_new(dts_field_element fnum);
 	void attach_field_single(dts_field_element field, DtsObject field_data);
 
-  	int free_data; /* boolean */
+	int free_data; /* boolean */
 
-  	/* Cache of received messages */
+	/* Cache of received messages */
         DynamicArray<DtsObject> fields;
 
-  	/* data description */
-  	int type;
+	/* data description */
+	int type;
 
-  	void * data;
-  	int len;
+	void * data;
+	int len;
 
 	void * buffer;
-  	int buffer_size;
+	int buffer_size;
 
-  	DTS * dts;
+	DTS * dts;
 
 #ifndef SMACQ_OPT_NOPTHREADS
-  	pthread_mutex_t mutex;
+	pthread_mutex_t mutex;
 #endif
 
-  	unsigned long id;
+	unsigned long id;
 };
 
 inline void DtsObject_::attach_field_single(dts_field_element field, DtsObject field_data) {
@@ -202,7 +202,7 @@ inline void DtsObject_::setsize(int size) {
   this->len = size;
 }
 
-inline DtsObject_::DtsObject_(DTS * dts, int size, int type) 
+inline DtsObject_::DtsObject_(DTS * dts, int size, int type)
   : refcount(0), dts(dts)
 {
 #ifndef SMACQ_OPT_NOPTHREADS
@@ -284,7 +284,7 @@ inline void DtsObject_::attach_field(dts_field field, DtsObject field_data) {
 
 
 inline bool operator== (DtsObject_&a, DtsObject_&b) {
-  if ( (a.getsize() == b.getsize()) && 
+  if ( (a.getsize() == b.getsize()) &&
        (!memcmp(a.getdata(), b.getdata(), a.getsize()))) {
     //fprintf(stderr, "DtsObject %p == %p\n", &a, &b);
     return true;
@@ -296,4 +296,3 @@ inline bool operator== (DtsObject_&a, DtsObject_&b) {
 
 #endif
 #endif
-

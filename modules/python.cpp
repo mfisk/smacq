@@ -144,6 +144,8 @@ smacq_result pythonModule::consume(DtsObject datum, int &outchan)
 
   do {
     /* Create a new DTS object */
+    DUMP_p(&datum);
+    DUMP_d(datum->getsize());
     pDts = pydts_create(datum, this->dts);
     if (! pDts) {
       PyErr_Print();
@@ -253,6 +255,8 @@ static PyObject *PyDts_subscript(PyObject *p, PyObject *pName)
       PyErr_Format(PyExc_KeyError, "No such field: %s", name);
       break;
     }
+    DUMP_p(&d);
+    DUMP_d(d->getsize());
 
     pDts = pydts_create(d, self->dts);
     if (! pDts) {
@@ -441,7 +445,7 @@ static PyObject *pydts_create(DtsObject datum, DTS *dts)
     }
 
   DUMP_p(&datum);
-    pObj->d   = datum->dup();
+  memcpy(&(pObj->d), &datum, sizeof(datum));
   DUMP();
     pObj->dts = dts;
 
