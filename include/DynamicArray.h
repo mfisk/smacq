@@ -9,8 +9,8 @@ template <class T>
 class DynamicArray : public std::vector<T> {
    public:
         T& operator[](const unsigned int x) {
-                if (x >= size())
-                        resize(x+1);
+                if (x >= std::vector<T>::size())
+                        std::vector<T>::resize(x+1);
                 return (std::vector<T>::operator [](x));
         }
 };
