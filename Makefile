@@ -8,12 +8,20 @@ auto:
 	env `./misc/config-env` $(MAKE) all
 
 smacq.iso: #reloc.RECURSE
-	cp misc/smacq.ico misc/autorun.inf build/
+	rm -Rf iso
+	mkdir -p iso/doc/
+	mkdir -p iso/.bin/
 
-	# -hidden removes from Unix and requires /A on DOS
-	# -hide-joliet only hides from DOS
-	mkisofs -hide-joliet '.*' -hidden 'autorun.inf' -hidden '*.ico' -V SMACQ -R build > $@
+	cp misc/smacq.ico misc/autorun.inf iso/
+	cp doc/*.pdf iso/doc/
+	cp build/Linux-i686/bin/smacqq misc/reloc iso/.bin
+	(cd iso; ln -f .bin/reloc smacqq)
 
+	mkdir -p iso/SMACQ.app #For MacOS
+
+	# -hidden removes from Unix and requires /A on DOS, but shows on MacOS
+	# -hide-joliet only hides from DOS/MacOSX
+	mkisofs -hfs -hide-joliet '.*' -hide-hfs autorun.inf -hidden 'autorun.inf' -hide-hfs '*.ico' -hide-hfs 'smacqq' -hidden SMACQ.app -hidden '*.ico' -V SMACQ -hfs-volid "SMACQ for Mac" --osx-double -R iso > $@
 	
 all: dirs
 
@@ -28,7 +36,7 @@ warn:
 
 test: auto
 
-$(DIRS) test : .ALWAYS
+$(DIRS) test reloc : .ALWAYS
 	env `./misc/config-env` $(MAKE) $@.RECURSE
 
 .ALWAYS:
