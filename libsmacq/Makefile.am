@@ -1,4 +1,3 @@
-INCLUDES = @GLOBAL_INCLUDES@ -I$(top_srcdir)/include
 EXTRA_DIST = parser.h
 SUFFIXES = .ypp .ym
 
@@ -8,10 +7,11 @@ EXTRA_LTLIBRARIES=#libethereal.la
 
 libsmacq_la_SOURCES=mem.c args.c pickle.cpp optimize.cpp filter.cpp ThreadedSmacqModule.cpp dynloader.c parsing.cpp cmalloc.c parser.ym scanner.lpp filter-parser.ym expr-parser.ym strucio.cpp DTS.cpp DtsObject.cpp smacq_result.cpp 
 
+AM_CPPFLAGS=@GLIB_CFLAGS@
 noinst_HEADERS=grammer.ypp
 BUILT_SOURCES=parser.cpp filter-parser.cpp expr-parser.cpp
 
-libsmacq_la_LIBADD=
+libsmacq_la_LIBADD=@GLIB_LIBS@ 
 libsmacq_la_LDFLAGS = -rpath /bogus
 
 filter-parser.ypp: grammer.ypp
