@@ -10,7 +10,7 @@
 	(cd build/iso; ln -f .bin/reloc smacqq)
 
 	cp -rpf misc/SMACQ.app build/iso/ #For MacOS
-	cp $BINDIR/bin/smacqq build/iso/SMACQ.app/Contents/MacOS/
+	cp $BINDIR/bin/smacqq build/iso/SMACQ.app/Contents/Resources/
 
 	# -hidden removes from Unix and requires /A on DOS, but shows on MacOS
 	# -hide-joliet only hides from DOS/MacOSX
