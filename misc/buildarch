@@ -11,6 +11,7 @@ builddir="build/$platform"
 
 build() {
 
+	echo "Checking for $builddir/Makefile"
 	if [ \! -f $builddir/Makefile ]; then
 		mkdir -p $builddir
 		cd $builddir
