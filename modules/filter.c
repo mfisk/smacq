@@ -17,10 +17,6 @@ static struct smacq_options options[] = {
   {NULL, {string_t:NULL}, NULL, 0}
 };
 
-static smacq_result filter_produce(struct state* state, const dts_object ** datum, int * outchan) {
-  return SMACQ_ERROR;
-}
-
 static smacq_result filter_consume(struct state * state, const dts_object * datum, int * outchan) {
   assert(datum);
   assert(state->argv[0]);
@@ -59,9 +55,7 @@ static smacq_result filter_init(struct smacq_init * context) {
 
 /* Right now this serves mainly for type checking at compile time: */
 struct smacq_functions smacq_filter_table = {
-  &filter_produce, 
-  &filter_consume,
-  &filter_init,
-  NULL
+  consume: &filter_consume,
+  init: &filter_init
 };
 
