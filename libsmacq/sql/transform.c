@@ -578,11 +578,12 @@ int transformTargetList(SelectStmt * stmt, list * func_list)
     if (IsA(res->val, FuncCall)) {
       FuncCall * fc = (FuncCall *)res->val;
 
+      if (curr_idx > 0) {
 #ifdef SM_DEBUG
-  fprintf(stderr, "CALLING append_array('|') from transformTargetList()\n");
+        fprintf(stderr, "CALLING append_array('|') from transformTargetList()\n");
 #endif
-      if (curr_idx > 0) append_array("|");
-
+		append_array("|");
+      }
 #ifdef SM_DEBUG
       fprintf(stderr,"Found FuncCall in target list: %s\n", fc->funcname);
       fprintf(stderr,"  Calling transformExpr...\n");
@@ -609,6 +610,8 @@ int transformTargetList(SelectStmt * stmt, list * func_list)
 #endif
 		// eg. 'dstip'
 		if (arg_list) {
+          int arg_count = 0;
+
 		  list_item * ali; // arg list item eg. srcip
 		  list_item * pli; // print list item (eg. counter1)
 
@@ -618,6 +621,8 @@ int transformTargetList(SelectStmt * stmt, list * func_list)
 #ifdef SM_DEBUG
 		    fprintf(stderr, "arg for %s = '%s'\n", li->str_name, ali->str_name);
 #endif
+            arg_count++;
+
 			// build 'print' list (eg. 'print srcip dstport cnt dstip counter')
 			//
 			if (is_annotation_function(li->str_name, &func_idx)) {
@@ -628,20 +633,20 @@ int transformTargetList(SelectStmt * stmt, list * func_list)
 			  }
 			  else if (isSelect) { // select
 			    // temp test until other funcs have -f flags
-			    //if (strcmp(li->str_name, "counter") == 0) {
+			    if (strcmp(li->str_name, "counter") == 0) {
                   append_array("-f");
                   append_array(create_annotation_variable(func_idx));
-                //}
+                }
                 append_array(ali->str_name);
 			  }
-			  else { // ! select
+			  else { // ! select, eg. uniq
 
 			    // temp test until other funcs have -f flags
-			    //if (strcmp(li->str_name, "counter") == 0) {
+			    if (strcmp(li->str_name, "counter") == 0) {
                   append_array("-f");
 				  annot_var = create_annotation_variable(func_idx);
                   append_array(annot_var);
-                //}
+                }
                 append_array(ali->str_name);
 
 			    // temp test until other funcs have -f flags
@@ -649,7 +654,12 @@ int transformTargetList(SelectStmt * stmt, list * func_list)
                   append_non_annot_array(annot_var);
                 }
 				else {
-                  append_non_annot_array(li->str_name);
+				  // If a function has > 1 argument, still only want to add 
+				  // the function name ONCE to the output array.
+                  if (arg_count > 1)
+					continue;
+                  else
+                    append_non_annot_array(li->str_name);
 				}
 			  }
 			}
