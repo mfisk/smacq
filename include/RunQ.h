@@ -2,10 +2,7 @@
 #define RUNQ_H
 #include <DtsObject.h>
 
-enum action { PRODUCE=1, SHUTDOWN=2, CONSUME=4 };
-
 struct qel {
-  enum action action;
   SmacqGraph * f;
   DtsObject d;
   struct qel * next;
@@ -16,22 +13,32 @@ struct qel {
  	
 class runq {
  public:
-  bool is_empty();
   runq();
-  int pop_runable(SmacqGraph * & f, DtsObject &d, enum action & action);
-  void runable(SmacqGraph * f, DtsObject d, enum action action);
-  bool pending(SmacqGraph * f);
-  void inline print(FILE * fh = stderr);
+
+  /// Remove the first element from the runq.  Set f & d accordingly.
+  bool pop_runable(SmacqGraph * & f, DtsObject &d);
+
+  /// Add a new element to the end of the runq.
+  void runable(SmacqGraph * f, DtsObject d);
+
+  /// Return TRUE iff the graph is in this runq.
+  bool find(SmacqGraph * f);
+
+  /// Remove any instances of the graph in this runq.
+  void remove(SmacqGraph * f);
+
+  /// Print-out the runq.
+  void print(FILE * fh = stderr);
 
  protected:
+  /// Create a new blank entry in the queue
   struct qel * insert_before(struct qel *);
-  inline struct qel * insertion_point(SmacqGraph * f, enum action action);
+
+  /// Return a pointer to the current tail (which can be filled) and update to new tail.
+  inline struct qel * insertion_point(SmacqGraph * f);
 
   struct qel * head;
   struct qel * tail;
-#ifndef SMACQ_OPT_RUNRING
-  int empty;
-#endif
 };
 
 #include <SmacqGraph.h>
@@ -53,24 +60,8 @@ inline struct qel * runq::insert_before(struct qel * point) {
   return entry;
 } 
 
-inline struct qel * runq::insertion_point(SmacqGraph * f, enum action action) {
-  struct qel * el;
-	
-  if ((action == PRODUCE) && this->head) {
-    // PRODUCE takes precedence over all others, so check for a non-PRODUCE action 
-    // for this element and insert before it.
-    for (el = head; el != tail; el = el->next) {
-      if ((el->f == f) && (el->action != PRODUCE)) {
-	if (el == head) {
-	  return (head = insert_before(el));
-	} else {
-	  return insert_before(el);
-	}
-      }
-    }
-  } else {
-    el = tail;
-  }
+inline struct qel * runq::insertion_point(SmacqGraph * f) {
+  struct qel * el = tail;
 
   /* Got to tail */
   tail = tail->next;
@@ -83,23 +74,60 @@ inline struct qel * runq::insertion_point(SmacqGraph * f, enum action action) {
   return el;
 }
 
+void inline runq::remove(SmacqGraph * f) {
+  if (!head) return;
+
+  if (head->f == f) {
+	head = head->next;
+	if (head == tail) {
+		head = NULL;
+		return;
+	}
+  }
+  struct qel * prev = head;
+
+  for (struct qel * el = head->next; el != tail; el = el->next) {
+	if (el->f == f) {
+		if (el->next == tail) {
+			tail = el;
+		} else {
+			// Shrinking isn't very graceful, but best option?
+			prev->next = el->next;
+		}
+		delete el;
+		el = prev; // Fixup iterator
+	} else {
+		prev = el; 
+	}
+  }
+}
+
+bool inline runq::find(SmacqGraph * f) {
+  if (!head) return false;
+
+  for (struct qel * el = head; el != tail; el = el->next) {
+	if (el->f == f) return true;
+  }
+  return false;
+}
+
 /// Print the contents of the runq.
 void inline runq::print(FILE * fh) {
   fprintf(fh, "Runq:");
-  for (struct qel * el = head; el != tail; el = el->next) {
-    fprintf(fh, "\t-> %p, %p, %d\n", el->f, el->d.get(), el->action);
+  if (head) {
+    for (struct qel * el = head; el != tail; el = el->next) {
+      fprintf(fh, "\t-> %p, %p\n", el->f, el->d.get());
+    }
   }
   fprintf(fh, "\n");
 }
 
 /// Add something to the runq.
-void inline runq::runable(SmacqGraph * f, DtsObject d, enum action action) {
-  struct qel * el = insertion_point(f, action);
+void inline runq::runable(SmacqGraph * f, DtsObject d) {
+  struct qel * el = insertion_point(f);
 
   el->f = f;
   el->d = d;
-  el->action = action;
-  if (f) f->pending++;
 		
   //fprintf(stderr, "%p now runable\n", el->f);
   
@@ -110,15 +138,13 @@ void inline runq::runable(SmacqGraph * f, DtsObject d, enum action action) {
   //this->print();
 }
 
-inline int runq::pop_runable(SmacqGraph * & f, DtsObject &d, enum action & action) {
+inline bool runq::pop_runable(SmacqGraph * & f, DtsObject &d) {
   if (!this->head) {
     //fprintf(stderr, "queue %p/%p empty\n", this, this->head);
-    return 0;
+    return false;
   }
 
   f = this->head->f;
-  if (f) f->pending--;
-  action = this->head->action;
   d = this->head->d;
 
   //fprintf(stderr, "%p for %p off queue from %p/%p\n", this->head->d, this->head->f, this, this->head);
@@ -132,7 +158,7 @@ inline int runq::pop_runable(SmacqGraph * & f, DtsObject &d, enum action & actio
     /* Ring is empty */
     this->head = NULL;
   }
-  return 1;
+  return true;
 }
 
 inline runq::runq() {
@@ -147,15 +173,4 @@ inline runq::runq() {
   head = NULL;
 }
 
-inline bool runq::is_empty() {
-  if (!head) {
-    return true;
-  } else {
-    return false;
-  }
-}
-
-inline bool runq::pending(SmacqGraph * f) {
-  return f->pending; 
-}
 #endif
