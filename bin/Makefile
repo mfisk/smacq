@@ -13,7 +13,7 @@ LIBSMACQ=$(TOPBINDIR)/libsmacq/libsmacq.la
 	$(LIBTOOL) $(LDXX) -o $@ -static $< $(BUILTIN_FLAGS) $(LDFLAGS)
 
 %-static: %.lo ../include/smacq.h $(LIBSMACQ) $(BUILTINS)
-	$(LIBTOOL) $(LDXX) -o $@ -all-static $< $(BUILTIN_FLAGS) $(LDFLAGS) 
+	-$(LIBTOOL) $(LDXX) -o $@ -all-static $< $(BUILTIN_FLAGS) $(LDFLAGS) 
 
 %-dynamic: %.lo ../include/smacq.h $(LIBSMACQ)  
 	$(LIBTOOL) $(CC) -o $@ -dynamic $< $(LDFLAGS) 
