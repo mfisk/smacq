@@ -3,6 +3,7 @@ BUILTINS = -dlopen self -dlopen $(top_builddir)/modules/libsmacq_modules.la -dlo
 AM_CFLAGS = @CFLAGS@ -DSMACQ_BUILD_DATE=\"`date '+%Y-%m-%d'`\"
 
 bin_PROGRAMS = smacqq pgsmacqd #smacqq_static smacqq_dynamic #iterative-example
+pgsmacqd_SOURCES = pgsmacqd.h
 
 AM_LDFLAGS = @LDFLAGS@ $(BUILTINS) -export-dynamic -static 
 LDADD = $(top_builddir)/modules/libsmacq_modules.la $(top_builddir)/libsmacq/libsmacq.la $(top_builddir)/types/libdts_modules.la -lpthread @LDADDS@
