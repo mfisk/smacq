@@ -1,9 +1,26 @@
 #ifndef SMACQ_H
 #define SMACQ_H
+#define SMACQ_OPT_NOPTHREADS
+
 #include <gmodule.h>
 #include <glib.h>
 #include <sys/time.h>
+
+#ifndef SMACQ_OPT_NOPTHREADS
 #include <pthread.h>
+#else
+#define pthread_mutex_init(x,y)
+#define pthread_mutex_destroy(x)
+#define pthread_mutex_lock(x)
+#define pthread_mutex_unlock(x)
+
+#define pthread_cond_init(x,y)
+#define pthread_cond_destroy(x)
+#define pthread_cond_wait(x,y)
+#define pthread_cond_broadcast(x)
+#define _PTHREAD_H
+#endif
+
 #include <smacq_args.h>
 
 #ifdef __cplusplus
@@ -36,9 +53,11 @@ struct darray {
 
 struct _dts_object {
   /* private to engine */
+#ifndef SMACQ_OPT_NOPTHREADS
   pthread_mutex_t mutex;
+#endif
   int refcount;
-  int free_memory;
+  int free_data;
 
   /* Cache of received messages */
   struct darray fields; /* const dts_object * */
@@ -185,7 +204,7 @@ extern void  smacq_flush(struct smacq_init * context);
  * User Interface to main system
  */
 
-enum smacq_scheduler { ITERATIVE, RECURSIVE, THREADED, LOOP };
+enum smacq_scheduler { ITERATIVE, RECURSIVE, LOOP, THREADED };
 EXTERN int smacq_start(smacq_graph *, enum smacq_scheduler, dts_environment *);
 void smacq_init_modules(smacq_graph *, smacq_environment *);
 EXTERN smacq_graph * smacq_build_pipeline(int argc, char ** argv);

@@ -57,10 +57,12 @@ smacq_graph * smacq_new_module(int argc, char ** argv){
   newo->argc = argc;
   newo->ringsize = RINGSIZE;
   newo->q = g_new0(dts_object *, newo->ringsize);
-  
+ 
+#ifndef SMACQ_OPT_NOPTHREADS
   pthread_mutex_init(&newo->qlock, NULL);
   pthread_cond_init(&newo->ring_notfull, NULL);
   pthread_cond_init(&newo->ring_notempty, NULL);
+#endif
 
   assert(newo);
   if (!smacq_load_module(newo)) {
@@ -71,9 +73,11 @@ smacq_graph * smacq_new_module(int argc, char ** argv){
 }
 
 void smacq_free_module(smacq_graph * f) {
+#ifndef SMACQ_OPT_NOPTHREADS
   pthread_mutex_destroy(&f->qlock);
   pthread_cond_destroy(&f->ring_notfull);
   pthread_cond_destroy(&f->ring_notempty);
+#endif
 
   free(f->q);
   free(f->parent);
@@ -287,6 +291,52 @@ smacq_graph * smacq_graph_add_graph(smacq_graph * a, smacq_graph * b) {
 	return a;
 }
 
+static int compare_trees(smacq_graph * a, smacq_graph *b) {
+  int i, j;
+
+  if (a==b) return 1;
+
+  if (a->argc != b->argc) return 0;
+
+  for (i=0; i < a->argc; i++) {
+    if (strcmp(a->argv[i], b->argv[i])) return 0;
+  }
+
+  //fprintf(stderr, "%p(%s) === %p(%s)\n", a, a->name, b, b->name);
+  
+  for (i = 0; i < b->numchildren; i++) {
+    for (j = 0; j < a->numchildren; j++) {
+      if (!compare_trees(a->child[j], b->child[i])) {
+	return 0;
+      }
+    }
+  }
+
+  return 1;
+}
+
+static int merge_tree_tails(smacq_graph * a, smacq_graph *b) {
+  int i, j;
+
+  if (compare_trees(a,b)) {
+    return 1;
+  }
+
+  /* We know they're different, but look for common children */
+
+  for (i = 0; i < b->numchildren; i++) {
+    for (j = 0; j < a->numchildren; j++) {
+      if (merge_tree_tails(a->child[j], b->child[i])) {
+	smacq_add_child(a, b->child[i]);
+	add_parent(b->child[i], a);
+	// XXX: remove old parent
+      }
+    }
+  }
+  
+  return 0;
+}
+
 static int merge_tree(smacq_graph * a, smacq_graph *b) {
 	int i, j;
 
@@ -294,10 +344,10 @@ static int merge_tree(smacq_graph * a, smacq_graph *b) {
 	if (a->argc != b->argc) return 0;
 
 	for (i=0; i < a->argc; i++) {
-		if (strcmp(a->argv[i], b->argv[i])) return 0;
+	  if (strcmp(a->argv[i], b->argv[i])) return 0;
 	}
 
-	fprintf(stderr, "%p(%s) === %p(%s)\n", a, a->name, b, b->name);
+	// fprintf(stderr, "%p(%s) === %p(%s)\n", a, a->name, b, b->name);
 
 	for (i = 0; i < b->numchildren; i++) {
 		for (j = 0; j < a->numchildren; j++) {
@@ -318,20 +368,29 @@ static int merge_tree(smacq_graph * a, smacq_graph *b) {
 }
 
 smacq_graph * smacq_merge_graphs(smacq_graph * g) {
-	smacq_graph * ap, * bp;
+  smacq_graph * ap, * bp;
 
-	for (bp = g; bp && bp->next_graph; bp=bp->next_graph) {
-		int merged = 0;
+  /* Merge identical heads */
+  for (bp = g; bp && bp->next_graph; bp=bp->next_graph) {
+    int merged = 0;
+    
+    for (ap = g; ap->next_graph; ap=ap->next_graph) {
+      merged = merge_tree(ap, bp->next_graph);
+      if (merged) {
+	bp->next_graph = bp->next_graph->next_graph;
+	break;
+      }
+    }
+  }
+  
 
-		for (ap = g; ap->next_graph; ap=ap->next_graph) {
-			merged = merge_tree(ap, bp->next_graph);
-			if (merged) {
-				bp->next_graph = bp->next_graph->next_graph;
-				break;
-			}
-		}
-	}
-
-	return g;
+  /* Do the merge again from the tails up */
+  for (bp = g; bp && bp->next_graph; bp=bp->next_graph) {
+    for (ap = g; ap->next_graph; ap=ap->next_graph) {
+      merge_tree_tails(ap, bp->next_graph);
+    }
+  }
+  
+  return g;
 }
 

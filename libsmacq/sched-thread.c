@@ -1,6 +1,7 @@
 #include <smacq-internal.h>
 #include <stdio.h>
 
+#ifndef SMACQ_OPT_NOPTHREADS
 
 struct thread_args {
   smacq_graph * f;
@@ -140,3 +141,5 @@ void smacq_start_threads(smacq_graph * f) {
   for (i = 0; i < f->numchildren; i++ ) 
     smacq_start_threads(f->child[i]);
 }
+
+#endif

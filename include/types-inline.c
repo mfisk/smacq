@@ -55,9 +55,13 @@ static inline void darray_init(struct darray * darray, int max) {
 
 static inline void dts_incref(const dts_object * d_const, int i) {
   dts_object * d = (dts_object*)d_const;
+#ifndef SMACQ_OPT_NOPTHREADS
   pthread_mutex_lock(&d->mutex);
+#endif
   d->refcount += i;
+#ifndef SMACQ_OPT_NOPTHREADS
   pthread_mutex_unlock(&d->mutex);
+#endif
 }
 
 static void dts_decref(const dts_object * d_const) {
@@ -68,10 +72,14 @@ static void dts_decref(const dts_object * d_const) {
 
   assert(d->refcount > 0);
 
+#ifndef SMACQ_OPT_NOPTHREADS
   pthread_mutex_lock(&d->mutex);
+#endif
   d->refcount--;
   if (!d->refcount) { 
+#ifndef SMACQ_OPT_NOPTHREADS
     pthread_mutex_unlock(&d->mutex);
+#endif
 
     // Deref children too then
     for (i=0; i<=d->fields.max; i++) {
@@ -84,9 +92,12 @@ static void dts_decref(const dts_object * d_const) {
     //fprintf(stderr, "freeing %p\n", d);
 
     darray_free(&d->fields);
+    if (d->free_data) free(d->data);
     free(d);
+#ifndef SMACQ_OPT_NOPTHREADS
   } else {
     pthread_mutex_unlock(&d->mutex);
+#endif
   }
 }
 

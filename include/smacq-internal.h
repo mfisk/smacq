@@ -23,11 +23,13 @@ struct _smacq_module {
   int ringsize;
   int ring_produce;
   int ring_consume;
+#ifndef SMACQ_OPT_NOPTHREADS
   pthread_mutex_t qlock;
   pthread_cond_t ring_notfull;
   pthread_cond_t ring_notempty;
 
   pthread_t thread;
+#endif
 
   char * name;
   char ** argv;

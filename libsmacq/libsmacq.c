@@ -5,8 +5,11 @@
 #include <smacq.h>
 
 void dts_init_object(dts_object * d) {
+  d->free_data=0;
   d->refcount=1;
+#ifndef SMACQ_OPT_NOPTHREADS
   pthread_mutex_init(&d->mutex, NULL);
+#endif
 
   darray_init(&d->fields, 0);
 }

@@ -1,5 +1,6 @@
 #ifndef BUFFER_INLINE_C
 #define BUFFER_INLINE_C
+#ifndef SMACQ_OPT_NOPTHREADS
 #include <assert.h>
 #include <stdlib.h>
 #include <pthread.h>
@@ -83,4 +84,4 @@ static inline void smacq_cancelupstream(smacq_graph * f) {
 }
 
 #endif
-
+#endif
