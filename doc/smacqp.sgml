@@ -12,7 +12,7 @@
       <firstname>Mike</firstname>
       <surname>Fisk</surname>
     </author>
-    <date>$Date: 2002/12/17 04:57:13 $</date>
+    <date>$Date: 2002/12/28 04:21:11 $</date>
   </refentryinfo>
   <refmeta>
     <refentrytitle>smacqp</refentrytitle>
@@ -239,42 +239,42 @@
 
   </refsect1>
   <refsect1>
-    <title>STANDARD ANALYSIS COMPONENTS</title>
-    
+    <title>FILTER (BOOLEAN) COMPONENTS</title>
+
     <refsect2>
-      <title>Counter</title>
+      <title>IP Address Mask</title>
       <cmdsynopsis>
-	<command>counter</command>
-	<arg>-f <replaceable>countname</replaceable></arg>
-	<arg rep=repeat><replaceable>fields</replaceable></arg>
+	<command>mask</command>
+	<arg choice=req><replaceable>field</replaceable></arg>
+	<arg choice=req>[!]<replaceable>addr/cidr</replaceable></arg>
       </cmdsynopsis>
 
       <para>
-	If no fields are specified, simply count the number of records
-	seen.  If one or more fields are specified, treat those fields
-	as a tuple and count the number of occurrences of each value
-	for that tuple.  
-      </para>
-   
-      <para>
-        The count value is added to the record as an annotation of type int and name "counter"
-	unless the "-f" is used to specify an alternate name for the field.
+	The "addr/cidr" argument is a CIDR netmask.  If the mask size
+	is not specified, 32 is assumed.  An object is filtered out if
+	and only if the specified field does not exist or does not
+	match the given netmask.  If the address begins with a '!',
+	then the logic is reversed and the object is filtered out if
+	the field does match the netmask.
       </para>
     </refsect2>
 
+
     <refsect2>
-      <title>Discrete Probability Density Function</title>
+      <title>Substring</title>
       <cmdsynopsis>
-	<command>pdf</command>
+	<command>substr</command>
+	<arg><replaceable>field</replaceable></arg>
+	<arg choice=req><replaceable>string</replaceable></arg>
+	<arg rep=repeat> ; <replaceable>string</replaceable></arg>
       </cmdsynopsis>
 
       <para>
-        Assemble a stream of input records with "count" fields.
-	When a "refresh" record is received or the data flow ends, then 
-	use the "count" fields to calculate the fraction of the total 
-	that each record is responsible.  Attach this value as a "probability"
-	field of type "double".
-	calculate then use the 
+        Search for each byte string in the specified field, or in the
+        whole data object if no field is given.  If multiple strings
+        are given, then each string corresponds to an output channel,
+        and the object will be output only on the channel(s) that
+        match.
       </para>
     </refsect2>
 
@@ -324,6 +324,121 @@
       <para>
         This is the select (sigma)
         operation from relational algebra ("where" in SQL).
+      </para>
+    </refsect2>
+
+    <refsect2>
+      <title>Unique Filter</title>
+      <cmdsynopsis>
+	<command>uniq</command>
+	<arg>-m <replaceable>megabytes</replaceable></arg>
+	<arg choice=req rep=repeat> <replaceable>fields</replaceable></arg>
+      </cmdsynopsis>
+
+      <para>
+	Treat the specified field(s) as a tuple and filter out all
+	occurrences of duplicate values of that tuple.
+      </para>
+
+      <para>
+	The <option>-m</option> option specifies that a probabilistic
+	algorithm using a fixed amount of memory (specified in
+	megabytes) should be employed.  Some records may be mistakenly
+	filtered, but some large datasets cannot be processed with a
+	perfect algorithm.
+      </para>
+      
+    </refsect2>
+
+
+    <refsect2>
+      <title>Top</title>
+      <cmdsynopsis>
+	<command>top</command>
+	<arg>-m <replaceable>megabytes</replaceable></arg>
+	<arg>-r <replaceable>deviation</replaceable></arg>
+	<arg choice=req rep=repeat> <replaceable>fields</replaceable></arg>
+      </cmdsynopsis>
+
+      <para>
+	Treat the specified field(s) as a tuple and count the number
+	of occurrences of each values of that tuple.  Filter out all
+	records except those whose occurrence deviates from the
+	average by more than a factor of
+	<parameter>deviation</parameter>.  If no
+	<option>-r</option> option is specified, the default
+	deviation threshold is 1.
+      </para>
+
+      <para>
+	If <option>-m</option> is specified, then probabilistic
+	counters are used, consuming a max of
+	<parameter>megabytes</parameter> memory, at the expense of
+	some records not being filtered even though they're value is
+	rare.
+      </para>
+
+      <para>
+	It is often useful to follow this module with
+	<command>uniq</command> in order to get exact counts for all
+	records that pass this filter.
+      </para>
+    </refsect2>
+
+
+    <refsect2>
+      <title>Head</title>
+      <cmdsynopsis>
+	<command>head</command>
+	<arg choice=req> <replaceable>number</replaceable></arg>
+      </cmdsynopsis>
+
+      <para>
+	Pass the first <parameter>number</parameter> records through
+	and then end the pipeline.  Those records will be processed by
+	all subsequent modules in the pipeline and the program will
+	then terminate.
+      </para>
+    </refsect2>
+  </refsect1>
+
+  <refsect1>
+    <title>STANDARD ANALYSIS COMPONENTS</title>
+    
+    <refsect2>
+      <title>Counter</title>
+      <cmdsynopsis>
+	<command>counter</command>
+	<arg>-f <replaceable>countname</replaceable></arg>
+	<arg rep=repeat><replaceable>fields</replaceable></arg>
+      </cmdsynopsis>
+
+      <para>
+	If no fields are specified, simply count the number of records
+	seen.  If one or more fields are specified, treat those fields
+	as a tuple and count the number of occurrences of each value
+	for that tuple.  
+      </para>
+   
+      <para>
+        The count value is added to the record as an annotation of type int and name "counter"
+	unless the "-f" is used to specify an alternate name for the field.
+      </para>
+    </refsect2>
+
+    <refsect2>
+      <title>Discrete Probability Density Function</title>
+      <cmdsynopsis>
+	<command>pdf</command>
+      </cmdsynopsis>
+
+      <para>
+        Assemble a stream of input records with "count" fields.
+	When a "refresh" record is received or the data flow ends, then 
+	use the "count" fields to calculate the fraction of the total 
+	that each record is responsible.  Attach this value as a "probability"
+	field of type "double".
+	calculate then use the 
       </para>
     </refsect2>
 
@@ -403,29 +518,6 @@
     </refsect2>
 
     <refsect2>
-      <title>Unique Filter</title>
-      <cmdsynopsis>
-	<command>uniq</command>
-	<arg>-m <replaceable>megabytes</replaceable></arg>
-	<arg choice=req rep=repeat> <replaceable>fields</replaceable></arg>
-      </cmdsynopsis>
-
-      <para>
-	Treat the specified field(s) as a tuple and filter out all
-	occurrences of duplicate values of that tuple.
-      </para>
-
-      <para>
-	The <option>-m</option> option specifies that a probabilistic
-	algorithm using a fixed amount of memory (specified in
-	megabytes) should be employed.  Some records may be mistakenly
-	filtered, but some large datasets cannot be processed with a
-	perfect algorithm.
-      </para>
-      
-    </refsect2>
-
-    <refsect2>
       <title>Flow ID</title>
       <cmdsynopsis>
 	<command>flowid</command>
@@ -475,22 +567,6 @@
       </para>
 
     </refsect2>
-
-    <refsect2>
-      <title>Head</title>
-      <cmdsynopsis>
-	<command>head</command>
-	<arg choice=req> <replaceable>number</replaceable></arg>
-      </cmdsynopsis>
-
-      <para>
-	Pass the first <parameter>number</parameter> records through
-	and then end the pipeline.  Those records will be processed by
-	all subsequent modules in the pipeline and the program will
-	then terminate.
-      </para>
-    </refsect2>
-
     <refsect2>
       <title>Time Sort</title>
       <cmdsynopsis>
@@ -509,40 +585,6 @@
 	<option>-i</option> option and defaullting to "timseries") and
 	a time delay which is specified with the <option>-t</option>
 	option which defaults to 0 seconds.
-      </para>
-    </refsect2>
-
-    <refsect2>
-      <title>Top</title>
-      <cmdsynopsis>
-	<command>top</command>
-	<arg>-m <replaceable>megabytes</replaceable></arg>
-	<arg>-r <replaceable>deviation</replaceable></arg>
-	<arg choice=req rep=repeat> <replaceable>fields</replaceable></arg>
-      </cmdsynopsis>
-
-      <para>
-	Treat the specified field(s) as a tuple and count the number
-	of occurrences of each values of that tuple.  Filter out all
-	records except those whose occurrence deviates from the
-	average by more than a factor of
-	<parameter>deviation</parameter>.  If no
-	<option>-r</option> option is specified, the default
-	deviation threshold is 1.
-      </para>
-
-      <para>
-	If <option>-m</option> is specified, then probabilistic
-	counters are used, consuming a max of
-	<parameter>megabytes</parameter> memory, at the expense of
-	some records not being filtered even though they're value is
-	rare.
-      </para>
-
-      <para>
-	It is often useful to follow this module with
-	<command>uniq</command> in order to get exact counts for all
-	records that pass this filter.
       </para>
     </refsect2>
 

@@ -3,7 +3,7 @@ CFLAGS=-Wall -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I../include $(
 LDFLAGS=$(LDOPTS)
 LIBTOOL=libtool
 
-BUILTIN_MODULES=pcaplive pcapfile print socket uniq counter last top head intervals filter msgtest entropy derivative split encrypt warden pdf fifo delta tabularinput sync rusage groupby flowid sum fifodelay project rename join substr bench_field
+BUILTIN_MODULES=pcaplive pcapfile print socket uniq counter last top head intervals filter msgtest entropy derivative split encrypt warden pdf fifo delta tabularinput sync rusage groupby flowid sum fifodelay project rename join substr bench_field mask
 
 MODULES=$(BUILTIN_MODULES) #python #reassemble
 

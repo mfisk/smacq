@@ -203,30 +203,27 @@ connections forever and will never exit.  Without this option,
 the server will accept a single connection, process it until 
 it closes, and then terminate. 
  
-.SH "STANDARD ANALYSIS COMPONENTS" 
-.SS "Counter" 
+.SH "FILTER (BOOLEAN) COMPONENTS" 
+.SS "IP Address Mask" 
 .PP 
-\fBcounter\fP [-f \fIcountname\fP]  [\fIfields\fP \&...]  
+\fBmask\fP\fIfield\fP [!]\fIaddr/cidr\fP  
 .PP 
-If no fields are specified, simply count the number of records 
-seen.  If one or more fields are specified, treat those fields 
-as a tuple and count the number of occurrences of each value 
-for that tuple.   
+The "addr/cidr" argument is a CIDR netmask.  If the mask size 
+is not specified, 32 is assumed.  An object is filtered out if 
+and only if the specified field does not exist or does not 
+match the given netmask.  If the address begins with a '!', 
+then the logic is reversed and the object is filtered out if 
+the field does match the netmask. 
  
+.SS "Substring" 
 .PP 
-The count value is added to the record as an annotation of type int and name "counter" 
-unless the "-f" is used to specify an alternate name for the field. 
- 
-.SS "Discrete Probability Density Function" 
+\fBsubstr\fP [\fIfield\fP] \fIstring\fP  [ ; \fIstring\fP \&...]  
 .PP 
-\fBpdf\fP 
-.PP 
-Assemble a stream of input records with "count" fields. 
-When a "refresh" record is received or the data flow ends, then  
-use the "count" fields to calculate the fraction of the total  
-that each record is responsible.  Attach this value as a "probability" 
-field of type "double". 
-calculate then use the  
+Search for each byte string in the specified field, or in the 
+whole data object if no field is given.  If multiple strings 
+are given, then each string corresponds to an output channel, 
+and the object will be output only on the channel(s) that 
+match. 
  
 .SS "Last" 
 .PP 
@@ -260,6 +257,78 @@ statements and parentheses for grouping.
 .PP 
 This is the select (sigma) 
 operation from relational algebra ("where" in SQL). 
+ 
+.SS "Unique Filter" 
+.PP 
+\fBuniq\fP [-m \fImegabytes\fP]  \fIfields\fP \&...  
+.PP 
+Treat the specified field(s) as a tuple and filter out all 
+occurrences of duplicate values of that tuple. 
+ 
+.PP 
+The \fB-m\fP option specifies that a probabilistic 
+algorithm using a fixed amount of memory (specified in 
+megabytes) should be employed.  Some records may be mistakenly 
+filtered, but some large datasets cannot be processed with a 
+perfect algorithm. 
+ 
+.SS "Top" 
+.PP 
+\fBtop\fP [-m \fImegabytes\fP]  [-r \fIdeviation\fP]  \fIfields\fP \&...  
+.PP 
+Treat the specified field(s) as a tuple and count the number 
+of occurrences of each values of that tuple.  Filter out all 
+records except those whose occurrence deviates from the 
+average by more than a factor of 
+\fBdeviation\fR.  If no 
+\fB-r\fP option is specified, the default 
+deviation threshold is 1. 
+ 
+.PP 
+If \fB-m\fP is specified, then probabilistic 
+counters are used, consuming a max of 
+\fBmegabytes\fR memory, at the expense of 
+some records not being filtered even though they're value is 
+rare. 
+ 
+.PP 
+It is often useful to follow this module with 
+\fBuniq\fP in order to get exact counts for all 
+records that pass this filter. 
+ 
+.SS "Head" 
+.PP 
+\fBhead\fP \fInumber\fP  
+.PP 
+Pass the first \fBnumber\fR records through 
+and then end the pipeline.  Those records will be processed by 
+all subsequent modules in the pipeline and the program will 
+then terminate. 
+ 
+.SH "STANDARD ANALYSIS COMPONENTS" 
+.SS "Counter" 
+.PP 
+\fBcounter\fP [-f \fIcountname\fP]  [\fIfields\fP \&...]  
+.PP 
+If no fields are specified, simply count the number of records 
+seen.  If one or more fields are specified, treat those fields 
+as a tuple and count the number of occurrences of each value 
+for that tuple.   
+ 
+.PP 
+The count value is added to the record as an annotation of type int and name "counter" 
+unless the "-f" is used to specify an alternate name for the field. 
+ 
+.SS "Discrete Probability Density Function" 
+.PP 
+\fBpdf\fP 
+.PP 
+Assemble a stream of input records with "count" fields. 
+When a "refresh" record is received or the data flow ends, then  
+use the "count" fields to calculate the fraction of the total  
+that each record is responsible.  Attach this value as a "probability" 
+field of type "double". 
+calculate then use the  
  
 .SS "Project" 
 .PP 
@@ -305,20 +374,6 @@ that every ocurring value has been seen and the entropy for the series is calcul
 and added as an annotation of type \fBdouble\fP to a refresh object.   
 See the "\fBlast\fP" module for more information on \fBrefresh\fP objects. 
  
-.SS "Unique Filter" 
-.PP 
-\fBuniq\fP [-m \fImegabytes\fP]  \fIfields\fP \&...  
-.PP 
-Treat the specified field(s) as a tuple and filter out all 
-occurrences of duplicate values of that tuple. 
- 
-.PP 
-The \fB-m\fP option specifies that a probabilistic 
-algorithm using a fixed amount of memory (specified in 
-megabytes) should be employed.  Some records may be mistakenly 
-filtered, but some large datasets cannot be processed with a 
-perfect algorithm. 
- 
 .SS "Flow ID" 
 .PP 
 \fBflowid\fP [-t \fItime\fP]  [-r ]  \fIfields\fP \&...  
@@ -350,15 +405,6 @@ specified query for each tuple.  If a record of type "refresh"
 is received, then the pipeline for that tuple will be gracefully 
 terminated. 
  
-.SS "Head" 
-.PP 
-\fBhead\fP \fInumber\fP  
-.PP 
-Pass the first \fBnumber\fR records through 
-and then end the pipeline.  Those records will be processed by 
-all subsequent modules in the pipeline and the program will 
-then terminate. 
- 
 .SS "Time Sort" 
 .PP 
 \fBfifodelay\fP [-t \fItime\fP]  [-i \fIinput-time-field\fP]  [-o \fIoutput-time-field\fP]  
@@ -371,32 +417,8 @@ time is determined by the input time field (specified with the
 \fB-i\fP option and defaullting to "timseries") and 
 a time delay which is specified with the \fB-t\fP 	option which defaults to 0 seconds. 
  
-.SS "Top" 
-.PP 
-\fBtop\fP [-m \fImegabytes\fP]  [-r \fIdeviation\fP]  \fIfields\fP \&...  
-.PP 
-Treat the specified field(s) as a tuple and count the number 
-of occurrences of each values of that tuple.  Filter out all 
-records except those whose occurrence deviates from the 
-average by more than a factor of 
-\fBdeviation\fR.  If no 
-\fB-r\fP option is specified, the default 
-deviation threshold is 1. 
- 
-.PP 
-If \fB-m\fP is specified, then probabilistic 
-counters are used, consuming a max of 
-\fBmegabytes\fR memory, at the expense of 
-some records not being filtered even though they're value is 
-rare. 
- 
-.PP 
-It is often useful to follow this module with 
-\fBuniq\fP in order to get exact counts for all 
-records that pass this filter. 
- 
 .SH "SEE ALSO" 
 .PP 
 \fBdts-types\fP(3), \fBsmacq-modules\fP(3), 
 \fBsmacq-embed\fP(3) 
-...\" created by instant / docbook-to-man, Wed 08 Jan 2003, 18:36 
+...\" created by instant / docbook-to-man, Thu 30 Jan 2003, 14:36 

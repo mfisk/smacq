@@ -35,8 +35,8 @@ while(<>) {
 
   @tests = ();
   &notany("proto = 'ARG'", $proto);
-  &notany("srcip.mask = 'ARG'", $srcip);
-  &notany("dstcip.mask = 'ARG'", $dstip);
+  &notany("mask(srcip, 'ARG')", $srcip);
+  &notany("mask(dstip, 'ARG')", $dstip);
   &notany("srcport = 'ARG'", $srcport);
   &notany("dstport = 'ARG'", $dstport);
   
