@@ -11,10 +11,12 @@ struct state {
   int flush;
   int * fields;
   int string_transform;
+  char * delimiter;
 };
 
 static struct smacq_options options[] = {
   {"v", {boolean_t:0}, "Verbose mode: print field names", SMACQ_OPT_TYPE_BOOLEAN},
+  {"d", {string_t:"\t"}, "Delimiter", SMACQ_OPT_TYPE_STRING},
   {"B", {boolean_t:0}, "Disable buffering: flush output after each line", SMACQ_OPT_TYPE_BOOLEAN},
   {NULL, {string_t:NULL}, NULL, 0}
 };
@@ -42,9 +44,9 @@ static smacq_result print_consume(struct state * state, const dts_object * datum
       } else {
         printed++;
 	if (state->verbose) {
-		printf("%.20s = %s\t", state->argv[i], str);
+		printf("%.20s = %s", state->argv[i], str);
 	} else {
-		printf("%s\t", str);
+		printf("%s", str);
 	}
 		
 	free(str);
@@ -52,6 +54,7 @@ static smacq_result print_consume(struct state * state, const dts_object * datum
     } else if (state->verbose) {
       fprintf(stderr, "Warning: print: no field %s\n", state->argv[i]);
     }
+    printf(state->delimiter);
   }
   if (printed) printf("\n");
   if (state->flush) fflush(stdout); 
@@ -60,7 +63,7 @@ static smacq_result print_consume(struct state * state, const dts_object * datum
 
 static int print_init(struct flow_init * context) {
   struct state * state;
-  smacq_opt verbose, flush;
+  smacq_opt verbose, flush, delimiter;
   int i;
 
   context->state = state = (struct state*) calloc(sizeof(struct state),1);
@@ -70,6 +73,7 @@ static int print_init(struct flow_init * context) {
   {
     struct smacq_optval optvals[] = {
       {"v", &verbose},
+      {"d", &delimiter},
       {"B", &flush},
       {NULL, NULL}
     };
@@ -80,6 +84,7 @@ static int print_init(struct flow_init * context) {
   }
 
   state->flush = flush.boolean_t;
+  state->delimiter = delimiter.string_t;
   state->verbose = verbose.boolean_t;
   state->fields = malloc(state->argc * sizeof(int));
   state->string_transform = flow_transform(state->env, "string");
