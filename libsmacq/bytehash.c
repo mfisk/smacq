@@ -68,6 +68,7 @@ static struct element * make_element(struct iovec_hash * b, struct iovec * iovec
 static void free_element(gpointer k) {
   struct element * s = k;
   int i;
+  assert(s);
 
   for (i=0; i<s->nvecs; i++) {
     cmfree(s->table->cm_bytes, s->iovecs[i].iov_base);

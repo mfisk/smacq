@@ -18,6 +18,7 @@ static inline const dts_object * smacq_produce_peek(struct smacq_outputq ** qp) 
   
 static inline void smacq_produce_enqueue(struct smacq_outputq ** qp, const dts_object * o, int outchan) {
   struct smacq_outputq * nq = malloc(sizeof(struct smacq_outputq));
+  assert(nq);
   assert(qp);
 
   nq->o = o;
