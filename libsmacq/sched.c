@@ -11,7 +11,6 @@ static int smacq_start_single(smacq_graph * objs, enum smacq_scheduler scheduler
   }
 
   env->types = tenv;
-  env->alloc = _smacq_alloc;
 
   smacq_init_modules(objs, env);
 
