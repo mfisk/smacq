@@ -77,17 +77,20 @@ static void print_extent(gpointer key, gpointer value, gpointer userdata) {
   } else {
     int offset = 0;
     struct bytedata * b = key;
-    dts_object lastd;
+    const dts_object * lastd;
     i=0;
 
     while((i = smacq_nextfielddata(&state->fieldset, &lastd, i))) {
-        dts_object d = lastd;
-        assert(offset < b->len);
-        d.data = b->bytes+offset;
-        offset += d.len;
+        const dts_object * d = (dts_object*)lastd;
+	const dts_object * dstr = NULL;
 
-        smacq_getfield(state->env, &d, smacq_requirefield(state->env, "string"), &d);
-        fprintf(state->printfd, "%s ", (char*)d.data);
+        assert(offset < b->len);
+        ((dts_object*)d)->data = b->bytes+offset;
+        offset += d->len;
+
+        dstr = smacq_getfield(state->env, d, smacq_requirefield(state->env, "string"), NULL);
+        fprintf(state->printfd, "%s ", (char*)dstr->data);
+	dts_decref(dstr);
     }
 
   }
