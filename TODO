@@ -4,10 +4,15 @@ Bugs:
 Optimizations:
 	- remove invariants from join test
 	- do invariant tests before streamalias
+	- merge_tails would be faster if a GraphSet described both the roots (heads) and leaves (tails) of the GraphSet.
+	- merge groupby graphs when grouping on the same thing
+
 
 Looking for volunteers:
+	- Implement Vector<FieldVec> sort & sort module
 	- Regex parsing for tabularinput
 	- scanf parsing for tabularinput
+	- printf-style formats for print module
 	- socket read (ala netcat) for tabularinput
 	- Make all vectorizing occur through a module callback that
 		accepts or rejects an additional set of arguments
