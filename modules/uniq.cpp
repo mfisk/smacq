@@ -7,9 +7,9 @@
 #include <math.h>
 #include <assert.h>
 #include <smacq.h>
-#include <FieldVec.h>
 #include <bloom.h>
 #include <FieldVec.h>
+#include <hash_set>
 
 /* Really it's an ulonglong, but STL doesn't come with a hash function
    for that, so we're lazy and truncate to ulong. */
@@ -52,8 +52,6 @@ smacq_result uniqModule::consume(DtsObject datum, int & outchan) {
   } else {
     fieldvec.getfields(datum);
     isnew = perfectset->insert(fieldvec).second; 
-    fprintf(stderr, "uniq consume lookup returned %d on %d\n", 
-	    (int)isnew, fieldvec.size());
   }
 
   if (isnew) {
