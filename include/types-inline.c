@@ -224,4 +224,37 @@ static inline const dts_object * dts_construct_fromstring(dts_environment * tenv
 
 #include "getfield.c"
 
+static double eval_arith_operand(const dts_object * datum, struct dts_operand * op);
+
+static inline fetch_operand(dts_environment * tenv, const dts_object * datum, 
+	   struct dts_operand * op, int const_type) {
+  double val;
+
+  if (op->type == CONST && op->valueo && op->valueo->type == const_type) {
+	  return; 
+  }
+
+  if (op->type != ARITH && op->valueo) dts_decref(op->valueo);
+
+  switch(op->type) {
+	case FIELD: 
+	  op->valueo = dts_getfield(tenv, datum, op->origin.literal.field);
+	  //if (!op->valueo) fprintf(stderr, "Field %s not found in obj %p\n", op->origin.literal.str, datum);
+	  break;
+
+	case CONST: 
+	  op->valueo = dts_construct_fromstring(tenv, const_type, op->origin.literal.str); 
+	  if (!op->valueo) fprintf(stderr, "Could not parse %s\n", op->origin.literal.str);
+	  break;
+
+	case ARITH:
+	  assert(op->valueo);
+	  dts_data_as(op->valueo, double) = eval_arith_operand(datum, op);
+  	  //fprintf(stderr, "eval arithmetic operand to %g\n", dts_data_as(op->valueo, double));
+	  break;
+  }
+}
+
+
+
 #endif
