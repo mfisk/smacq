@@ -21,7 +21,7 @@
 #
 $HOME_NET 	= "128.165.0.0/16";
 $EXTERNAL_NET 	= "!$HOME_NET";
-$SMACQ_INPUT 	= "pcapfile(/hog/traces/aa.80)";
+$SMACQ_INPUT 	= "pcapfile";
 
 ############################################################################
 
@@ -49,13 +49,22 @@ sub hex2octalstr() {
   return $res;
 }
 
-if ($ARGV[0] eq "-p") {
-	shift(@ARGV);
-	$prob = $ARGV[0];
-	shift(@ARGV);
-} else {
-	$prob = 1;
+$prob = 1;
+
+while ($ARGV[0]) {
+	if ($ARGV[0] eq "-p") {
+		shift(@ARGV);
+		$prob = shift(@ARGV);
+	} elsif ($ARGV[0] eq "-f") {
+		shift(@ARGV);
+		$SMACQ_INPUT = "pcapfile(\"$ARGV[0]\")";
+		shift(@ARGV);
+	} else {
+		last;
+	}
 }
+
+#print STDERR "snort2cq: reading from @ARGV\n";
 
 open(SNORT, ">/tmp/snortcq.conf") || die;
 while(<>) {
@@ -73,10 +82,9 @@ while(<>) {
   chomp;
   s|\$EXTERNAL_NET|$EXTERNAL_NET|g;
   s|\$HOME_NET|$HOME_NET|g;
-  s|\$HTTP_SERVERS|any|g;
-  s|\$SQL_SERVERS|any|g;
+  s|\$[A-Z]+_SERVERS|any|g;
   s|\$HTTP_PORTS|80|g;
-  s|\$ORACLE_PORTS|any|g;
+  s|\$[A-Z]+_PORTS|any|g;
   s|\$SMTP|any|g;
 
   ($action,$proto,$srcip,$srcport,$dir,$dstip,$dstport,$criteria) = split(/\s+/, $_, 8);
@@ -171,13 +179,14 @@ while(<>) {
   	&notany("substr(payload.urldecode, \"ARG\")", $c);
   }
 
-  $q = "print sid, srcip, dstip, ts from (const('$sid', sid) from $SMACQ_INPUT";
+  #$q = "print sid, srcip, dstip, ts from (const('$sid', sid) from $SMACQ_INPUT";
+  $q = "pcapfile from $SMACQ_INPUT";
   if (@tests) {
   	$q .= " where ";
   	$q .= join(' and ', @tests);
   }
 
-  print "$q)\n";
+  print "$q\n";
 
   print SNORT "$snortrule msg:\"$sid\"; )\n";
 }
