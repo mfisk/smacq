@@ -21,6 +21,9 @@ all: $(PRODUCTS)
 %.lo: %.c ../include/smacq.h 
 	$(LIBTOOL) $(CC) -c $(CFLAGS) $< 
 
-clean: 
+clean: distclean
+
+distclean: 
 	rm -rf $(PRODUCTS) .libs *.o *.la *.a *.lo
+
 

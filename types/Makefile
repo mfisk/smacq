@@ -7,7 +7,9 @@ TYPEOBJS=$(patsubst %,%.lo,$(TYPES))
 
 all: $(TYPEMODULES) libdts-modules.lo
 
-clean: 
+clean: distclean
+
+distclean:
 	rm -Rf *.o *.so *.a *.la *.lo .libs
 
 libdts-modules.lo: $(TYPEOBJS)

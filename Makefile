@@ -14,10 +14,13 @@ dirs:
 warn: 
 	make auto >/dev/null
 
+distclean: 
+	@for f in $(DIRS); do $(MAKE) -C $$f distclean; done
+
 clean: 
 	@for f in $(DIRS); do $(MAKE) -C $$f clean; done
 
-dist:
+dist: distclean
 	tar czplf flow.tgz flow/flow doc/*.pdf doc/*.txt doc/*.1 doc/*.3
 	(cd /tmp; cvs -q -d cj:/home/cvs co flow); tar -C /tmp -czlf flow-src.tgz flow
 

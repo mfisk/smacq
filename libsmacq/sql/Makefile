@@ -38,6 +38,9 @@ libsql.la: $(OBJS)
 %.lo: %.c
 	$(LIBTOOL) $(CC) -c $(CFLAGS) $<
 
-clean: 
-	rm -Rf *.lo *.la *.o *.a scan.c gram.c gram.h nohup.out .libs
+clean: distclean
+	rm -Rf scan.c gram.c gram.h
+
+distclean:
+	rm -Rf *.lo *.la *.o *.a .libs
 
