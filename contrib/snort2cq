@@ -1,0 +1,75 @@
+#!/usr/bin/perl
+
+sub notany($resultstr, $arg) {
+  local($resultstr, $arg) = @_;
+
+  if ($arg eq 'any') { return; }
+  
+  $resultstr =~ s|ARG|$arg|g;
+
+  push(@tests, $resultstr);
+}
+
+sub hex2octalstr() {
+  local($hex) = @_;
+  $res = '';
+
+  while($hex) {
+    if (! ($hex =~ /^(..) *(.*)$/)) { return $res; }
+    $res .= "\\x" . $1;
+    $hex = $2;
+  }
+
+  return $res;
+}
+    
+while(<>) {
+  #print;
+  chomp;
+  s|\$EXTERNAL_NET|!192.168.0.0|g;
+  s|\$HTTP_SERVERS|any|g;
+
+  ($action,$proto,$srcip,$srcport,$dir,$dstip,$dstport,$criteria) = split(/\s+/, $_, 8);
+  
+  if ($action ne "alert") { next; }
+
+  @tests = ();
+  &notany("proto = 'ARG'", $proto);
+  &notany("srcip.mask = 'ARG'", $srcip);
+  &notany("dstcip.mask = 'ARG'", $dstip);
+  &notany("srcport = 'ARG'", $srcport);
+  &notany("dstport = 'ARG'", $dstport);
+  
+  #print "Splitting $criteria\n";
+  $criteria =~ s|^\(\s*||;
+  $criteria =~ s|\s*\)\s*$||;
+  @crits = split(/\s*;\s*/, $criteria);
+  
+  $content = '';
+  $sid = '';
+  foreach $test (@crits) {
+    ($op,$arg) = split(/\s*:\s*/, $test, 2);
+    $arg =~ s|^\"||;
+    $arg =~ s|\"$||;
+    if ($op eq "sid") { 
+      $sid = $arg; 
+    } elsif ($op eq "dsize") {
+      &notany("payloadsize ARG", $arg);
+    } elsif (($op eq "content") || ($op eq "uricontent")) { 
+      $content = $arg; 
+      $content =~ s/\|([^|]*)\|/&hex2octalstr($1)/eg;
+
+      &notany("payload like \"%ARG%\"", $content);
+    } elsif ($op eq "msg" || $op eq "reference" || $op eq "classtype" || $op eq "rev" || $op eq "depth") {
+      
+    } else {
+      #print "[$op:$arg]";
+    }
+  }
+
+  $q = "select '$sid' as sid, srcip, dstip, ts from pcaplive() where ";
+  $q .= join(' and ', @tests);
+
+  print "$q\n";
+}
+	  
