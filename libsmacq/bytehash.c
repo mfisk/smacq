@@ -9,7 +9,7 @@
 #include <bytehash.h>
 #include <cmalloc.h>
 
-#define STARTBUCKETS 2
+#define STARTBUCKETS 64
 #define MAXAVGCHAIN 1
 
 struct bytevec {
@@ -39,6 +39,8 @@ struct iovec_hash {
   struct element ** buckets;
   int num_buckets;
   int num_elements;
+
+  bytes_boolean clamped;
 };
 
 struct iovec * bytes_hash_element_iovec(struct element * e) {
@@ -153,7 +155,7 @@ static bytes_boolean iovecs_equal(struct iovec * v1, int n1, struct iovec * v2, 
 struct iovec_hash * bytes_hash_table_new(int maxbytes, int flags) {
   struct iovec_hash * myt;
   
-  myt = malloc(sizeof(struct iovec_hash));
+  myt = calloc(1, sizeof(struct iovec_hash));
   myt->maxkeybytes = maxbytes;
   bytes_init_hash(&myt->randoms, maxbytes, 419400011);
 
@@ -165,7 +167,9 @@ struct iovec_hash * bytes_hash_table_new(int maxbytes, int flags) {
   myt->do_free = (flags & FREE); 
 
   myt->num_buckets = STARTBUCKETS;
-  myt->buckets = calloc(sizeof(struct element *), myt->num_buckets);
+  myt->buckets = calloc(myt->num_buckets, sizeof(struct element *));
+  myt->clamped = false;
+  myt->num_elements = 0;
   
   return myt;
 }
@@ -189,8 +193,6 @@ static inline void chain_add(struct iovec_hash * ht, int bucket, struct element 
 
   e->parent = &(ht->buckets[bucket]);
   ht->buckets[bucket] = e;
-
-  assert(&(ht->buckets[bucket]) == e->parent);
 }
 
 static inline void relocate(struct iovec_hash * ht, struct element * e, int oldbucket) {
@@ -206,12 +208,24 @@ static inline void relocate(struct iovec_hash * ht, struct element * e, int oldb
 
 static void rebalance(struct iovec_hash * ht) {
   int bn;
-  struct element * e, * nexte;
+  struct element * e, * nexte, ** newbuckets;
+
+  //if (ht->clamped == true) return;
 
   /* Double size of hash table */
+  newbuckets = realloc(ht->buckets, sizeof(struct element *) * ht->num_buckets * 2);
+  if (newbuckets == NULL) {
+	/* Unable to grow --- keep going as is */
+	ht->clamped = true;
+ 	fprintf(stderr, "Not enough memory to grow hash table; continuing with suboptimal table size.\n");
+	return;
+  } else {
+	/* fprintf(stderr, "Grew hash table to %d buckets\n", ht->num_buckets); */
+  }
+
+  ht->buckets = newbuckets;
+  memset(ht->buckets + ht->num_buckets, 0, sizeof(struct element *) * ht->num_buckets);
   ht->num_buckets *= 2;
-  ht->buckets = realloc(ht->buckets, sizeof(struct element *) * ht->num_buckets);
-  memset(ht->buckets + (ht->num_buckets / 2), 0, sizeof(struct element *) * (ht->num_buckets / 2));
 
   /* Relocate everything in first half (the old table) */
   for (bn = 0; bn < (ht->num_buckets / 2); bn++) {
@@ -264,7 +278,7 @@ void * bytes_hash_table_setv(struct iovec_hash * ht, struct iovec * keys, int co
   	  int b;
 	  
 	  ht->num_elements++;
-	  if (ht->num_elements/ht->num_buckets > MAXAVGCHAIN) {
+	  if ((ht->num_elements / ht->num_buckets) > MAXAVGCHAIN) {
 		  rebalance(ht);
 	  }
 
@@ -273,7 +287,7 @@ void * bytes_hash_table_setv(struct iovec_hash * ht, struct iovec * keys, int co
 	  b = bytes_iovec_hash(ht, keys, count) % ht->num_buckets;
 	  chain_add(ht, b, e);
 
-	  /* fprintf(stderr, "new key created in bucket %d\n", b); */
+	  /* fprintf(stderr, "new key %p created in bucket %d, 2nd is %p\n", e, b, e->chain);  */
 
 	  return NULL;
   }
@@ -329,19 +343,23 @@ int bytes_hash_table_get(struct iovec_hash * ht, int keysize, unsigned char * ke
 
 static inline void bytes_hash_table_remove_element(struct iovec_hash * ht, struct element * e) {
   chain_remove(e);
+  if (ht->do_free) free(e->value);
   free_element(e);
   ht->num_elements--;
 }
 
 void bytes_hash_table_foreach_remove(struct iovec_hash * ht, ForEachFunc func, void * user_data) {
   int bn;
-  struct element * e;
+  struct element * e, * nexte;
 
   for (bn = 0; bn < ht->num_buckets; bn++) {
-	  for (e = ht->buckets[bn]; e; e = e->chain) {
+	  e = ht->buckets[bn];
+	  while (e) {
+		  nexte = e->chain;
 		  if (func(e, e->value, user_data)) {
   			bytes_hash_table_remove_element(ht, e);
 		  }
+		  e = nexte;
 	  }
   }
 }
@@ -377,10 +395,10 @@ void bytes_hash_table_destroy(struct iovec_hash * ht) {
   	struct element * e, * nexte;
 	
   	for (b=0; b < ht->num_buckets; b++) {
-		for (e=ht->buckets[b]; e; ) {
+		e=ht->buckets[b];
+		while (e) {
 			nexte = e->chain;
-			if (ht->do_free) free(e->value);
-			free_element(e);
+  			bytes_hash_table_remove_element(ht, e);
 			e = nexte;
 		}
   	}
