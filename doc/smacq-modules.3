@@ -1,4 +1,4 @@
-.TH smacq-modules 3 "$Date: 2003/01/23 01:47:35 $" "LANL"
+.TH smacq-modules 3 "$Date: 2003/03/19 03:25:49 $" "LANL"
 .SH NAME
 smacq-modules - pipeline module programming guide
 .SH SYNOPSIS
@@ -207,29 +207,19 @@ queue is a struct smacq_outputq * and is initialized to NULL.
 .SH "THREAD SHIM"
 
 The native module API described above is based on event-driven
-callbacks.  However, modules can instead have their own threads to
-instead use a read/write API from a wihle loop.  To use threads, the
+callbacks.  However, a module can instead have its own thread 
+and a read/write API from a while loop.  (Note that a module thread may be implemented as a non-preemptive co-routine).  To use a thread, the
 module function table should be initialized as follows:
 
 .sp
-.BI "struct smacq_functions smacq_\fImodule\fP_table ="
-.nf
-.ne 7
-.ta 8n 16n 32n
-{
-	produce: &smacq_thread_produce,
-	consume: &smacq_thread_consume,
-	init: &smacq_thread_init,
-	shutdown: &smacq_thread_shutdown,
-	thread: &smacq_\fImodule\fP_loop
-};
-.ta
-.fi
+.BI "struct smacq_functions smacq_\fImodule\fP_table = SMACQ_THREADED_MODULE(smacq_\fImodule\fP_loop)"
 
 The smacq_\fImodule\fP_loop function can use the following functions:
 
 .TP
 .BI "const dts_object * smacq_read(struct smacq_init * context)"
+
+Returns a dts_object or NULL if there are no more objects to be read the loop should return.
 
 .TP
 .BI "void smacq_write(struct state * state, dts_object * datum, int outchan)"
@@ -238,7 +228,9 @@ The smacq_\fImodule\fP_loop function can use the following functions:
 .BI "void smacq_decision(struct smacq_init * context, const dts_object * datum, smacq_result result)"
 
 .TP
-.BI "void  smacq_flush(struct smacq_init * context)"
+.BI "int smacq_flush(struct smacq_init * context)"
+
+Returns 0 normally, or 1 when no more objects can be written and the caller should return.
 
 .SH "DYNAMIC ARRAYS"
 

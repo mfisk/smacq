@@ -104,10 +104,17 @@ extern smacq_result smacq_thread_consume(struct state * state, const dts_object 
 extern smacq_result smacq_thread_produce(struct state * state, const dts_object ** datum, int *outchan);
 extern smacq_result smacq_thread_shutdown(struct state * state);
 
+#define SMACQ_THREADED_MODULE(THREAD) { \
+	init: smacq_thread_init, \
+	consume: smacq_thread_consume, \
+	produce: smacq_thread_produce, \
+	shutdown: smacq_thread_shutdown, \
+	thread: THREAD };
+
 extern const dts_object * smacq_read(struct smacq_init * context);
 extern void smacq_write(struct state * state, dts_object * datum, int outchan);
 extern void smacq_decision(struct smacq_init * context, const dts_object * datum, smacq_result result);
-extern void  smacq_flush(struct smacq_init * context);
+extern int smacq_flush(struct smacq_init * context);
 
 
 /*
