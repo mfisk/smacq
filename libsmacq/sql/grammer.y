@@ -72,7 +72,7 @@
 %type <group> group 
 %type <graph> where query from source pverbphrase  
 %type <vphrase> verbphrase
-%type <string> function verb word string id 
+%type <string> function verb word string id as
 
 %start queryline
 
@@ -121,15 +121,27 @@ from :  null 			{ $$.head = NULL; $$.tail = NULL; }
 	;
 
 joins : null			{ $$ = NULL; }
-	| ',' boolargs joins	
+	| ',' boolargs as joins	
 	   {
+		struct arglist * atail;
 		$$ = newarg(arglist2str($2), 0, NULL);
-	   	/* fprintf(stderr, "got a join (,) with %s\n", $$->arg); */
 
-	   	if ($3) {
-			$$ = arglist_append($$, $3);
+	   	fprintf(stderr, "got a join with '%s' as %s.\n", $$->arg, $3); 
+
+		if (!$3) {
+			yyerror("Joins must be aliased with \"as <alias>\"");
+		}
+
+		atail = arglist_append($$, newarg($3, 0, NULL));
+
+	   	if ($4) {
+			atail = arglist_append(atail, $4);
 		} 
 	   }
+	;
+
+as : null		{ $$ = NULL; }
+	| AS word	{ $$ = $2; }
 	;
 
 source : pverbphrase		
@@ -365,15 +377,6 @@ static struct graph newgroup(struct group group, struct vphrase vphrase) {
 		argcont = 1;
  	   }
 	}
-#if 0
-	atail = arglist_append(atail, newarg(vphrase.verb, 0, NULL));
-	atail = arglist_append(atail, vphrase.args);
-
-	g = newmodule("groupby", group.args);
-
-	if (group.having) 
-		graph_join(&g, newmodule("filter", group.having));
-#else
 	if (argcont) 
 		g = newmodule("groupby", group.args);
 
@@ -381,7 +384,6 @@ static struct graph newgroup(struct group group, struct vphrase vphrase) {
 		graph_join(&g, newmodule("filter", group.having));
 
 	graph_join(&g, newmodule(vphrase.verb, vphrase.args));
-#endif
 
 	return g;
 }
