@@ -191,9 +191,8 @@ smacq_graph * smacq_build_query(int argc, char ** argv);
 int smacq_execute_query(int argc, char ** argv);
 smacq_graph * smacq_add_new_child(smacq_graph * parent, int argc, char ** argv);
 int smacq_add_child(smacq_graph * parent, smacq_graph * newo);
-smacq_graph * smacq_merge_graphs(smacq_graph * a, smacq_graph * b);
+smacq_graph * smacq_merge_graphs(smacq_graph *);
 smacq_graph * smacq_graph_add_graph(smacq_graph * a, smacq_graph * b);
-int smacq_start_multiple(smacq_graph * g, dts_environment * tenv);
 
 smacq_graph * smacq_new_module(int argc, char ** argv);
 EXTERN void smacq_free_module(smacq_graph * f);
