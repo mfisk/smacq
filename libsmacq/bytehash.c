@@ -17,6 +17,8 @@ struct GHashTableofBytes {
   int maxkeybytes;
   guint32 * randoms;
   GHashTable * ht;
+  
+  int gc_count;
 };
 
 static struct bytedata * make_bytesv(struct GHashTableofBytes * b, struct iovec * key, int numkeys) {
@@ -110,7 +112,9 @@ static inline int incv(const struct iovec ** vp, const void ** bp, const struct 
 static gint bytes_equal(gconstpointer v, gconstpointer v2) {
   const struct bytedata * b1 = (struct bytedata *)v;
   const struct bytedata * b2 = (struct bytedata *)v2;
-  
+
+  if (b1 == b2) return TRUE;
+
   if (b1->len != b2->len) return FALSE;
 
   if (memcmp(b1->bytes, b2->bytes, b1->len)) return FALSE;
@@ -184,6 +188,8 @@ int bytes_hash_table_insertv(GHashTableofBytes * ht, struct iovec * keys, int co
 
   g_hash_table_replace(ht->ht, s, value);
 
+  //printf("%d\tactive table %p\n", g_hash_table_size(ht->ht), ht);
+
   return retval;
 }
 
@@ -209,12 +215,6 @@ int bytes_hash_table_incrementv(GHashTableofBytes * ht, struct iovec * keys, int
 
 void bytes_hash_table_insert(GHashTableofBytes * ht, int keysize, unsigned char * key, gpointer value) {
   struct bytedata * s = make_bytes(ht, keysize, key);
-  struct bytedata * olds = NULL;
-  gpointer current;
-
-  if (g_hash_table_lookup_extended(ht->ht, s, (gpointer*)&olds, &current)) {
-    //    free(olds); //XXX: This causes problems for some reason
-  }
 
   g_hash_table_insert(ht->ht, s, value);
 }
@@ -237,22 +237,20 @@ gpointer bytes_hash_table_lookupv(GHashTableofBytes * ht, struct iovec * vecs, i
   return retval;
 }
 
-gint bytes_hash_table_lookup_extended(GHashTableofBytes * ht, int keysize, unsigned char * key, gpointer current) {
+gint bytes_hash_table_lookup_extended(GHashTableofBytes * ht, int keysize, unsigned char * key, gpointer * oldkey, gpointer * current) {
   struct bytedata * s = make_bytes(ht, keysize, key);
   int retval;
-  gpointer olds;
 
-  retval = g_hash_table_lookup_extended(ht->ht, s, &olds, current);
+  retval = g_hash_table_lookup_extended(ht->ht, s, oldkey, current);
   free(s);
   return retval;
 }
 
-gint bytes_hash_table_lookup_extendedv(GHashTableofBytes * ht, struct iovec * key, int keys, gpointer current) {
+gint bytes_hash_table_lookup_extendedv(GHashTableofBytes * ht, struct iovec * key, int keys, gpointer * oldkey, gpointer * current) {
   struct bytedata * s = make_bytesv(ht, key, keys);
   int retval;
-  gpointer olds;
 
-  retval = g_hash_table_lookup_extended(ht->ht, s, &olds, current);
+  retval = g_hash_table_lookup_extended(ht->ht, s, oldkey, current);
   free(s);
   return retval;
 }
@@ -265,11 +263,31 @@ void bytes_hash_table_foreach_remove(GHashTableofBytes * ht, GHRFunc func, gpoin
   g_hash_table_foreach_remove(ht->ht, func, user_data);
 }
 
-void bytes_hash_table_removev(GHashTableofBytes * ht, struct iovec * vecs, int nvecs) {
-  struct bytedata * s = make_bytesv(ht, vecs, nvecs);
+static int isexpired(gpointer key, gpointer value, gpointer userdata) {
+  assert(key);
+  return ((struct bytedata*)key)->expired;
+}
 
-  g_hash_table_remove(ht->ht, s);
-  free(s);
+int bytes_hash_table_removev(GHashTableofBytes * ht, struct iovec * vecs, int nvecs) {
+  struct bytedata * s;
+  int res;
+  gpointer current;
+
+  res = bytes_hash_table_lookup_extendedv(ht, vecs, nvecs, (gpointer*)&s, &current);
+  if (!res) return 0;
+  assert(s);
+  s->expired = 1;
+
+  res = g_hash_table_remove(ht->ht, s);
+
+  // Garbage collect since g_hash_table_remove doesn't seem to work
+  if (! ht->gc_count--) {
+    //fprintf(stderr, "doing gc\n");
+    bytes_hash_table_foreach_remove(ht, isexpired, NULL);
+    ht->gc_count = 1000;
+  }
+
+  return res;
 }
 
 void bytes_hash_table_destroy(GHashTableofBytes * ht) {
