@@ -40,6 +40,8 @@ struct srcstat {
 
   const dts_object ** fields;
   struct timeval wheel_key;
+
+  struct entry * hash_entry;
 };
 
 struct wheel {
@@ -168,30 +170,17 @@ static inline int expired(struct state * state, struct iovec * domainv, struct s
 
     output(state, s);
 
-    if (!domainv) {
-	int i;
-  	domainv = malloc(state->fieldset.num * sizeof(struct iovec));
-	for (i=0; i<state->fieldset.num; i++) {
-		domainv[i].iov_base = s->fields[i]->data;
-		domainv[i].iov_len = s->fields[i]->len;
-	}
-	do_free =1;
-    } else {
+    if (domainv) {
 	wheel_remove(&state->timers, s);
     }
 	
     // Cleanup
-    for (i = 0; i<state->fieldset.num; i++) {
-	    dts_decref(s->fields[i]);
-    }
+    /* Don't have to decref fields, since their refcount will be picked up from being attached in the output routine */
     free(s->fields);
 
-    if (!bytes_hash_table_removev(state->stats, domainv, state->fieldset.num)) {
+    if (!bytes_hash_table_remove_element(state->stats, state->hash_entry)) {
  		// assert(0);
     }
-
-    if (do_free)	
-	free(domainv);
 
     return 1;
   }
@@ -368,7 +357,7 @@ static smacq_result flowid_consume(struct state * state, const dts_object * datu
 	assert(s->fields[i]);
       }
 
-      bytes_hash_table_setv(state->stats, domainv, state->fieldset.num, s);
+      bytes_hash_table_setv_get(state->stats, domainv, state->fieldset.num, s, &s->hash_entry);
       s->lasttime = *tsnow;
       //fprintf(stderr, "new %p\n", s);
       wheel_append(&state->timers, s);

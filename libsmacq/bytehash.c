@@ -265,13 +265,15 @@ bytes_boolean bytes_hash_table_getv(struct iovec_hash * ht, struct iovec * vecs,
   }
 }
 
+
 /* Return previous value, or NULL on failure */
-void * bytes_hash_table_setv(struct iovec_hash * ht, struct iovec * keys, int count, void * value) {
+void * bytes_hash_table_setv_get(struct iovec_hash * ht, struct iovec * keys, int count, void * value, struct element ** location) {
   struct element * element;
   void * oldval;
 
   if (bytes_hash_table_getv(ht, keys, count, &element, &oldval)) {
 	  element->value = value;
+	  *location = element;
 	  return oldval;
   } else {
 	  struct element * e = make_element(ht, keys, count);
@@ -289,8 +291,15 @@ void * bytes_hash_table_setv(struct iovec_hash * ht, struct iovec * keys, int co
 
 	  /* fprintf(stderr, "new key %p created in bucket %d, 2nd is %p\n", e, b, e->chain);  */
 
+	  *location = e;
 	  return NULL;
   }
+}
+
+/* Return previous value, or NULL on failure */
+void * bytes_hash_table_setv(struct iovec_hash * ht, struct iovec * keys, int count, void * value) {
+	struct element * ignore;
+	return bytes_hash_table_setv(ht, keys, count, value, &ignore);
 }
 
 int bytes_hash_table_incrementv(struct iovec_hash * ht, struct iovec * keys, int count) {
@@ -341,7 +350,7 @@ int bytes_hash_table_get(struct iovec_hash * ht, int keysize, unsigned char * ke
   return bytes_hash_table_getv(ht, &iov, 1, oldkey, current);
 }
 
-static inline void bytes_hash_table_remove_element(struct iovec_hash * ht, struct element * e) {
+void bytes_hash_table_remove_element(struct iovec_hash * ht, struct element * e) {
   chain_remove(e);
   if (ht->do_free) free(e->value);
   free_element(e);
