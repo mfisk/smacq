@@ -26,16 +26,15 @@ smacq_result msgtestModule::consume(DtsObject datum, int & outchan) {
   // datum = dts_writable(env, datum);
   
   /* Get current time as message data */
-  msgdata = datum->getfield(dts->requirefield("timeseries"));
+  msgdata = datum->getfield("timeseries");
 
   /* Get current address as matching criteria (msg destination) */
-  srcip = datum->getfield(dts->requirefield("srcip"));
+  srcip = datum->getfield("srcip");
   comp->op2->valueo = srcip->dup();
   
   /* Send it to everybody else */
-  msgdata->dup()->send(dts->requirefield("prior"), comp);
-
-  
+  DtsField f = dts->requirefield("prior");
+  msgdata->dup()->send(f, comp);
 
   return SMACQ_PASS;
 }
@@ -51,6 +50,5 @@ msgtestModule::msgtestModule(struct SmacqModule::smacq_init * context) : SmacqMo
     assert(argv);
   }
 }
-
 
 
