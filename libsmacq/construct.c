@@ -113,8 +113,6 @@ int smacq_add_child_only(smacq_graph * parent, smacq_graph * newo) {
       parent->child[parent->numchildren] = NULL;
       // fprintf(stderr, "Added %s(%p) as child of %s\n", newo->name, newo, parent->name);
       
-      smacq_add_parent(newo, parent);
-
       return (parent->numchildren - 1);
     }
 
@@ -124,14 +122,16 @@ int smacq_add_child_only(smacq_graph * parent, smacq_graph * newo) {
 int smacq_add_child(smacq_graph * parent, smacq_graph * child) {
 	int res;
 	res = smacq_add_child_only(parent, child);
-	smacq_add_parent(child, parent);
+
+	if (parent) 
+		smacq_add_parent(child, parent);
 
 	return res;
 }
 
 smacq_graph * smacq_add_new_child(smacq_graph * parent, int argc, char ** argv){
   smacq_graph * newo = smacq_new_module(argc, argv);
-  smacq_add_child_only(parent, newo);
+  smacq_add_child(parent, newo);
   return newo;
 }
 
@@ -231,6 +231,8 @@ smacq_graph * smacq_graph_add_graph(smacq_graph * a, smacq_graph * b) {
 
 void smacq_remove_parent(smacq_graph * a, const smacq_graph * parent) {
   int i;
+  if (!parent) return;
+
   assert(a->numparents);
 
   for (i = 0; i < a->numparents; i++) {
