@@ -133,7 +133,7 @@ PKG_CHECK_MODULES(GDA, libgda,
 ## Profiling
 ##
 AC_ARG_ENABLE(profile,
-	AS_HELP_STRING([--enable-profile],
+	AC_HELP_STRING([--enable-profile],
 			[enable gprof profiling]),
 		ADDCFLAGS="$ADDCFLAGS -pg"
 		LDFLAGS="$LDFLAGS -pg"
@@ -143,7 +143,7 @@ AC_ARG_ENABLE(profile,
 ## Debug
 ##	
 AC_ARG_ENABLE(debug,
-	AS_HELP_STRING([--enable-debug],
+	AC_HELP_STRING([--enable-debug],
 			[enable debugging options]),
 	[CPPFLAGS="$CPPFLAGS -D_GLIBCXX_DEBUG";
 	 if test -n "$GCC"; then
@@ -160,7 +160,7 @@ AC_ARG_ENABLE(debug,
 ## Small (-Os)
 ##	
 AC_ARG_ENABLE(small,
-	AS_HELP_STRING([--enable-small],
+	AC_HELP_STRING([--enable-small],
 			[compile with -Os to minize executable size]),
 	[if test -n "$GCC"; then
 		CO="-Os"
@@ -170,7 +170,7 @@ AC_ARG_ENABLE(small,
 ## Electric Fence
 ##
 AC_ARG_ENABLE(efence,
-	AS_HELP_STRING([--enable-efence],
+	AC_HELP_STRING([--enable-efence],
 		       [Enable electric-fence memory debugging]),
 		       [LDFLAGS="$LDFLAGS -lefence"])
 
@@ -178,7 +178,7 @@ AC_ARG_ENABLE(efence,
 ## Ethereal
 ##
 AC_ARG_WITH([ethereal], 
-	AS_HELP_STRING([--with-ethereal],
+	AC_HELP_STRING([--with-ethereal],
 			[Include Ethereal packet decoding]),
 	[with_ethereal="$withval"],
 	[with_ethereal=no])
@@ -203,7 +203,7 @@ AC_ARG_VAR(PYTHON, [Python 2.3 interpreter command])
 AC_CHECK_PROGS([PYTHON], [python2.3 python], :)
 
 AC_ARG_WITH([python],
-	AS_HELP_STRING([--with-python], 
+	AC_HELP_STRING([--with-python], 
 			[Include Python (default=use if available)]),
 	[with_python="$withval"],
 	[with_python=auto])
@@ -213,18 +213,16 @@ if test "X$with_python" = "Xauto"; then
 	if test "X$PYTHON" = "X:"; then
 		AC_MSG_NOTICE([Building without Python; use PYTHON=/path/to/python2.3 to include it])
 		with_python=no
-	else
-		with_python=yes
 	fi
 fi
 
-if test "X$with_python" = "Xyes"; then
+if test "X$with_python" != "Xno"; then
 	PYCONF=ac_config.py
 	cat >$PYCONF <<EOF
 [from distutils import sysconfig
 import sys
 
-assert sys.version_info > (2, 3, 0)
+assert sys.version_info > (2, 2, 0)
 
 res = []
 for i in sys.argv[1:]:
@@ -237,12 +235,26 @@ for i in sys.argv[1:]:
 print ' '.join(res)
 ]
 EOF
+fi
 
+if test "X$with_python" != "Xauto"; then
+	CFLAGS_PYTHON=`$PYTHON $PYCONF CFLAGS 2>&5`
+	if test $? -ne 0; then
+	    rm -f $PYCONF
+	    with_python=no
+ 	else
+	    with_python=yes
+	fi
+fi
+		
+if test "X$with_python" = "yes"; then
 	AC_MSG_CHECKING([CFLAGS_PYTHON])
 	CFLAGS_PYTHON=`$PYTHON $PYCONF CFLAGS 2>&5`
 	if test $? -ne 0; then
-		rm -f $PYCONF
+	    rm -f $PYCONF
+	    if test "X$with_python" = "auto"; then
 		AC_MSG_FAILURE([Python config script failed])
+	    fi
 	fi
 	AC_MSG_RESULT($CFLAGS_PYTHON)
 
@@ -315,7 +327,7 @@ CXXFLAGS="$CXXFLAGS $ADDCFLAGS $CO"
 ## Doit
 ##
 AC_CONFIG_FILES([Makefile
-				 libgnu/Makefile
+		 libgnu/Makefile
                  include/Makefile
                  bin/Makefile
                  doc/Makefile
