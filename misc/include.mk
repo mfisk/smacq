@@ -6,7 +6,7 @@ dirs: $(patsubst %, %.RECURSE, $(DIRS))
 	@BINDIR=$(BINDIR)/$*; \
 	SRCDIR=$(SRCDIR)/$*; \
 	mkdir -p $$BINDIR; \
+	VPATH=$$SRCDIR make -C $$BINDIR -f $$SRCDIR/Makefile \
 	LIBTOOL="$(LIBTOOL)" \
 	COPTS="$(COPTS)" \
-	VPATH=$$SRCDIR make -C $$BINDIR -f $$SRCDIR/Makefile; 
 
