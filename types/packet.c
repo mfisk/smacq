@@ -129,6 +129,11 @@ int dts_pkthdr_get_seq(const dts_object * datum, dts_object * data) {
   return gettcpfield(datum, data, field_offset(tcphdr, th_seq));
 }
 
+int dts_pkthdr_get_ack(const dts_object * datum, dts_object * data) {
+  data->len = 4;
+  return gettcpfield(datum, data, field_offset(tcphdr, th_ack));
+}
+
 int dts_pkthdr_get_dstip(const dts_object * datum, dts_object * data) {
   data->len = sizeof(struct in_addr);
   return getipfield(datum, data, field_offset(ip, ip_dst));
@@ -234,6 +239,7 @@ struct dts_field_spec dts_type_packet_fields[] = {
 	{ "nushort",	"srcport",    dts_pkthdr_get_srcport },
 	{ "nushort",	"dstport",    dts_pkthdr_get_dstport },
 	{ "nuint32",	"seq",    dts_pkthdr_get_seq },
+	{ "nuint32",	"ack",    dts_pkthdr_get_ack },
 	{ "nushort",	"urgptr",    dts_pkthdr_get_urgptr },
 	{ "ubyte",	"urg",    dts_pkthdr_get_urg },
 
