@@ -2,6 +2,7 @@
 #define SMACQ_H
 #define SMACQ_OPT_NOPTHREADS
 
+#include <stdio.h>
 #include <gmodule.h>
 #include <glib.h>
 #include <sys/time.h>
@@ -88,6 +89,7 @@ typedef struct _type_env {
  
   struct darray messages_byfield;
   struct darray types; /* struct dts_type * */
+  struct darray fields_bynum; /* char * */
 
   int (* lt)(struct _type_env *, int, void *, int, void *, int);
   int (* fromstring)(struct _type_env *, int, char *, dts_object *);
@@ -208,7 +210,7 @@ enum smacq_scheduler { ITERATIVE, RECURSIVE, LOOP, THREADED };
 EXTERN int smacq_start(smacq_graph *, enum smacq_scheduler, dts_environment *);
 void smacq_init_modules(smacq_graph *, smacq_environment *);
 EXTERN smacq_graph * smacq_build_pipeline(int argc, char ** argv);
-smacq_graph * smacq_build_query(int argc, char ** argv);
+smacq_graph * smacq_build_query(dts_environment * tenv, int argc, char ** argv);
 int smacq_execute_query(int argc, char ** argv);
 smacq_graph * smacq_add_new_child(smacq_graph * parent, int argc, char ** argv);
 int smacq_add_child(smacq_graph * parent, smacq_graph * newo);
@@ -222,7 +224,8 @@ smacq_graph * smacq_clone_child(smacq_graph * parent, int child);
 smacq_graph * smacq_clone_tree(smacq_graph * donorParent, smacq_graph * newParent, int child);
 
 dts_comparison * dts_parse_tests(dts_environment * tenv, int argc, char ** argv);
-void dts_field_printname(dts_environment * tenv, dts_field f);
+char * dts_field_getname(dts_environment * tenv, dts_field f);
+void smacq_graph_print(FILE * fh, smacq_graph * f, int indent);
 
 void dts_init_object(dts_object * d);
 
