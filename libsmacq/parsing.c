@@ -217,57 +217,81 @@ char * opstr(dts_comparison * comp) {
   return "[ERR]";
 }
 
+/* Caller must free */
+char * print_operand(struct dts_operand * op) {
+  char * buf;
+
+  switch(op->type) {
+  	case FIELD:
+	  return strdup(op->str);
+	  break;
+
+  	case CONST:
+	  buf = malloc(2+strlen(op->str));
+	  sprintf(buf, "\"%s\"", op->str);
+	  return buf;
+	  break;
+  }
+}
 
 char * print_comparison(dts_comparison * comp) {
-  int size = 20;
+  int size = 30;
   char * buf;
   dts_comparison * c;
   char * b;
+  char * op1, * op2;
   int i;
 
-  if (comp->fieldname) 
-    size += strlen(comp->fieldname);
+  switch(comp->op) {
+	case FUNC:
+	  	for (i=0; i<comp->func.argc; i++)
+    			size += strlen(comp->func.argv[i])+2;
+  		buf = malloc(size);
+    		snprintf(buf, size, "%s(", comp->func.name);
+    		for (i=0; i<comp->func.argc; i++) {
+			if (i) strcatn(buf, size, ", ");
+    			strcatn(buf, size, comp->func.argv[i]);
+    		}
+    		strcatn(buf, size, ")");
+		break;
 
-  if (comp->valstr)
-  	size += strlen(comp->valstr);
+	case EXIST:
+		size += strlen(comp->op1->str);
+		op1 = print_operand(comp->op1);
+  		buf = malloc(size);
+    		snprintf(buf, size, "(%s)", print_operand(comp->op1));
+		free(op1);
+		break;
 
-  if (comp->op == FUNC)
-	  for (i=0; i<comp->argc; i++)
-    		size += strlen(comp->argv[i])+2;
+	default:
+	  	op1 = print_operand(comp->op1);
+		op2 = print_operand(comp->op2);
+	  	size += 20 + strlen(op1) + strlen(op2);
+  		buf = malloc(size);
+    		snprintf(buf, size, "(%s %s %s)", op1, opstr(comp), op2);
+		free(op1);
+		free(op2);
+		break;
 
-  buf = malloc(size);
-
-  if (comp->op == EXIST) {
-    snprintf(buf, size, "(%s)", comp->fieldname);
-  } else if (comp->op == FUNC) {
-    snprintf(buf, size, "%s(", comp->fieldname);
-    for (i=0; i<comp->argc; i++) {
-	if (i) strcatn(buf, size, ", ");
-    	strcatn(buf, size, comp->argv[i]);
-    }
-    strcatn(buf, size, ")");
-
-  } else if (comp->op == OR || comp->op == AND) {
-    buf[0] = '\0';
-
-    for (c = comp->group; c; c=c->next) {
-      assert(c);
-      b = print_comparison(c);
-      size += strlen(b) + 5;
-      buf = realloc(buf, size);
-      strcatn(buf, size, b);
-      free(b);
-
-      if (c->next) {
-	if (comp->op == AND) {
-		strcatn(buf, size, " AND ");
-	} else {
-		strcatn(buf, size, " OR ");
-	}
-      }
-    }
-  } else {
-    snprintf(buf, size, "(%s %s \"%s\")", comp->fieldname, opstr(comp), comp->valstr);
+  	case AND:
+  	case OR:
+    		for (c = comp->group; c; c=c->next) {
+      			assert(c);
+      			b = print_comparison(c);
+      			size += strlen(b) + 5;
+      			buf = realloc(buf, size);
+      			strcatn(buf, size, b);
+      			free(b);
+			
+      			if (c->next) {
+				if (comp->op == AND) {
+					strcatn(buf, size, " AND ");
+				} else {
+					strcatn(buf, size, " OR ");
+				}
+      			}
+    		}
+		break;
   }
 
   return(buf);
@@ -291,7 +315,7 @@ struct graph optimize_bools(dts_comparison * comp) {
       assert (! "untested");
       graph_join(&g, optimize_bools(c->group));
     } else if (c->op == FUNC) {
-      graph_join(&g, newmodule(c->fieldname, c->arglist));
+      graph_join(&g, newmodule(c->func.name, c->func.arglist));
     } else if (c->op == OR) {
       dts_comparison * p;
 
@@ -352,21 +376,42 @@ dts_comparison * comp_join(dts_comparison * lh, dts_comparison * rh, int isor) {
   return ret;
 }
 
-dts_comparison * comp_new(char * field, dts_compare_operation op, char ** argv, int argc) {
+
+struct dts_operand * comp_operand(enum dts_operand_type type, char * str) {
+     struct dts_operand * comp = calloc(1,sizeof(struct dts_operand));
+
+     comp->type = type;
+     comp->str = str;
+
+     switch (type) {
+	case FIELD:
+       		comp->field = parse_tenv->requirefield(parse_tenv, str);
+		break;
+
+	case CONST:
+	       	break;
+     }
+
+     return comp;
+}
+
+dts_comparison * comp_new(dts_compare_operation op, struct dts_operand * op1, struct dts_operand * op2) {
      dts_comparison * comp = calloc(1,sizeof(dts_comparison));
 
      comp->op = op;
-     comp->fieldname = field;
+     comp->op1 = op1;
+     comp->op2 = op2;
 
-     if (comp->op == FUNC) {
-       comp->argv = argv;
-       comp->argc = argc;
-       comp->valstr = field;
-     } else {
-       comp->field = parse_tenv->requirefield(parse_tenv, field);
-       assert(argc <= 1);
-       if (argc) comp->valstr = argv[0];
-     }
+     return comp;
+}
+
+dts_comparison * comp_new_func(char * str, int argc, char ** argv, struct arglist * arglist) {
+     dts_comparison * comp = comp_new(FUNC, NULL, NULL);
+
+     comp->func.name = str;
+     comp->func.argc = argc;
+     comp->func.argv = argv;
+     comp->func.arglist = arglist;
 
      return comp;
 }

@@ -42,7 +42,9 @@ struct group {
   EXTERN struct vphrase newvphrase(char * verb, struct arglist * args);
   EXTERN struct graph optimize_bools(dts_comparison *);
   EXTERN dts_comparison * comp_join(dts_comparison *, dts_comparison *, int isor);
-  EXTERN dts_comparison * comp_new(char * field, dts_compare_operation op, char **, int);
+  EXTERN struct dts_operand * comp_operand(enum dts_operand_type type, char * str);
+  EXTERN dts_comparison * comp_new(dts_compare_operation op, struct dts_operand *, struct dts_operand *);
+  EXTERN dts_comparison * comp_new_func(char *, int, char **, struct arglist *);
   EXTERN char * print_comparison(dts_comparison * comp);
 
   EXTERN dts_environment * parse_tenv;

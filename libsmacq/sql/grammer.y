@@ -43,6 +43,7 @@
 %type <string> function verb word string id
 %type <op> op
 %type <comp> boolean test 
+%type <operand> operand
 
 %union {
   struct graph graph;
@@ -52,6 +53,7 @@
   struct group group;
   dts_compare_operation op;
   dts_comparison * comp;
+  struct dts_operand * operand;
 }
 %%
 
@@ -106,13 +108,18 @@ boolean : '(' boolean ')'	{ $$ = $2; }
 	| test 		
 	;
 
-test : word			{ $$ = comp_new($1, EXIST, NULL, 0); }
-	| word op word		{ $$ = comp_new($1, $2, &($3), 1); }
-	| verb '(' args ')'	{
-					int argc; char ** argv;
-					arglist2argv($3, &argc, &argv);
-					$$ = comp_new($1, FUNC, argv, argc);
-					$$->arglist = $3;
+operand : id			{ $$ = comp_operand(FIELD, $1); }
+	| string 		{ $$ = comp_operand(CONST, $1); }
+	;
+	
+test : operand			{ $$ = comp_new(EXIST, $1, $1); }
+	| operand op operand	{ $$ = comp_new($2, $1, $3); }
+	| verb '(' args ')'	{ 
+				  int argc; char ** argv;
+				  struct dts_operand op;
+
+				  arglist2argv($3, &argc, &argv);
+				  $$ = comp_new_func($1, argc, argv, $3);
 				}
 	;
 

@@ -71,7 +71,7 @@
 
 
 #ifndef YYSTYPE
-#line 63 "/home/mfisk/smacq/libsmacq/sql/parser.y"
+#line 64 "/home/mfisk/smacq/libsmacq/sql/parser.y"
 typedef union {
   struct graph graph;
   struct arglist * arglist;
@@ -80,9 +80,10 @@ typedef union {
   struct group group;
   dts_compare_operation op;
   dts_comparison * comp;
+  struct dts_operand * operand;
 } yystype;
 /* Line 1281 of /usr/share/bison/yacc.c.  */
-#line 86 "/home/mfisk/smacq/libsmacq/sql/parser.h"
+#line 87 "/home/mfisk/smacq/libsmacq/sql/parser.h"
 # define YYSTYPE yystype
 #endif
 

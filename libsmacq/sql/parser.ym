@@ -26,8 +26,6 @@ queryline: query YYSTOP
 	   }
 	;
 
-
-
 query : verbphrase from where group
            {
 	   	$$.head = ($$.tail = NULL);

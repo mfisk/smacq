@@ -4,9 +4,10 @@
 #include <stdlib.h>
 #include <assert.h>
 
-int type_match_andor(dts_environment * tenv, const dts_object * datum, 
-	   dts_comparison * comps, int same_types, int op);
+static inline int type_match_andor(dts_environment * tenv, const dts_object * datum, 
+	   dts_comparison * comps, int op);
 
+#if 0
 int dts_parsetest (dts_environment * tenv, dts_comparison * comp, 
 		    char * test) {
     int offset = strcspn(test,  "=<>!");
@@ -33,89 +34,117 @@ int dts_parsetest (dts_environment * tenv, dts_comparison * comp,
 
     return 1;
 }
+#endif
 
-static inline int compat(const dts_comparison * c, const dts_object * test_data) {
-	return (c->field_data.type == test_data->type);
+static inline int compat(const dts_comparison * c) {
+	return (c->op1->valueo && c->op2->valueo && (c->op1->valueo->type == c->op2->valueo->type));
 }
 
-static inline int eq(dts_environment * tenv, const dts_comparison * c, const dts_object * test_data) {
-	return (compat(c, test_data) && 
-	    (c->field_data.len == test_data->len) && 
-	    (!memcmp(c->field_data.data, test_data->data, test_data->len)));
+static inline int eq(dts_environment * tenv, const dts_comparison * c) {
+	return (compat(c) && 
+	    (c->op1->valueo->len == c->op2->valueo->len) && 
+	    (!memcmp(c->op1->valueo->data, c->op2->valueo->data, c->op1->valueo->len)));
 }
 
-static inline int lt(dts_environment * tenv, const dts_comparison * c, const dts_object * test_data) {
-	// fprintf(stderr, "%d <? %d: %d\n", *(ushort*)test_data.data, *(ushort*)c->field_data.data, match);
-	return (compat(c, test_data) && 
-	    (dts_lt(tenv, c->field_data.type, test_data->data, test_data->len, c->field_data.data, c->field_data.len)));
+static inline int lt(dts_environment * tenv, const dts_comparison * c) {
+	// fprintf(stderr, "%d <? %d: %d\n", *(ushort*)test_data.data, *(ushort*)c->field_data->data, match);
+	return (compat(c) && 
+	    (dts_lt(tenv, c->op1->valueo->type, c->op1->valueo->data, c->op1->valueo->len, c->op2->valueo->data, c->op2->valueo->len)));
 }
 
-int type_match_one(dts_environment * tenv, const dts_object * datum, 
-	   dts_comparison * c, int same_types) {
+static inline fetch_operand(dts_environment * tenv, const dts_object * datum, 
+	   struct dts_operand * op, int const_type) {
+
+  if (op->type == CONST && op->valueo && op->valueo->type == const_type) {
+	  return; 
+  }
+
+  if (op->valueo) dts_decref(op->valueo);
+
+  switch(op->type) {
+	case FIELD: 
+	  op->valueo = dts_getfield(tenv, datum, op->field);
+	  if (!op->valueo) fprintf(stderr, "Field %s not found in obj %p\n", op->str, datum);
+	  break;
+
+	case CONST: 
+	  op->valueo = dts_construct_fromstring(tenv, const_type, op->str); 
+	  if (!op->valueo) fprintf(stderr, "Could not parse %s\n", op->str);
+	  break;
+  }
+}
+
+static inline int type_match_one(dts_environment * tenv, const dts_object * datum, 
+	   dts_comparison * c) {
   const dts_object * test_data = NULL;
   int retval = 0;
 
-  if ((c->op != AND) && (c->op != OR) && (c->op != FUNC)) {
-    if (! (test_data = tenv->getfield(tenv, datum, c->field, NULL))) {
-	//fprintf(stderr, "Warning: object does not have field number %d\n", c->field);
-	return 0;
-    }
+  switch (c->op) {
+	case EXIST:
+  		fetch_operand(tenv, datum, c->op1, -1);
+		break;
+		
+	case EQ:
+	case NEQ:
+	case LT:
+	case GT:
+	case LEQ:
+	case GEQ:
+	  	if (c->op1->type != CONST) {
+  			fetch_operand(tenv, datum, c->op1, -1);
+			if (c->op1->valueo)
+			  fetch_operand(tenv, datum, c->op2, c->op1->valueo->type);
+		} else if (c->op2->type != CONST) {
+  			fetch_operand(tenv, datum, c->op2, -1);
+			if (c->op2->valueo)
+			  fetch_operand(tenv, datum, c->op1, c->op2->valueo->type);
+		} else {
+  			fetch_operand(tenv, datum, c->op2, dts_requiretype(tenv, "string"));
+			if (c->op2->valueo)
+			  fetch_operand(tenv, datum, c->op1, c->op2->valueo->type);
+		}
 
-    if ((!same_types) && c->valstr) {
-      /* The types of these fields may have changed, 
-	 reinitialize the values we're matching against */
+		break;
 
-      // fprintf(stderr, "Got field %d bytes %p == %p (%d)\n", len, *(unsigned long*)data, *(unsigned long*)c->data, c->size);
-
-      if ((c->op != EXIST) && (test_data->type != c->field_data.type)) {
-	if (c->field_data.free_data) 
-		free(c->field_data.data);
-	if (! tenv->fromstring(tenv, test_data->type, c->valstr, &c->field_data)) {
-	  fprintf(stderr,"Error: value %s is not valid for type %s \n", 
-		  c->valstr, tenv->typename_bynum(tenv, test_data->type));
-	  assert(0);
-	}
-      }
-    }
+	case OR:
+	case AND:
+	case FUNC:
+		break;
   }
 
   switch (c->op) {
       case EQ:
-	retval = eq(tenv, c, test_data);
+	retval = eq(tenv, c);
 	break;
 
       case NEQ:
-	retval = !eq(tenv, c, test_data);
+	retval = !eq(tenv, c);
 	break;
 
       case LT:
-	retval = lt(tenv, c, test_data);
+	retval = lt(tenv, c);
 	break;
 
       case GEQ:
-	retval = (compat(c, test_data) && !lt(tenv, c, test_data));
+	retval = (compat(c) && !lt(tenv, c));
 	break;
 
       case GT:
-	retval = (!lt(tenv, c, test_data) && !eq(tenv, c, test_data));
+	retval = (!lt(tenv, c) && !eq(tenv, c));
 	break;
 
       case LEQ:
-	retval = (eq(tenv, c, test_data) || lt(tenv, c, test_data));
+	retval = (eq(tenv, c) || lt(tenv, c));
 	break;
 
       case EXIST:
-	retval = 1;
-	break;
-
-      case LIKE:
-	assert("LIKE not supported yet.  Use substr module" && 0);
+	retval = (c->op1->valueo != NULL);
 	break;
 
       case AND:
       case OR:
         //fprintf(stderr, "criterion check %s\n", c->op == AND ? "and" : "or");
-	retval = type_match_andor(tenv, datum, c->group, same_types, c->op);
+	retval = type_match_andor(tenv, datum, c->group, c->op);
 	break;
 
       case FUNC:
@@ -123,19 +152,16 @@ int type_match_one(dts_environment * tenv, const dts_object * datum,
 	break;
   }
 
-  if (test_data) 
-    	dts_decref(test_data);
-
   return retval;
 }
       
 
-int type_match_andor(dts_environment * tenv, const dts_object * datum, 
-	   dts_comparison * comps, int same_types, int op) {
+static inline int type_match_andor(dts_environment * tenv, const dts_object * datum, 
+	   dts_comparison * comps, int op) {
   dts_comparison * c;
 
   for (c = comps; c; c = c->next) {
-	if (!type_match_one(tenv, datum, c, same_types)) {
+	if (!type_match_one(tenv, datum, c)) {
 		//fprintf(stderr,"no (%d)\n", op);
 		if (op == AND) 
 		  	return 0;
@@ -154,8 +180,8 @@ int type_match_andor(dts_environment * tenv, const dts_object * datum,
 }
 
 int type_match(dts_environment * tenv, const dts_object * datum, 
-	   dts_comparison * comps, int same_types) {
+	   dts_comparison * comps) {
 
-  return type_match_andor(tenv, datum, comps, same_types, AND);
+  return type_match_andor(tenv, datum, comps, AND);
 }
 
