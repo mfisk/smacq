@@ -11,12 +11,12 @@ static int get_sv4_prompt(const dts_object * o, dts_object * stro) {
 	dts_setsize(stro, 6);
 	char * str = dts_getdata(stro);
 
+	str[0] = ((prompt & 16) ? '<' : ' ');
+	str[1] = ((prompt & 8) ? '<' : ' ');
+	str[2] = ((prompt & 4) ? '*' : ' ');
+	str[3] = ((prompt & 2) ? '>' : ' ');
+	str[4] = ((prompt & 1) ? '>' : ' ');
 	str[5] = '\0';
-	if (prompt & 1) str[4] = '>';
-	if (prompt & 2) str[3] = '>';
-	if (prompt & 4) str[2] = '*';
-	if (prompt & 8) str[1] = '<';
-	if (prompt & 16) str[0] = '<';
 
 	return 1;
 }
