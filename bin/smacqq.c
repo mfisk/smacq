@@ -71,9 +71,8 @@ int main(int argc, char ** argv) {
       }
 
       while(1) {
-	   smacq_graph * g;
-	   for (g = graphs; g; g=g->next_graph) {
-	       int res = smacq_sched_iterative(g, NULL, &product, &runq, 1);
+	       smacq_graph * g;
+	       int res = smacq_sched_iterative(graphs, NULL, &product, &runq, 1);
 	       if (product) {
 		       //fprintf(stderr, "smacqq: Got selection!\n");
 		       dts_decref(product);
@@ -81,7 +80,6 @@ int main(int argc, char ** argv) {
 	       if (res & SMACQ_END) {
 		       return 0;
 	       }
-	   }
       }
       
   } else {
