@@ -1,4 +1,4 @@
-.TH smacq-modules 3 "$Date: 2002/12/01 03:32:54 $" "LANL"
+.TH smacq-modules 3 "$Date: 2002/12/28 04:19:17 $" "LANL"
 .SH NAME
 smacq-modules - pipeline module programming guide
 .SH SYNOPSIS
@@ -156,21 +156,26 @@ type number.
 Data records are composed of named fields that can be accessed with the following functions:
 
 .TP
-.BI "int smacq_getfield(smacq_environment * env, const dts_object * datum, int field, dts_object * data)"
+.BI "int smacq_getfield(smacq_environment * env, const dts_object * datum, dts_field field, dts_object * data)"
 .TP
-.BI "int dts_getfield(dts_environment * env, const dts_object * datum, int field, dts_object * data)"
+.BI "int dts_getfield(dts_environment * env, const dts_object * datum, dts_field field, dts_object * data)"
 	Initialize the data object to point to the specified field of the datum.  The data object
 	is only valid for the life of this datum.  A zero is returned on failure.
 
 .TP
-.BI "int smacq_getfield_copy(smacq_environment * env, const dts_object * datum, int field, dts_object * field_data)
+.BI "int smacq_getfield_copy(smacq_environment * env, const dts_object * datum, dts_field field, dts_object * field_data)
 	Same as above, but return a copy of the field that must be freed, but that will outlive the datum.
 
 .TP
-.BI "int smacq_requirefield(smacq_environment * env, char * tname)"
+.BI "dts_field smacq_requirefield(smacq_environment * env, char * tname)"
 .TP
-.BI "int dts_requirefield(dts_environment * env, char * tname)"
-	Return the dynamically assigned numeric identifier for the given field name.
+.BI "dts_field dts_requirefield(dts_environment * env, char * tname)"
+	Return the dynamically assigned identifier for the given field name.  This dts_field must be 
+	freed with dts_field_free().
+
+.TP
+.BI "void dts_field_free(dts_field field)"
+	Free the given dts_field data structure.
 
 .RE
 Data records and fields are dynamically typed objects (\fIdts_object\fP).  The following routines interface with the type system:
@@ -178,15 +183,6 @@ Data records and fields are dynamically typed objects (\fIdts_object\fP).  The f
 .TP
 .BI "int smacq_fromstring(smacq_environment * env, int type, char * value, dts_object * data)"
 	Convert the string-form value into a typed data object of the specified type. 
-
-.TP
-.BI "int smacq_presentdata(smacq_environment * env, dts_object * data, char * transform_type, void ** transform_ptr, int * transform_size)"
-.TP
-.BI "int dts_presentdata(dts_environment * env, dts_object * data, char * transform_type, void ** transform_ptr, int * transform_size)"
-	Transform the data object to the specified transform.  All types should
-	provide a "string" type.  A pointer to the resulting transform is stored
-	in transform_ptr and transform_size is set to the size of the transformed data.
-	It is the responsibility of the caller to free transforms when done.
 
 .TP
 .BI "int smacq_requiretype(smacq_environment * env, char * type_name)"
@@ -254,12 +250,12 @@ Valid types are: \fI SMACQ_TYPE_STRING, SMACQ_TYPE_INT, SMACQ_TYPE_DOUBLE, SMACQ
 Fields can also be sent to other data records:
 
 .TP
-.BI "void smacq_msg_send(smacq_environment * env, int field, dts_object * data, dts_comparison * comparisonList)"
+.BI "void smacq_msg_send(smacq_environment * env, dts_field field, dts_object * data, dts_comparison * comparisonList)"
 	Send a specified field with value specified by data to any data records described
 	by the criteria in the comparison list.
 
 .TP
-.BI "void dts_attach_field(const dts_object * current_object, int field, const dts_object * field_data)"
+.BI "void dts_attach_field(const dts_object * current_object, dts_field field, const dts_object * field_data)"
 	Attach the field_data object as a field of the current object.
 
 .RE
