@@ -123,7 +123,7 @@ static smacq_result count_init(struct smacq_init * context) {
 }
 
 static smacq_result count_shutdown(struct state * state) {
-  fprintf(stderr, "got shutdown!\n");
+  //fprintf(stderr, "count_shutdown!\n");
   bytes_hash_table_destroy(state->counters);
   free(state);
   // Print counters
@@ -135,10 +135,15 @@ static smacq_result count_produce(struct state * state, const dts_object ** datu
   int c;
   struct iovec * domainv = fields2vec(state->env, state->lastin, &state->fieldset);
 
+  if (!state->lastin) {
+	return SMACQ_FREE;
+  }
+
   *datump = state->lastin;
   state->lastin = NULL;
 
   if (state->fieldset.num) {
+	assert("count: If field names are specified, you must use -a\n!");
   	c = (int)bytes_hash_table_lookupv(state->counters, domainv, state->fieldset.num);
   } else {
 	c = state->counter;
@@ -147,6 +152,7 @@ static smacq_result count_produce(struct state * state, const dts_object ** datu
   assert(c!=0);
   annotate(state, *datump, c);
 
+  //fprintf(stderr, "count_produce() %p\n", *datump);
   return SMACQ_PASS|SMACQ_END;
 }
 
