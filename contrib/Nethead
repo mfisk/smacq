@@ -1,12 +1,19 @@
 #!/bin/sh -x
-exec bin/smacqq "\
-print -d,;,-B, flowid, bytes, packets, srcip, srcport, dstport, \
+IFACE=eth1
+OUTPUT=/tmp/smacq.out
+OUTPUT=/huge1/mfisk/flatland/sessions
+
+            #from (fifodelay -t, 5, -i, timeseries, -o, timeseries \
+	    #) \
+
+while [ 1 ]; do 
+	exec bin/smacqq "\
+	print -d,;, flowid, bytes, packets, srcip, srcport, dstport, \
                 dstip, packetsback, bytesback, start, finish \
-        from (fifodelay -t, 5, -i, start, from \
-		(flowid -r, -t, 10, srcip, dstip, srcport, dstport \
-        		from pcaplive(-i,eth0) \
+		from (flowid -r, -t, 8, srcip, dstip, srcport, dstport \
+        		from pcaplive(-p,-i,$IFACE,net,204.121.0.0/16) \
 		) \
-	) \
-	" > /scratch/smacq.out
+	" > $OUTPUT
+done
 
 
