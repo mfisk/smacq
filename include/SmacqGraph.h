@@ -379,9 +379,6 @@ inline int SmacqGraph::print_one(FILE * fh, int indent) {
   fprintf(fh, "\n");
 
   FOREACH_CHILD(this, {
-#ifdef SMACQ_DEBUG_GRAPHEDGES
-      fprintf(fh, "%*s  n%x -> n%x ;\n", indent, "", this, child);
-#endif
       fprintf(fh, "%*s+ Child %d,%d is ", indent, "", i, j);
       count += child->print_one(fh, indent+2);
     });
