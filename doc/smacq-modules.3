@@ -1,4 +1,4 @@
-.TH smacq-modules 3 "$Date: 2003/04/14 17:05:59 $" "LANL"
+.TH smacq-modules 3 "$Date: 2003/06/27 21:33:17 $" "LANL"
 .SH NAME
 smacq-modules - pipeline module programming guide
 .SH SYNOPSIS
@@ -181,30 +181,30 @@ queue is a struct smacq_outputq * and is initialized to NULL.
 .BI "enum free_boolean { FREE, NOFREE };"
 
 .TP
-.BI "GHashTableofBytes * bytes_hash_table_new(int maxkeybytes, enum chaining_boolean, enum free_boolean)"
+.BI "struct iovec_hash * bytes_hash_table_new(int maxkeybytes, enum chaining_boolean, enum free_boolean)"
 .TP
-.BI "int bytes_hash_table_incrementv(GHashTableofBytes * ht, struct iovec *, int count)"
+.BI "int bytes_hash_table_incrementv(struct iovec_hash * ht, struct iovec *, int count)"
 .TP
-.BI "int bytes_hash_table_insertv(GHashTableofBytes * ht, struct iovec *, int count,  gpointer value)"
+.BI "int bytes_hash_table_insertv(struct iovec_hash * ht, struct iovec *, int count,  gpointer value)"
 .TP
-.BI "gpointer bytes_hash_table_replacev(GHashTableofBytes * ht, struct iovec * keys, int count, gpointer value)"
+.BI "gpointer bytes_hash_table_replacev(struct iovec_hash * ht, struct iovec * keys, int count, gpointer value)"
 .TP
-.BI "gpointer bytes_hash_table_lookupv(GHashTableofBytes * ht, struct iovec *, int)"
+.BI "gpointer bytes_hash_table_lookupv(struct iovec_hash * ht, struct iovec *, int)"
 .TP
-.BI "int bytes_hash_table_removev(GHashTableofBytes * ht, struct iovec *, int)"
+.BI "int bytes_hash_table_removev(struct iovec_hash * ht, struct iovec *, int)"
 .TP
-.BI "void bytes_hash_table_destroy(GHashTableofBytes * ht)"
+.BI "void bytes_hash_table_destroy(struct iovec_hash * ht)"
 .TP
-.BI "gint bytes_hash_table_lookup_extendedv(GHashTableofBytes * ht, struct iovec * key, int keys, gpointer *oldkey, gpointer *current)"
+.BI "gint bytes_hash_table_lookup_extendedv(struct iovec_hash * ht, struct iovec * key, int keys, gpointer *oldkey, gpointer *current)"
 .TP
 .BI "void bytes_init_hash(guint32** randoms, int num, unsigned long prime)"
 
 .TP
-.BI "guint32 bytes_hash_valuev(GHashTableofBytes * ht, int nvecs, struct iovec *)"
+.BI "guint32 bytes_hash_valuev(struct iovec_hash * ht, int nvecs, struct iovec *)"
 .TP
-.BI "void bytes_hash_table_foreach(GHashTableofBytes * ht, GHFunc func, gpointer user_data)"
+.BI "void bytes_hash_table_foreach(struct iovec_hash * ht, GHFunc func, gpointer user_data)"
 .TP
-.BI "void bytes_hash_table_foreach_remove(GHashTableofBytes * ht, GHRFunc func, gpointer user_data)"
+.BI "void bytes_hash_table_foreach_remove(struct iovec_hash * ht, GHRFunc func, gpointer user_data)"
 
 
 .SH "THREAD SHIM"
