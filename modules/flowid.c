@@ -6,24 +6,14 @@
 */
 
 #include <stdlib.h>
-#include <netdb.h>
-#include <sys/socket.h>
-#include <signal.h>
 #include <time.h>
-#include <string.h>
-#include <math.h>
 #include <assert.h>
 #include <smacq.h>
-#include <dts_packet.h>
 #include <fields.h>
-#include "bytehash.h"
-#include <glib.h>
+#include <bytehash.h>
+#include <dllist.h>
 
-/* Programming constants */
-
-#define VECTORSIZE 21
-#define ALARM_BITS 15
-#define KEYBYTES 128
+#define KEYBYTES 0
 
 static struct smacq_options options[] = {
   {"t", {double_t:0}, "Threshold quiet time", SMACQ_OPT_TYPE_TIMEVAL},
@@ -32,7 +22,7 @@ static struct smacq_options options[] = {
 };
 
 struct srcstat {
-  struct timeval starttime, lasttime;
+  struct timeval starttime, lasttime, timer_index;
   int id;
 
   unsigned int byte_count, byte_count_back;
@@ -41,7 +31,7 @@ struct srcstat {
   const dts_object ** fields;
 
   struct element * hash_entry;
-  GList * timer_entry;
+  struct list_element * timer_entry;
 };
 
 struct state {
@@ -77,7 +67,7 @@ struct state {
   dts_field packet_count_field;
   dts_field packet_count_back_field;
 
-  GList * timers;
+  struct list timers;
 
   struct iovec_hash *stats;
   
@@ -157,7 +147,7 @@ static inline void finalize(struct state * state, struct srcstat * s) {
     output(state, s);
 
     state->active--;
-    /* fprintf(stderr, "%d active flows, timer list has %d\n", state->active, g_list_length(state->timers));*/
+    /* fprintf(stderr, "%d active flows, timer list has %d\n", state->active, list_length(&state->timers));*/
 
     // Cleanup
     /* Don't have to decref fields, since their refcount will be picked up from being attached in the output routine */
@@ -200,47 +190,32 @@ static inline struct srcstat * stats_lookup(struct state * state, const dts_obje
 }
 
 
-static inline void timers_new(struct state * state) {
-	state->timers = NULL;
-}
-
-static inline void timers_append(struct state * state, struct srcstat * s) {
-	/* XXX: this is inefficient */
-	state->timers = g_list_append(state->timers, s);
-	s->timer_entry = g_list_last(state->timers);
-}
-
-static inline struct srcstat * timers_peek(struct state * state) {
-	if (state->timers) {
-		return (struct srcstat*)state->timers->data;
-	} else {
-		return NULL;
-	}
-}
-
-static inline void timers_pop(struct state * state) {
-	GList * head = state->timers;
-	assert(head);
-	state->timers = g_list_remove_link(state->timers, head);
-	g_list_free_1(head);
-}
-
 static void timers_manage(struct state * state) {
     //fprintf(stderr, "managing of list\n");
     while (1) {
-        struct srcstat * s = timers_peek(state);
+        struct srcstat * s = list_peek_value(&state->timers);
 	if (!s) {
 		//fprintf(stderr, "end of list\n");
 		break;
 	}
 
-	if (timeval_past(s->lasttime, state->edge)) {
+	if (timeval_past(s->timer_index, state->edge)) {
 		//fprintf(stderr, "stopping at %p time %d now %d \n", s, s->lasttime.tv_sec, state->edge.tv_sec);
 		break;
 	}
 
+	if (timeval_past(s->lasttime, state->edge)) {
+		/* Need to reset timer for this guy */
+		s->timer_index = s->lasttime;
+		list_append_element(&state->timers, list_pop_element(&state->timers));
+
+		break;
+	}
+
+	/* If we got here, then the flow has timed-out */
+
 	/* Remove from all datastructures */
-	timers_pop(state);
+	list_element_free(&state->timers, list_pop_element(&state->timers));
 	bytes_hash_table_remove_element(state->stats, s->hash_entry);
 
 	/* Output and free */
@@ -314,19 +289,24 @@ static smacq_result flowid_consume(struct state * state, const dts_object * datu
       }
 
       bytes_hash_table_setv_get(state->stats, domainv, state->fieldset.num, s, &s->hash_entry);
-      if (state->hasinterval) timers_append(state, s);
+      if (state->hasinterval) {
+	s->timer_entry = list_append_value(&state->timers, s);
+	s->timer_index = s->lasttime;
+      }
 
       state->active++;
       status = SMACQ_PASS;
   } else {
       // Update state
       s->lasttime = *tsnow;
+
+      /* Cheaper not to move to end of timer list.
       if (state->hasinterval) {
-	/* XXX: this is inefficient */
-      	state->timers = g_list_remove_link(state->timers, s->timer_entry);
-	g_list_free_1(s->timer_entry);
-        timers_append(state, s);
+      	list_remove_element(&state->timers, s->timer_entry);
+	list_append_element(&state->timers, s->timer_entry);
       }
+      */
+
       //fprintf(stderr, "update %p\n", s);
   }
 
@@ -352,7 +332,7 @@ static smacq_result flowid_consume(struct state * state, const dts_object * datu
   if (state->outputq)
       status |= SMACQ_PRODUCE;
 
-  //fprintf(stderr, "Expires list length %d\n", g_list_length(state->expires));
+  //fprintf(stderr, "Expires list length %d\n", list_length(state->expires));
   return status;
 }
 
@@ -419,14 +399,14 @@ static smacq_result flowid_init(struct smacq_init * context) {
   }
 
   state->stats = bytes_hash_table_new(KEYBYTES, CHAIN|NOFREE);
-  timers_new(state);
+  list_init(&state->timers);
 
   return 0;
 }
 
 static smacq_result flowid_shutdown(struct state * state) {
   bytes_hash_table_destroy(state->stats);
-  g_list_free(state->timers);
+  list_free(&state->timers);
   free(state);
   return SMACQ_END;
 }
