@@ -7,7 +7,7 @@ PRODUCTS=$(DOCTXTS) $(DOCPDFS)
 all: $(DOCS) $(PRODUCTS)
 
 clean: 
-	rm -f $(PRODUCTS) 
+	rm -f $(PRODUCTS) smacq-embed.3 dts-types.3 smacqp.1
 
 publish:
 	rsync -e ssh -av *.pdf *.html smacq.sourceforge.net:smacqweb/
