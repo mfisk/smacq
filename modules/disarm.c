@@ -74,19 +74,20 @@ void init_get_line(struct get_line * s, FILE * fh) {
 
 /* Fills buffer upto a newline or EOF.  There is no NULL terminator. */
 /* Return value is string length */
-int get_line(char * buf, int buflen, struct get_line * s) {
+int get_line(char ** buf, struct get_line * s) {
 	/* 
 	 * What we need is an fgets that stops at newlines or NULLs 
 	 * since NULLs in a line screws up fgets. 
 	 * Having to use fgetc is really slow, so we to do our own buffering.
          */
 	int already_checked = s->leading;
+	*buf = NULL; /* For safety */
+
 	while (1) {
 	    char * offset = memchr(s->read_buffer + already_checked, '\n', s->buffer_used - already_checked);
 	    if (offset) {
 		int len = offset - (s->read_buffer + s->leading) + 1;
-		assert(buflen > len);
-		memcpy(buf, s->read_buffer + s->leading, len);
+		*buf = s->read_buffer + s->leading;
 		s->leading += len;
 		return len;
 	    } else {
@@ -98,7 +99,7 @@ int get_line(char * buf, int buflen, struct get_line * s) {
 		}
 		if (s->buffer_used == s->buffer_size) {
 			/* Not a whole line, but buffer is full */
-			memcpy(buf, s->read_buffer, s->buffer_used);
+			*buf = s->read_buffer;
 			s->leading = 0;
 			s->buffer_used = 0;
 			return s->buffer_size; 
@@ -110,7 +111,7 @@ int get_line(char * buf, int buflen, struct get_line * s) {
 			/* Iterate and check for null */
 		} else {
 			/* EOF or something terminal */
-			memcpy(buf, s->read_buffer, s->buffer_used);
+			*buf = s->read_buffer;
 			s->buffer_used = 0;
 			return s->buffer_used;
 		}
@@ -119,14 +120,13 @@ int get_line(char * buf, int buflen, struct get_line * s) {
 }
 
 static smacq_result disarm_produce(struct state * state, const dts_object ** datump, int * outchan) {
-	char hex[MAX_LINE];
+	char * hex;
 	unsigned char * decode;
 	int i;
 	int len;
 	const dts_object * datum;
 
-	len = get_line(hex, MAX_LINE, &state->linebuf);
-	assert(len < MAX_LINE);
+	len = get_line(&hex, &state->linebuf);
 	if (len == 0) {
 		return SMACQ_END;
 	}
@@ -134,7 +134,7 @@ static smacq_result disarm_produce(struct state * state, const dts_object ** dat
 	state->lineno++;
 
 	if (len < 98) {
-		fprintf(stderr, "Skipping invalid sv4 record on line %lud: %*s\n", state->lineno, len, hex);
+		fprintf(stderr, "Skipping invalid %d char sv4 record on line %lu: %.*s\n", len, state->lineno, len, hex);
 		return disarm_produce(state, datump, outchan);
         }
 
@@ -143,7 +143,7 @@ static smacq_result disarm_produce(struct state * state, const dts_object ** dat
 	/* Now we decode the hex into the binary data object */
 
 	len -= 49;
-  	datum = (dts_object*)smacq_alloc(state->env, len+2, state->sv4_type);
+  	datum = (dts_object*)smacq_alloc(state->env, len, state->sv4_type);
 	decode = dts_getdata(datum);
 
 	for (i=0; i<49; i++) {
