@@ -142,11 +142,6 @@ static inline int output(struct state * state, struct iovec * domainv, struct sr
   
       attach_stats(state, s, refresh);
 
-    // Cleanup
-    free(s->fields);
-
-    if (domainv) 
-      bytes_hash_table_removev(state->stats, domainv, state->fieldset.num);
 
     return 1;
 }
@@ -155,14 +150,21 @@ static int expired(struct state * state, struct iovec * domainv, struct srcstat 
   if (!state->hasinterval) return 0;
 
   if (s->expired) {
-    //assert(0); //Shouldn't happen
+    assert(0); //Shouldn't happen
     return 1;
   }
 
   if (!timeval_past(s->lasttime, state->edge)) {
-    s->expired = 1 ;
+    s->expired = 1;
 
     output(state, domainv, s);
+
+    // Cleanup
+    free(s->fields);
+
+    bytes_hash_table_remove(state->stats, s);
+
+    return 1;
   }
   
   return 0;
@@ -180,10 +182,11 @@ static inline int test_expired(gpointer key, gpointer val, gpointer user_data) {
   struct state * state = user_data;
   
   expired(state, NULL, s);
+
   return 0;
 }
 
-  /*
+/*
  * Plan of attack: 
  *
  * 1) Find out what time it is now.
@@ -207,6 +210,7 @@ static smacq_result flowid_consume(struct state * state, const dts_object * datu
     return SMACQ_PASS;
   } else {
     tsnow = (struct timeval*) dts_getdata(field);
+    dts_decref(field);
   }
 
   // Get current size
@@ -215,6 +219,7 @@ static smacq_result flowid_consume(struct state * state, const dts_object * datu
     return SMACQ_PASS;
   } else {
     size = dts_data_as(field, unsigned int);
+    dts_decref(field);
   }
 
   // Find this entry
@@ -274,7 +279,9 @@ static smacq_result flowid_consume(struct state * state, const dts_object * datu
     dts_attach_field(datum, state->flowid_field, msgdata);
     attach_stats(state, s, datum);
   }
-  
+ 
+
+  /* XXX: Very inefficient */
   if (state->hasinterval)
     bytes_hash_table_foreach_remove(state->stats, test_expired, state);
 
