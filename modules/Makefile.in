@@ -168,7 +168,7 @@ EXTRA_LTLIBRARIES = #libpcaplive.la libreassemble.la libbench_field.la
 #BUILT_SOURCES = count.cpp
 SUFFIXES = .sc
 
-libsmacq_modules_la_SOURCES = print.cpp pcaplive.cpp pcapfile.cpp socket.cpp uniq.cpp count.cpp last.cpp top.cpp head.cpp filter.cpp msgtest.cpp entropy.cpp derivative.cpp encrypt.cpp pdf.cpp fifo.cpp delta.cpp tabularinput.cpp rusage.cpp groupby.cpp flowid.cpp sum.cpp fifodelay.cpp project.cpp rename.cpp mask.cpp const.cpp ndjoin.cpp lor.cpp counter_loop.cpp dfa.cpp expr.cpp equals.cpp cflow.cpp clock.cpp disarm.cpp substr-main.cpp iplookup.cpp streamalias.cpp join.cpp
+libsmacq_modules_la_SOURCES = print.cpp pcaplive.cpp pcapfile.cpp socket.cpp uniq.cpp count.cpp last.cpp top.cpp head.cpp filter.cpp msgtest.cpp entropy.cpp derivative.cpp encrypt.cpp pdf.cpp fifo.cpp delta.cpp tabularinput.cpp rusage.cpp groupby.cpp flowid.cpp sum.cpp fifodelay.cpp project.cpp rename.cpp mask.cpp const.cpp ndjoin.cpp lor.cpp counter_loop.cpp dfa.cpp expr.cpp equals.cpp cflow.cpp clock.cpp disarm.cpp substr-main.cpp iplookup.cpp streamalias.cpp join.cpp changes.cpp
 
 EXTRA_libsmacq_modules_la_SOURCES = sqlinsert.cpp python.cpp
 
@@ -218,7 +218,7 @@ am_libsmacq_modules_la_OBJECTS = print.lo pcaplive.lo pcapfile.lo \
 	fifodelay.lo project.lo rename.lo mask.lo const.lo ndjoin.lo \
 	lor.lo counter_loop.lo dfa.lo expr.lo equals.lo cflow.lo \
 	clock.lo disarm.lo substr-main.lo iplookup.lo streamalias.lo \
-	join.lo
+	join.lo changes.lo
 libsmacq_modules_la_OBJECTS = $(am_libsmacq_modules_la_OBJECTS)
 libtest_dynamic_la_LDFLAGS =
 libtest_dynamic_la_LIBADD =
@@ -228,25 +228,25 @@ libtest_dynamic_la_OBJECTS = $(am_libtest_dynamic_la_OBJECTS)
 DEFAULT_INCLUDES =  -I. -I$(srcdir) -I$(top_builddir)
 depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
-@AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/cflow.Plo ./$(DEPDIR)/clock.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/const.Plo ./$(DEPDIR)/count.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/counter_loop.Plo ./$(DEPDIR)/delta.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/derivative.Plo ./$(DEPDIR)/dfa.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/disarm.Plo ./$(DEPDIR)/encrypt.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/entropy.Plo ./$(DEPDIR)/equals.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/expr.Plo ./$(DEPDIR)/fifo.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/fifodelay.Plo ./$(DEPDIR)/filter.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/flowid.Plo ./$(DEPDIR)/groupby.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/head.Plo ./$(DEPDIR)/iplookup.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/join.Plo ./$(DEPDIR)/last.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/lor.Plo ./$(DEPDIR)/mask.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/msgtest.Plo ./$(DEPDIR)/ndjoin.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/noop.Plo ./$(DEPDIR)/pcapfile.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/pcaplive.Plo ./$(DEPDIR)/pdf.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/print.Plo ./$(DEPDIR)/project.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/python.Plo ./$(DEPDIR)/rename.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/rusage.Plo ./$(DEPDIR)/socket.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/sqlinsert.Plo \
+@AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/cflow.Plo ./$(DEPDIR)/changes.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/clock.Plo ./$(DEPDIR)/const.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/count.Plo ./$(DEPDIR)/counter_loop.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/delta.Plo ./$(DEPDIR)/derivative.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/dfa.Plo ./$(DEPDIR)/disarm.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/encrypt.Plo ./$(DEPDIR)/entropy.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/equals.Plo ./$(DEPDIR)/expr.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/fifo.Plo ./$(DEPDIR)/fifodelay.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/filter.Plo ./$(DEPDIR)/flowid.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/groupby.Plo ./$(DEPDIR)/head.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/iplookup.Plo ./$(DEPDIR)/join.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/last.Plo ./$(DEPDIR)/lor.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/mask.Plo ./$(DEPDIR)/msgtest.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/ndjoin.Plo ./$(DEPDIR)/noop.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/pcapfile.Plo ./$(DEPDIR)/pcaplive.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/pdf.Plo ./$(DEPDIR)/print.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/project.Plo ./$(DEPDIR)/python.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/rename.Plo ./$(DEPDIR)/rusage.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/socket.Plo ./$(DEPDIR)/sqlinsert.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/streamalias.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/substr-main.Plo ./$(DEPDIR)/sum.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/tabularinput.Plo ./$(DEPDIR)/top.Plo \
@@ -302,6 +302,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/cflow.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/changes.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/clock.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/const.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/count.Plo@am__quote@
