@@ -95,15 +95,15 @@ STRIP = @STRIP@
 VERSION = @VERSION@
 YACC = @YACC@
 
-SUBDIRS = substr 
+SUBDIRS = substr patricia
 INCLUDES = @GLOBAL_INCLUDES@ -I$(top_srcdir)/include -I/usr/include/pcap
 noinst_LTLIBRARIES = libsmacq_modules.la libtest_dynamic.la 
 EXTRA_LTLIBRARIES = libpcaplive.la libpython.la libreassemble.la libbench_field.la 
 BUILT_SOURCES = count.c
 SUFFIXES = .sc
 
-libsmacq_modules_la_SOURCES = print.c pcaplive.c pcapfile.c socket.c uniq.c count.c last.c top.c head.c filter.c msgtest.c entropy.c derivative.c split.c encrypt.c warden.c pdf.c fifo.c delta.c tabularinput.c sync.c rusage.c groupby.c flowid.c sum.c fifodelay.c project.c rename.c join.c bench_field.la mask.c const.c ndjoin.c lor.c counter_loop.c dfa.c noop.c expr.c equals.c cflow.c clock.c disarm.c substr-main.c #sqlclient.c
-libsmacq_modules_la_LIBADD = substr/libsubstr.la
+libsmacq_modules_la_SOURCES = print.c pcaplive.c pcapfile.c socket.c uniq.c count.c last.c top.c head.c filter.c msgtest.c entropy.c derivative.c split.c encrypt.c warden.c pdf.c fifo.c delta.c tabularinput.c sync.c rusage.c groupby.c flowid.c sum.c fifodelay.c project.c rename.c join.c bench_field.la mask.c const.c ndjoin.c lor.c counter_loop.c dfa.c noop.c expr.c equals.c cflow.c clock.c disarm.c substr-main.c iplookup.c #sqlclient.c
+libsmacq_modules_la_LIBADD = substr/libsubstr.la patricia/libpatricia.la
 libsmacq_modules_la_DEPENDENCIES = $(libsmacq_modules_la_LIBADD)
 
 libtest_dynamic_la_SOURCES = test_dynamic.c
@@ -166,7 +166,7 @@ entropy.lo derivative.lo split.lo encrypt.lo warden.lo pdf.lo fifo.lo \
 delta.lo tabularinput.lo sync.lo rusage.lo groupby.lo flowid.lo sum.lo \
 fifodelay.lo project.lo rename.lo join.lo mask.lo const.lo ndjoin.lo \
 lor.lo counter_loop.lo dfa.lo noop.lo expr.lo equals.lo cflow.lo \
-clock.lo disarm.lo substr-main.lo
+clock.lo disarm.lo substr-main.lo iplookup.lo
 libtest_dynamic_la_LDFLAGS = 
 libtest_dynamic_la_LIBADD = 
 libtest_dynamic_la_OBJECTS =  test_dynamic.lo
@@ -192,13 +192,14 @@ DEP_FILES =  .deps/bench_field-main.P .deps/bench_field-virtual.P \
 .deps/counter_loop.P .deps/delta.P .deps/derivative.P .deps/dfa.P \
 .deps/disarm.P .deps/encrypt.P .deps/entropy.P .deps/equals.P \
 .deps/expr.P .deps/fifo.P .deps/fifodelay.P .deps/filter.P \
-.deps/flowid.P .deps/groupby.P .deps/head.P .deps/join.P .deps/last.P \
-.deps/libpython.la.P .deps/libreassemble.la.P .deps/lor.P .deps/mask.P \
-.deps/msgtest.P .deps/ndjoin.P .deps/noop.P .deps/pcapfile.P \
-.deps/pcaplive.P .deps/pdf.P .deps/print.P .deps/project.P \
-.deps/rename.P .deps/rusage.P .deps/socket.P .deps/split.P \
-.deps/substr-main.P .deps/sum.P .deps/sync.P .deps/tabularinput.P \
-.deps/test_dynamic.P .deps/top.P .deps/uniq.P .deps/warden.P
+.deps/flowid.P .deps/groupby.P .deps/head.P .deps/iplookup.P \
+.deps/join.P .deps/last.P .deps/libpython.la.P .deps/libreassemble.la.P \
+.deps/lor.P .deps/mask.P .deps/msgtest.P .deps/ndjoin.P .deps/noop.P \
+.deps/pcapfile.P .deps/pcaplive.P .deps/pdf.P .deps/print.P \
+.deps/project.P .deps/rename.P .deps/rusage.P .deps/socket.P \
+.deps/split.P .deps/substr-main.P .deps/sum.P .deps/sync.P \
+.deps/tabularinput.P .deps/test_dynamic.P .deps/top.P .deps/uniq.P \
+.deps/warden.P
 SOURCES = $(libpcaplive_la_SOURCES) libpython.la.c libreassemble.la.c $(libbench_field_la_SOURCES) $(libsmacq_modules_la_SOURCES) $(libtest_dynamic_la_SOURCES)
 OBJECTS = $(libpcaplive_la_OBJECTS) libpython.la.lo libreassemble.la.lo $(libbench_field_la_OBJECTS) $(libsmacq_modules_la_OBJECTS) $(libtest_dynamic_la_OBJECTS)
 
