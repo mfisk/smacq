@@ -1,9 +1,9 @@
 =============================================================================
 			SMACQ BUILD INSTRUCTIONS
 
-On supported systems (Linux, MacOS/X + Fink), simply run "make" to build.
-If you do not have all of the prerequisits (see below), you may encounter
-an error.  On FreeBSD use "gmake".
+On supported systems (Linux, FreeBSD, MacOS/X + Fink), simply run "make" 
+to build.  If you do not have all of the prerequisits (see below), you 
+may encounter an error.
 
 Global configuration options are in config.mk.  The primary reason to edit
 this file is to enable/disable debugging options.
