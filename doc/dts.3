@@ -1,4 +1,4 @@
-.TH dts 3 "$Date: 2003/03/19 03:25:49 $" "LANL"
+.TH dts 3 "$Date: 2003/04/10 21:16:34 $" "LANL"
 .SH NAME
 dts  \- Dynamic Type System API
 .SH SYNOPSIS
@@ -33,6 +33,10 @@ type number.
 .TP
 .BI "int smacq_fromstring(smacq_environment * env, int type, char * value, dts_object * data)"
 Convert the string-form value into a typed data object of the specified type. 
+
+.TP
+.BI "const dts_object * dts_construct_fromstring(dts_environment * env, int type, char * value)"
+Convert the string-form value into a new, typed data object of the specified type. 
 
 .TP
 .BI "void dts_attach_field(const dts_object * current_object, dts_field field, const dts_object * field_data)"
@@ -171,7 +175,7 @@ The basic data structure for this is dts_comparison.  This structure has an
 operation type that may be one of EQUALITY, INEQUALITY, LIKE, GT, LT, AND, and OR.  In the case of AND and OR, the "group" element points to a dts_comparison list of subterms.  Otherwise, the value string is in the "valstr" element.
 
 .TP
-.BI "int smacq_match(smacq_environment * env, const dts_object * datum, dts_comparison * comps, int same_types)"
+.BI "int smacq_match(smacq_environment * env, const dts_object * datum, dts_comparison * comps)"
 Compares the specified datum with the specified list of comparisions.
 Returns non-zero iff all of the comparisons are true.
 

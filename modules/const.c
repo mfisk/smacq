@@ -45,7 +45,7 @@ static smacq_result const_init(struct smacq_init * context) {
   assert(argc<=2);
   assert(argc>=1);
 
-  state->data = smacq_construct_fromstring(state->env, smacq_requiretype(state->env, "string"), strdup(argv[0]));
+  state->data = dts_construct_fromstring(state->env->types, smacq_requiretype(state->env, "string"), strdup(argv[0]));
   if (argc == 2) {
   	state->field = smacq_requirefield(state->env, argv[1]);
   } else {

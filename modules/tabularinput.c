@@ -37,7 +37,7 @@ static const dts_object * default_parse(struct state* state, char * startp, char
 
       if (badp && badp != endp) {
 	//fprintf(stderr, "Double test failed, '%s' remains\n", badp);
-	msgdata = smacq_construct_fromstring(state->env, state->string_type, startp);
+	msgdata = dts_construct_fromstring(state->env->types, state->string_type, startp);
       } else {
 	//fprintf(stderr, "Double test succeeded for '%s'\n", startp);
 	msgdata = smacq_dts_construct(state->env, state->double_type, &d);
@@ -88,7 +88,7 @@ static smacq_result tabularinput_produce(struct state* state, const dts_object *
     if (i >= state->fields || !state->field_type[i]) {
 	msgdata = default_parse(state, startp, endp);
     } else {
-	msgdata = smacq_construct_fromstring(state->env, state->field_type[i], startp);
+	msgdata = dts_construct_fromstring(state->env->types, state->field_type[i], startp);
 	if (!msgdata) {
 	    fprintf(stderr, "Unable to parse field %s as type %s\n", "", "");
 	    msgdata = default_parse(state, startp, endp);
