@@ -10,6 +10,7 @@ char *yystring;
 #define yysmacql__scan_string yysmacql_scan_string
 #define yy_scan_string yysmacql_scan_string
 #define yylex yysmacql_lex
+
 %}
 
 %option noyywrap
@@ -94,4 +95,9 @@ having|HAVING	return HAVING;
 .	{ fprintf(stderr, "Unexpected character \"%s\"\n", yytext); return -1; }
 
 %%
+/* gcc will warn that yyunput is declared, but unused, so fool it unto thinking it's used.   blech! */
+void no_unused_warning() {
+	yyunput(0, '\0');
+	no_unused_warning();
+}
 
