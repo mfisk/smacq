@@ -30,7 +30,6 @@ SMACQ_MODULE(join,
   std::vector<struct alias> Aliases;
 
   void for_all_but(unsigned int is_alias, DtsObject o, unsigned int alias);
-  void get_where(SmacqGraph * where_graph, DtsField field);
 ); 
 
 // Cross-product.  This is about the least efficient way to implement this, but
@@ -132,6 +131,8 @@ joinModule::joinModule(SmacqModule::smacq_init * context)
 		a.newfield = dts->requirefield("new");
 
 	    SmacqGraph * invariants = where_graph->get_invariants_over_field(a.field);
+		fprintf(stderr, "Invariant tests for alias %s:\n", context->argv[i]);
+	    where_graph->print(stderr, 15);
 		a.where = new SmacqScheduler(dts, invariants, false);
 		invariants->init(dts, a.where);
 
