@@ -1,12 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+
+#define SMACQ_MODULE_IS_DEMUX 1
 #include <smacq.h>
 #include <FieldVec.h>
 #include <SmacqGraph.h>
 #include <SmacqScheduler.h>
-
-#define SMACQ_MODULE_IS_DEMUX 1
 
 #define KEYBYTES 128
 

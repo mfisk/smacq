@@ -4,10 +4,6 @@
 #include <smacq.h>
 #include <FieldVec.h>
 
-static struct smacq_options options[] = {
-  END_SMACQ_OPTIONS
-};
-
 SMACQ_MODULE(rename,
   PROTO_CTOR(rename);
   PROTO_CONSUME();

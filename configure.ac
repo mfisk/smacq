@@ -108,7 +108,7 @@ AC_ARG_ENABLE(debug,
 			[enable debugging options]),
 	[if test -n "$GCC"; then
 		CO="-O0"
-		ADDCFLAGS="$ADDCFLAGS -fno-inline -ggdb"
+		ADDCFLAGS="$ADDCFLAGS -fno-inline -g -Wall -Werror"
 	else
 		CO="-O0"
 		ADDCFLAGS="$ADDCFLAGS -g"
@@ -118,6 +118,11 @@ AC_ARG_ENABLE(debug,
 	fi
 	CO="-O9"
 	])
+
+AC_ARG_ENABLE(efence,
+	AS_HELP_STRING([--enable-efence],
+			[Enable electric-fence memory debugging]),
+		[LDFLAGS="$LDFLAGS -lefence"])
 
 AC_ARG_WITH([ethereal], 
 	AS_HELP_STRING([--with-ethereal],

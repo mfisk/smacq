@@ -6,11 +6,11 @@
 #include <string.h>
 #include <math.h>
 #include <assert.h>
+
+#define SMACQ_MODULE_IS_ANNOTATION 1
 #include <smacq.h>
 #include <FieldVec.h>
 #include <FieldVec.h>
-
-#define SMACQ_MODULE_IS_ANNOTATION 1
 
 static struct smacq_options options[] = {
   {"a", {boolean_t:0}, "Output sum only on refresh", SMACQ_OPT_TYPE_BOOLEAN},

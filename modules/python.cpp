@@ -1,9 +1,10 @@
+#define DUMP_ENABLE
+
 #include <Python.h>
 #include <netinet/in.h>
 #include "smacq.h"
 #include "dts.h"
 
-#define DUMP_ENABLE
 #include "dump.h"
 
 static int init_count = 0;
@@ -108,6 +109,7 @@ pythonModule::pythonModule(struct smacq_init *context)
     }
 
     /* Call the init function */
+    DUMP();
     this->pConsume = PyObject_CallObject(pInit, pArgs);
     if (! this->pConsume) {
       PyErr_Print();
@@ -151,7 +153,6 @@ smacq_result pythonModule::consume(DtsObject datum, int &outchan)
     /* Send it to the consume function */
   DUMP_p(this->pConsume);
   DUMP_p(pDts);
-  DUMP_BREAKPOINT();
     pRet = PyObject_CallFunction(this->pConsume, "O", pDts);
   DUMP();
     if (! pRet) {
@@ -267,13 +268,6 @@ static PyObject *PyDts_subscript(PyObject *p, PyObject *pName)
   }
 
   return (PyObject *)pDts;
-}
-
-static int PyDts_ass_sub(PyObject *p,
-                         PyObject *pName, PyObject *pValue)
-{
-  PyErr_SetNone(PyExc_NotImplementedError);
-  return -1;
 }
 
 static PyMappingMethods PyDts_as_mapping = {
@@ -439,12 +433,16 @@ static PyObject *pydts_create(DtsObject datum, DTS *dts)
   DUMP();
   do {
     /* Allocate the new object */
+  DUMP();
     pObj = PyObject_New(PyDtsObject, &PyDtsType);
+  DUMP();
     if (! pObj) {
       break;
     }
 
+  DUMP_p(&datum);
     pObj->d   = datum->dup();
+  DUMP();
     pObj->dts = dts;
 
     passed = 1;

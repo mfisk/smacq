@@ -4,7 +4,6 @@
 #include <dts.h>
 #include <assert.h>
 
-#define DUMP_ENABLE
 #include "dump.h"
 
 #ifndef __cplusplus
@@ -252,6 +251,7 @@ inline void DtsObject_::decref() {
   //fprintf(stdout, "deref called for %p\n", d);
 
   DUMP_p(this);
+  DUMP_d(this->refcount);
   assert(this->refcount > 0);
 
   DUMP();

@@ -1,5 +1,5 @@
 /*
- * $Id: patricia.c,v 1.4 2000/09/29 19:28:07 dplonka Exp $
+ * $Id: patricia.c,v 1.1 2004/02/19 23:58:32 mfisk Exp $
  * Dave Plonka <plonka@doit.wisc.edu>
  *
  * This product includes software developed by the University of Michigan,
@@ -11,10 +11,6 @@
  * radix trie.  Also I pulled in various requirements from "prefix.c" and
  * "demo.c" so that it could be used as a standalone API.
  */
-
-static char copyright[] =
-"This product includes software developed by the University of Michigan, Merit"
-"Network, Inc., and their contributors.";
 
 #include <assert.h> /* assert */
 #include <ctype.h> /* isdigit */
@@ -990,7 +986,7 @@ lookup_then_remove (patricia_tree_t *tree, char *string)
 {
     patricia_node_t *node;
 
-    if (node = try_search_exact (tree, string))
+    if ((node = try_search_exact (tree, string)))
         patricia_remove (tree, node);
 }
 
@@ -1008,6 +1004,7 @@ try_search_best (patricia_tree_t *tree, char *string)
         printf ("try_search_best: %s/%d found\n", 
 	        prefix_toa (node->prefix), node->prefix->bitlen);
     Deref_Prefix (prefix);
+    return node;
 }
 
 /* } */

@@ -3,6 +3,8 @@
 #include <assert.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+
+#define SMACQ_MODULE_IS_STATELESS 1
 #include "smacq.h"
 
 struct mask {
@@ -11,8 +13,6 @@ struct mask {
 	int isnot;
 	/* struct mask * next; */
 };
-
-#define SMACQ_MODULE_IS_STATELESS 1
 
 SMACQ_MODULE(mask,
   PROTO_CTOR(mask);
@@ -23,12 +23,6 @@ SMACQ_MODULE(mask,
   int ip_type;
 );
 
-static struct smacq_options options[] = {
-  //{"f", {string_t:NULL}, "Field to inspect (full data is default)", SMACQ_OPT_TYPE_STRING},
-  //{"m", {boolean_t:0}, "OR multiple fields and demux to individual outputs", SMACQ_OPT_TYPE_BOOLEAN},
-  END_SMACQ_OPTIONS
-};
-
 smacq_result maskModule::consume(DtsObject datum, int & outchan) {
   DtsObject fieldo;
   in_addr_t f;
@@ -37,19 +31,19 @@ smacq_result maskModule::consume(DtsObject datum, int & outchan) {
   assert(datum);
 
   if (field) {
-  	fieldo = datum->getfield(field);
-  	//if (!field) fprintf(stderr, "mask: No such field (%d) on %p\n", field[0], datum);
-  	if (!fieldo) return SMACQ_FREE;
+	fieldo = datum->getfield(field);
+	//if (!field) fprintf(stderr, "mask: No such field (%d) on %p\n", field[0], datum);
+	if (!fieldo) return SMACQ_FREE;
 	assert(fieldo->gettype() == ip_type);
 
         f = dts_data_as(fieldo, in_addr_t);
-  	
+
   } else {
 	assert(datum->gettype() == ip_type);
         f = dts_data_as(datum, in_addr_t);
   }
 
-  //fprintf(stderr, "%x & %x =? %x\n", f, test.mask.s_addr, test.addr.s_addr); 
+  //fprintf(stderr, "%x & %x =? %x\n", f, test.mask.s_addr, test.addr.s_addr);
   if ((f & test.mask.s_addr) == test.addr.s_addr) {
 	  found = 1;
   }
@@ -68,7 +62,7 @@ maskModule::maskModule(struct SmacqModule::smacq_init * context) : SmacqModule(c
 
   field = dts->requirefield(argv[0]);
   //fprintf(stderr, "Mask on field %s, %d (env %p)\n", argv[0], field[0], env);
-  
+
   ip_type = dts->requiretype("ip");
 
   assert(argc==2);
@@ -81,7 +75,7 @@ maskModule::maskModule(struct SmacqModule::smacq_init * context) : SmacqModule(c
 	  if (notstr && (notstr == argv[i])) {
 		  test.isnot = 1;
 		  argv[i]++;
-   	  }
+	  }
 
 	  if (slash) {
 		  slash[0] = '\0';
@@ -101,4 +95,3 @@ maskModule::maskModule(struct SmacqModule::smacq_init * context) : SmacqModule(c
 	  //fprintf(stderr, "masking %s with /%d, %s\n", strdup(inet_ntoa(test.addr)), cidr, strdup(inet_ntoa(test.mask)));
   }
 }
-

@@ -36,7 +36,7 @@ smacq_result cflowModule::produce(DtsObject & datump, int & outchan) {
   datum->setdata(rdr->read(datum->getdata(), cflow_type_size));
 
   if (!datum->getdata()) {
-	
+
 	return SMACQ_END;
   }
 
@@ -56,21 +56,23 @@ cflowModule::cflowModule(struct SmacqModule::smacq_init * context) : SmacqModule
     smacq_opt list, gzip, avoid_mmap, start, end;
 
     struct smacq_optval optvals[] = {
-      { "starttime", &start}, 
-      { "endtime", &end}, 
-      { "l", &list}, 
-      { "z", &gzip}, 
-      { "M", &avoid_mmap}, 
+      { "starttime", &start},
+      { "endtime", &end},
+      { "l", &list},
+      { "z", &gzip},
+      { "M", &avoid_mmap},
       {NULL, NULL}
     };
     smacq_getoptsbyname(context->argc-1, context->argv+1,
 				 &argc, &argv,
 				 options, optvals);
-   
+
     if (start.double_t) {
       assert(!list.boolean_t);
       assert(argc);
-      rdr->register_filelist_bounded(argv[0], start.double_t, end.double_t);
+      rdr->register_filelist_bounded(argv[0],
+                                     (long long int)start.double_t,
+                                     (long long int)end.double_t);
     } else if (list.boolean_t) {
       rdr->register_filelist_stdin();
     } else {
@@ -92,4 +94,3 @@ cflowModule::cflowModule(struct SmacqModule::smacq_init * context) : SmacqModule
   cflow_type = dts->requiretype("cflow");
   cflow_type_size = dts->type_size(cflow_type);
 }
-

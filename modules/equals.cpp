@@ -1,4 +1,4 @@
-/* 
+/*
    This is a vector implementation of a equality comparisons
    between a field and a constant value.  We build a hash table of all
    the given constants and then look-up each object's field value in
@@ -9,22 +9,22 @@
 
 #include <stdlib.h>
 #include <assert.h>
+
+//#define SMACQ_MODULE_IS_VECTOR 1
+#define SMACQ_MODULE_IS_STATELESS 1
 #include <smacq.h>
 #include <FieldVec.h>
 #include <FieldVec.h>
 #include <vector>
 #include <dts.h>
 
-//#define SMACQ_MODULE_IS_VECTOR 1
-#define SMACQ_MODULE_IS_STATELESS 1
-
 class PerType {
  public:
   dts_typeid id;
   FieldVecHash<int> outChan;
 
-  PerType(DTS * dts, dts_typeid idt, std::vector<char*> argv) 
-    : id(idt) 
+  PerType(DTS * dts, dts_typeid idt, std::vector<char*> argv)
+    : id(idt)
   {
     for (unsigned int i=0; i < argv.size(); i++) {
       DtsObject valo = dts->construct_fromstring(id, argv[i]);
@@ -52,7 +52,7 @@ smacq_result equalsModule::consume(DtsObject datum, int & outchan) {
   DtsObject f = datum->getfield(field);
 
   if (! f) {
-  	return SMACQ_FREE;
+	return SMACQ_FREE;
   }
 
   PerType * t = typeSet[f->gettype()];
@@ -73,11 +73,11 @@ smacq_result equalsModule::consume(DtsObject datum, int & outchan) {
   }
 }
 
-equalsModule::equalsModule(struct SmacqModule::smacq_init * context) 
-  : SmacqModule(context) 
+equalsModule::equalsModule(struct SmacqModule::smacq_init * context)
+  : SmacqModule(context)
 {
   assert(context->argc > 2);
-  
+
   field = dts->requirefield(context->argv[1]);
 
   argv.reserve(context->argc/2);
@@ -86,7 +86,6 @@ equalsModule::equalsModule(struct SmacqModule::smacq_init * context)
   for (int i = 2; i < context->argc; i++) {
 	if (strcmp(context->argv[i], ";")) {
 	  argv.push_back(context->argv[i]);
-	} 
+	}
   }
 }
-

@@ -6,15 +6,11 @@
 #include <string.h>
 #include <math.h>
 #include <assert.h>
+
+#define SMACQ_MODULE_IS_ANNOTATION 1
 #include <smacq.h>
 #include <FieldVec.h>
 #include <FieldVec.h>
-
-#define SMACQ_MODULE_IS_ANNOTATION 1
-
-static struct smacq_options delta_options[] = {
-  END_SMACQ_OPTIONS
-};
 
 SMACQ_MODULE(delta,
   PROTO_CTOR(delta);

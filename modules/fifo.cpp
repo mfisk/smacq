@@ -4,10 +4,6 @@
 
 /* Programming constants */
 
-static struct smacq_options options[] = {
-  END_SMACQ_OPTIONS
-};
-
 struct obj_list{
   DtsObject obj;
   struct obj_list * next;

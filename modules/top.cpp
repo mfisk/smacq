@@ -113,7 +113,7 @@ topModule::topModule(struct SmacqModule::smacq_init * context) : SmacqModule(con
   fieldvec.init(dts, argc, argv);
 
   if (prob) {
-    pcounters = new FieldVecBloomCounters(prob/4 * 1024 * 1024);
+    pcounters = new FieldVecBloomCounters((int)(prob/4 * 1024 * 1024));
   }
 
   do_filter = (threshold == 0);

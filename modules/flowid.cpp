@@ -8,12 +8,12 @@
 #include <stdlib.h>
 #include <time.h>
 #include <assert.h>
-#include <smacq.h>
-#include <FieldVec.h>
-#include <dllist.h>
 
 #define KEYBYTES 0
 #define SMACQ_MODULE_IS_ANNOTATION 1
+#include <smacq.h>
+#include <FieldVec.h>
+#include <dllist.h>
 
 static struct smacq_options options[] = {
   {"t", {double_t:0}, "Threshold quiet time", SMACQ_OPT_TYPE_TIMEVAL},

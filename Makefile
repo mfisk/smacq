@@ -47,14 +47,14 @@ AUTOMAKE = ${SHELL} /home/neale/src/smacq/missing --run automake-1.7
 AWK = mawk
 CC = gcc
 CCDEPMODE = depmode=gcc3
-CFLAGS = -g -O2  -fno-inline -ggdb -Wall -O0
+CFLAGS = -g -O2  -fno-inline -g -Wall -Werror -Wall -O0
 CFLAGS_PYTHON = -I /usr/include/python2.3
 CPP = gcc -E
 CPPFLAGS = 
 CXX = g++
 CXXCPP = g++ -E
 CXXDEPMODE = depmode=gcc3
-CXXFLAGS = -g -O2  -fno-inline -ggdb -Wall -O0
+CXXFLAGS = -g -O2  -fno-inline -g -Wall -Werror -Wall -O0
 CYGPATH_W = echo
 DEFS = -DHAVE_CONFIG_H
 DEPDIR = .deps
@@ -78,7 +78,7 @@ INSTALL_PROGRAM = ${INSTALL}
 INSTALL_SCRIPT = ${INSTALL}
 INSTALL_STRIP_PROGRAM = ${SHELL} $(install_sh) -c -s
 LDADDS = -Wl,--export-dynamic -lgmodule-2.0 -ldl -lglib-2.0  
-LDFLAGS = -lgda-2 -lglib-2.0 -lxslt -lxml2 -lpthread -lz -lm  
+LDFLAGS = -lgda-2 -lglib-2.0 -lxslt -lxml2 -lpthread -lz -lm   -lefence
 LDFLAGS_PYTHON = -lpthread -ldl  -lutil -L. -lpython2.3
 LEX = flex
 LEXLIB = -lfl

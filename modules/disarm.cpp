@@ -11,7 +11,7 @@
 #include <netdb.h>
 #include <SmacqGraph.h>
 
-#define MAX_LINE 1e7 /* == 1e7 == 10MB */
+#define MAX_LINE (1 * 10^7) /* == 1e7 == 10MB */
 
 struct get_line {
 	FILE * fh;
@@ -90,9 +90,9 @@ void disarmModule::init_get_line(struct get_line * s, FILE * fh) {
 /* Fills buffer upto a newline or EOF.  There is no NULL terminator. */
 /* Return value is string length */
 int disarmModule::get_line(char ** buf, struct get_line * s) {
-	/* 
-	 * What we need is an fgets that stops at newlines or NULLs 
-	 * since NULLs in a line screws up fgets. 
+	/*
+	 * What we need is an fgets that stops at newlines or NULLs
+	 * since NULLs in a line screws up fgets.
 	 * Having to use fgetc is really slow, so we to do our own buffering.
          */
 	int already_checked = s->leading;
@@ -159,11 +159,11 @@ smacq_result disarmModule::produce(DtsObject & datump, int & outchan) {
 	/* Now we decode the hex into the binary data object */
 
 	len -= 49;
-  	datum = dts->newObject(sv4_type, len);
+	datum = dts->newObject(sv4_type, len);
 	decode = datum->getdata();
 
 	for (i=0; i<49; i++) {
-	 	unsigned char c = hex2val[(unsigned int)hex[i*2]];	
+		unsigned char c = hex2val[(unsigned int)hex[i*2]];
 		//fprintf(stderr, "char %c has value %d\n", hex[i*2], c);
 		if (c == XX) {
 			fprintf(stderr, "Skipping %d char sv4 record on line %lu; character %d has invalid code 0x%hhx: %.*s\n", len, lineno, i*2, hex[i*2], len, hex);
@@ -187,7 +187,7 @@ int disarmModule::server_init(struct sockaddr_in * addrp) {
   struct sockaddr_in my_addr;
   int listen_fd;
   socklen_t len;
-  
+
   if ((listen_fd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
 	perror("disarm server socket");
         exit(-1);
@@ -255,7 +255,7 @@ int disarmModule::client_init(int port, char * hostname, char ** ipstr) {
         perror("disarm client getsockname");
         exit(-1);
   }
-	
+
   *ipstr = (char *)inet_ntop(AF_INET, &myaddr.sin_addr, *ipstr, INET_ADDRSTRLEN);
   assert(*ipstr);
 
@@ -268,12 +268,12 @@ void disarmModule::filter_callback(char * op, int argc, char ** argv, void * dat
 	  if (!strcmp(argv[1], "srcip")) {
 		  ths->srcip_string = strdup(argv[2]);
 		  //fprintf(stderr, "Desired srcip is %s\n", argv[2]);
- 	  } else if (!strcmp(argv[1], "date")) {
+	  } else if (!strcmp(argv[1], "date")) {
 		  ths->date_string = strdup(argv[2]);
 	          //fprintf(stderr, "Desired date is %s\n", argv[2]);
-  	  }
+	  }
   } else {
-  	fprintf(stderr, "Unknown filter callback: %s + %d args\n", op, argc);
+	fprintf(stderr, "Unknown filter callback: %s + %d args\n", op, argc);
   }
 }
 
@@ -295,26 +295,26 @@ disarmModule::disarmModule(struct SmacqModule::smacq_init * context) : SmacqModu
       { "h", &hostname},
       {NULL, NULL}
     };
-    
+
     smacq_getoptsbyname(context->argc-1, context->argv+1,
 				 NULL, NULL,
 				 options, optvals);
 
-  	if (strcmp("", date.string_t)) {
+	if (strcmp("", date.string_t)) {
 		date_string = date.string_t;
-  	}
-  	if (strcmp("", srcip.string_t)) {
+	}
+	if (strcmp("", srcip.string_t)) {
 		srcip_string = srcip.string_t;
-  	}
-  	if (strcmp("", dstip.string_t)) {
+	}
+	if (strcmp("", dstip.string_t)) {
 		dstip_string = dstip.string_t;
-  	}
-  	if (strcmp("", srcport.string_t)) {
+	}
+	if (strcmp("", srcport.string_t)) {
 		srcport_string = srcport.string_t;
-  	}
-  	if (strcmp("", dstport.string_t)) {
+	}
+	if (strcmp("", dstport.string_t)) {
 		dstport_string = dstport.string_t;
-  	}
+	}
   }
 
   /* Get downstream filters before we apply args */
@@ -328,25 +328,25 @@ disarmModule::disarmModule(struct SmacqModule::smacq_init * context) : SmacqModu
 	datafh = fopen(infile.string_t, "r");
         assert(datafh);
   } else {
-  	struct sockaddr_in myaddr, server_addr;
+	struct sockaddr_in myaddr, server_addr;
 	int listen_fd, fd;
 	FILE * fh;
 	char myip_buf[INET_ADDRSTRLEN];
 	char * myip = myip_buf;
 	socklen_t sin_size;
 
-  	if (!date_string) {
+	if (!date_string) {
 		fprintf(stderr, "disarm: date must be specified!\n");
 		exit(-1);
-  	}
+	}
 
-  	end_date = index(date_string, '~');
-  	if (end_date) {
+	end_date = index(date_string, '~');
+	if (end_date) {
 			end_date[0] = '\0';
 			end_date++;
-  	}
+	}
 
-  	listen_fd = server_init(&myaddr);
+	listen_fd = server_init(&myaddr);
 	fd = client_init(port.int_t, hostname.string_t, &myip);
 	fh = fdopen(fd, "w");
 	fprintf(fh, "<Query");
@@ -361,10 +361,10 @@ disarmModule::disarmModule(struct SmacqModule::smacq_init * context) : SmacqModu
 		fprintf(fh, " dstip=\"%s\"", dstip_string);
 
 	fprintf(fh, "><Date start=\"%s\"", date_string);
-	if (end_date && strcmp("", end_date)) { 
+	if (end_date && strcmp("", end_date)) {
 		fprintf(fh, " end=\"%s\"", end_date);
 	}
-	
+
 	fprintf(fh, "/> <SocketResult type=\"tcp\" host=\"%s\" port=\"%d\" />", myip, ntohs(myaddr.sin_port));
 	fprintf(fh, "</Query>\n<--DiSARM: end query-->\n");
 	fclose(fh);
@@ -384,18 +384,17 @@ disarmModule::disarmModule(struct SmacqModule::smacq_init * context) : SmacqModu
 		if (res == 0) /* timeout */ {
 			fprintf(stderr, "disarm: Timeout waiting for server connection\n");
 			exit(-1);
-		} 
+		}
 
 		assert(FD_ISSET(listen_fd, &fds));
 	}
 
-    	if ((datasock = accept(listen_fd, (struct sockaddr *)&server_addr, &sin_size)) == -1) {
+	if ((datasock = accept(listen_fd, (struct sockaddr *)&server_addr, &sin_size)) == -1) {
 		perror("disarm server accept");
 		exit(-1);
-    	} 
+	}
 	datafh = fdopen(datasock, "r");
   }
 
   init_get_line(&linebuf, datafh);
 }
-
