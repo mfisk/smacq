@@ -294,7 +294,7 @@ char * print_comparison(dts_comparison * comp) {
 		break;
   }
 
-  fprintf(stderr, "parse_comparison output: %s\n", buf);
+  //fprintf(stderr, "parse_comparison output: %s\n", buf);
   return(buf);
 }
 
