@@ -4,8 +4,11 @@
 #include "smacq.h"
 
 static int smacqtype_bytes_get_string(const dts_object * o, dts_object * field) {
-  field->data = o->data;
-  field->len = o->len;
+  dts_setsize(field, o->len+1);
+  memcpy(dts_getdata(field), dts_getdata(o), o->len);
+
+  /* Make sure it's NULL terminated */
+  memset(field->data + o->len, '\0', 1); 
 
   return 1;
 }
