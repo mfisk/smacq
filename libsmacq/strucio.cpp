@@ -319,6 +319,6 @@ Strucio::~Strucio() {
 }
 
 void Strucio::newfile_hook() {
-  fprintf(stderr, "default newfile_hook() called\n");
+  //fprintf(stderr, "default newfile_hook() called\n");
   return;
 }
