@@ -190,7 +190,14 @@ int dts_pkthdr_get_urg(const dts_object * datum, dts_object * data) {
   if (!tcphdr) return 0;
 
   data->data = ((tcphdr->th_flags & TH_URG) ? &ONE : &ZERO);
-  data->len = 1;
+  return 1;
+}
+
+int dts_pkthdr_get_tcpwindow(const dts_object * datum, dts_object * data) {
+  struct tcphdr * tcphdr = get_tcp(datum);
+  if (!tcphdr) return 0;
+
+  dts_data_as(data, unsigned short) = tcphdr->th_win;
   return 1;
 }
 
@@ -247,6 +254,7 @@ struct dts_field_spec dts_type_packet_fields[] = {
 	{ "nuint32",	"ack",    dts_pkthdr_get_ack },
 	{ "nushort",	"urgptr",    dts_pkthdr_get_urgptr },
 	{ "ubyte",	"urg",    dts_pkthdr_get_urg },
+	{ "nushort",	"tcpwindow",    dts_pkthdr_get_tcpwindow },
 
 	{ "bytes",	"payload",    dts_pkthdr_get_payload },
 
