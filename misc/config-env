@@ -50,6 +50,7 @@ config() {
 
 	PWD=`pwd`
 
+	echo "DOCBOOK2MAN=$DOCBOOK2MAN"
 	echo "LIBTOOL=$LIBTOOL"
 	echo "LDXX=$LDXX"
 	echo "USR=$USR"
