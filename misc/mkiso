@@ -9,9 +9,16 @@ mkdir -p "$DSTDIR/.bin"
 
 cd $TOPSRCDIR
 
+dylibs() {
+	if [ -f /usr/bin/otool ]; then
+	   	otool -L "$1" | grep -v : | sed 's/ .*//g'
+	else
+	   	ldd "$1" | cut -f= -1
+	fi
+}
+
 deps() {
-	   	LIBS=`otool -L "$1" | grep -v : | sed 's/ .*//g'`
-		for f in $LIBS; do
+		for f in `dylibs "$1"`; do
 			echo $f 
 			if [ "$f" != "$1" ]; then
 				deps $f
@@ -19,29 +26,36 @@ deps() {
 		done
 }
 
+Get_CVS() {
+	echo "$REPOSITORY A" > /tmp/cvs.$$
+	(cd "$DSTDIR"; CVS_PASSFILE=/tmp/cvs.$$ cvs -q -d $REPOSITORY co -P smacq; mv smacq src)
+	rm /tmp/cvs.$$
+}
+
+MacApp() {
+	cp -rpf misc/SMACQ.app "$DSTDIR/" #For MacOS
+	mkdir -p "$DSTDIR/SMACQ.app/Contents/Resources/.bin/Darwin-Power-Macintosh/"
+	(cd "$DSTDIR" && ln .bin/Darwin-Power-Macintosh/* "SMACQ.app/Contents/Resources/.bin/Darwin-Power-Macintosh/")
+	(cd "$DSTDIR" && ln smacqq "SMACQ.app/Contents/Resources/smacqq")
+}
+
+
 	cp misc/smacq.ico misc/autorun.inf "$DSTDIR"
 	cp doc/*.txt doc/*.pdf "$DSTDIR/doc/"
 	platforms=`cd build; echo *-*`
 
-	set -x
 	for p in $platforms; do
 		mkdir "$DSTDIR/.bin/$p"
 		cp "build/$p/bin/smacqq" "$DSTDIR/.bin/$p/"
 
-		cp `deps "build/$p/bin/smacqq" | sort | uniq | grep -v '^/usr/'` "$DSTDIR/.bin/$p/"
+		cp `deps "build/$p/bin/smacqq" | sort | uniq | grep -v '^/usr/lib/'` "$DSTDIR/.bin/$p/"
 	done	
-
-	echo "$REPOSITORY A" > /tmp/cvs.$$
-	(cd "$DSTDIR"; CVS_PASSFILE=/tmp/cvs.$$ cvs -q -d $REPOSITORY co -P smacq; mv smacq src)
-	rm /tmp/cvs.$$
+	
 	cp misc/reloc "$DSTDIR/.bin"
 	(cd "$DSTDIR"; ln -f .bin/reloc smacqq)
 
-	cp -rpf misc/SMACQ.app "$DSTDIR/" #For MacOS
-	mkdir -p "$DSTDIR/SMACQ.app/Contents/Resources/.bin/Darwin-Power-Macintosh/"
-	(cd "$DSTDIR" && cp -rpf .bin/Darwin-Power-Macintosh/* "SMACQ.app/Contents/Resources/.bin/Darwin-Power-Macintosh/")
-	(cd "$DSTDIR" && cp -rpf .bin/reloc "SMACQ.app/Contents/Resources/.bin/")
-	(cd "$DSTDIR" && ln "$DSTDIR/SMACQ.app/Contents/Resources/.bin/reloc" "SMACQ.app/Contents/Resources/smacqq")
+	Get_CVS
+	MacApp
 
 	# -hidden removes from Unix and requires /A on DOS, but shows on MacOS
 	# -hide-joliet only hides from DOS/MacOSX

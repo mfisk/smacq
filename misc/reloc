@@ -8,4 +8,14 @@ DYLD_LIBRARY_PATH=${RUNDIR}/.bin/${PLAT}:${DYLD_LIBRARY_PATH}
 export LD_LIBRARY_PATH
 export DYLD_LIBRARY_PATH
 
-exec -a "$0" "${RUNDIR}/.bin/$PLAT/${CMD}" "$@"
+if [ -f "${RUNDIR}/.bin/$PLAT/${CMD}" ]; then
+	exec -a "$0" "${RUNDIR}/.bin/$PLAT/${CMD}" "$@"
+else
+	(
+	echo "Error: $PLAT unsupported in this image." 
+	echo "This image is built for:"
+	(cd "${RUNDIR}/.bin/"; ls *-*)
+	) 1>&2
+	exit 1
+fi
+
