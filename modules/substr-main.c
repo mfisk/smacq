@@ -10,6 +10,7 @@ struct state {
   struct ruleset * set;
   int demux;
   char * fieldname;
+  struct smacq_outputq * outputq;
 };
 
 static struct smacq_options options[] = {
@@ -43,7 +44,7 @@ static void add_entry(struct state * state, char * field, char * needle, int out
 }
 
 static smacq_result substr_produce(struct state* state, const dts_object ** datum, int * outchan) {
-  return SMACQ_ERROR;
+  return smacq_produce_dequeue(&state->outputq, datum, outchan);
 }
 
 static smacq_result substr_consume(struct state * state, const dts_object * datum, int * outchan) {
@@ -67,14 +68,17 @@ static smacq_result substr_consume(struct state * state, const dts_object * datu
 	  found = substr_search(state->set, field->data, field->len, &res);
 	  if (!found) break;
 
-#ifdef DEBUG
 	  fprintf(stderr, "pattern match '%.*s' at offset %d\n", res.p->len, res.p->pattern, res.shift);
+#ifdef DEBUG
 #endif
 
 	  if (state->demux) {
-	  	assert(!matched); /* Not ready to handle multiple discreet output channels */
-
-	  	*outchan = (int)res.p->handle;
+		if (matched) {
+			smacq_produce_enqueue(&state->outputq, datum, (int)res.p->handle);
+			dts_incref(datum, 1);
+		} else {
+			*outchan = (int)res.p->handle;
+		}
 	  }
 
 	  matched = 1;
@@ -147,5 +151,6 @@ struct smacq_functions smacq_substr_table = {
 	consume: &substr_consume,
 	init: &substr_init,
 	shutdown: &substr_shutdown,
+	alg: {vector: 1, boolean: 1}
 };
 
