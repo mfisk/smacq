@@ -3,9 +3,9 @@ default:
 
 bootstrap:
 	libtoolize --automake
-	aclocal
+	aclocal-1.7
 	autoconf
-	automake
+	automake-1.7
 
 cvsinterforce: cvsinter
 		# Have to force timestamp update even if contents unchanged
