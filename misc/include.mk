@@ -8,7 +8,7 @@ dirs: $(patsubst %, %.RECURSE, $(DIRS))
 	@BINDIR=$(BINDIR)/$*; \
 	SRCDIR=$(SRCDIR)/$*; \
 	mkdir -p $$BINDIR; \
-	VPATH=$$SRCDIR make -C $$BINDIR -f $$SRCDIR/Makefile \
+	VPATH=$$SRCDIR $(MAKE) -C $$BINDIR -f $$SRCDIR/Makefile \
 	LIBTOOL="$(LIBTOOL)" \
 	COPTS="$(COPTS)" \
 
@@ -22,7 +22,7 @@ dirs: $(patsubst %, %.RECURSE, $(DIRS))
 	echo "SRCDIR=$(SRCDIR)/$*" 		>> $(BINDIR)/$*/config.mk; \
 	echo "VPATH=$(SRCDIR)/$*" 		>> $(BINDIR)/$*/config.mk; \
 	ln -sf $(SRCDIR)/$*/Makefile $(BINDIR)/$*/; \
-	make -C $(BINDIR)/$* #-f $(SRCDIR)/$*/Makefile 
+	$(MAKE) -C $(BINDIR)/$* #-f $(SRCDIR)/$*/Makefile 
 
 $(BINDIR)/Makefile: $(SRCDIR)/Makefile
 	cp $< $@

@@ -83,7 +83,7 @@ SNORT_VERSION=snort-1.8.7
 SNORT_HOME=../contrib/$(SNORT_VERSION)
 
 $(SNORT_HOME):
-	make -C ../contrib $(SNORT_VERSION)
+	$(MAKE) -C ../contrib $(SNORT_VERSION)
 
 libsnort.la: $(SNORT_HOME)
 	$(LIBTOOL) $(CC) -static -o $@ $</[a-r]*.o
