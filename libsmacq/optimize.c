@@ -34,7 +34,7 @@ static struct list * list_tails(struct list * list, smacq_graph * g, smacq_graph
 
     return list;
   } else {
-    /* base case: prepend self */
+    /* base case: no branches below here, so prepend self */
     struct list * newl = malloc(sizeof(struct list));
     newl->g = g;
     newl->parent = parent;
@@ -97,6 +97,8 @@ static int merge_tail_ends(smacq_graph * a, smacq_graph * b) {
 static void merge_tails(struct list * alist, struct list * blist) {
   smacq_graph * a = alist->g;
   smacq_graph * b = blist->g;
+  int bchild = blist->child;
+  smacq_graph * bparent = blist->parent;
   smacq_graph * p;
   int adepth = 0; 
   int bdepth = 0; 
@@ -115,8 +117,8 @@ static void merge_tails(struct list * alist, struct list * blist) {
   
   if (bdepth > adepth) {
     for (i=0; i < (bdepth-adepth); i++) {
-      blist->parent = b;
-      blist->child = 0;
+      bparent = b;
+      bchild = 0;
       b = b->child[0];
     }
   } else if (adepth > bdepth) {
@@ -128,8 +130,10 @@ static void merge_tails(struct list * alist, struct list * blist) {
   if (a == b) return;
 
   if (merge_tail_ends(a, b)) {
-    assert(blist->parent); /* else this would be a common head and already removed */
-    smacq_replace_child(blist->parent, blist->child, a);
+    assert(bparent); /* else this would be a common head and already removed */
+
+    //fprintf(stderr, "going to replace %p (child %d of %p) with %p\n", bparent->child[bchild], bchild, bparent, a);
+    smacq_replace_child(bparent, bchild, a);
     
     /* Remove b tail from list of tails */
     /* XXX: Not freed because still used in current call stack */
