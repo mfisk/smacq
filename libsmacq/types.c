@@ -4,26 +4,7 @@
 #include <assert.h>
 #include <string.h>
 #include <dlfcn.h>
-#include "smacq-internal.h"
-
-struct smacq_engine_field {
-  int type;
-  struct dts_field_descriptor desc;
-  int offset;
-};
-
-struct dts_type {
-  struct darray fields;
-  char * name;
-  int num;
-  GModule * module;
-  struct dts_field_descriptor * description;
-  struct dts_type_info info;
-};
-
-static inline struct dts_type * dts_type_bynum(dts_environment * tenv, int num) {
-  return darray_get(&tenv->types, num);
-}
+#include <smacq.h>
 
 char * type_typename_bynum(dts_environment * tenv, int num) {
   assert(tenv);
@@ -73,113 +54,8 @@ int type_getfieldoffset(dts_environment * tenv, const dts_object * datum, int fn
   return 1;
 }
 
-/*
-static int field_byname(dts_environment * tenv, char * fname) {
-  return ((int)g_hash_table_lookup(tenv->fields_byname, fname));
-}
-*/
-
-static const dts_object * type_getfield_single(dts_environment * tenv, const dts_object * datum, dts_field_element fnum, dts_object * data) {
-  struct dts_type * t = dts_type_bynum(tenv, dts_gettype(datum));
-  dts_object * cached;
-  int offset;
-  struct smacq_engine_field * d;
-
-  assert(t);
-
-  cached = darray_get((struct darray*)&datum->fields, fnum);
-  if (cached) {
-	dts_incref(cached, 1);
-	return cached;
-  }
-
-  d = darray_get(&t->fields, fnum);
-
-  if (d) {
-#ifndef SMACQ_OPT_FORCEFIELDCACHE
-   offset = d->offset;
-   if (!data) {
-#endif 
-    dts_object * field;
-
-    if (offset >= 0) {
-        field = dts_construct(tenv, d->type, datum->data+offset);
-    } else {
-    	field = (dts_object*)_smacq_alloc(dts_type_bynum(tenv, d->type)->info.size, d->type);
-        if (!d->desc.getfunc(datum, field)) {
-		dts_decref(field);
-		field = NULL;
-	}
-    }
-    if (field) {
-	darray_set(&((dts_object*)datum)->fields, fnum, field);
-	dts_incref(field, 1);
-    }
-    return field;
-#ifndef SMACQ_OPT_FORCEFIELDCACHE
-   } else {
-    data->type = d->type;
-    data->len = dts_type_bynum(tenv, d->type)->info.size;
-    
-    if (offset >= 0) {
-      //fprintf(stderr, "%s offset %d (constant), len = %d\n", name, offset, *len);
-      data->data = dts_getdata(datum) + offset;
-      return data;
-    } else {
-      //fprintf(stderr, "offset %d; calling getfunc()%p for %s\n", offset, d->desc.getfunc, name);
-      
-      assert(d->desc.getfunc);
-      if (!d->desc.getfunc(datum, data)) {
-     	return NULL;
-      } else {
-      	return data;
-      }
-    }
-   }
-#endif
-  } else {
-#ifndef SMACQ_OPT_NOMSGS
-    return msg_check(tenv, datum, fnum, data);
-#else
-    return NULL;
-#endif
-  }
-}
-
 const dts_object* type_getfield_virtual(dts_environment * tenv, const dts_object * datum, dts_field fieldv, dts_object * scratch) {
-  int fnum;
-  const dts_object * parent = datum;
-  const dts_object * newparent;
-
-  //fprintf(stderr, "Getting field ");
-
-  while (1) {
-	fnum = dts_field_first(fieldv); 
-	if (!fnum) 
-		break;
-
-	//fprintf(stderr, "%d.", fnum);
-
-	newparent = type_getfield_single(tenv, parent, fnum, scratch);
-	if (parent != datum) {
-		/* Get rid of intermediate fields */
-		dts_decref(parent);
-	}
-	parent = newparent;
-
-	if (!newparent)
-		return NULL;	
-
-	if (parent == scratch) {
-		/* If getfield used the scratch space, make sure we don't use it again */
-		scratch = NULL;
-	}
-
-	fieldv = dts_field_next(fieldv);
-  }
-
-  //fprintf(stderr, "\n");
-  return parent;
+  return dts_getfield(tenv, datum, fieldv, scratch);
 }
 
 char * dts_field_getname(dts_environment * tenv, dts_field f) {
