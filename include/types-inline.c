@@ -122,7 +122,7 @@ static inline int dts_gettype(const dts_object * d) {
  return(d->type);
 }
 
-static inline void smacq_msg_send(smacq_environment * env, dts_field field, dts_object * d, dts_comparison * comps) {
+static inline void smacq_msg_send(smacq_environment * env, dts_field field, const dts_object * d, dts_comparison * comps) {
   assert(!dts_field_first(dts_field_next(field)));
   return(msg_send(env->types, dts_field_first(field), d, comps));
 }
@@ -203,18 +203,18 @@ static inline char * dts_fieldname_append(const char * old, const char * new) {
 
 static inline int smacq_match(smacq_environment * env, 
 			     const dts_object * datum, 
-			     dts_comparison * comps, int same_types) {
-  return(type_match(env->types, datum, comps, same_types));
+			     dts_comparison * comps) {
+  return(type_match(env->types, datum, comps));
 }
 
 static inline struct dts_type * dts_type_bynum(dts_environment * tenv, int num) {
   return darray_get(&tenv->types, num);
 }
 
-static inline const dts_object * smacq_construct_fromstring(smacq_environment * env, int type, void * data) {
-  const dts_object * o = smacq_alloc(env, 0, type);
+static inline const dts_object * dts_construct_fromstring(dts_environment * tenv, int type, void * data) {
+  const dts_object * o = dts_alloc(tenv, 0, type);
   //dts_incref(o, 1);
-  if (smacq_fromstring(env, type, data, (dts_object*)o)) {
+  if (tenv->fromstring(tenv, type, data, (dts_object*)o)) {
     return o;
   } else {
     dts_decref(o);
