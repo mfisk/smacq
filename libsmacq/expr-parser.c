@@ -98,7 +98,7 @@
 
 
 /* Copy the first part of user declarations.  */
-#line 4 "expr-parser.y"
+#line 4 "/var/tmp/smacq/libsmacq/expr-parser.y"
 
      #define    yymaxdepth yyexprmaxdepth
      #define    yyparse yyexprparse
@@ -143,7 +143,7 @@
 #include <smacq.h>
 static struct dts_operand * Expr;
 #define yyexprlex yysmacql_lex
-#line 69 "expr-parser.y"
+#line 69 "/var/tmp/smacq/libsmacq/expr-parser.y"
 
 #include <smacq-parser.h>
 
@@ -162,7 +162,7 @@ static struct dts_operand * Expr;
 #endif
 
 #if ! defined (YYSTYPE) && ! defined (YYSTYPE_IS_DECLARED)
-#line 99 "expr-parser.y"
+#line 99 "/var/tmp/smacq/libsmacq/expr-parser.y"
 typedef union YYSTYPE {
   struct graph graph;
   struct arglist * arglist;
@@ -1070,81 +1070,81 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 120 "expr-parser.y"
+#line 120 "/var/tmp/smacq/libsmacq/expr-parser.y"
     { yyval.string = yystring; }
     break;
 
   case 3:
-#line 123 "expr-parser.y"
+#line 123 "/var/tmp/smacq/libsmacq/expr-parser.y"
     { yyval.string = yystring; }
     break;
 
   case 4:
-#line 126 "expr-parser.y"
+#line 126 "/var/tmp/smacq/libsmacq/expr-parser.y"
     { yyval.string = yystring; }
     break;
 
   case 5:
-#line 127 "expr-parser.y"
+#line 127 "/var/tmp/smacq/libsmacq/expr-parser.y"
     { yyval.string = "or"; }
     break;
 
   case 6:
-#line 128 "expr-parser.y"
+#line 128 "/var/tmp/smacq/libsmacq/expr-parser.y"
     { yyval.string = "and"; }
     break;
 
   case 7:
-#line 171 "expr-parser.y"
+#line 171 "/var/tmp/smacq/libsmacq/expr-parser.y"
     { yyval.operand = comp_operand(FIELD, yyvsp[0].string); }
     break;
 
   case 8:
-#line 172 "expr-parser.y"
+#line 172 "/var/tmp/smacq/libsmacq/expr-parser.y"
     { yyval.operand = comp_operand(CONST, yyvsp[0].string); }
     break;
 
   case 9:
-#line 173 "expr-parser.y"
+#line 173 "/var/tmp/smacq/libsmacq/expr-parser.y"
     { yyval.operand = comp_operand(CONST, yyvsp[0].string); }
     break;
 
   case 10:
-#line 179 "expr-parser.y"
+#line 179 "/var/tmp/smacq/libsmacq/expr-parser.y"
     {	  
 				  yyval.operand = yyvsp[-1].operand;  
 				}
     break;
 
   case 11:
-#line 183 "expr-parser.y"
+#line 183 "/var/tmp/smacq/libsmacq/expr-parser.y"
     {
 				  yyval.operand = comp_arith(parse_tenv, yyvsp[-1].arithop, yyvsp[-2].operand, yyvsp[0].operand); 
 				}
     break;
 
   case 14:
-#line 212 "expr-parser.y"
+#line 212 "/var/tmp/smacq/libsmacq/expr-parser.y"
     { yyval.arithop = ADD; }
     break;
 
   case 15:
-#line 213 "expr-parser.y"
+#line 213 "/var/tmp/smacq/libsmacq/expr-parser.y"
     { yyval.arithop = SUB; }
     break;
 
   case 16:
-#line 214 "expr-parser.y"
+#line 214 "/var/tmp/smacq/libsmacq/expr-parser.y"
     { yyval.arithop = DIVIDE; }
     break;
 
   case 17:
-#line 215 "expr-parser.y"
+#line 215 "/var/tmp/smacq/libsmacq/expr-parser.y"
     { yyval.arithop = MULT; }
     break;
 
   case 18:
-#line 219 "expr-parser.y"
+#line 219 "/var/tmp/smacq/libsmacq/expr-parser.y"
     {
 					Expr = yyvsp[-1].operand;
 					return 0;
@@ -1349,7 +1349,7 @@ yyreturn:
 }
 
 
-#line 225 "expr-parser.y"
+#line 225 "/var/tmp/smacq/libsmacq/expr-parser.y"
 
 
 static dts_environment * tenv;
