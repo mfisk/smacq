@@ -20,8 +20,8 @@
 %{
 
 #include <smacq-parser.h>
-static struct graph nullgraph = { head: NULL, tail: NULL };
-static smacq_graph * Graph;
+//static struct graph nullgraph = { head: NULL, tail: NULL };
+//static smacq_graph * Graph;
 
 %}
 
@@ -39,11 +39,8 @@ static smacq_graph * Graph;
 %left YYAND YYOR
 %right FROM
 
-%type <arglist> joins having arg argument boolarg boolargs args moreargs moreboolargs
-%type <group> group 
-%type <graph> where query from source pverbphrase  
-%type <vphrase> verbphrase
-%type <string> function verb word string id as
+%type <arglist> arg argument args moreargs spacedargs
+%type <string> function verb word string id
 %type <op> op
 %type <comp> boolean test 
 
@@ -58,86 +55,8 @@ static smacq_graph * Graph;
 }
 %%
 
-queryline: query YYSTOP	
-	   { 
-#ifdef DEBUG
-	   	smacq_graph_print(stderr, $1.head, 0); 
-#endif
-		Graph = $1.head;
-		return 0;
-	   }
-	;
-
 null:   /* empty */ ;
 
-query : verbphrase from where group
-           {
-	   	$$.head = ($$.tail = NULL);
-	   	graph_join(&($$), $2);
-		graph_join(&($$), $3);
-		if ($4.args) {
-			graph_join(&($$), newgroup($4, $1));
-		} else {
-			graph_join(&($$), newmodule($1.verb, $1.args));
-		}
-	   }
-	| from where 
-           {
-	   	$$.head = ($$.tail = NULL);
-	   	graph_join(&($$), $1);
-		graph_join(&($$), $2);
-	   }
-	;
-
-from :  null 			{ $$.head = NULL; $$.tail = NULL; } 
-	| FROM source joins 	
-	   { 
-		$$ = $2; 
-	   	if ($3) {
-			graph_join(&($$), newmodule("join", $3));
-		}
-	   }
-	;
-
-joins : null			{ $$ = NULL; }
-	| ',' boolargs as joins	
-	   {
-		struct arglist * atail;
-		$$ = newarg(arglist2str($2), 0, NULL);
-
-	   	fprintf(stderr, "got a join with '%s' as %s.\n", $$->arg, $3); 
-
-		if (!$3) {
-			yyerror("Joins must be aliased with \"as <alias>\"");
-		}
-
-		atail = arglist_append($$, newarg($3, 0, NULL));
-
-	   	if ($4) {
-			atail = arglist_append(atail, $4);
-		} 
-	   }
-	;
-
-as : null		{ $$ = NULL; }
-	| AS word	{ $$ = $2; }
-	;
-
-source : pverbphrase		
-	| '(' query ')'	{ $$ = $2; }
-	;
-
-where : null 		{ $$ = nullgraph; }
-        | WHERE boolean { $$ = optimize_bools($2); }
-	;
-
-group : null 			{ $$.args = NULL; $$.having = NULL;}
-	| GROUP BY args having 	{ $$.args = $3; $$.having = $4; }
-	;
-
-having : null			{ $$ = NULL; }
-	| HAVING boolargs	{ $$ = $2; }
-	;
 
 word:	id 		
 	| string  
@@ -159,44 +78,16 @@ argument : word 			{ $$ = newarg($1, 0, NULL); }
 	| function '(' args ')' 	{ $$ = newarg($1, 1, $3); }
 	;
 
-boolarg : id				{ $$ = newarg($1, 0, NULL); }
-	| string			
-	    { 
-	    	char * str = malloc(sizeof(char *) * (strlen($1)+2)); 
-		sprintf(str,"\"%s\"", $1); 
-		$$ = newarg(str, 0, NULL); 
-	    }
-	| '<'				{ $$ = newarg("<", 0, NULL); }
-	| YYLEQ				{ $$ = newarg("<=", 0, NULL); }
-	| '>'				{ $$ = newarg(">", 0, NULL); }
-	| YYGEQ				{ $$ = newarg(">=", 0, NULL); }
-	| '='				{ $$ = newarg("=", 0, NULL); }
-	| YYNEQ				{ $$ = newarg("!=", 0, NULL); }
-	| '('				{ $$ = newarg("(", 0, NULL); }
-	| ')'				{ $$ = newarg(")", 0, NULL); }
-	| '!'				{ $$ = newarg("!", 0, NULL); }
-	;
-
 function : id 
-	;
-
-pverbphrase: verb 		{ $$ = newmodule($1, NULL); }
-	| verb '(' args ')' 	{ $$ = newmodule($1, $3); }
-	;
-
-verbphrase : verb args 		{ $$ = newvphrase($1, $2); }
-	| verb '(' args ')'	{ $$ = newvphrase($1, $3); }
-	;
-
-boolargs : boolarg moreboolargs	{ $$ = $1; $$->next = $2; }
-	;
-
-moreboolargs : null		{ $$ = NULL; }
-	| boolarg moreboolargs	{ $$ = $1; $$->next = $2; }
 	;
 
 args : null 			{ $$ = NULL; }
 	| arg moreargs 		{ $$ = $1; $$->next = $2; }
+	| spacedargs	
+	;
+
+spacedargs : null		{ $$ = NULL; }
+	| arg spacedargs 	{ $$ = $1; $$->next = $2; }
 	;
 
 moreargs : null			{ $$ = NULL; }

@@ -4,11 +4,11 @@
 #include <smacq.h>
 #include <pthread.h>
   
-  extern int yylex();
-  extern char * yytext;
-  extern char * yystring;
-  extern void yyerror(char*);
-  //extern void yy_scan_string(char*);
+  EXTERN int yylex();
+  EXTERN char * yytext;
+  EXTERN char * yystring;
+  EXTERN void yyerror(char*);
+  //EXTERN void yy_scan_string(char*);
 
 #ifdef PTHREAD_MUTEX_INITIALIZER
   pthread_mutex_t local_lock = PTHREAD_MUTEX_INITIALIZER;
@@ -40,17 +40,18 @@ struct group {
       struct arglist * having;
 };
 
-  extern struct graph newmodule(char * module, struct arglist * alist);
-  extern void graph_join(struct graph * graph, struct graph newg);
-  extern struct graph newgroup(struct group, struct vphrase);
-  extern void arglist2argv(struct arglist * al, int * argc, char *** argv);
-  extern char * arglist2str(struct arglist * al);
-  extern struct arglist * newarg(char * arg, int isfunc, struct arglist * func_args);
-  extern struct arglist * arglist_append(struct arglist * tail, struct arglist * addition);
-  extern struct vphrase newvphrase(char * verb, struct arglist * args);
-  extern struct graph optimize_bools(dts_comparison *);
-  extern dts_comparison * comp_join(dts_comparison *, dts_comparison *, int isor);
-  extern dts_comparison * comp_new(char * field, dts_compare_operation op, char **, int);
+  EXTERN struct graph newmodule(char * module, struct arglist * alist);
+  EXTERN void graph_join(struct graph * graph, struct graph newg);
+  EXTERN struct graph newgroup(struct group, struct vphrase);
+  EXTERN void arglist2argv(struct arglist * al, int * argc, char *** argv);
+  EXTERN char * arglist2str(struct arglist * al);
+  EXTERN struct arglist * newarg(char * arg, int isfunc, struct arglist * func_args);
+  EXTERN struct arglist * arglist_append(struct arglist * tail, struct arglist * addition);
+  EXTERN struct vphrase newvphrase(char * verb, struct arglist * args);
+  EXTERN struct graph optimize_bools(dts_comparison *);
+  EXTERN dts_comparison * comp_join(dts_comparison *, dts_comparison *, int isor);
+  EXTERN dts_comparison * comp_new(char * field, dts_compare_operation op, char **, int);
+  EXTERN char * print_comparison(dts_comparison * comp);
 
-  extern dts_environment * parse_tenv;
+  EXTERN dts_environment * parse_tenv;
 #endif

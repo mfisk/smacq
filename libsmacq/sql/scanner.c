@@ -288,17 +288,17 @@ static void yy_fatal_error YY_PROTO(( yyconst char msg[] ));
 	*yy_cp = '\0'; \
 	yy_c_buf_p = yy_cp;
 
-#define YY_NUM_RULES 30
-#define YY_END_OF_BUFFER 31
+#define YY_NUM_RULES 31
+#define YY_END_OF_BUFFER 32
 static yyconst short int yy_accept[74] =
     {   0,
-        0,    0,    0,    0,    0,    0,   31,   28,   26,   26,
-       29,   17,   28,   14,   27,   27,   27,   27,   28,   28,
-       28,   28,   28,   28,   28,   28,   28,   25,   30,   24,
-       25,   16,   15,   28,   26,   12,    7,   11,   13,   10,
-       28,    5,    4,   28,   28,   28,   28,    8,   28,    8,
-       23,   22,   21,   18,   19,   20,   16,    7,   28,   28,
-       28,   28,   28,    2,   28,   28,    9,   28,    3,   28,
+        0,    0,    0,    0,    0,    0,   32,   29,   27,   27,
+       30,   18,   29,   15,   28,   28,   28,   28,   29,   29,
+       29,   29,   29,   29,   29,   29,   14,   26,   31,   25,
+       26,   17,   16,   29,   27,   12,    7,   11,   13,   10,
+       29,    5,    4,   29,   29,   29,   29,    8,   29,    8,
+       24,   23,   22,   19,   20,   21,   17,    7,   29,   29,
+       29,   29,   29,    2,   29,   29,    9,   29,    3,   29,
         1,    6,    0
     } ;
 
@@ -744,66 +744,71 @@ return '=';
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 40 "/home/mfisk/smacq/libsmacq/sql/scanner.l"
+#line 39 "/home/mfisk/smacq/libsmacq/sql/scanner.l"
+return '|';
+	YY_BREAK
+case 15:
+YY_RULE_SETUP
+#line 41 "/home/mfisk/smacq/libsmacq/sql/scanner.l"
 BEGIN(xquote);
 	YY_BREAK
 
-case 15:
-YY_RULE_SETUP
-#line 42 "/home/mfisk/smacq/libsmacq/sql/scanner.l"
-BEGIN(0);
-	YY_BREAK
 case 16:
 YY_RULE_SETUP
 #line 43 "/home/mfisk/smacq/libsmacq/sql/scanner.l"
+BEGIN(0);
+	YY_BREAK
+case 17:
+YY_RULE_SETUP
+#line 44 "/home/mfisk/smacq/libsmacq/sql/scanner.l"
 {
 			yystring = strdup(yytext);
 			return YYSTRING;
 		}
 	YY_BREAK
 
-case 17:
+case 18:
 YY_RULE_SETUP
-#line 50 "/home/mfisk/smacq/libsmacq/sql/scanner.l"
+#line 51 "/home/mfisk/smacq/libsmacq/sql/scanner.l"
 yystring = string_buf; BEGIN(xdquote);
 	YY_BREAK
 
-case 18:
-YY_RULE_SETUP
-#line 52 "/home/mfisk/smacq/libsmacq/sql/scanner.l"
-*yystring++ = '\n';
-	YY_BREAK
 case 19:
 YY_RULE_SETUP
 #line 53 "/home/mfisk/smacq/libsmacq/sql/scanner.l"
-*yystring++ = '\r';
+*yystring++ = '\n';
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
 #line 54 "/home/mfisk/smacq/libsmacq/sql/scanner.l"
-*yystring++ = '\t';
+*yystring++ = '\r';
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
 #line 55 "/home/mfisk/smacq/libsmacq/sql/scanner.l"
-*yystring++ = '\f';
+*yystring++ = '\t';
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
 #line 56 "/home/mfisk/smacq/libsmacq/sql/scanner.l"
+*yystring++ = '\f';
+	YY_BREAK
+case 23:
+YY_RULE_SETUP
+#line 57 "/home/mfisk/smacq/libsmacq/sql/scanner.l"
 {
 				*yystring++ = yytext[0]; 
 				*yystring++ = yytext[1];
 			}
 	YY_BREAK
-case 23:
-YY_RULE_SETUP
-#line 60 "/home/mfisk/smacq/libsmacq/sql/scanner.l"
-*yystring++ = yytext[1];
-	YY_BREAK
 case 24:
 YY_RULE_SETUP
 #line 61 "/home/mfisk/smacq/libsmacq/sql/scanner.l"
+*yystring++ = yytext[1];
+	YY_BREAK
+case 25:
+YY_RULE_SETUP
+#line 62 "/home/mfisk/smacq/libsmacq/sql/scanner.l"
 {
 				*yystring = '\0'; 
 			 	yystring = strdup(string_buf);
@@ -811,47 +816,47 @@ YY_RULE_SETUP
 				return YYSTRING;
 			}
 	YY_BREAK
-case 25:
+case 26:
 YY_RULE_SETUP
-#line 67 "/home/mfisk/smacq/libsmacq/sql/scanner.l"
+#line 68 "/home/mfisk/smacq/libsmacq/sql/scanner.l"
 *yystring++ = yytext[0];
 	YY_BREAK
 
-case 26:
-YY_RULE_SETUP
-#line 70 "/home/mfisk/smacq/libsmacq/sql/scanner.l"
-{ ; }
-	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 72 "/home/mfisk/smacq/libsmacq/sql/scanner.l"
+#line 71 "/home/mfisk/smacq/libsmacq/sql/scanner.l"
+{ ; }
+	YY_BREAK
+case 28:
+YY_RULE_SETUP
+#line 73 "/home/mfisk/smacq/libsmacq/sql/scanner.l"
 return yytext[0];
 	YY_BREAK
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(xdquote):
 case YY_STATE_EOF(xquote):
-#line 74 "/home/mfisk/smacq/libsmacq/sql/scanner.l"
+#line 75 "/home/mfisk/smacq/libsmacq/sql/scanner.l"
 { return YYSTOP; }
 	YY_BREAK
-case 28:
+case 29:
 YY_RULE_SETUP
-#line 76 "/home/mfisk/smacq/libsmacq/sql/scanner.l"
+#line 77 "/home/mfisk/smacq/libsmacq/sql/scanner.l"
 { 
 			yystring = strdup((char *)yytext); 
 			return YYID; 
 	}
 	YY_BREAK
-case 29:
-YY_RULE_SETUP
-#line 81 "/home/mfisk/smacq/libsmacq/sql/scanner.l"
-{ yyerror("Unexpected character in query"); return -1; }
-	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 83 "/home/mfisk/smacq/libsmacq/sql/scanner.l"
+#line 82 "/home/mfisk/smacq/libsmacq/sql/scanner.l"
+{ yyerror("Unexpected character in query"); return -1; }
+	YY_BREAK
+case 31:
+YY_RULE_SETUP
+#line 84 "/home/mfisk/smacq/libsmacq/sql/scanner.l"
 ECHO;
 	YY_BREAK
-#line 855 "/home/mfisk/smacq/libsmacq/sql/scanner.c"
+#line 860 "/home/mfisk/smacq/libsmacq/sql/scanner.c"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -1739,6 +1744,6 @@ int main()
 	return 0;
 	}
 #endif
-#line 83 "/home/mfisk/smacq/libsmacq/sql/scanner.l"
+#line 84 "/home/mfisk/smacq/libsmacq/sql/scanner.l"
 
 

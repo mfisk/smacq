@@ -12,7 +12,7 @@
       <firstname>Mike</firstname>
       <surname>Fisk</surname>
     </author>
-    <date>$Date: 2002/12/29 22:55:50 $</date>
+    <date>$Date: 2003/03/19 03:25:49 $</date>
   </refentryinfo>
   <refmeta>
     <refentrytitle>smacqq</refentrytitle>
@@ -101,10 +101,36 @@
     </para>
 
     <para>
+      When queries are nested deeply, the syntax described above can become
+      complex.  As a result, commas are optional between arguments, and SMACQ 
+      also supports the | symbol used in Unix shells.  The result is a syntax 
+      much more familiar to Unix shell users.  Thus the following queries are 
+      all equivalent:
+
+      <computeroutput>
+	print srcip, dstip from (uniq srcip, dstip from pcapfile("/tmp/dump"))
+      </computeroutput>
+
+      <computeroutput>
+	print srcip, dstip from uniq srcip, dstip from pcapfile "/tmp/dump"
+      </computeroutput>
+
+      <computeroutput>
+	print srcip dstip from uniq srcip dstip from pcapfile "/tmp/dump"
+      </computeroutput>
+
+      <computeroutput>
+	pcapfile "/tmp/dump" | uniq srcip dstip | print srcip dstip
+      </computeroutput>
+
+      .
+    </para>
+
+    <para>
       SMACQ is an extensible system that the user can add modules to.
       See the <command>smacqp</command>(1) manpage for a detailed
       description of modules.  Many modules take flags which, like all
-      arguments, must be separated with commas:
+      arguments, can be separated with commas or spaces:
 
       <computeroutput>
 	print -v, srcip, dstip from pcapfile("/tmp/dump")

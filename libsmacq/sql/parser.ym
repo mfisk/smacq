@@ -1,9 +1,125 @@
 %start queryline
 %{
 void yyerror(char*);
+
+#include <smacq-parser.h>
+static struct graph nullgraph = { head: NULL, tail: NULL };
+static smacq_graph * Graph;
 %}
 
+%type <graph> pverbphrase from source query where
+%type <string> as
+%type <arglist> joins 
+%type <vphrase> verbphrase
+%type <group> group
+%type <comp> having
+
 m4_include(grammer.y)
+
+queryline: query YYSTOP	
+	   { 
+#ifdef DEBUG
+	   	smacq_graph_print(stderr, $1.head, 0); 
+#endif
+		Graph = $1.head;
+		return 0;
+	   }
+	;
+
+
+
+query : verbphrase from where group
+           {
+	   	$$.head = ($$.tail = NULL);
+	   	graph_join(&($$), $2);
+		graph_join(&($$), $3);
+		if ($4.args) {
+			graph_join(&($$), newgroup($4, $1));
+		} else {
+			graph_join(&($$), newmodule($1.verb, $1.args));
+		}
+	   }
+	| query '|' verbphrase where group
+           {
+	   	$$.head = ($$.tail = NULL);
+	   	graph_join(&($$), $1);
+		graph_join(&($$), $4);
+		if ($5.args) {
+			graph_join(&($$), newgroup($5, $3));
+		} else {
+			graph_join(&($$), newmodule($3.verb, $3.args));
+		}
+	   }
+	| from where 
+           {
+	   	$$.head = ($$.tail = NULL);
+	   	graph_join(&($$), $1);
+		graph_join(&($$), $2);
+	   }
+	;
+
+from :  null 			{ $$.head = NULL; $$.tail = NULL; } 
+	| FROM source joins 	
+	   { 
+		$$ = $2; 
+	   	if ($3) {
+			graph_join(&($$), newmodule("join", $3));
+		}
+	   }
+	;
+
+joins : null			{ $$ = NULL; }
+	| ',' boolean as joins	
+	   {
+		struct arglist * atail;
+		$$ = newarg(print_comparison($2), 0, NULL);
+
+	   	fprintf(stderr, "got a join with '%s' as %s.\n", $$->arg, $3); 
+
+		if (!$3) {
+			yyerror("Joins must be aliased with \"as <alias>\"");
+		}
+
+		atail = arglist_append($$, newarg($3, 0, NULL));
+
+	   	if ($4) {
+			atail = arglist_append(atail, $4);
+		} 
+	   }
+	;
+
+as : null		{ $$ = NULL; }
+	| AS word	{ $$ = $2; }
+	;
+
+source : pverbphrase from
+		        {
+	   			$$.head = ($$.tail = NULL);
+	   			graph_join(&($$), $2);
+				graph_join(&($$), $1);
+			}
+	| '(' query ')'	{ $$ = $2; }
+	;
+
+where : null 		{ $$ = nullgraph; }
+        | WHERE boolean { $$ = optimize_bools($2); }
+	;
+
+group : null 			{ $$.args = NULL; $$.having = NULL;}
+	| GROUP BY args having 	{ $$.args = $3; $$.having = newarg(print_comparison($4), 0, NULL); }
+	;
+
+having : null			{ $$ = NULL; }
+	| HAVING boolean	{ $$ = $2; }
+	;
+
+pverbphrase: verb '(' args ')' 	{ $$ = newmodule($1, $3); }
+	| verb spacedargs  	{ $$ = newmodule($1, $2); }
+	;
+
+verbphrase : verb args 		{ $$ = newvphrase($1, $2); }
+	| verb '(' args ')'	{ $$ = newvphrase($1, $3); }
+	;
 
 %%
 

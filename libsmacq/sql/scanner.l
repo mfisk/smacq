@@ -36,6 +36,7 @@ like|LIKE       return YYLIKE;
 "<="		return YYLEQ;
 "!="		return YYNEQ;
 "=="		return '=';
+"|"		return '|';
 
 {quote}		BEGIN(xquote);
 <xquote>{
