@@ -17,18 +17,21 @@ struct state {
  
 static smacq_result project_consume(struct state * state, const dts_object * datum, int * outchan) {
   dts_object * newo;
-  dts_object field;
   int i;
 
   newo = smacq_dts_construct(state->env, state->empty_type, NULL);
   assert(newo);
 
   for (i = 0; i < state->fieldset.num; i++) {
-  	if (!smacq_getfield(state->env, datum, state->fieldset.fields[i].num, &field)) {
+	dts_object * newf = (dts_object*)smacq_alloc(state->env, 0, 0);
+
+  	if (!smacq_getfield(state->env, datum, state->fieldset.fields[i].num, newf)) {
 		fprintf(stderr, "project: no %s field\n", 
 				state->fieldset.fields[i].name);
+		dts_decref(newf);
+		continue;
 	}
-    	dts_attach_field(newo, state->fieldset.fields[i].num, &field); 
+    	dts_attach_field(newo, state->fieldset.fields[i].num, newf); 
   }
 
   state->product = newo;
