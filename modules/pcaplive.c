@@ -31,7 +31,7 @@ static void ProcessPacket(struct state * state, struct old_pcap_pkthdr * hdr,
 		   struct ether_header * ethhdr) {
   struct dts_pkthdr * pkt;
 
-  state->datum = (dts_object*)flow_alloc(state->env, hdr->len + sizeof(struct dts_pkthdr), 0);
+  state->datum = (dts_object*)smacq_alloc(state->env, hdr->len + sizeof(struct dts_pkthdr), 0);
   flow_datum_settype(state->datum, state->dts_pkthdr_type);
   pkt = (struct dts_pkthdr*)dts_getdata(state->datum);
 

@@ -12,7 +12,7 @@ void dts_init_object(dts_object * d) {
   d->fields = NULL;
 }
 
-const dts_object* _flow_alloc(int size, int type) {
+const dts_object* _smacq_alloc(int size, int type) {
   dts_object * d = g_malloc(sizeof(dts_object) + size);
   d->data=d+1;  // Inline data
 

@@ -3,7 +3,7 @@
 #include <smacq.h>
 #include <smacq_args.h>
 
-EXTERN const dts_object* _flow_alloc(int size, int type);
+EXTERN const dts_object* _smacq_alloc(int size, int type);
 #include <gmodule.h>
 #include <glib.h>
 

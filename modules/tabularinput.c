@@ -24,7 +24,7 @@ struct state {
 };
 
 static inline const dts_object * flow_construct_fromstring(smacq_environment * env, int type, void * data) {
-  const dts_object * o = flow_alloc(env, 0, type);
+  const dts_object * o = smacq_alloc(env, 0, type);
   dts_incref(o, 1);
   if (flow_fromstring(env, type, data, (dts_object*)o)) {
     return o;
@@ -41,7 +41,7 @@ static smacq_result tabularinput_produce(struct state* state, const dts_object *
   char * startp, * stopp, * endp, * badp, line[MAX_STR];
   const dts_object * msgdata;
   char * result;
-  const dts_object * datum = flow_alloc(state->env, 0, state->empty_type);
+  const dts_object * datum = smacq_alloc(state->env, 0, state->empty_type);
   dts_incref(datum, 1);
 
   result = fgets(line, MAX_STR, state->fh);

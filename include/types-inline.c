@@ -108,13 +108,13 @@ static inline int flow_datum_settype(const dts_object * d, int type) {
 }
 
 /* Allocate space for a new datum */
-static inline const dts_object * flow_alloc(smacq_environment * env, int size, int type) {
+static inline const dts_object * smacq_alloc(smacq_environment * env, int size, int type) {
   return(env->alloc(size, type));
 }
 
 static inline const dts_object * dts_writable(smacq_environment * env, const dts_object *d) {
   if (d->refcount > 1) {
-    const dts_object * newp = flow_alloc(env, d->len, d->type);
+    const dts_object * newp = smacq_alloc(env, d->len, d->type);
     memcpy(newp->data, d->data, d->len);
     dts_incref(newp, 1);
 

@@ -100,7 +100,7 @@ static smacq_result pcapfile_produce(struct state * state, const dts_object ** d
 
   fixup_pcap(state, &hdr);
 
-  datum = flow_alloc(state->env, hdr.caplen + sizeof(struct dts_pkthdr), 
+  datum = smacq_alloc(state->env, hdr.caplen + sizeof(struct dts_pkthdr), 
 				state->dts_pkthdr_type);
   pkt = (struct dts_pkthdr*)dts_getdata(datum);
 

@@ -253,7 +253,7 @@ static smacq_result flowid_consume(struct state * state, const dts_object * datu
       s->fields = g_new(const dts_object*, state->fieldset.num);
       for (i = 0; i<state->fieldset.num; i++) {
 	int res;
-	s->fields[i] = flow_alloc(state->env, 0, 0);
+	s->fields[i] = smacq_alloc(state->env, 0, 0);
 	res = flow_getfield_copy(state->env, datum, state->fieldset.fields[i].num, (dts_object*)s->fields[i]);
 	assert (res);
 	assert(s->fields[i]);

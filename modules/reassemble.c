@@ -274,7 +274,7 @@ smacq_result reassemble_produce(struct state * state, const dts_object ** datump
     p = state->newpkt = li->packet;
     state->produce_count++;
     //p = state->newpkt;
-    datum = flow_alloc(
+    datum = smacq_alloc(
 		       state->env, 
 		       p->pkth->len + sizeof(struct dts_pkthdr), 
 		       state->dts_pkthdr_type

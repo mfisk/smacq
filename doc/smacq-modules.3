@@ -1,4 +1,4 @@
-.TH smacq-modules 3 "$Date: 2002/12/01 03:21:45 $" "LANL"
+.TH smacq-modules 3 "$Date: 2002/12/01 03:27:53 $" "LANL"
 .SH NAME
 smacq-modules - pipeline module programming guide
 .SH SYNOPSIS
@@ -120,7 +120,7 @@ Return a new data object with contents copied from data.  This call only
 works for fixed-size objects.
 
 .TP
-.BI "const dts_object * flow_alloc(smacq_environment * env, int datasize, int type)"
+.BI "const dts_object * smacq_alloc(smacq_environment * env, int datasize, int type)"
 Return a new, empty data object large enough to hold \fIdatasize\fP bytes.  
 Use \fIflow_requiretype()\fP to get a
 type number.

@@ -59,7 +59,7 @@ dts_object * dts_construct(dts_environment * tenv, int type, void * data) {
 
 	assert((t->info.size >=0)  && "Cannot use dts_construct on variable sized types");
 
-	dobj = (dts_object*)_flow_alloc(t->info.size, type);
+	dobj = (dts_object*)_smacq_alloc(t->info.size, type);
 	memcpy(dts_getdata(dobj), data, t->info.size);
 	return dobj;
 }

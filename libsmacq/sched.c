@@ -9,7 +9,7 @@ int flow_start(struct filter * objs, enum flow_scheduler scheduler, dts_environm
   }
 
   env->types = tenv;
-  env->alloc = _flow_alloc;
+  env->alloc = _smacq_alloc;
 
   flow_init_modules(objs, env);
 
