@@ -19,7 +19,9 @@ SMACQ_MODULE(expr,
   int double_type;
 );
 
-exprModule::exprModule(struct smacq_init * context) : SmacqModule(context) {
+exprModule::exprModule(struct smacq_init * context) 
+ : SmacqModule(context), as_field(NULL) 
+{
   int argc = context->argc-1;
   char ** argv = context->argv+1;
 
@@ -36,13 +38,9 @@ exprModule::exprModule(struct smacq_init * context) : SmacqModule(context) {
   if (!expr) 
 	assert(0);
 
-  {
-    char * expr_str = "expr";
-      //expression2fieldname(expr);
-    expr_field = dts->requirefield(expr_str);
-    assert(expr_field);
-    //free(expr_str);
-  }
+  char * expr_str = "expr";
+  expr_field = dts->requirefield(expr_str);
+  assert(expr_field);
 }
 
 smacq_result exprModule::consume(DtsObject datum, int & outchan) {
@@ -61,7 +59,6 @@ smacq_result exprModule::consume(DtsObject datum, int & outchan) {
 
   if (as_field) {
     datum->attach_field(as_field, msgdata); 
-    
   }
 
   return SMACQ_PASS;
