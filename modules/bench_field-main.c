@@ -67,7 +67,7 @@ static smacq_result bench_field_consume(struct state * state, const dts_object *
   gettimeofday(&tvstart, NULL);
  
   for (i=0; i<LOOPSIZE; i++) { 
-    dts_fieldcache_flush(state->env->types, datum, dts_field_first(state->field), NULL);
+    dts_fieldcache_flush(datum, dts_field_first(state->field));
     x = smacq_getfield(state->env, datum, state->field, NULL);
     val = dts_data_as(x, double);
     dts_decref(x);
