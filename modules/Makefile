@@ -18,12 +18,6 @@ clean:
 	rm -Rf *.o *.so *.a *.lo *.la .libs
 	@set -e; for f in $(DIRS); do $(MAKE) -C $$f clean; done
 
-# 
-# Rebuild dependencies here
-# 
-pcapfile.lo: pcapfile.h 
-pcaplive.lo: pcapfile.h 
-
 #
 # Per module link requirements
 # 

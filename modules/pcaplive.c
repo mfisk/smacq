@@ -19,13 +19,30 @@
 #include <sys/types.h>
 #include <net/ethernet.h>
 #include <smacq.h>
-#include "pcapfile.h"
+#include <pcap.h>
+#include <dts_packet.h>
+ 
 
 static struct smacq_options options[] = {
   {"i", {string_t:"any"}, "Interface", SMACQ_OPT_TYPE_STRING},
   {"p", {boolean_t:0}, "Promiscuous", SMACQ_OPT_TYPE_BOOLEAN},
   {"s", {int_t:68}, "Snaplen", SMACQ_OPT_TYPE_INT},
   {NULL, {string_t:NULL}, NULL, 0}
+};
+
+struct state {
+	/* State if using libpcap */
+  pcap_t * pcap;		
+  dts_object * datum;	
+  pcap_dumper_t * dumper;
+
+	/* Dynamic dataflow environment */
+  smacq_environment * env;
+  int argc;
+  char ** argv;
+  int 	dts_pkthdr_type;		
+
+  int produce;			/* Does this instance produce */
 };
 
 static void ProcessPacket(struct state * state, struct old_pcap_pkthdr * hdr, 
