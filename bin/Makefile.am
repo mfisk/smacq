@@ -1,4 +1,5 @@
 INCLUDES = -I$(top_srcdir)/include @GLOBAL_INCLUDES@
+EXTRA_DIST = pgsmacqd.h
 BUILTINS = -dlopen self -dlopen $(top_builddir)/modules/libsmacq_modules.la -dlopen $(top_builddir)/types/libdts_modules.la -dlopen $(top_builddir)/libsmacq/libsmacq.la
 AM_CFLAGS = @CFLAGS@ -DSMACQ_BUILD_DATE=\"`date '+%Y-%m-%d'`\"
 
