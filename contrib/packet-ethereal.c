@@ -117,7 +117,7 @@ int epan_getfield(const dts_object * packet, dts_object * fieldo, dts_field_elem
       break;
     
   case FT_PROTOCOL:
-      fieldo->type = dts_requiretype(packet->tenv, "uchar");
+      fieldo->type = dts_requiretype(packet->tenv, "ubyte");
       dts_data_as(fieldo, unsigned char) = fvalue_get_integer(finfo->value);
       fieldo->len = 1;
       break;
