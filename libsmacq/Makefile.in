@@ -97,8 +97,12 @@ INCLUDES = @GLOBAL_INCLUDES@ -I$(top_srcdir)/include
 #BUILT_SOURCES = 	filter-parser.c expr-parser.c expr-parser.y filter-parser.y
 SUFFIXES = .y .ym
 
-noinst_LTLIBRARIES = libsmacq.la
-libsmacq_la_SOURCES = mem.c bytehash.c fields.c bloom.c args.c pickle.c types.c sched-thread.c sched-mono.c sched-iter.c construct.c optimize.c sched.c msg.c filter.c module-closure.c dynloader.c parsing.c cmalloc.c parser.y scanner.l filter-parser.y expr-parser.y 
+noinst_LTLIBRARIES = libsmacq.la @ETHEREAL_LIBRARY@
+EXTRA_LTLIBRARIES = libethereal.la
+
+libethereal_la_SOURCES = `find @ETHEREAL_DIR@ \( -name plugins -prune \) , \( -name \*.lo -print \)` 
+
+libsmacq_la_SOURCES = mem.c bytehash.c fields.c bloom.c args.c pickle.c types.c sched-thread.c sched-mono.c sched-iter.c construct.c optimize.c sched.c msg.c filter.c module-closure.c dynloader.c parsing.c cmalloc.c parser.y scanner.l filter-parser.y expr-parser.y strucio.c 
 libsmacq_la_LIBADD = 
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = ../config.h
@@ -110,13 +114,16 @@ DEFS = @DEFS@ -I. -I$(srcdir) -I..
 CPPFLAGS = @CPPFLAGS@
 LDFLAGS = @LDFLAGS@
 LIBS = @LIBS@
+libethereal_la_LDFLAGS = 
+libethereal_la_LIBADD = 
+libethereal_la_OBJECTS = 
 libsmacq_la_LDFLAGS = 
 libsmacq_la_DEPENDENCIES = 
 libsmacq_la_OBJECTS =  mem.lo bytehash.lo fields.lo bloom.lo args.lo \
 pickle.lo types.lo sched-thread.lo sched-mono.lo sched-iter.lo \
 construct.lo optimize.lo sched.lo msg.lo filter.lo module-closure.lo \
 dynloader.lo parsing.lo cmalloc.lo parser.lo scanner.lo \
-filter-parser.lo expr-parser.lo
+filter-parser.lo expr-parser.lo strucio.lo
 LEX_OUTPUT_ROOT = @LEX_OUTPUT_ROOT@
 LEXLIB = @LEXLIB@
 YLWRAP = $(srcdir)/ylwrap
@@ -138,9 +145,9 @@ DEP_FILES =  .deps/args.P .deps/bloom.P .deps/bytehash.P .deps/cmalloc.P \
 .deps/filter-parser.P .deps/filter.P .deps/mem.P .deps/module-closure.P \
 .deps/msg.P .deps/optimize.P .deps/parser.P .deps/parsing.P \
 .deps/pickle.P .deps/scanner.P .deps/sched-iter.P .deps/sched-mono.P \
-.deps/sched-thread.P .deps/sched.P .deps/types.P
-SOURCES = $(libsmacq_la_SOURCES)
-OBJECTS = $(libsmacq_la_OBJECTS)
+.deps/sched-thread.P .deps/sched.P .deps/strucio.P .deps/types.P
+SOURCES = $(libethereal_la_SOURCES) $(libsmacq_la_SOURCES)
+OBJECTS = $(libethereal_la_OBJECTS) $(libsmacq_la_OBJECTS)
 
 all: all-redirect
 .SUFFIXES:
@@ -199,6 +206,9 @@ clean-libtool:
 distclean-libtool:
 
 maintainer-clean-libtool:
+
+libethereal.la: $(libethereal_la_OBJECTS) $(libethereal_la_DEPENDENCIES)
+	$(LINK)  $(libethereal_la_LDFLAGS) $(libethereal_la_OBJECTS) $(libethereal_la_LIBADD) $(LIBS)
 
 libsmacq.la: $(libsmacq_la_OBJECTS) $(libsmacq_la_DEPENDENCIES)
 	$(LINK)  $(libsmacq_la_LDFLAGS) $(libsmacq_la_OBJECTS) $(libsmacq_la_LIBADD) $(LIBS)
