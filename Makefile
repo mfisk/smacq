@@ -14,7 +14,7 @@ cvsinterforce: cvsinter
 
 cvsinter:
 		# All the intermediate files that may change
-	cvs commit -m 'intermediate file' *.in `find * -name \*.in` libsmacq/*parser.[ych] libsmacq/parser.[yc]pp libsmacq/scanner.cpp configure stamp-h.in aclocal.m4 ltmain.sh ylwrap missing depcomp install-sh mkinstalldirs config.h.in config.sub config.guess 
+	cvs commit -m 'intermediate file' *.in `find * -name \*.in` libsmacq/parser.h libsmacq/*parser.[yc]pp libsmacq/scanner.cpp configure stamp-h.in aclocal.m4 ltmain.sh ylwrap missing depcomp install-sh mkinstalldirs config.h.in config.sub config.guess 
 
 %:
 	misc/buildarch $@
