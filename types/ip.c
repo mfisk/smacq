@@ -8,19 +8,13 @@
 #include <smacq.h>
 
 static int smacqtype_ip_get_string(const dts_object * datum, dts_object * data) {
-  dts_setsize(data, 16);
-  strncpy(data->data, inet_ntoa(dts_data_as(datum, struct in_addr)), 16);
-
-  return 1;
+  dts_setsize(data, INET_ADDRSTRLEN);
+  return (0 != inet_ntop(AF_INET, datum->data, data->data, INET_ADDRSTRLEN));
 }
 
 static int parse_ip(char * buf,  const dts_object * d) {
-  struct in_addr a;
-  if (!inet_aton(buf, &a)) {
-    return 0;
-  } else {
-    return dts_set(d, struct in_addr, a);
-  }
+  dts_setsize(d, sizeof(struct in_addr));
+  return inet_pton(AF_INET, buf, d->data);
 }
 
 struct dts_field_descriptor dts_type_ip_fields[] = {
