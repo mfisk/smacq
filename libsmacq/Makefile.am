@@ -1,7 +1,5 @@
 INCLUDES = @GLOBAL_INCLUDES@ -I$(top_srcdir)/include
 EXTRA_DIST = parser.h
-BUILT_SOURCES = 	scanner.cpp parser.cpp expr-parser.cpp filter-parser.cpp
-#BUILT_SOURCES = 	filter-parser.c expr-parser.c expr-parser.y filter-parser.y
 SUFFIXES = .ypp .ym
 
 noinst_LTLIBRARIES=libsmacq.la @ETHEREAL_LIBRARY@
@@ -12,6 +10,12 @@ libsmacq_la_SOURCES=mem.c args.c pickle.cpp optimize.cpp filter.cpp ThreadedSmac
 
 libsmacq_la_LIBADD=
 libsmacq_la_LDFLAGS = -rpath /bogus
+
+filter-parser.ypp: grammer.ypp
+
+exper-parser.ypp: grammer.ypp
+
+parser.ypp: grammer.ypp
 
 .ym.ypp:  grammer.ypp
 	cd $(srcdir) && m4 -I$(srcdir) -P -DBUILDDATE="`date`" < $< > $@
