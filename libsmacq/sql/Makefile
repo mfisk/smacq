@@ -1,6 +1,6 @@
 PGHOME = .
 
-INCLUDES = -I. \
+INCLUDES = -I. -I../../include \
 	-I$(PGHOME)/include \
 	-I$(PGHOME)/include/nodes \
 	-I$(PGHOME)/include/tcop \

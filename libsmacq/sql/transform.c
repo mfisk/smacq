@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <smacq-internal.h>
+
 // PostgreSQL includes
 //
 #include <postgres.h>		// for lots of stuff
@@ -27,17 +29,20 @@ void scanner_init();
 char * parseString;
 List * parsetree;
 
-//int yydebug = 1;
+int yydebug = 1;
 
-int transformStmt(List *);
+struct filter * transformStmt(List *);
 int transformSelectStmt(SelectStmt *);
 
 //#undef DEBUG
+
 
 char * cmd_array[30]; // TBD
 int curr_idx;
 char * from_array[30]; // TBD
 int curr_from_idx;
+char * non_annot_array[30]; // TBD
+int curr_non_annot_idx;
 char * print_array[30]; // TBD
 int curr_print_idx;
 char * final_array[100]; // TBD
@@ -76,7 +81,7 @@ struct annot_func {
   int num;
   char * var_names[5];
 } annot_funcs[6] = {
-  { "count", 0, { NULL, NULL, NULL, NULL, NULL } },
+  { "counter", 0, { NULL, NULL, NULL, NULL, NULL } },
   { "delta", 0, { NULL, NULL, NULL, NULL, NULL } },
   { "derivative", 0, { NULL, NULL, NULL, NULL, NULL } },
   { "entropy", 0, { NULL, NULL, NULL, NULL, NULL } },
@@ -90,9 +95,17 @@ struct annot_func {
 bool is_annotation_function(char * fn, int * idx)
 {
   int i;
-  char * name = annot_funcs[i].name;
+  char * name;
+
+#ifdef DEBUG
+  fprintf(stderr, "is_annotation_function(): looking for func '%s'\n", fn);
+#endif
   for (i=0; name != NULL; i++) {
+    name = annot_funcs[i].name;
 	if (strcmp(fn, name) == 0) {
+#ifdef DEBUG
+      fprintf(stderr, "is_annotation_function(): found func '%s'\n", fn);
+#endif
       *idx = i;
 	  return TRUE;
     }
@@ -102,7 +115,7 @@ bool is_annotation_function(char * fn, int * idx)
 
 char * create_annotation_variable(int i)
 {
-  // eg. count1, count2, etc.
+  // eg. counter1, counter2, etc.
   int ivar;
   ivar = annot_funcs[i].num; 
   annot_funcs[i].var_names[ivar] = malloc(strlen(annot_funcs[i].name) + 2);
@@ -314,6 +327,16 @@ void append_print_array(char * s)
   curr_print_idx++;
 }
 
+void append_non_annot_array(char * s)
+{
+  non_annot_array[curr_non_annot_idx] = malloc(1 + strlen(s));
+  strcpy(non_annot_array[curr_non_annot_idx], s);
+#ifdef DEBUG
+  fprintf(stderr, "append_non_annot_array: array[%d] = '%s'\n", curr_non_annot_idx, non_annot_array[curr_non_annot_idx]);
+#endif
+  curr_non_annot_idx++;
+}
+
 void append_final_array(char * s)
 {
   final_array[curr_final_idx] = malloc(1 + strlen(s));
@@ -324,7 +347,8 @@ void append_final_array(char * s)
   curr_final_idx++;
 }
 
-char * build_string_from_list(list * l) {
+char * build_string_from_list(list * l) 
+{
   list_item * li;
   char * s = malloc(256);
 
@@ -332,17 +356,6 @@ char * build_string_from_list(list * l) {
 	sprintf(s, "%s", li->str_name);
   }
   return s;
-}
-
-void build_char_array_from_list(list * l) {
-  list_item * li;
-
-  for (li = l->head; li; li = li->next) {
-	fprintf(stderr, "build_char_array_from_list: curr_idx = %d\n", curr_idx);
-	cmd_array[curr_idx] = malloc(1 + strlen(li->str_name));
-	cmd_array[curr_idx] = li->str_name;
-	curr_idx++;
-  }
 }
 
 void free_all()
@@ -488,7 +501,7 @@ Node * transformExpr(Node *expr, list * func_list, int clause_type)
 
      {
 	  // append the innermost function arg to each outer function
-	  // eg. count(uniq(dstip)) -> uniq dstip | count dstip
+	  // eg. counter(uniq(dstip)) -> uniq dstip | counter dstip
 	  //
 	  list_item * tail_item = func_list->tail;
 	  list * tail_list = (list *)(tail_item->arg_list);
@@ -530,26 +543,27 @@ Node * transformExpr(Node *expr, list * func_list, int clause_type)
 //
 // select target list, eg. SELECT t1, t2, etc.
 //
-int transformTargetList(List * target_list, list * func_list, bool isPrint)
+int transformTargetList(SelectStmt * stmt, list * func_list)
 {
   int rc = 0;
   //Node * result;
   list_item * li;
   list * arg_list;
+  List * target_list = stmt->targetList;
+  bool isPrint = stmt->isPrint;
+  bool isSelect = strcmp(stmt->functionname, "select") == 0;
+  char * fn = stmt->functionname;
 
 #ifdef DEBUG
-  fprintf(stderr, "Found Target List: \n");
+  fprintf(stderr, "Found Target List: stmt->functionname = %s\n", fn);
 #endif
 
-  if (isPrint) {
+  if (isPrint) { // print
     print_list = make_list("print_list");
-    append_print_array("|");
     append_print_array("print");
   }
-  else {
-	// TBD - what to do for "select" instead of "print" ?
-    //append_print_array("|");
-    //append_print_array("print");
+  else if (! isSelect) { // uniq, etc.
+	append_non_annot_array(fn);
   }
 
   while (target_list != NIL) {
@@ -561,7 +575,7 @@ int transformTargetList(List * target_list, list * func_list, bool isPrint)
 #ifdef DEBUG
   fprintf(stderr, "CALLING append_array('|') from transformTargetList()\n");
 #endif
-      append_array("|");
+      if (curr_idx > 0) append_array("|");
 
 #ifdef DEBUG
       fprintf(stderr,"Found FuncCall in target list: %s\n", fc->funcname);
@@ -571,7 +585,6 @@ int transformTargetList(List * target_list, list * func_list, bool isPrint)
 	  transformExpr((Node *) fc, func_list, SELECT_CLAUSE);
 
       // now unwind the stack, adding 'arg' to each module call
-      // eg. COUNT(UNIQ(srcip)) --> UNIQ srcip | COUNT srcip
 	  //
 #ifdef DEBUG
       fprintf(stderr,"TargetList DEQUEUE LOOP...func_list->num_items = %i\n", func_list->num_items);
@@ -581,7 +594,7 @@ int transformTargetList(List * target_list, list * func_list, bool isPrint)
 #ifdef DEBUG
         fprintf(stderr,"TargetList DEQUEUE LOOP...\n");
 #endif
-        // eg. 'uniq' or 'count'
+        // eg. 'counter'
         append_array(li->str_name);
 		arg_list = (list *)li->arg_list;
 
@@ -590,64 +603,43 @@ int transformTargetList(List * target_list, list * func_list, bool isPrint)
 #endif
 		// eg. 'dstip' or '-f cnt dstip'
 		if (arg_list) {
-		  list_item * ali; // arg list item
-		  list_item * pli; // print list item
-		  //list_item * ili; // identifier list item
+		  list_item * ali; // arg list item eg. srcip
+		  list_item * pli; // print list item (eg. counter1)
 
           while ((ali = d2_list_dequeue(arg_list, FROM_HEAD)) != NULL) {
-			char * tok;
-		    bool COUNT_RENAMED = FALSE; // 'count -f' found?
+			int func_idx;
 #ifdef DEBUG
 		    fprintf(stderr, "arg for %s = '%s'\n", li->str_name, ali->str_name);
 #endif
-			// build 'print' list (eg. 'print srcip dstport cnt dstip count')
+			// build 'print' list (eg. 'print srcip dstport cnt dstip counter')
 			//
-			if (strcmp(li->str_name, "count") == 0) {
-
+			if (is_annotation_function(li->str_name, &func_idx)) {
               if (isPrint) {
                 append_print_array(ali->str_name); // ??
-              }
-              append_array(ali->str_name);
-              tok = strtok(ali->str_name, " "); 
-#ifdef DEBUG
-		      fprintf(stderr, "1st tok = '%s'\n", tok);
-#endif
-			  if (strcmp(tok, "-f") == 0) {
-			    tok = strtok(NULL, " "); // eg. 'cnt'
-#ifdef DEBUG
-		        fprintf(stderr, "2nd tok = '%s'\n", tok);
-#endif
-			    if (tok) { // eg. 'cnt'
-				  pli = make_list_item(tok);
-                  if (isPrint) {
-                    append_print_array(tok);
-                  }
-				  COUNT_RENAMED = TRUE;
-			    }
+			    pli = make_list_item(annot_funcs[func_idx].name);
+			    d2_list_enqueue(print_list, pli);
 			  }
-			  else { // not '-f' flag, assume ident
-				if (!COUNT_RENAMED) {
-                  if (isPrint) {
-			        pli = make_list_item("count");
-                    append_print_array("count");
-				  }
-				}
-                if (isPrint) {
-				  // uncomment next 2 lines to assume that eg. 'print count(x)'
-				  // translates to 'print x count', and not just 'print count'
-				  //
-			      //ili = make_list_item(ali->str_name);
-				  //d2_list_enqueue(print_list, ili);
-
-				  d2_list_enqueue(print_list, pli);
-			    }
+			  else if (isSelect) { // select
+			    // temp test until other funcs have -f flags
+			    if (strcmp(li->str_name, "counter") == 0) {
+                  append_array("-f");
+                  append_array(create_annotation_variable(func_idx));
+                }
+                append_array(ali->str_name);
 			  }
-
+			  else { // ! select
+                append_non_annot_array(li->str_name); // ??
+			    // temp test until other funcs have -f flags
+			    if (strcmp(li->str_name, "counter") == 0) { 
+                  append_non_annot_array("-f");
+                  append_non_annot_array(create_annotation_variable(func_idx));
+                }
+                append_non_annot_array(ali->str_name);
+			  }
 			}
 			else {
               append_array(ali->str_name);
 			}
-
 		  }
 
           if (func_list->num_items > 0) {
@@ -656,7 +648,6 @@ int transformTargetList(List * target_list, list * func_list, bool isPrint)
 #endif
             append_array("|");
 		  }
-
 		}
 	  }
     }
@@ -669,21 +660,27 @@ int transformTargetList(List * target_list, list * func_list, bool isPrint)
 
       if (isPrint) {
         append_print_array(id->name);
+        pli = make_list_item(id->name); // need this? 
+        d2_list_enqueue(print_list, pli); // need this?
       }
-
-      if (isPrint) {
-        pli = make_list_item(id->name); 	
-        d2_list_enqueue(print_list, pli);
-      }
+	  else if (! isSelect) {
+        append_non_annot_array(id->name);
+	  }
     }
 	else {
       fprintf(stderr, "Unknown target type in target list.\n");
 	}
 
     target_list = lnext(target_list);
+
+  }
+
+  if (curr_idx > 0) {
+	append_array("|");
   }
 
 #ifdef DEBUG
+  // need this?
   if (isPrint) {
     fprintf(stderr, "PRINT LIST = ");
     for (li = print_list->head; li; li = li->next) {
@@ -692,8 +689,6 @@ int transformTargetList(List * target_list, list * func_list, bool isPrint)
     fprintf(stderr, "\n");
   }
 #endif
-
-  //d2_list_list_dequeue(func_list_list, FROM_TAIL);
 
   return rc;
 }
@@ -739,8 +734,7 @@ int transformFromClause(List * from_list, list * func_list)
 
 	  transformExpr((Node *)fc, func_list, FROM_CLAUSE);
 
-      // now unwind the stack, adding 'arg' to each module call
-      // eg. UNIQ srcip COUNT srcip
+      // now unwind the stack, adding 'arg' to module calls
 	  //
       while ((li = d2_list_dequeue(func_list, FROM_TAIL)) != NULL) {
 #ifdef DEBUG
@@ -762,13 +756,6 @@ int transformFromClause(List * from_list, list * func_list)
 		  }
 		}
 	  }
-/**
-#ifdef DEBUG
-      fprintf(stderr, "CALLING append_array('|') from transformFromClause()\n");
-#endif
-      //append_array("|");
-      append_from_array("|");
-**/
 	}
 	else {
       fprintf(stderr, "Found UNKNOWN node type in FROM:\n");
@@ -845,13 +832,11 @@ int transformSelectStmt(SelectStmt * stmt)
   char * lname = malloc(sizeof("func_list") + 2);
 
 #ifdef DEBUG
-  fprintf(stderr, "Found Select Statement: \n");
+  fprintf(stderr, "Found Select Statement: stmt->functionname = %s\n", stmt->functionname);
 #endif
 
   sprintf(lname, "func_list%i", ++func_list_count);
   func_list = make_list(lname);
-
-  //d2_list_list_enqueue(func_list_list, func_list);
 
   if (stmt->targetList == NULL) {
     fprintf(stderr, "NULL targetList!\n");
@@ -860,7 +845,7 @@ int transformSelectStmt(SelectStmt * stmt)
 #ifdef DEBUG
   fprintf(stderr, "Calling transformTargetList...\n");
 #endif
-  rc = transformTargetList(stmt->targetList, func_list, stmt->isPrint);
+  rc = transformTargetList(stmt, func_list);
   if (rc != 0) {
     fprintf(stderr, "Error transforming target list.\n");
     return rc;
@@ -911,20 +896,21 @@ int transformSelectStmt(SelectStmt * stmt)
     }
   }
 
-  //d2_list_list_dequeue(func_list_list, FROM_TAIL);
-
   return rc;
 }
 
-int transformStmt(List * ptree)
+struct filter * transformStmt(List * ptree)
 {
   int rc = 0;
   List * raw_parsetree_list;
   List * parsetree_item = NULL;
+  struct filter * last = NULL;
+  struct filter * objs = NULL;
 
   func_list_count = 0;
   curr_idx = 0;
   curr_print_idx = 0;
+  curr_non_annot_idx = 0;
 
   func_list_list = make_list_list("func_list_list");
 
@@ -937,7 +923,7 @@ int transformStmt(List * ptree)
 
 	if (nodeTag(stmt) != T_SelectStmt) {
 	  fprintf(stderr, "Not a SELECT or PRINT statement, found type %i.\n", nodeTag(ptree));
-	  return -1;
+	  return((struct filter *)NULL);
 	}
 
     rc = transformSelectStmt(stmt);
@@ -945,15 +931,10 @@ int transformStmt(List * ptree)
 
  {
   int i;
-
-#ifdef DEBUG
-  create_annotation_variable(0);
-  create_annotation_variable(0);
-  create_annotation_variable(0);
-  create_annotation_variable(3);
-  create_annotation_variable(3);
-  create_annotation_variable(3);
-#endif
+  int j;
+  int na;
+  int k;
+  char ** arrayp = cmd_array;
 
   for (i = 0; i < curr_from_idx; i++) {
 #ifdef DEBUG
@@ -961,34 +942,85 @@ int transformStmt(List * ptree)
 #endif
 	append_final_array(from_array[i]);
   }
+
   for (i = 0; i < curr_idx; i++) {
 #ifdef DEBUG
 	fprintf(stderr, "i = %d, val = %s\n", i, cmd_array[i]);
 #endif
 	append_final_array(cmd_array[i]);
   }
+
+  for (i = 0; i < curr_non_annot_idx; i++) {
+#ifdef DEBUG
+	fprintf(stderr, "i = %d, val = %s\n", i, non_annot_array[i]);
+#endif
+	append_final_array(non_annot_array[i]);
+  }
+
   for (i = 0; i < curr_print_idx; i++) {
 #ifdef DEBUG
 	fprintf(stderr, "i = %d, val = %s\n", i, print_array[i]);
 #endif
 	append_final_array(print_array[i]);
   }
- }
   
   dump_array();
   dump_final_array();
 
+#ifdef DEBUG
+  fprintf(stderr, "-- adding child %s with %d args\n", from_array[0], curr_from_idx);
+#endif
+
+  last = smacq_add_new_child(last, curr_from_idx, from_array);
+  if (!objs) objs = last;
+
+  j = 0; na = 0;
+  for (i = 0; i < curr_idx; i++) {
+	j++; na++;
+#ifdef DEBUG
+    fprintf(stderr, "i = %i, j = %i, na = %i, cmd_array[j-1] = %s\n", i, j, na, cmd_array[j-1]);
+#endif
+	if (strcmp(cmd_array[j-1], "|") == 0) {
+#ifdef DEBUG
+      fprintf(stderr, "-- adding child %s with %d args\n", *arrayp, na-1);
+	  for (k=0; k<na-1; k++) {
+		fprintf(stderr, "-- arrayp[%i] = %s\n", k, arrayp[k]);
+	  }
+#endif
+      last = smacq_add_new_child(last, na-1, arrayp);
+      if (!objs) objs = last;
+	  arrayp = (char **)&(cmd_array[j]);
+	  na = 0;
+	}
+  }
+#ifdef DEBUG
+  fprintf(stderr, "-- adding child %s with %d args\n", print_array[0], curr_print_idx);
+#endif
+
+  if (curr_non_annot_idx > 0) {
+    last = smacq_add_new_child(last, curr_non_annot_idx, non_annot_array);
+    if (!objs) objs = last;
+  }
+
+  if (curr_print_idx > 0) {
+    last = smacq_add_new_child(last, curr_print_idx, print_array);
+    if (!objs) objs = last;
+  }
+
+ }
+  
   // free_all();
 
-  return 0;
+  return(objs);
 
 }
 
-char ** parse_stmt(int argc, char ** argv, int * new_argc) 
+struct filter * parse_stmt(int argc, char ** argv) 
 {
   int rc = 0;
   int yyresult;
   char * sqlcmd = malloc(256);
+  struct filter * last = NULL;
 
   while (argc > 0) {
 	fprintf(stderr, "ARGV = %s\n", *argv);
@@ -1009,13 +1041,11 @@ char ** parse_stmt(int argc, char ** argv, int * new_argc)
   fprintf(stderr, "\nyyresult = %d\n", yyresult);
   fprintf(stderr, "parsetree = %p\n", parsetree);
 
-  rc = transformStmt(parsetree);
+  last = transformStmt(parsetree);
 
   if (rc != 0) {
 	fprintf(stderr, "Error transforming parsetree into SMACQ stmt.\n");
   }
 
-  *new_argc = curr_final_idx; 
-
-  return final_array;
+  return last;
 }

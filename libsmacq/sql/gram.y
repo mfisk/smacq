@@ -1,6 +1,6 @@
 %{
 
-//#define YYDEBUG 1
+#define YYDEBUG 1
 /*-------------------------------------------------------------------------
  *
  * gram.y
@@ -201,7 +201,7 @@ static Node *makeSetOp(SetOperation op, bool all, Node *larg, Node *rarg);
 		USING,
 		WHERE,
 
-		UNIQ, SPLIT, COUNT, PCAPFILE, PCAPLIVE
+		DELTA, UNIQ, TOP, LAST, SPLIT, COUNTER, PCAPFILE, PCAPLIVE
 
 /* Special keywords, not in the query language - see the "lex" file */
 %token <str>	IDENT, FCONST, SCONST, BITCONST, Op
@@ -360,17 +360,19 @@ select_clause: simple_select
  * However, this is not checked by the grammar; parse analysis must check it.
  */
 simple_select: 
+			 //IDENT opt_distinct target_list
 			 select_word opt_distinct target_list
 			 from_clause where_clause
 			 group_clause
 				{
 					SelectStmt *n = makeNode(SelectStmt);
-					if (strcmp($1, "PRINT") == 0) {
+					if (strcmp($1, "print") == 0) {
 					  n->isPrint = TRUE;
 					}
 					else {
 					  n->isPrint = FALSE;
 					}
+					n->functionname = $1;
 					n->distinctClause = $2;
 					n->targetList = $3;
 					n->fromClause = $4;
@@ -380,9 +382,18 @@ simple_select:
 				}
 		;
 
-select_word: SELECT								{ $$ = "SELECT"; }
-		| PRINT									{ $$ = "PRINT"; }
+select_word: SELECT								{ $$ = "select"; }
+		| PRINT									{ $$ = "print"; }
+		| UNIQ									{ $$ = "uniq"; }
+		| TOP									{ $$ = "top"; }
+		| LAST									{ $$ = "last"; }
 		;
+
+/***
+select_word: IDENT								{ $$ = $1; }
+		;
+***/
+
 opt_all:  ALL									{ $$ = TRUE; }
 		| /*EMPTY*/								{ $$ = FALSE; }
 		;
@@ -1110,11 +1121,14 @@ ColLabel:  IDENT						{ $$ = $1; }
  */
 
 func_name_keyword:
-		  COUNT							{ $$ = "count"; }
+		  COUNTER							{ $$ = "counter"; }
 		| PCAPFILE							{ $$ = "pcapfile"; }
 		| PCAPLIVE							{ $$ = "pcaplive"; }
-		| UNIQ							{ $$ = "uniq"; }
 		| SPLIT							{ $$ = "split"; }
+		| DELTA							{ $$ = "delta"; }
+		//| UNIQ							{ $$ = "uniq"; }
+		//| TOP							{ $$ = "top"; }
+		//| LAST							{ $$ = "last"; }
 		;
 
 /* Reserved keyword --- these keywords are usable only as a ColLabel.
@@ -1137,11 +1151,14 @@ reserved_keyword:
 		| DISTINCT						{ $$ = "distinct"; }
 		| FROM							{ $$ = "from"; }
 		| GROUP							{ $$ = "group"; }
+		| LAST							{ $$ = "last"; }
 		| NOT							{ $$ = "not"; }
 		| OR							{ $$ = "or"; }
 		| ORDER							{ $$ = "order"; }
 		| PRINT							{ $$ = "print"; }
 		| SELECT						{ $$ = "select"; }
+		| TOP							{ $$ = "top"; }
+		| UNIQ							{ $$ = "uniq"; }
 		| USING							{ $$ = "using"; }
 		| WHERE							{ $$ = "where"; }
 		;

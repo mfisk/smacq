@@ -912,6 +912,7 @@ typedef struct SelectStmt
 
 	// For SMACQ, false for "SELECT", true for "PRINT" (wbarber)
 	bool isPrint;
+	char *functionname;
 
 } SelectStmt;
 
