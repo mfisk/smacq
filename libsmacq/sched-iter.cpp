@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include <smacq-dataflow.h>
+#include <SmacqModule.h>
 #include <DtsObject.h>
 #include <smacq.h>
 
