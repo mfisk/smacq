@@ -9,6 +9,7 @@ static struct smacq_options options[] = {
 	{"f", {string_t:"severity"}, "Report severity of change as this field", SMACQ_OPT_TYPE_STRING},
 	{"t", {double_t:-1}, "Threshold (in standard deviations)", SMACQ_OPT_TYPE_DOUBLE},
 	{"i", {string_t:NULL}, "Identify field", SMACQ_OPT_TYPE_STRING},
+	{"a", {boolean_t:0}, "Add mean and sigma fields to each feature", SMACQ_OPT_TYPE_BOOLEAN},
 	END_SMACQ_OPTIONS
 };
 
@@ -30,6 +31,8 @@ SMACQ_MODULE(changes,
 	PROTO_CTOR(changes);
 	PROTO_CONSUME();
 
+	bool attach_all;
+
 	double threshold;
 	int	dimensions;
 
@@ -37,11 +40,10 @@ SMACQ_MODULE(changes,
 	double alpha_avg_down;
 	double alpha_stddev;
 
-	DtsField id_field;
-	DtsField severity_field;
+	DtsField id_field, severity_field, avg_field, sigma_field;
 	dts_typeid double_type;
 
-	std::vector<DtsField> fields;
+	std::vector<DtsField> fields, raw_fields;
 	FieldVecHash<per_id_state> Id;
 );
 
@@ -49,7 +51,10 @@ smacq_result changesModule::consume(DtsObject datum, int & outchan) {
 	double total_distance = 0;
 
 	DtsObject id = datum->getfield(id_field);
-	if (!id) return SMACQ_FREE;
+	if (!id) {
+		//fprintf(stderr, "ID field not present\n");
+		return SMACQ_FREE;
+	}
 	per_id_state & s = Id[id];
 
 	for (int i = 0; i < dimensions; i++) {
@@ -89,26 +94,39 @@ smacq_result changesModule::consume(DtsObject datum, int & outchan) {
 			d.stddev *= alpha_stddev;
 			d.stddev += (1-alpha_stddev) * dev;
 
+			if (attach_all) {
+				DtsObject rawo = datum->getfield(raw_fields[i]);
+				//fprintf(stderr, "attaching to %p field of %p\n", o.get(), datum.get());
+				rawo->attach_field(avg_field, 
+					dts->construct(double_type, &d.avg));
+
+				rawo->attach_field(sigma_field, 
+					dts->construct(double_type, &d.stddev));
+			}
+
 		}
 		total_distance += d.distance ;
 	}
 
 	// Check for changes
+    //fprintf(stderr, "total distance is %g\n", total_distance);
 	total_distance = sqrt(total_distance);
 	if (total_distance <= threshold) {
 		return SMACQ_FREE;
 	}
 		
-	DtsObject severity = dts->construct(double_type, &total_distance);
-	datum->attach_field(severity_field, severity);
+	datum->attach_field(severity_field, 
+		dts->construct(double_type, &total_distance));
 
 	return SMACQ_PASS;
 }
 
-changesModule::changesModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
+changesModule::changesModule(struct SmacqModule::smacq_init * context) 
+	: SmacqModule(context)
+{
 	int argc;
 	char ** argv;
-	smacq_opt opt_threshold, opt_severity, opt_id, opt_alpha_avg_up, opt_alpha_avg_down, opt_alpha_stddev;
+	smacq_opt opt_threshold, opt_severity, opt_id, opt_alpha_avg_up, opt_alpha_avg_down, opt_alpha_stddev, opt_all;
     
 	struct smacq_optval optvals[] = {
       { "histup", &opt_alpha_avg_up}, 
@@ -117,11 +135,18 @@ changesModule::changesModule(struct SmacqModule::smacq_init * context) : SmacqMo
       { "i", &opt_id}, 
       { "f", &opt_severity}, 
       { "t", &opt_threshold}, 
+      { "a", &opt_all}, 
       {NULL, NULL}
 	};
 	smacq_getoptsbyname(context->argc-1, context->argv+1,
                                &argc, &argv,
                                options, optvals);
+
+	attach_all = opt_all.boolean_t;
+	if (attach_all) {
+		avg_field = dts->requirefield("mean");
+		sigma_field = dts->requirefield("sigma");
+	}
 
 	threshold = opt_threshold.double_t;
 	severity_field = dts->requirefield(opt_severity.string_t);
@@ -143,6 +168,13 @@ changesModule::changesModule(struct SmacqModule::smacq_init * context) : SmacqMo
 	for (int i = 0; i < argc; i++) {
 		fields[i] = dts->requirefield(dts_fieldname_append(argv[i], "double"));
 	}	
+
+	if (opt_all.boolean_t) {
+		raw_fields.resize(dimensions);
+		for (int i = 0; i < argc; i++) {
+			raw_fields[i] = dts->requirefield(argv[i]);
+		}
+	}
 
 	if (! opt_id.string_t) {
 		fprintf(stderr, "changes: -i is required\n");
