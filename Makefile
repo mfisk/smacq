@@ -5,7 +5,7 @@ debug:
 	BUILDNAME=debug CONFIG="--enable-debug" misc/buildarch 
 
 bootstrap:
-	rm -Rf autom4te.cache config
+	rm -Rf autom4te.cache config/[a-z]*
 	mkdir -p config
 	export PATH=/sw/bin:$$PATH; \
 	libtoolize --copy --force; \
