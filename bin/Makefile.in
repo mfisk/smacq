@@ -102,8 +102,7 @@ CFLAGS = @CFLAGS@ -DSMACQ_BUILD_DATE=\"`date '+%Y-%m-%d'`\"
 bin_PROGRAMS = smacqq pgsmacqd #smacqq_static smacqq_dynamic #iterative-example
 
 LDFLAGS = @LDFLAGS@ $(BUILTINS) -export-dynamic -static 
-LDADD = $(top_builddir)/libsmacq/libsmacq.la -lglib-2.0 -lgmodule-2.0 -lpthread
-DEPENDENCIES = $(top_builddir)/libsmacq/libsmacq.la $(top_builddir)/modules/libsmacq_modules.la $(top_builddir)/types/libdts_modules.la
+LDADD = $(top_builddir)/modules/libsmacq_modules.la $(top_builddir)/libsmacq/libsmacq.la $(top_builddir)/types/libdts_modules.la -lglib-2.0 -lgmodule-2.0 -lpthread
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = ../config.h
 CONFIG_CLEAN_FILES = 
@@ -117,12 +116,16 @@ LIBS = @LIBS@
 smacqq_SOURCES = smacqq.c
 smacqq_OBJECTS =  smacqq.$(OBJEXT)
 smacqq_LDADD = $(LDADD)
-smacqq_DEPENDENCIES =  $(top_builddir)/libsmacq/libsmacq.la
+smacqq_DEPENDENCIES =  $(top_builddir)/modules/libsmacq_modules.la \
+$(top_builddir)/libsmacq/libsmacq.la \
+$(top_builddir)/types/libdts_modules.la
 smacqq_LDFLAGS = 
 pgsmacqd_SOURCES = pgsmacqd.c
 pgsmacqd_OBJECTS =  pgsmacqd.$(OBJEXT)
 pgsmacqd_LDADD = $(LDADD)
-pgsmacqd_DEPENDENCIES =  $(top_builddir)/libsmacq/libsmacq.la
+pgsmacqd_DEPENDENCIES =  $(top_builddir)/modules/libsmacq_modules.la \
+$(top_builddir)/libsmacq/libsmacq.la \
+$(top_builddir)/types/libdts_modules.la
 pgsmacqd_LDFLAGS = 
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -379,6 +382,7 @@ all-redirect all-am all installdirs mostlyclean-generic \
 distclean-generic clean-generic maintainer-clean-generic clean \
 mostlyclean distclean maintainer-clean
 
+#DEPENDENCIES = $(top_builddir)/libsmacq/libsmacq.la $(top_builddir)/modules/libsmacq_modules.la $(top_builddir)/types/libdts_modules.la
 
 #smacqq_static_LDFLAGS = -export-dynamic -all-static $(BUILTINS)
 #smacqq_dynamic_LDFLAGS = -export-dynamic -dynamic
