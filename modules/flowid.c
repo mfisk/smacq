@@ -212,7 +212,7 @@ static int flowid_init(struct flow_init * context) {
   // Consume rest of arguments as field names
   fields_init(state->env, &state->fieldset, argc, argv);
 
-  state->stats = bytes_hash_table_new(KEYBYTES, chain);
+  state->stats = bytes_hash_table_new(KEYBYTES, CHAIN, FREE);
 
   return 0;
 }

@@ -106,7 +106,7 @@ static struct bloom_summary * bloom_init(int maxkeybytes, unsigned long long siz
   bloom_set_hash_functions(b, DEFAULTNUMFUNCS);
   init_hash_functions(b);
 
-  b->perfectsummary = bytes_hash_table_new(maxkeybytes, chain);
+  b->perfectsummary = bytes_hash_table_new(maxkeybytes, CHAIN, NOFREE);
 
   return b;
 }

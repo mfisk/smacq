@@ -94,7 +94,7 @@ static int split_init(struct flow_init * context) {
 
   	state->mode = UNIQUE;
   	fields_init(state->env, &state->fieldset, argc, argv);
-  	state->hashtable = bytes_hash_table_new(KEYBYTES, chain);
+  	state->hashtable = bytes_hash_table_new(KEYBYTES, CHAIN, NOFREE);
   } else if (!state->children) {
 	fprintf(stderr, "Must specify either -b or fields\n");
 	assert(0);

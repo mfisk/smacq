@@ -120,7 +120,7 @@ static int slice_init(struct flow_init * context) {
   // Consume rest of arguments as fieldnames
   fields_init(&state->fieldset, argc, argv);
 
-  state->counters = bytes_hash_table_new(KEYBYTES, chain);
+  state->counters = bytes_hash_table_new(KEYBYTES, CHAIN, NOFREE);
 
   return 0;
 }

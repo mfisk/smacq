@@ -124,7 +124,7 @@ static int top_init(struct flow_init * context) {
   fields_init(state->env, &state->fieldset, argc, argv);
 
   if (!state->prob) {
-    state->drset = bytes_hash_table_new(KEYBYTES, chain);
+    state->drset = bytes_hash_table_new(KEYBYTES, CHAIN, NOFREE);
   } else {
     state->summary = bloom_counter_init(KEYBYTES, state->prob/4 * 1024 * 1024);
   }

@@ -99,12 +99,14 @@ static int count_init(struct flow_init * context) {
   	state->counttype = flow_requiretype(state->env, "int");
   }
 
-  state->counters = bytes_hash_table_new(KEYBYTES, chain);
+  state->counters = bytes_hash_table_new(KEYBYTES, CHAIN, NOFREE);
 
   return 0;
 }
 
 static int count_shutdown(struct state * state) {
+  bytes_hash_table_destroy(state->counters);
+  free(state);
   // Print counters
   return 0;
 }

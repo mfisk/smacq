@@ -273,7 +273,7 @@ static int intervals_init(struct flow_init * context) {
   // Consume rest of arguments as fieldnames
   fields_init(state->env, &state->fieldset, argc, argv);
 
-  state->stats = bytes_hash_table_new(KEYBYTES, chain);
+  state->stats = bytes_hash_table_new(KEYBYTES, CHAIN, FREE);
   state->printfd = stdout;
 
   return 0;

@@ -1,3 +1,10 @@
+/*
+ * This module assigns a flow-id number to objects based on a tuple of
+ * fields.  Optionally, flows can be made to timeout after an idle
+ * time.  In this case, an end-of-flow record will be output.
+ *
+*/
+
 #include <stdlib.h>
 #include <netdb.h>
 #include <sys/socket.h>
@@ -72,6 +79,14 @@ static int isexpired(gpointer key, gpointer value, gpointer userdata) {
 	return ((struct srcstat*)value)->expired;
 }
 
+/*
+ * Plan of attack: 
+ *
+ * 1) Find out what time it is now.
+ * 2) See if the current object belongs to an active flow, else create one
+ * 3) Timout idle flows and send out a final record
+ *
+ */
 static smacq_result active_consume(struct state * state, const dts_object * datum, int * outchan) {
   struct iovec * domainv = NULL;
   struct srcstat * s;
@@ -175,7 +190,7 @@ static int active_init(struct flow_init * context) {
   // Consume rest of arguments as field names
   fields_init(state->env, &state->fieldset, argc, argv);
 
-  state->stats = bytes_hash_table_new(KEYBYTES, chain);
+  state->stats = bytes_hash_table_new(KEYBYTES, CHAIN, FREE);
 
   return 0;
 }

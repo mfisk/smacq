@@ -50,7 +50,6 @@ static inline void timeval_inc(struct timeval * x, struct timeval y) {
     x->tv_sec++;
     x->tv_usec -= 1000000;
   }
-
 }
 
 static inline int timeval_ge(struct timeval x, struct timeval y) {
@@ -190,7 +189,7 @@ static int last_init(struct flow_init * context) {
   state->timeseries = flow_requirefield(state->env, "timeseries");
   state->refreshtype = flow_requiretype(state->env, "refresh");
   state->timevaltype = flow_requiretype(state->env, "timeval");
-  state->last = bytes_hash_table_new(KEYBYTES, chain);
+  state->last = bytes_hash_table_new(KEYBYTES, CHAIN, NOFREE);
 
   return 0;
 }
