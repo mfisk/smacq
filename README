@@ -55,12 +55,14 @@ and execute this package:
 		zlib1g zlib1g-dev \
 		libglib2.0 libglib2.0-dev \
 		libpcap0 libpcap-dev \
+		libgda-dev gda-sqlite \
 		libtool groff #python2.2-dev 
 
 Red Hat Linux:
 --------------
 The following packages are required:
 	glib2-devel
+	...
 
 MacOS/X - Fink:
 ----------------
