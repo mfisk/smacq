@@ -149,7 +149,7 @@ struct graph newgroup(struct group group, struct graph vphrase) {
   }
 
   sprintf(gp, "%lu", (unsigned long)vphrase.head);
-  /* smacq_graph_print(stderr, vphrase.head, 0); *?
+  /* smacq_graph_print(stderr, vphrase.head, 0); */
 
   arglist = newarg("-p", 0, NULL);
   arglist_append(arglist, newarg(strdup(gp), 0, NULL));
