@@ -84,24 +84,23 @@ struct obj_list * fifo_insert(struct state * state, const dts_object * datum, st
 }
 
 static smacq_result fifodelay_consume(struct state * state, const dts_object * datum, int * outchan) {
-  dts_object dtime;
-  int res;
+  const dts_object * dtime;
 
   /* Add this entry to the queue */
-  res = smacq_getfield(state->env, datum, state->ts_field, &dtime);
-  if (!res) {
+  dtime = smacq_getfield(state->env, datum, state->ts_field, NULL);
+  if (!dtime) {
     fprintf(stderr, "Passing field without time\n");
     return SMACQ_PASS;
   }
-  assert(dtime.len == sizeof (struct timeval));
+  assert(dtime->len == sizeof (struct timeval));
 
-  fifo_insert(state, datum,  *(struct timeval *)dtime.data);
-
+  fifo_insert(state, datum,  dts_data_as(dtime, struct timeval));
+  
   /* Update the edge time, if given in this packet */
-  res = smacq_getfield(state->env, datum, state->edge_field, &dtime);
-  if (res) {
-    assert(dtime.len == sizeof (struct timeval));
-    timeval_minus(  *(struct timeval*)dtime.data, state->interval, &state->edge);
+  dtime = smacq_getfield(state->env, datum, state->edge_field, NULL);
+  if (dtime) {
+    assert(dtime->len == sizeof (struct timeval));
+    timeval_minus( dts_data_as(dtime, struct timeval), state->interval, &state->edge);
   }
   return(SMACQ_FREE|SMACQ_PRODUCE);
 }

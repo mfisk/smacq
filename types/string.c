@@ -3,10 +3,8 @@
 #include <string.h>
 #include "smacq.h"
 
-static int smacqtype_string_get_string(const dts_object * o, void ** transform, int * tlen) {
-  *transform = dts_getdata(o);
-  *tlen = dts_getsize(o);
-
+static int smacqtype_string_get_string(const dts_object * o, dts_object * data) {
+  *data = *o;
   return 1;
 }
 

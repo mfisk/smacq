@@ -12,7 +12,7 @@
       <firstname>Mike</firstname>
       <surname>Fisk</surname>
     </author>
-    <date>$Date: 2002/10/31 01:00:59 $</date>
+    <date>$Date: 2002/12/01 03:34:31 $</date>
   </refentryinfo>
   <refmeta>
     <refentrytitle>dts-types</refentrytitle>
@@ -103,7 +103,7 @@
 	</structfield>
 	};
 
-	typedef int <function>field_getfunc_fn</function>(const dts_object*, void ** data, int * len);
+	typedef int <function>field_getfunc_fn</function>(const dts_object*, dts_object *);
       </programlisting>
 
       <para>
@@ -119,8 +119,13 @@
 	properly align C struct).
 
 	If <function>getfunc</function> is non-NULL, then it
-	represents a function to be called to get the pointer and size
-	of this field.  Variable sized fields must provide a getfunc.
+	represents a function to be called to get initialize an object
+	for this field.  Variable sized fields must provide a getfunc.
+	For fixed-length types, the data object will already be the
+	correct size.  Otherwise, the length should be set appropriately
+	and the data pointer set to a new buffer of the same size.
+	If a new buffer is allocated, the "free_data" element should be set
+	to indicate that the buffer should be freed along with the data object.
       </para>
       <refsect3>
 	<title>Field access functions</title>
@@ -129,8 +134,7 @@
 	  <funcprototype>
 	    <funcdef>int <function>field_getfunc_fn</function></funcdef>
 	    <paramdef>        const dts_object * <parameter>datum</parameter></paramdef>
-	    <paramdef>        void ** <parameter>data</parameter></paramdef>
-	    <paramdef>        int *<parameter>len</parameter></paramdef>
+	    <paramdef>        dts_object * <parameter>field_datum</parameter></paramdef>
 	  </funcprototype>
 	</funcsynopsis>
 	  

@@ -121,7 +121,7 @@ dts_field_descriptor\fR elements, which are defined as follows:
 \fR\fB	  field_getfunc_fn * getfunc; 
 \fR 	}; 
  
-typedef int \fBfield_getfunc_fn\fP(const dts_object*, void ** data, int * len); 
+typedef int \fBfield_getfunc_fn\fP(const dts_object*, dts_object *); 
 \fR 
 .fi 
 .PP 
@@ -138,8 +138,13 @@ struct, be aware of padding that the compiler may add to
 properly align C struct). 
  
 If \fBgetfunc\fP is non-NULL, then it 
-represents a function to be called to get the pointer and size 
-of this field.  Variable sized fields must provide a getfunc. 
+represents a function to be called to get initialize an object 
+for this field.  Variable sized fields must provide a getfunc. 
+For fixed-length types, the data object will already be the 
+correct size.  Otherwise, the length should be set appropriately 
+and the data pointer set to a new buffer of the same size. 
+If a new buffer is allocated, the "free_data" element should be set 
+to indicate that the buffer should be freed along with the data object. 
  
 .SS "Field access functions" 
 .PP 
@@ -148,8 +153,7 @@ of this field.  Variable sized fields must provide a getfunc.
 .sp 1 
 \fBint \fBfield_getfunc_fn\fP\fR( 
 \fB        const dts_object * \fBdatum\fR\fR, 
-\fB        void ** \fBdata\fR\fR, 
-\fB        int *\fBlen\fR\fR); 
+\fB        dts_object * \fBfield_datum\fR\fR); 
 .fi 
 .PP 
 Set \fB*data\fR to point to the field in 
@@ -207,4 +211,4 @@ field is not present in this datum.
 .SH "SEE ALSO" 
 .PP 
 smacqp(1), smacq-modules(3) 
-...\" created by instant / docbook-to-man, Wed 08 Jan 2003, 18:36 
+...\" created by instant / docbook-to-man, Thu 09 Jan 2003, 23:46 

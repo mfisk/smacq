@@ -56,7 +56,8 @@ int type_match_one(dts_environment * tenv, const dts_object * datum,
       }
       
       if ((c->op != EXIST) && (dtype != c->field_data.type)) {
-	free(c->field_data.data); // XXX: Doesn't work for mmapped data.
+	if (c->field_data.free_data) 
+		free(c->field_data.data);
 	if (! tenv->fromstring(tenv, dtype, c->valstr, &c->field_data)) {
 	  fprintf(stderr,"Error: value %s is not valid for type %s \n", 
 		  c->valstr, tenv->typename_bynum(tenv, dtype));

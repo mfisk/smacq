@@ -58,8 +58,7 @@ struct _smacq_module {
  * Method entry points 
  */
 /*
-EXTERN int type_presentdata_virtual(int type, char * transform, void * data, int len, void ** tdata, int * tlen);
-int type_getfield_virtual(const dts_object * datum, char * name, int * dtype, void **data, int * len);
+dts_object * type_getfield_virtual(const dts_object * datum, char * name, int * dtype, void **data, int * len);
 int type_fromstring_virtual(int type, char * datastr, void ** tdata, int * tlen);
 int type_lt_virtual(int type, void * p1, int len1, void * p2, int len2);
 */

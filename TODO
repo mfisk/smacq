@@ -4,10 +4,15 @@ Resolve:
 
 	Should modules volunteer to take care of where info (and then delegate if necessary)?
 
-	How do you specify different types of joins?
+	How do you specify different types of joins?  Word at end of join list?
 
-getfield():
-	Who allocates, who frees?
+getfield:
+	Make sure all callers do dts_decref()
+
+	objects need the ability to depend on each other for payload.
+	Consider getfield(tcp.port).  tcp is intermediate field and will be freed.
+	If it owns the payload that port points to, then the returned object will point to freed
+	memory.
 
 
 modules/intervals.c:

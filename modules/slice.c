@@ -52,24 +52,22 @@ static smacq_result slice_consume(struct state * state, const dts_object * datum
   int c;
 
   if (state->hasinterval) {
-    int len, type;
-    struct timeval * value;
+    dts_object * ts;
+    int type;
 
-    if (!smacq_getfield(state->env, datum, "timeseries", &type, (void**)&value, &len)) {
+    if (! (ts =smacq_getfield(state->env, datum, state->ts_field, NULL)) {
       fprintf(stderr, "error: timeseries not available\n");
     } else {
-      assert(len == sizeof(struct timeval));
-      
       if (!state->istarted) {
 	state->istarted = 1;
-	state->nextinterval = *value;
+	state->nextinterval = get_data_as(ts, struct timeval);
 	timeval_inc(&state->nextinterval, state->interval);
-      } else if (timeval_ge(*value, state->nextinterval)) {
+      } else if (timeval_ge(dts_data_as(ts, struct timeval), state->nextinterval)) {
 	// Print counters
 	printout(state);
 
 	timeval_inc(&state->nextinterval, state->interval);
-	while (timeval_past(*value, state->nextinterval)) { // gap in timeseries
+	while (timeval_past(dts_data_as(ts, struct timeval) state->nextinterval)) { // gap in timeseries
 	  timeval_inc(&state->nextinterval, state->interval);
 	}
       }

@@ -28,39 +28,27 @@ static smacq_result print_produce(struct state* state, const dts_object ** datum
 static smacq_result print_consume(struct state * state, const dts_object * datum, int * outchan) {
   int i,j;
   int printed = 0;
-  dts_object field_data, print_data;
+  const dts_object *field;
   assert(datum);
-  assert(state->argv[0]);
-
-  dts_init_object(&field_data);
-  dts_init_object(&print_data);
 
   for (i = 0; i < state->argc; i++) {
     if (printed) {
       	printf(state->delimiter);
     }
-    if (smacq_getfield(state->env, datum, state->fields[i], &field_data)) {
-      int r = smacq_getfield(state->env, &field_data, state->string_transform, &print_data);
-      // int r = smacq_presentdata(state->env, &field_data, state->string_transform, (void*)&str, &slen);
-      if (r == -1) {
-	fprintf(stderr, "No string transform for field %s\n", state->argv[i]);
-      } else if (r == 0) {
-	fprintf(stderr, "Unable to transform %s to string\n", state->argv[i]);
-      } else {
+    if ((field = smacq_getfield(state->env, datum, state->fields[i], NULL))) {
         if (!printed) {
     	   for (j=0; j<i; j++) 
     		printf(state->delimiter);
         }
         printed++;
 	if (state->verbose) {
-		printf("%.20s = %s", state->argv[i], (char *)dts_getdata(&print_data));
+		printf("%.20s = %s", state->argv[i], (char *)dts_getdata(field));
 	} else {
-		printf("%s", (char*)dts_getdata(&print_data));
+		printf("%s", (char*)dts_getdata(field));
 	}
-		
-      }
+        dts_decref(field);
     } else if (state->verbose) {
-      fprintf(stderr, "Warning: print: no field %s\n", state->argv[i]);
+      fprintf(stderr, "Warning: print: no field %s.string\n", state->argv[i]);
     }
   }
   if (printed) {
@@ -99,8 +87,7 @@ static int print_init(struct smacq_init * context) {
   state->string_transform = smacq_requirefield(state->env, "string");
 
   for (i = 0; i < state->argc; i++) {
-	  state->fields[i] = smacq_requirefield(state->env, state->argv[i]); 
-	  // dts_field_printname(state->env->types, state->fields[i]);
+	  state->fields[i] = smacq_requirefield(state->env, dts_fieldname_append(state->argv[i],"string")); 
   }
   return 0;
 }

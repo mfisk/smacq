@@ -132,7 +132,6 @@ static inline int output(struct state * state, struct iovec * domainv, struct sr
 
       for (i = 0; i<state->fieldset.num; i++) {
 	dts_attach_field(refresh, state->fieldset.fields[i].num, s->fields[i]);
-	dts_incref(s->fields[i], 1);
       }
 
       msgdata = smacq_dts_construct(state->env, state->timeval_type, &s->lasttime);
@@ -144,9 +143,6 @@ static inline int output(struct state * state, struct iovec * domainv, struct sr
       attach_stats(state, s, refresh);
 
     // Cleanup
-    for (i = 0; i<state->fieldset.num; i++) {
-	dts_decref(s->fields[i]);
-    }
     free(s->fields);
 
     if (domainv) 
@@ -200,27 +196,25 @@ static smacq_result flowid_consume(struct state * state, const dts_object * datu
   struct srcstat * s;
   int status = SMACQ_FREE;
 
-  dts_object field;
+  const dts_object * field;
   dts_object * msgdata;
   struct timeval * tsnow;
   int size, swapped;
 
   // Get current time
-  if (!smacq_getfield(state->env, datum, state->ts_field, &field)) {
+  if (! (field = smacq_getfield(state->env, datum, state->ts_field, NULL))) {
     fprintf(stderr, "error: timeseries not available\n");
     return SMACQ_PASS;
   } else {
-    tsnow = (struct timeval*)field.data;
-    assert(field.len == sizeof(struct timeval));
+    tsnow = (struct timeval*) dts_getdata(field);
   }
 
   // Get current size
-  if (!smacq_getfield(state->env, datum, state->len_field, &field)) {
+  if (! (field = smacq_getfield(state->env, datum, state->len_field, NULL))) {
     fprintf(stderr, "error: len not available\n");
     return SMACQ_PASS;
   } else {
-    size = *(unsigned int*)field.data;
-    assert(field.len == sizeof(unsigned int));
+    size = dts_data_as(field, unsigned int);
   }
 
   // Find this entry
@@ -252,12 +246,8 @@ static smacq_result flowid_consume(struct state * state, const dts_object * datu
       s->starttime = *tsnow;
       s->fields = g_new(const dts_object*, state->fieldset.num);
       for (i = 0; i<state->fieldset.num; i++) {
-	int res;
-	s->fields[i] = smacq_alloc(state->env, 0, 0);
-	res = smacq_getfield_copy(state->env, datum, state->fieldset.fields[i].num, (dts_object*)s->fields[i]);
-	assert (res);
+	s->fields[i] = smacq_getfield_copy(state->env, datum, state->fieldset.fields[i].num, NULL);
 	assert(s->fields[i]);
-	dts_incref(s->fields[i], 1);
       }
 	
       bytes_hash_table_replacev(state->stats, domainv, state->fieldset.num, s);

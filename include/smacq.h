@@ -68,7 +68,7 @@ struct _dts_object {
   int len;
 };
 
-typedef int field_getfunc_fn(const dts_object*, void ** data, int * len);
+typedef int field_getfunc_fn(const dts_object*, dts_object*);
 
 struct dts_field_descriptor {
   char * type;
@@ -91,7 +91,7 @@ typedef struct _type_env {
 
   int (* lt)(struct _type_env *, int, void *, int, void *, int);
   int (* fromstring)(struct _type_env *, int, char *, dts_object *);
-  int (* getfield)(struct _type_env *, const dts_object * datum, dts_field fnum, dts_object *);
+  const dts_object * (* getfield)(struct _type_env *, const dts_object * datum, dts_field fnum, dts_object *);
   int (* typenum_byname)(struct _type_env *, char *);
   int (* requiretype)(struct _type_env *, char *);
   dts_field (* requirefield)(struct _type_env *, char *);

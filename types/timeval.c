@@ -8,22 +8,24 @@
 
 #include <netinet/in.h>
 
-static int smacqtype_timeval_get_double(const dts_object * o, void ** transform, int * tlen) {
+static int smacqtype_timeval_get_double(const dts_object * o, dts_object * field) {
   struct timeval * t = dts_getdata(o);
   double * dblp = malloc(sizeof(double));
   *dblp = (double)t->tv_sec + 1e-6 * (double)t->tv_usec;
-  *transform = dblp;
-  *tlen = sizeof(double);
+  field->data = dblp;
+  field->len = sizeof(double);
+  field->free_data = 1;
 
   return 1;
 }
-static int smacqtype_timeval_get_string(const dts_object * o, void ** transform, int * tlen) {
+static int smacqtype_timeval_get_string(const dts_object * o, dts_object * field) {
   struct timeval * t = dts_getdata(o);
   char buf[64]; 
 
   snprintf(buf, 64, "%lu.%06lu", t->tv_sec, t->tv_usec);
-  *transform = strdup(buf);
-  *tlen = strlen(buf);
+  field->data= strdup(buf);
+  field->len= strlen(buf);
+  field->free_data = 1;
 
   return 1;
 }
@@ -54,7 +56,7 @@ static int timeval_lt(void * p1, int len1, void * p2, int len2) {
 }
 
 struct dts_field_descriptor dts_type_timeval_fields[] = {
-  { "string",		"double",	smacqtype_timeval_get_string },
+  { "string",		"string",	smacqtype_timeval_get_string },
   { "double", 	"double",	smacqtype_timeval_get_double },
   { END,        NULL }
 };

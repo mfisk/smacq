@@ -92,7 +92,11 @@ static void dts_decref(const dts_object * d_const) {
     //fprintf(stderr, "freeing %p\n", d);
 
     darray_free(&d->fields);
-    //XXX: if (d->free_data) free(d->data);
+    if (d->free_data) {
+	//fprintf(stderr, "Freeing data %p of %p\n", d->data, d);
+    	free(d->data);
+	d->data = NULL;
+    }
     free(d);
 #ifndef SMACQ_OPT_NOPTHREADS
   } else {
@@ -203,20 +207,22 @@ static inline int dts_lt(dts_environment * env, int type, void * v1, int l1, voi
 }
 
 /* Get the named field from a datum */
-static inline int smacq_getfield(smacq_environment * env, const dts_object * datum, dts_field field, dts_object * data) {
+static inline const dts_object * smacq_getfield(smacq_environment * env, const dts_object * datum, dts_field field, dts_object * data) {
   return(env->types->getfield(env->types, datum, field, data));
 }
 
 /* Get the named field from a datum */
-static inline int dts_getfield(dts_environment * env, const dts_object * datum, dts_field field, dts_object * data) {
+static inline const dts_object * dts_getfield(dts_environment * env, const dts_object * datum, dts_field field, dts_object * data) {
   return(env->getfield(env, datum, field, data));
 }
 
 /* Same as above, but return a new copy of the data */
-static inline int smacq_getfield_copy(smacq_environment * env, const dts_object * datum, dts_field field, dts_object * field_data) {
-	int retval = smacq_getfield(env, datum, field, field_data);
-	if (retval) 
-		field_data->data = memdup(field_data->data, field_data->len);
+static inline const dts_object * smacq_getfield_copy(smacq_environment * env, const dts_object * datum, dts_field field, dts_object * field_data) {
+	dts_object * retval = (dts_object*)smacq_getfield(env, datum, field, field_data);
+	if (retval && !retval->free_data) {
+		retval->data = memdup(retval->data, retval->len);
+		retval->free_data = 1;
+	}
 	return retval;
 }
 
@@ -232,6 +238,11 @@ static inline int smacq_opt_typenum_byname(smacq_environment * env, char * name)
   return(env->types->typenum_byname(env->types, name));
 }
 
+static inline char * dts_fieldname_append(const char * old, const char * new) {
+	char * ret = malloc(strlen(old) + strlen(new) + 2);
+	sprintf(ret, "%s.%s", old, new);
+	return ret;
+}
 
 /*
  * Interface to data testing system

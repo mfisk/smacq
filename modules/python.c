@@ -142,6 +142,7 @@ static PyObject * DTS_getattr(DTSObject * self, char * name) {
 //	printf("# Getting %s attr for a DTSObject!\n", name);
 
 	field = malloc(sizeof(dts_object));
+	dts_module_init(field);
 
 	pyAttr = (PyObject *)PyObject_New(DTSObject, &DTSType);
 	((DTSObject *)(pyAttr))->state = self->state;

@@ -33,23 +33,19 @@ struct state {
 }; 
  
 static smacq_result sum_consume(struct state * state, const dts_object * datum, int * outchan) {
-  dts_object newx, newxp;
+  const dts_object * newx;
   dts_object * msgdata;
   
   if (dts_gettype(datum) != state->refreshtype) {
-    if (!smacq_getfield(state->env, datum, state->xfield, &newx)) {
+    if (! (newx = smacq_getfield(state->env, datum, state->xfield, NULL))) {
       fprintf(stderr, "sum: no %s field\n", state->xfieldname);
       return SMACQ_PASS;
     }
     
-    if (1 > smacq_getfield(state->env, &newx, smacq_requirefield(state->env, "double"), &newxp)) {
-      fprintf(stderr, "sum: can't convert field %s to double\n", state->xfieldname);
-      return SMACQ_PASS;
-    }
-
     // assert(newx.type == state->doubletype);
 
-    state->total += dts_data_as(&newxp, double);
+    state->total += dts_data_as(newx, double);
+    dts_decref(newx);
   }
 
   if ( (!state->refreshonly) || (dts_gettype(datum) == state->refreshtype)) {
@@ -91,7 +87,7 @@ static int sum_init(struct smacq_init * context) {
   state->sumtype = smacq_requiretype(state->env, "double");
   state->sumfield = smacq_requirefield(state->env, "sum");
   
-  state->xfieldname = argv[0];
+  state->xfieldname = dts_fieldname_append(argv[0], "double");
   state->xfield = smacq_requirefield(state->env, state->xfieldname);
 
   return 0;

@@ -53,40 +53,40 @@ static inline struct udphdr * get_udp(const dts_object * datum) {
   return (struct udphdr *)((char *)iphdr + (iphdr->ip_hl<<2));
 }
 
-static inline int gettcpfield(const dts_object * datum, void ** data, int offset) {
+static inline int gettcpfield(const dts_object * datum, dts_object * data, int offset) {
   struct tcphdr * tcphdr = get_tcp(datum);
   if (!tcphdr) return 0;
 
-  *data = ((char*)tcphdr)+offset;
+  data->data = ((char*)tcphdr)+offset;
   return 1;
 }
 
-static inline int getudpfield(const dts_object * datum, void ** data, int offset) {
+static inline int getudpfield(const dts_object * datum, dts_object * data, int offset) {
   struct udphdr * udphdr = get_udp(datum);
   if (!udphdr) return 0;
 
-  *data = ((char*)udphdr)+offset;
+  data->data = ((char*)udphdr)+offset;
   return 1;
 }
 
-static inline int getipfield(const dts_object * datum, void ** data, int offset) {
+static inline int getipfield(const dts_object * datum, dts_object * data, int offset) {
   struct ip * iphdr = get_ip(datum);
   if (!iphdr) return 0;
 
-  *data = ((char*)iphdr)+offset;
+  data->data = ((char*)iphdr)+offset;
   return 1;
 }
 
 /*
  * Methods
  */
-int dts_pkthdr_get_packet(const dts_object * datum, void ** data, int * len) {
-  *data = (void *)((int)dts_getdata(datum) + sizeof(struct dts_pkthdr));
-  *len = ((struct dts_pkthdr *)dts_getdata(datum))->pcap_pkthdr.caplen;
+int dts_pkthdr_get_packet(const dts_object * datum, dts_object * data) {
+  data->data = (void *)((int)dts_getdata(datum) + sizeof(struct dts_pkthdr));
+  data->len = ((struct dts_pkthdr *)dts_getdata(datum))->pcap_pkthdr.caplen;
   return 1;
 }
 
-int dts_pkthdr_get_dstport(const dts_object * datum, void ** data, int * len) {
+int dts_pkthdr_get_dstport(const dts_object * datum, dts_object * data) {
   if (!gettcpfield(datum, data, field_offset(tcphdr, th_dport))) 
     if (!getudpfield(datum, data, field_offset(udphdr, uh_dport))) 
       return 0;
@@ -94,7 +94,7 @@ int dts_pkthdr_get_dstport(const dts_object * datum, void ** data, int * len) {
   return 1;
 }
 
-int dts_pkthdr_get_srcport(const dts_object * datum, void ** data, int * len) {
+int dts_pkthdr_get_srcport(const dts_object * datum, dts_object * data) {
   if (!gettcpfield(datum, data, field_offset(tcphdr, th_sport))) 
     if (!getudpfield(datum, data, field_offset(udphdr, uh_sport)))
       return 0;
@@ -102,81 +102,81 @@ int dts_pkthdr_get_srcport(const dts_object * datum, void ** data, int * len) {
   return 1;
 }
 
-int dts_pkthdr_get_seq(const dts_object * datum, void ** data, int * len) {
-  *len = 4;
+int dts_pkthdr_get_seq(const dts_object * datum, dts_object * data) {
+  data->len = 4;
   return gettcpfield(datum, data, field_offset(tcphdr, th_seq));
 }
 
-int dts_pkthdr_get_dstip(const dts_object * datum, void ** data, int * len) {
-  *len = sizeof(struct in_addr);
+int dts_pkthdr_get_dstip(const dts_object * datum, dts_object * data) {
+  data->len = sizeof(struct in_addr);
   return getipfield(datum, data, field_offset(ip, ip_dst));
 }
 
-int dts_pkthdr_get_srcip(const dts_object * datum, void ** data, int * len) {
-  *len = sizeof(struct in_addr);
+int dts_pkthdr_get_srcip(const dts_object * datum, dts_object * data) {
+  data->len = sizeof(struct in_addr);
   return getipfield(datum, data, field_offset(ip, ip_src));
 }
 
-int dts_pkthdr_get_ipid(const dts_object * datum, void ** data, int * len) {
-  *len = 2;
+int dts_pkthdr_get_ipid(const dts_object * datum, dts_object * data) {
+  data->len = 2;
   return getipfield(datum, data, field_offset(ip, ip_id));
 }
 
-int dts_pkthdr_get_ttl(const dts_object * datum, void ** data, int * len) {
-  *len = 1;
+int dts_pkthdr_get_ttl(const dts_object * datum, dts_object * data) {
+  data->len = 1;
   return getipfield(datum, data, field_offset(ip, ip_ttl));
 }
 
-int dts_pkthdr_get_srcmac(const dts_object * datum, void ** data, int * len) {
+int dts_pkthdr_get_srcmac(const dts_object * datum, dts_object * data) {
   struct ether_header * ethhdr = (struct ether_header*)(((struct dts_pkthdr *)dts_getdata(datum)) + 1);
 
-  *len = 6;
-  *data = &(ethhdr->ether_shost);
+  data->len = 6;
+  data->data = &(ethhdr->ether_shost);
   return 1;
 }
 
-int dts_pkthdr_get_dstmac(const dts_object * datum, void ** data, int * len) {
+int dts_pkthdr_get_dstmac(const dts_object * datum, dts_object * data) {
   struct ether_header * ethhdr = (struct ether_header*)(((struct dts_pkthdr *)dts_getdata(datum)) + 1);
 
-  *len = 6;
-  *data = &(ethhdr->ether_dhost);
+  data->len = 6;
+  data->data = &(ethhdr->ether_dhost);
   return 1;
 }
 
-int dts_pkthdr_get_protocol(const dts_object * datum, void ** data, int * len) {
-  *len = sizeof(guint16);
+int dts_pkthdr_get_protocol(const dts_object * datum, dts_object * data) {
+  data->len = sizeof(guint16);
   return getipfield(datum, data, field_offset(ip, ip_p));
 }
 			  
-int dts_pkthdr_get_ts(const dts_object * datum, void ** data, int * len) {
+int dts_pkthdr_get_ts(const dts_object * datum, dts_object * data) {
   struct dts_pkthdr * p = (struct dts_pkthdr*)dts_getdata(datum);
-  *len = sizeof(struct timeval);
-  *data = &(p->pcap_pkthdr.ts);
+  data->len = sizeof(struct timeval);
+  data->data = &(p->pcap_pkthdr.ts);
   return 1;
 }
 
 static int ZERO = 0;
 static int ONE = 1;
 
-int dts_pkthdr_get_urg(const dts_object * datum, void ** data, int * len) {
+int dts_pkthdr_get_urg(const dts_object * datum, dts_object * data) {
   struct tcphdr * tcphdr = get_tcp(datum);
   if (!tcphdr) return 0;
 
-  *data = ((tcphdr->th_flags & TH_URG) ? &ONE : &ZERO);
-  *len = 1;
+  data->data = ((tcphdr->th_flags & TH_URG) ? &ONE : &ZERO);
+  data->len = 1;
   return 1;
 }
 
-int dts_pkthdr_get_urgptr(const dts_object * datum, void ** data, int * len) {
+int dts_pkthdr_get_urgptr(const dts_object * datum, dts_object * data) {
   return gettcpfield(datum, data, field_offset(tcphdr, th_urp));
 }
 
-int dts_pkthdr_get_icmp_type(const dts_object * datum, void ** data, int * len) {
+int dts_pkthdr_get_icmp_type(const dts_object * datum, dts_object * data) {
   struct icmp * icmphdr = get_icmp(datum);
   if (!icmphdr) return 0;
 
-  *data = &icmphdr->icmp_type;
-  *len = 1;
+  data->data = &icmphdr->icmp_type;
+  data->len = 1;
   return 1;
 }
 

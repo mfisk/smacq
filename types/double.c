@@ -3,22 +3,23 @@
 #include <string.h>
 #include "smacq.h"
 
-static int smacqtype_double_get_double(const dts_object * o, void ** transform, int * tlen) {
+static int smacqtype_double_get_double(const dts_object * o, dts_object * field) {
   double * dbl = malloc(sizeof(double));
   *dbl = dts_data_as(o, double);
-  *transform = dbl;
-  *tlen = sizeof(double);
+  field->data= dbl;
+  field->len= sizeof(double);
 
   return 1;
 }
 
-static int smacqtype_double_get_string(const dts_object * o, void ** transform, int * tlen) {
+static int smacqtype_double_get_string(const dts_object * o, dts_object * field) {
   char buf[64]; 
 
   snprintf(buf, 64, "%g", dts_data_as(o, double));
 
-  *transform = strdup(buf);
-  *tlen = strlen(buf);
+  field->data= strdup(buf);
+  field->len= strlen(buf);
+  field->free_data = 1;
 
   return 1;
 }
