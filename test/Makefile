@@ -1,3 +1,5 @@
+include config.mk
+
 all: 
 	@set -e; TEST=$(SRCDIR); export TEST; \
 	for f in $(SRCDIR)/*.test; do \
