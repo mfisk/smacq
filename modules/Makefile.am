@@ -1,21 +1,14 @@
 SUBDIRS=substr patricia
 noinst_LTLIBRARIES = libsmacq_modules.la libtest_dynamic.la 
-EXTRA_LTLIBRARIES = #libpcaplive.la libreassemble.la libbench_field.la 
-#BUILT_SOURCES = count.cpp
+EXTRA_LTLIBRARIES = libpython.la libsqlinsert.la libpcaplive.la
 SUFFIXES = .sc
 
-libsmacq_modules_la_SOURCES = print.cpp pcaplive.cpp pcapfile.cpp socket.cpp uniq.cpp count.cpp last.cpp top.cpp head.cpp filter.cpp msgtest.cpp entropy.cpp derivative.cpp encrypt.cpp pdf.cpp fifo.cpp delta.cpp tabularinput.cpp rusage.cpp groupby.cpp flowid.cpp sum.cpp fifodelay.cpp project.cpp rename.cpp mask.cpp const.cpp ndjoin.cpp lor.cpp counter_loop.cpp dfa.cpp expr.cpp equals.cpp cflow.cpp clock.cpp disarm.cpp substr-main.cpp iplookup.cpp streamalias.cpp join.cpp changes.cpp histogram.cpp
+libsmacq_modules_la_SOURCES = print.cpp pcapfile.cpp socket.cpp uniq.cpp count.cpp last.cpp top.cpp head.cpp filter.cpp msgtest.cpp entropy.cpp derivative.cpp encrypt.cpp pdf.cpp fifo.cpp delta.cpp tabularinput.cpp rusage.cpp groupby.cpp flowid.cpp sum.cpp fifodelay.cpp project.cpp rename.cpp mask.cpp const.cpp ndjoin.cpp lor.cpp counter_loop.cpp dfa.cpp expr.cpp equals.cpp cflow.cpp clock.cpp disarm.cpp substr-main.cpp iplookup.cpp streamalias.cpp join.cpp changes.cpp histogram.cpp now.cpp
 
-EXTRA_libsmacq_modules_la_SOURCES = sqlinsert.cpp python.cpp
-
-
-libsmacq_modules_la_LIBADD = -lpcap substr/libsubstr.la patricia/libpatricia.la @SQLINSERT_LIBADD@ @PYTHON_LIBADD@
-libsmacq_modules_la_DEPENDENCIES = substr/libsubstr.la patricia/libpatricia.la @SQLINSERT_DEPENDENCIES@ @PYTHON_DEPENDENCIES@
+libsmacq_modules_la_DEPENDENCIES = substr/libsubstr.la patricia/libpatricia.la libpcaplive.la @EXTRA_STATIC_MODULES@
+libsmacq_modules_la_LIBADD = $(libsmacq_modules_la_DEPENDENCIES)
 
 libtest_dynamic_la_SOURCES = noop.cpp
-
-python.lo: python.cpp
-	$(LTCXXCOMPILE) @CFLAGS_PYTHON@ -c $<
 
 .sc.c: 
 	$(top_srcdir)/misc/sc2c $< > $@
@@ -29,13 +22,21 @@ libsmacq_modules_la_LDFLAGS = -rpath /bogus
 #
 # Per module link requirements
 # 
+libpython_la_SOURCES = python.cpp
+libpython_la_LIBS = @PYTHON_LIBADD@
+libpython_la_CPPFLAGS = @CFLAGS_PYTHON@ 
+
+libsqlinsert_la_SOURCES = sqlinsert.cpp
+libsqlinsert_la_LIBADD = @GDA_LIBS@
+libsqlinsert_la_CPPFLAGS = @GDA_CFLAGS@
+
+libpcaplive_la_SOURCES = pcaplive.cpp
+libpcaplive_la_LIBS = -lpcap
+
 #libbench_field_la_SOURCES = bench_field-main.c bench_field-virtual.C 
 
-#libpcaplive_la_SOURCES = pcaplive.c
-#libpcaplive_la_LDFLAGS = -lpcap
-
 #libreassemble_la_LIBADD = reassemble.lo spp_export_pkt.lo  
-reassemble_lo_CFLAGS = -I$(SNORT_HOME)
+#reassemble_lo_CFLAGS = -I$(SNORT_HOME)
 
 libepan_filter.o: epan_filter.o 
 	$(LD) -r -o $@ $< -L$(TOPBINDIR)/contrib -L. -lpacket-ethereal
