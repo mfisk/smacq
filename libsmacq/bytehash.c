@@ -25,17 +25,22 @@ struct element {
   int nvecs;
 
   struct iovec_hash * table;
-  int expired;
+  struct element * chain;
+  struct element ** parent;
+  void * value;
 };
 
 struct iovec_hash {
+  int do_chain, do_free;
   int maxkeybytes;
   uint32_t * randoms;
-  GHashTable * ht;
 
   struct cmalloc * cm_bytes;
   struct cmalloc * cm_iovecs;
   struct cmalloc * cm_elements;
+
+  struct element ** buckets;
+  int num_buckets;
 };
 
 struct iovec * bytes_hash_element_iovec(struct element * e) {
@@ -60,12 +65,11 @@ static struct element * make_element(struct iovec_hash * b, struct iovec * iovec
   }
 
   s->table = b;
-  s->expired = 0;
 
   return s;
 }
 
-static void free_element(gpointer k) {
+static void free_element(void * k) {
   struct element * s = k;
   int i;
   assert(s);
@@ -77,10 +81,6 @@ static void free_element(gpointer k) {
   cmfree(s->table->cm_elements, s);
 }
 
-static void free_value(gpointer v) {
-  free(v);
-}
-
 void bytes_init_hash(uint32_t** randoms, int num, unsigned long prime) {
   int i;
 
@@ -88,7 +88,9 @@ void bytes_init_hash(uint32_t** randoms, int num, unsigned long prime) {
   /* There is one entry for each filter function and each allowable 16-bit key */
   /* We avoid having a full 256KB per function by using a user-supplied maximum key size */
 
-  *randoms = g_new(uint32_t, num);
+  *randoms = malloc(sizeof(uint32_t)*num);
+  assert(*randoms);
+
   for (i = 0; i < num; i++) {
     /* Modulo is probably not the right way to get them smaller than HASH_PRIME */
     (*randoms)[i] = (random() % prime);
@@ -96,8 +98,7 @@ void bytes_init_hash(uint32_t** randoms, int num, unsigned long prime) {
   }
 }
 
-static unsigned int bytes_hash(gconstpointer v) {
-  const struct element * s = v;
+static unsigned int bytes_hash(const struct element * s) {
   int i;
   int j;
   uint32_t index = 0;
@@ -114,15 +115,10 @@ static unsigned int bytes_hash(gconstpointer v) {
   return index;
 }
 
-static gint bytes_always_equal(gconstpointer v, gconstpointer v2) {
-  return TRUE;
-}
-
-int bytes_mask(const struct element * b1, struct iovec * iovecs, int nvecs) {
+bytes_boolean bytes_mask(const struct element * b1, struct iovec * iovecs, int nvecs) {
   int i;
   
-
-  if (b1->nvecs != nvecs) return FALSE;
+  if (b1->nvecs != nvecs) return false;
 
   for (i=0; i<nvecs; i++) {
 
@@ -131,39 +127,36 @@ int bytes_mask(const struct element * b1, struct iovec * iovecs, int nvecs) {
       if (!b1->iovecs[i].iov_len || !iovecs[i].iov_len) {
 	break; /* Don't care */
       } else {
-	return FALSE;
+	return false;
       }
     }
 
     if (memcmp(b1->iovecs[i].iov_base, iovecs[i].iov_base, b1->iovecs[i].iov_len))
-      return FALSE;
+      return false;
   }
 
-  return TRUE;
+  return true;
 }
 
-static gint bytes_equal(gconstpointer v, gconstpointer v2) {
+static bytes_boolean bytes_equal(const struct element * b1, const struct element * b2) {
   int i;
-  const struct element * b1 = (struct element *)v;
-  const struct element * b2 = (struct element *)v2;
 
-  if (b1 == b2) return TRUE;
+  if (b1 == b2) return true;
 
-  if (b1->nvecs != b2->nvecs) return FALSE;
+  if (b1->nvecs != b2->nvecs) return false;
 
   for (i=0; i < b1->nvecs; i++) {
-    if (b1->iovecs[i].iov_len != b2->iovecs[i].iov_len) return FALSE;
-    if (memcmp(b1->iovecs[i].iov_base, b2->iovecs[i].iov_base, b1->iovecs[i].iov_len)) return FALSE;
+    if (b1->iovecs[i].iov_len != b2->iovecs[i].iov_len) return false;
+    if (memcmp(b1->iovecs[i].iov_base, b2->iovecs[i].iov_base, b1->iovecs[i].iov_len)) return false;
   }
 
-  return TRUE;
+  return true;
 }
 
-struct iovec_hash * bytes_hash_table_new(int maxbytes, enum chaining_boolean chaining, enum free_boolean dofree) {
+struct iovec_hash * bytes_hash_table_new(int maxbytes, int flags) {
   struct iovec_hash * myt;
-  GDestroyNotify vfree;
   
-  myt = g_new(struct iovec_hash, 1);
+  myt = malloc(sizeof(struct iovec_hash));
   myt->maxkeybytes = maxbytes;
   bytes_init_hash(&myt->randoms, maxbytes, 419400011);
 
@@ -171,71 +164,95 @@ struct iovec_hash * bytes_hash_table_new(int maxbytes, enum chaining_boolean cha
   myt->cm_iovecs = cmalloc_init(0,0);
   myt->cm_elements = cmalloc_init(0,0);
 
-  if (dofree == FREE) {
-    vfree = free_value;
-  } else {
-    vfree = NULL;
-  }
+  myt->do_chain = !(flags & NOCHAIN); 
+  myt->do_free = (flags & FREE); 
 
-  if (chaining == NOCHAIN)
-    myt->ht = g_hash_table_new_full(bytes_hash, bytes_always_equal, free_element, vfree);
-  else 
-    myt->ht = g_hash_table_new_full(bytes_hash, bytes_equal, free_element, vfree);
-
+  myt->num_buckets = 1000; /* XXX */
+  myt->buckets = calloc(sizeof(struct element *), 1000);
+  
   return myt;
 }
 
-unsigned int bytes_hash_valuev(struct iovec_hash * ht, int nvecs, struct iovec * vecs) {
+uint32_t bytes_hash_valuev(struct iovec_hash * ht, int nvecs, struct iovec * vecs) {
   struct element * s = make_element(ht, vecs, nvecs);
   int val = bytes_hash(s);
   free_element(s);
   return val;
 }
 
-int bytes_hash_table_insertv(struct iovec_hash * ht, struct iovec * keys, int count, gpointer value) {
-  struct element * s = make_element(ht, keys, count);
-  int retval = 1;
+bytes_boolean bytes_hash_table_getv(struct iovec_hash * ht, struct iovec * vecs, int nvecs, struct element ** oldkey, void ** current) {
+  struct element * s = make_element(ht, vecs, nvecs);
+  struct element * bucket = ht->buckets[bytes_hash(s) % ht->num_buckets];
 
-  if (g_hash_table_lookup(ht->ht, s)) {
-    retval = 0; // Old entry
+  if (ht->do_chain) {
+     struct element * e;
+     for (e = bucket; e; e = e->chain) {
+	if (bytes_equal(e, s) == true) break;
+     }
+     /* fprintf(stderr, "Checking bucket %p resulted in %p\n", bucket, e); */
+     bucket = e;
   }
 
-  g_hash_table_replace(ht->ht, s, value);
+  free_element(s);
 
-  //printf("%d\tactive table %p\n", g_hash_table_size(ht->ht), ht);
+  *oldkey = bucket;
 
-  return retval;
+  if (bucket) {
+     *current = bucket->value;
+     return true;
+  } else {
+     *current = NULL; 
+     return false;
+  }
 }
 
-gpointer bytes_hash_table_replacev(struct iovec_hash * ht, struct iovec * keys, int count, gpointer value) {
-  struct element * s = make_element(ht, keys, count);
+/* Return previous value, or NULL on failure */
+void * bytes_hash_table_setv(struct iovec_hash * ht, struct iovec * keys, int count, void * value) {
+  struct element * element;
+  void * oldval;
 
-  gpointer old = g_hash_table_lookup(ht->ht, s);
-  g_hash_table_replace(ht->ht, s, value);
+  if (bytes_hash_table_getv(ht, keys, count, &element, &oldval)) {
+	  element->value = value;
+	  return oldval;
+  } else {
+	  struct element * e = make_element(ht, keys, count);
+  	  int b = bytes_hash(e) % ht->num_buckets;
 
-  return old;
+  	  e->parent = &(ht->buckets[b]);
+  	  e->chain = ht->buckets[b];
+	  if (e->chain) e->chain->parent = &(e->chain);
+	  e->value = value;
+  	  ht->buckets[b] = e;
+
+	  /* Do not free element here and only here. */
+
+	  /* fprintf(stderr, "new key created in bucket %d\n", b); */
+	  return NULL;
+  }
 }
-
 
 int bytes_hash_table_incrementv(struct iovec_hash * ht, struct iovec * keys, int count) {
-  struct element * s = make_element(ht, keys, count);
-  gpointer current;
+  struct element * element;
+  int oldval;
 
-  current = g_hash_table_lookup(ht->ht, s);
-  g_hash_table_replace(ht->ht, s, (gpointer)((int)current + 1));
-
-  return (int)current;
+  if (bytes_hash_table_getv(ht, keys, count, &element, (void**)&oldval)) {
+  	element->value = (void*)(oldval+1);
+  	return (int)oldval;
+  } else {
+	return -1;
+  }
+   
 }
 
-void bytes_hash_table_insert(struct iovec_hash * ht, int keysize, unsigned char * key, gpointer value) {
+void bytes_hash_table_set(struct iovec_hash * ht, int keysize, unsigned char * key, void * value) {
   struct iovec iov;
   iov.iov_len = keysize;
   iov.iov_base = key;
 
-  bytes_hash_table_insertv(ht, &iov, 1, value);
+  bytes_hash_table_setv(ht, &iov, 1, value);
 }
- 
-gpointer bytes_hash_table_lookup(struct iovec_hash * ht, int keysize, unsigned char * key) {
+
+void * bytes_hash_table_lookup(struct iovec_hash * ht, int keysize, unsigned char * key) {
   struct iovec iov;
   iov.iov_len = keysize;
   iov.iov_base = key;
@@ -243,85 +260,84 @@ gpointer bytes_hash_table_lookup(struct iovec_hash * ht, int keysize, unsigned c
   return bytes_hash_table_lookupv(ht, &iov, 1);
 }
 
-gpointer bytes_hash_table_lookupv(struct iovec_hash * ht, struct iovec * vecs, int nvecs) {
-  struct element * s = make_element(ht, vecs, nvecs);
-  gpointer retval;
+void * bytes_hash_table_lookupv(struct iovec_hash * ht, struct iovec * vecs, int nvecs) {
+  struct element * oldkey;
+  void * value; 
 
-  retval = g_hash_table_lookup(ht->ht, s);
-  free_element(s);
-  return retval;
+  if (bytes_hash_table_getv(ht, vecs, nvecs, &oldkey, &value)) {
+	  return value;
+  } else { 
+	  return NULL;
+  }
 }
 
-gint bytes_hash_table_lookup_extendedv(struct iovec_hash * ht, struct iovec * key, int keys, gpointer * oldkey, gpointer * current) {
-  struct element * s = make_element(ht, key, keys);
-  int retval;
-
-  retval = g_hash_table_lookup_extended(ht->ht, s, oldkey, current);
-  free_element(s);
-  return retval;
-}
-
-gint bytes_hash_table_lookup_extended(struct iovec_hash * ht, int keysize, unsigned char * key, gpointer * oldkey, gpointer * current) {
+int bytes_hash_table_get(struct iovec_hash * ht, int keysize, unsigned char * key, struct element ** oldkey, void ** current) {
   struct iovec iov;
   iov.iov_len = keysize;
   iov.iov_base = key;
 
-  return bytes_hash_table_lookup_extendedv(ht, &iov, 1, oldkey, current);
+  return bytes_hash_table_getv(ht, &iov, 1, oldkey, current);
 }
 
-void bytes_hash_table_foreach_remove(struct iovec_hash * ht, GHRFunc func, gpointer user_data) {
-  g_hash_table_foreach_remove(ht->ht, func, user_data);
+static inline void bytes_hash_table_remove_element(struct iovec_hash * ht, struct element * e) {
+  assert(e->parent);
+  *(e->parent) = e->chain;
+  free_element(e);
 }
 
-#ifdef FORCE_GC
-static int isexpired(gpointer key, gpointer value, gpointer userdata) {
-  assert(key);
-  //fprintf(stderr, "glib delayed removal of value %p\n", value);
-  return ((struct element*)key)->expired;
-}
+void bytes_hash_table_foreach_remove(struct iovec_hash * ht, ForEachFunc func, void * user_data) {
+  int bn;
+  struct element * e;
 
-static inline void bytes_hash_table_gc(struct iovec_hash * ht) {
-  if (! ht->gc_count--) {
-    //fprintf(stderr, "doing gc\n");
-    bytes_hash_table_foreach_remove(ht, isexpired, NULL);
-    ht->gc_count = 1000;
+  for (bn = 0; bn < ht->num_buckets; bn++) {
+	  for (e = ht->buckets[bn]; e; e = e->chain) {
+		  if (func(e, e->value, user_data)) {
+  			bytes_hash_table_remove_element(ht, e);
+		  }
+	  }
   }
 }
-#endif
 
-void bytes_hash_table_foreach(struct iovec_hash * ht, GHFunc func, gpointer user_data) {
-  g_hash_table_foreach(ht->ht, func, user_data);
-}
+void bytes_hash_table_foreach(struct iovec_hash * ht, ForEachFunc func, void * user_data) {
+  int bn;
+  struct element * e;
 
-static int bytes_hash_table_remove(struct iovec_hash * ht, struct element * s) {
-  int res;
-
-  s->expired = 1;
-  res = g_hash_table_remove(ht->ht, s);
-
-#ifdef FORCE_GC
-  // Garbage collect since g_hash_table_remove doesn't seem to work
-  bytes_hash_table_gc(ht);
-#endif
-
-  return res;
+  for (bn = 0; bn < ht->num_buckets; bn++) {
+	  for (e = ht->buckets[bn]; e; e = e->chain) {
+		  func(e, e->value, user_data);
+	  }
+  }
 }
 
 int bytes_hash_table_removev(struct iovec_hash * ht, struct iovec * vecs, int nvecs) {
   struct element * s;
   int res;
-  gpointer current;
+  void * current;
 
-  res = bytes_hash_table_lookup_extendedv(ht, vecs, nvecs, (gpointer*)&s, &current);
+  res = bytes_hash_table_getv(ht, vecs, nvecs, &s, &current);
+
   if (!res) return 0;
-  assert(s);
-  s->expired = 1;
 
-  return bytes_hash_table_remove(ht, s);
+  assert(s);
+  bytes_hash_table_remove_element(ht, s);
+  return 1;
 }
 
 void bytes_hash_table_destroy(struct iovec_hash * ht) {
-  g_hash_table_destroy(ht->ht);
+  {
+  	int b;
+  	struct element * e, * nexte;
+	
+  	for (b=0; b < ht->num_buckets; b++) {
+		for (e=ht->buckets[b]; e; ) {
+			nexte = e->chain;
+			if (ht->do_free) free(e->value);
+			free_element(e);
+			e = nexte;
+		}
+  	}
+  }
+
   free(ht->randoms);
   cmalloc_destroy(ht->cm_bytes);
   cmalloc_destroy(ht->cm_iovecs);

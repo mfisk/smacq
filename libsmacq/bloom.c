@@ -106,7 +106,7 @@ static struct bloom_summary * bloom_init(int maxkeybytes, unsigned long long siz
   bloom_set_hash_functions(b, DEFAULTNUMFUNCS);
   init_hash_functions(b);
 
-  b->perfectsummary = bytes_hash_table_new(maxkeybytes, CHAIN, NOFREE);
+  b->perfectsummary = bytes_hash_table_new(maxkeybytes, CHAIN|NOFREE);
 
   return b;
 }
@@ -210,9 +210,9 @@ int bloom_incrementv(struct bloom_summary * b, struct iovec * key, int keys) {
 
   if (b->type & BLOOM_PERFECT) {
     int current = 0;
-    gpointer oldkey;
-    if (bytes_hash_table_lookup_extendedv(b->perfectcount, key, keys, &oldkey, (gpointer*)&current));
-    bytes_hash_table_insertv(b->perfectcount, key, keys, (gpointer)(current+1));
+    struct element * oldkey;
+    if (bytes_hash_table_getv(b->perfectcount, key, keys, &oldkey, (gpointer*)&current));
+    bytes_hash_table_setv(b->perfectcount, key, keys, (gpointer)(current+1));
 
     if (current < smallest) {
       b->overcount++;
@@ -255,9 +255,9 @@ int bloom_test_or_setv(struct bloom_summary * b, struct iovec * vecs, int numvec
 
     if (b->type & BLOOM_PERFECT) {
       if (diff) {
-	bytes_hash_table_insertv(b->perfectsummary, vecs, numvecs, (gpointer)2);
+	bytes_hash_table_setv(b->perfectsummary, vecs, numvecs, (gpointer)2);
       } else if (!bytes_hash_table_lookupv(b->perfectsummary, vecs, numvecs)) {
-	bytes_hash_table_insertv(b->perfectsummary, vecs, numvecs, (gpointer)1);
+	bytes_hash_table_setv(b->perfectsummary, vecs, numvecs, (gpointer)1);
 	b->falsepositives++;
       }
     }

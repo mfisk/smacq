@@ -61,7 +61,7 @@ static inline void destroy_partition(struct state * state, struct output * parti
   run_and_queue(state, partition);
 }
 
-static int destroy_partition_wrapper(gpointer key, gpointer value, gpointer userdata) {
+static int destroy_partition_wrapper(struct element * key, void * value, void * userdata) {
   struct state * state = (struct state *)userdata;
   struct output * partition = (struct output*)value;
 
@@ -116,13 +116,13 @@ static inline struct output * get_partition(struct state * state, struct iovec *
 
     smacq_start(partition->graph, ITERATIVE, state->env->types);
     smacq_sched_iterative_init(partition->graph, &partition->runq, 0);
-    bytes_hash_table_insertv(state->hashtable, state->partitionv, state->fieldset.num, partition);
+    bytes_hash_table_setv(state->hashtable, state->partitionv, state->fieldset.num, partition);
   } 
 
   return partition;
 }
 
-static int check_invalidate(gpointer key, gpointer value, gpointer userdata) {
+static int check_invalidate(struct element * key, void * value, void * userdata) {
   struct state * state = (struct state *)userdata;
   struct element * element = (struct element*)key;
   struct output * partition = (struct output*)value;
@@ -226,7 +226,7 @@ static smacq_result groupby_init(struct smacq_init * context) {
   }
 
   fields_init(state->env, &state->fieldset, argc, argv);
-  state->hashtable = bytes_hash_table_new(KEYBYTES, CHAIN, NOFREE);
+  state->hashtable = bytes_hash_table_new(KEYBYTES, CHAIN|NOFREE);
 
   state->refresh_type = smacq_requiretype(state->env, "refresh");
 

@@ -362,7 +362,7 @@ static smacq_result flowid_consume(struct state * state, const dts_object * datu
 	assert(s->fields[i]);
       }
 
-      bytes_hash_table_replacev(state->stats, domainv, state->fieldset.num, s);
+      bytes_hash_table_setv(state->stats, domainv, state->fieldset.num, s);
       s->lasttime = *tsnow;
       //fprintf(stderr, "new %p\n", s);
       wheel_append(&state->timers, s);
@@ -461,7 +461,7 @@ static smacq_result flowid_init(struct smacq_init * context) {
     free(rargv);
   }
 
-  state->stats = bytes_hash_table_new(KEYBYTES, CHAIN, FREE);
+  state->stats = bytes_hash_table_new(KEYBYTES, CHAIN|FREE);
   wheel_new(&state->timers);
 
   return 0;

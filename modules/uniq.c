@@ -56,7 +56,7 @@ static smacq_result uniq_consume(struct state * state, const dts_object * datum,
   }
 
   if (!state->prob) {
-    if (bytes_hash_table_insertv(state->drset, domainv, state->fieldset.num, (gpointer)1)) 
+    if (!bytes_hash_table_setv(state->drset, domainv, state->fieldset.num, (void*)1)) 
       // New entry in set
       return SMACQ_PASS;
   } else {
@@ -93,7 +93,7 @@ static smacq_result uniq_init(struct smacq_init * context) {
   fields_init(state->env, &state->fieldset, argc, argv);
 
   if (!state->prob) {
-    state->drset = bytes_hash_table_new(KEYBYTES, CHAIN, NOFREE);
+    state->drset = bytes_hash_table_new(KEYBYTES, CHAIN|NOFREE);
   } else {
 		// summary argument is number of bits, module argument is MB
     state->summary = bloom_summary_init(KEYBYTES, state->prob * 1024 * 1024 * 8);

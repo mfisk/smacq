@@ -68,12 +68,16 @@ static inline void timeval_minus(struct timeval x, struct timeval y, struct time
   return;
 }
 
-static void emit_last(gpointer key, gpointer value, gpointer userdata) {
+static int emit_last(struct element * key, void * value, void * userdata) {
   dts_object * d = value;
   struct state * state = userdata;
 
+  fprintf(stderr, "emit_last on obj %p\n", value);
+
   smacq_produce_enqueue(&state->outputq, d, -1);
   dts_incref(d, 1);
+
+  return 0;
 }
 	
 static void emit_all(struct state * state) {
@@ -138,7 +142,7 @@ static smacq_result last_consume(struct state * state, const dts_object * datum,
 	dts_object * old; 
 
   	dts_incref(datum, 1);
-  	old = bytes_hash_table_replacev(state->last, domainv, state->fieldset.num, (gpointer)datum);
+  	old = bytes_hash_table_setv(state->last, domainv, state->fieldset.num, (gpointer)datum);
 	//fprintf(stderr, "last saving %p, releasing %p\n", datum, old);
 	if (old) 
 	  dts_decref(old);
@@ -178,7 +182,7 @@ static smacq_result last_init(struct smacq_init * context) {
   state->timeseries = smacq_requirefield(state->env, "timeseries");
   state->refreshtype = smacq_requiretype(state->env, "refresh");
   state->timevaltype = smacq_requiretype(state->env, "timeval");
-  state->last = bytes_hash_table_new(KEYBYTES, CHAIN, NOFREE);
+  state->last = bytes_hash_table_new(KEYBYTES, CHAIN|NOFREE);
 
   return 0;
 }

@@ -117,7 +117,7 @@ static smacq_result slice_init(struct smacq_init * context) {
   // Consume rest of arguments as fieldnames
   fields_init(&state->fieldset, argc, argv);
 
-  state->counters = bytes_hash_table_new(KEYBYTES, CHAIN, NOFREE);
+  state->counters = bytes_hash_table_new(KEYBYTES, CHAIN|NOFREE);
 
   return 0;
 }

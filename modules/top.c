@@ -123,7 +123,7 @@ static smacq_result top_init(struct smacq_init * context) {
   fields_init(state->env, &state->fieldset, argc, argv);
 
   if (!state->prob) {
-    state->drset = bytes_hash_table_new(KEYBYTES, CHAIN, NOFREE);
+    state->drset = bytes_hash_table_new(KEYBYTES, CHAIN|NOFREE);
   } else {
     state->summary = bloom_counter_init(KEYBYTES, state->prob/4 * 1024 * 1024);
   }

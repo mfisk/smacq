@@ -111,7 +111,7 @@ static inline struct iovec_hash * get_table(struct state * state, struct set_ele
 	struct iovec_hash * table = darray_get(&set->tables, type);
 
 	if (!table) {
-  		table = bytes_hash_table_new(KEYBYTES, CHAIN, NOFREE);
+  		table = bytes_hash_table_new(KEYBYTES, CHAIN|NOFREE);
 		darray_set(&set->tables, type, table);
 
 		for(i=0; i < darray_size(&set->values); i++) {
@@ -126,7 +126,7 @@ static inline struct iovec_hash * get_table(struct state * state, struct set_ele
 			  continue;
 			}
 			set->fieldset.currentvecs[0].iov_base = ((dts_object*)k)->data;
-			bytes_hash_table_insertv(table, set->fieldset.currentvecs, set->fieldset.num, (gpointer)v->outchan+1);
+			bytes_hash_table_setv(table, set->fieldset.currentvecs, set->fieldset.num, (gpointer)v->outchan+1);
 			/*
 			fprintf(stderr, "inserting %lx(len %d), output = %d\n", 
 				*(unsigned long*)set->fieldset.currentvecs[0].iov_base, 

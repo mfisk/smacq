@@ -145,7 +145,7 @@ static smacq_result active_consume(struct state * state, const dts_object * datu
 
   if (!s) {
     s = g_new(struct srcstat,1);
-    bytes_hash_table_insertv(state->stats, domainv, state->fieldset.num, s);
+    bytes_hash_table_setv(state->stats, domainv, state->fieldset.num, s);
     state->active++;
   } else if (s->expired) {
     s->expired = 0;
@@ -189,7 +189,7 @@ static smacq_result active_init(struct smacq_init * context) {
   // Consume rest of arguments as field names
   fields_init(state->env, &state->fieldset, argc, argv);
 
-  state->stats = bytes_hash_table_new(KEYBYTES, CHAIN, FREE);
+  state->stats = bytes_hash_table_new(KEYBYTES, CHAIN|FREE);
 
   return 0;
 }

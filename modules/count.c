@@ -118,7 +118,7 @@ static smacq_result count_init(struct smacq_init * context) {
   }
 
   if (state->fieldset.num) 
-  	state->counters = bytes_hash_table_new(KEYBYTES, CHAIN, NOFREE);
+  	state->counters = bytes_hash_table_new(KEYBYTES, CHAIN|NOFREE);
 
   return 0;
 }

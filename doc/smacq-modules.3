@@ -1,4 +1,4 @@
-.TH smacq-modules 3 "$Date: 2003/06/27 21:33:17 $" "LANL"
+.TH smacq-modules 3 "$Date: 2003/08/31 19:56:40 $" "LANL"
 .SH NAME
 smacq-modules - pipeline module programming guide
 .SH SYNOPSIS
@@ -181,13 +181,16 @@ queue is a struct smacq_outputq * and is initialized to NULL.
 .BI "enum free_boolean { FREE, NOFREE };"
 
 .TP
-.BI "struct iovec_hash * bytes_hash_table_new(int maxkeybytes, enum chaining_boolean, enum free_boolean)"
+.BI "struct iovec_hash * bytes_hash_table_new(int maxkeybytes, int flags)"
+
+Flags can include CHAIN, NOCHAIN, FREE, NOFREE.  The default is CHAIN|NOFREE.
+
 .TP
 .BI "int bytes_hash_table_incrementv(struct iovec_hash * ht, struct iovec *, int count)"
 .TP
-.BI "int bytes_hash_table_insertv(struct iovec_hash * ht, struct iovec *, int count,  gpointer value)"
+.BI "int bytes_hash_table_setv(struct iovec_hash * ht, struct iovec *, int count,  gpointer value)"
 .TP
-.BI "gpointer bytes_hash_table_replacev(struct iovec_hash * ht, struct iovec * keys, int count, gpointer value)"
+.BI "gpointer bytes_hash_table_setv(struct iovec_hash * ht, struct iovec * keys, int count, gpointer value)"
 .TP
 .BI "gpointer bytes_hash_table_lookupv(struct iovec_hash * ht, struct iovec *, int)"
 .TP
@@ -195,7 +198,7 @@ queue is a struct smacq_outputq * and is initialized to NULL.
 .TP
 .BI "void bytes_hash_table_destroy(struct iovec_hash * ht)"
 .TP
-.BI "gint bytes_hash_table_lookup_extendedv(struct iovec_hash * ht, struct iovec * key, int keys, gpointer *oldkey, gpointer *current)"
+.BI "gint bytes_hash_table_getv(struct iovec_hash * ht, struct iovec * key, int keys, gpointer *oldkey, gpointer *current)"
 .TP
 .BI "void bytes_init_hash(guint32** randoms, int num, unsigned long prime)"
 

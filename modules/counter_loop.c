@@ -65,7 +65,7 @@ static smacq_result count_init(struct smacq_init * context, struct state * state
   	state->counttype = smacq_requiretype(context->env, "int");
   }
 
-  state->counters = bytes_hash_table_new(KEYBYTES, CHAIN, NOFREE);
+  state->counters = bytes_hash_table_new(KEYBYTES, CHAIN|NOFREE);
 
   return 0;
 }

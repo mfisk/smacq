@@ -50,7 +50,7 @@ static smacq_result split_consume(struct state * state, const dts_object * datum
 	smacq_init_modules(newClone, state->env);
 
 	// 0 return value is error, so everything is inflated by 1
-    	bytes_hash_table_insertv(state->hashtable, partitionv, state->fieldset.num, (gpointer)state->bucket);
+    	bytes_hash_table_setv(state->hashtable, partitionv, state->fieldset.num, (gpointer)state->bucket);
     } else { 
 	// 0 return value is error, so everything is inflated by 1
 	bucket--;
@@ -96,7 +96,7 @@ static smacq_result split_init(struct smacq_init * context) {
 
   	state->mode = UNIQUE;
   	fields_init(state->env, &state->fieldset, argc, argv);
-  	state->hashtable = bytes_hash_table_new(KEYBYTES, CHAIN, NOFREE);
+  	state->hashtable = bytes_hash_table_new(KEYBYTES, CHAIN|NOFREE);
   } else if (!state->children) {
 	fprintf(stderr, "Must specify either -b or fields\n");
 	assert(0);

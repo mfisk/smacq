@@ -105,7 +105,7 @@ static smacq_result encrypt_init(struct smacq_init * context) {
 
   if (argc) {
     fields_init(state->env, &state->fieldset, argc, argv);
-    state->hashtable = bytes_hash_table_new(KEYBYTES, CHAIN, NOFREE);
+    state->hashtable = bytes_hash_table_new(KEYBYTES, CHAIN|NOFREE);
   } else {
     state->hashtable = NULL;
   }
