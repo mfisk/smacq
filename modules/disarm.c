@@ -17,6 +17,7 @@ struct state {
 };
 
 static struct smacq_options options[] = {
+  {"f", {string_t:""}, "Input File", SMACQ_OPT_TYPE_STRING},
   {"date", {string_t:""}, "Date", SMACQ_OPT_TYPE_STRING},
   {"dstport", {string_t:""}, "Destination Port", SMACQ_OPT_TYPE_STRING},
   {"srcport", {string_t:""}, "Source Port", SMACQ_OPT_TYPE_STRING},
@@ -187,7 +188,7 @@ static int client_init(struct state * state, int port, char * hostname, char ** 
 
 static smacq_result disarm_init(struct smacq_init * context) {
   struct state * state;
-  smacq_opt date, srcip, dstip, dstport, srcport, port, hostname;
+  smacq_opt infile, date, srcip, dstip, dstport, srcport, port, hostname;
   char * end_date;
   context->state = state = (struct state*) calloc(sizeof(struct state),1);
   assert(state);
@@ -195,6 +196,7 @@ static smacq_result disarm_init(struct smacq_init * context) {
   state->env = context->env;
   {
     struct smacq_optval optvals[] = {
+      { "f", &infile},
       { "date", &date},
       { "srcip", &srcip},
       { "dstip", &dstip},
@@ -211,7 +213,7 @@ static smacq_result disarm_init(struct smacq_init * context) {
 
   }
 
-  if (!strcmp("", date.string_t)) {
+  if (!strcmp("", date.string_t) && !strcmp("", infile.string_t)) {
 		fprintf(stderr, "disarm: -date is mandatory!\n");
 		exit(-1);
   }
@@ -223,7 +225,11 @@ static smacq_result disarm_init(struct smacq_init * context) {
   }
 
   state->sv4_type = smacq_requiretype(state->env, "sv4");
-  {
+
+  if (strcmp(infile.string_t, "")) {
+	state->datafh = fopen(infile.string_t, "r");
+        assert(state->datafh);
+  } else {
   	struct sockaddr_in myaddr, server_addr;
 	int listen_fd, fd;
 	FILE * fh;
