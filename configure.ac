@@ -60,13 +60,13 @@ AC_FUNC_STRFTIME
 AC_FUNC_STRTOD
 AC_CHECK_FUNCS([floor gethostbyname gettimeofday inet_ntoa localtime_r memmove memset pow select socket strchr strdup strerror strtol])
 
-PKG_CHECK_MODULES(DEPS, libgda)
+PKG_CHECK_MODULES(DEPS, libgda glib-2.0 )
 #AC_SUBST(DEPS_CFLAGS)
 #AC_SUBST(DEPS_LIBS)
 
 LDFLAGS=${DEPS_LIBS}
 
-GLOBAL_INCLUDES="${DEPS_CFLAGS} -I/usr/include/glib-1.0 -I/usr/lib/glib-2.0/include -D_GNU_SOURCE -D_ISOC99_SOURCE"
+GLOBAL_INCLUDES="${DEPS_CFLAGS} -D_GNU_SOURCE -D_ISOC99_SOURCE"
 AC_SUBST(GLOBAL_INCLUDES)
 
 SHAREDONLY_MODULES="test_dynamic" #python #reassemble
