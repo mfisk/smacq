@@ -110,8 +110,15 @@ inline void IterativeScheduler::check_for_shutdown(SmacqGraph *f) {
 
   // No more active children.  Clean-up self and parents. 
   for (int i=0; i < f->numparents; i++) {
-    if (f->parent[i] && (! (f->parent[i]->status & SMACQ_FREE)))  
-      this->shutdown(f->parent[i]);
+    SmacqGraph * p = f->parent[i];
+    assert(p);
+    if (! (p->status & SMACQ_FREE)) {
+ 	p->remove_childgraph(f);
+	i--;
+	if (!p->numchildren()) {
+      		shutdown(p);
+	}
+    }
   }
   this->shutdown(f);
 }
@@ -150,7 +157,7 @@ inline void IterativeScheduler::do_shutdown(SmacqGraph *f) {
     check_for_shutdown(f->parent[i]);
   }
 
-  //delete f;
+  delete f;
   return;
 }
 
