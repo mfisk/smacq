@@ -1,15 +1,30 @@
 #!/bin/sh
 
 PATH=bin:.:${PATH}
-file=$1
-datafile=`echo $file | sed 's/.[^.]*$//'`.data
-
+files=$1
 shift
+ 
+if [ "$files" = "-data" ]; then
+	DATA=1
+	files=$1
+	shift
+fi
+
 
 fields="-d, ; , id, bytes, packets, srcip:ip, srcport, prompta, broken, promptb, dstport, dstip:ip, packetsback, bytesback, date, start, finish"
 pfields=`echo "$fields" | sed 's/:[a-z]*//g'`
 
-smacqq "print $pfields,data.data from \
+for file in $files; do 
+  datafile=`echo $file | sed 's/.[^.]*$//'`.data
+
+  if [ "$DATA" = "1" ]; then
+    smacqq "print $pfields,data.data from \
+	(ndjoin id, id, data, 'tabularinput(-f,$file,$fields)' from \
+ 		tabularinput(-f,$datafile,-d,;,id,data)" "$@" ")"
+  else
+    smacqq "print $pfields,data.data from \
 	(ndjoin id, id, data, 'tabularinput(-f,$datafile,-d,;,id,data)' from \
-		tabularinput(-f,$file,$fields)" "$@" ")"
+		tabularinput(-f,$file,$fields))" "$@"
+  fi
+done
 
