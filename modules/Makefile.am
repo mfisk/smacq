@@ -8,8 +8,8 @@ SUFFIXES = .sc
 libsmacq_modules_la_SOURCES = print.c pcaplive.c pcapfile.c socket.c uniq.c count.c last.c top.c head.c filter.c msgtest.c entropy.c derivative.c split.c encrypt.c warden.c pdf.c fifo.c delta.c tabularinput.c sync.c rusage.c groupby.c flowid.c sum.c fifodelay.c project.c rename.c join.c mask.c const.c ndjoin.c lor.c counter_loop.c dfa.c noop.c expr.c equals.c cflow.c clock.c disarm.c substr-main.c iplookup.c #sqlinsert.c #sqlclient.c
 EXTRA_libsmacq_modules_la_SOURCES = sqlinsert.c
 
-libsmacq_modules_la_LIBADD = -lpcap substr/libsubstr.la patricia/libpatricia.la @EXTRA_MODULE_SOURCES@ 
-libsmacq_modules_la_DEPENDENCIES = $(libsmacq_modules_la_LIBADD) @EXTRA_MODULE_SOURCES@ 
+libsmacq_modules_la_LIBADD = -lpcap substr/libsubstr.la patricia/libpatricia.la @OPTIONAL_MODULE_LIBS@ 
+libsmacq_modules_la_DEPENDENCIES = $(libsmacq_modules_la_LIBADD) @OPTIONAL_MODULE_LIBS@ 
 
 libtest_dynamic_la_SOURCES = test_dynamic.c
 
