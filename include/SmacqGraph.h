@@ -328,7 +328,7 @@ inline void SmacqGraph::replace_child(int i, int j, SmacqGraph * newchild) {
 }
 
 inline void SmacqGraph::remove_child(int i, int j) {
-  assert(!algebra.demux && !algebra.vector);
+  //assert(!algebra.demux && !algebra.vector); //okay when called from shutdown
   int size = children[i].size() - 1;
 
   children[i][j]->remove_parent(this);
