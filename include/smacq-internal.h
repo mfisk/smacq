@@ -1,7 +1,5 @@
 #ifndef LIBSMACQ_INTERNAL_H
 #define LIBSMACQ_INTERNAL_H
-#include <smacq.h>
-#include <smacq_args.h>
 
 EXTERN const dts_object* _smacq_alloc(int size, int type);
 #include <gmodule.h>

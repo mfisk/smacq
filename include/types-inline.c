@@ -1,11 +1,25 @@
 #ifndef SMACQ_INLINE_C
 #define SMACQ_INLINE_C
 
-#include <smacq.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
 #include <stdio.h>
+
+struct smacq_engine_field {
+  int type;
+  struct dts_field_descriptor desc;
+  int offset;
+};
+
+struct dts_type {
+  struct darray fields;
+  char * name;
+  int num;
+  GModule * module;
+  struct dts_field_descriptor * description;
+  struct dts_type_info info;
+};
 
 void msg_send(dts_environment *, dts_field_element, dts_object *, dts_comparison *);
 dts_object * dts_construct(dts_environment * tenv, int type, void * data);
@@ -206,26 +220,6 @@ static inline int dts_lt(dts_environment * env, int type, void * v1, int l1, voi
   return(env->lt(env, type, v1, l1, v2, l2));
 }
 
-/* Get the named field from a datum */
-static inline const dts_object * smacq_getfield(smacq_environment * env, const dts_object * datum, dts_field field, dts_object * data) {
-  return(env->types->getfield(env->types, datum, field, data));
-}
-
-/* Get the named field from a datum */
-static inline const dts_object * dts_getfield(dts_environment * env, const dts_object * datum, dts_field field, dts_object * data) {
-  return(env->getfield(env, datum, field, data));
-}
-
-/* Same as above, but return a new copy of the data */
-static inline const dts_object * smacq_getfield_copy(smacq_environment * env, const dts_object * datum, dts_field field, dts_object * field_data) {
-	dts_object * retval = (dts_object*)smacq_getfield(env, datum, field, field_data);
-	if (retval && !retval->free_data) {
-		retval->data = memdup(retval->data, retval->len);
-		retval->free_data = 1;
-	}
-	return retval;
-}
-
 #define dts_data_as(datum,type) (*((type*)((datum)->data)))
 	
 /* Convert a type number to a type name */
@@ -266,6 +260,136 @@ static inline char * strcatn(char * dest, int len, char * src) {
 	int left = len - strlen(dest) - 1;
 	return strncat(dest, src, left);
 }
+
+static inline struct dts_type * dts_type_bynum(dts_environment * tenv, int num) {
+  return darray_get(&tenv->types, num);
+}
+
+
+static inline void dts_fieldcache_flush(dts_environment * tenv, const dts_object * datum, dts_field_element fnum, dts_object * data) {
+  dts_object * cached = darray_get((struct darray*)&datum->fields, fnum);
+  dts_decref(cached);
+  darray_set((struct darray*)&datum->fields, fnum, NULL);
+}
+
+static inline const dts_object * dts_getfield_single(dts_environment * tenv, const dts_object * datum, dts_field_element fnum, dts_object * data) {
+  dts_object * cached;
+
+  cached = darray_get((struct darray*)&datum->fields, fnum);
+  if (cached) {
+    dts_incref(cached, 1);
+    return cached;
+  } else {
+    int offset = 0;
+    struct smacq_engine_field * d;
+    struct dts_type * t = dts_type_bynum(tenv, dts_gettype(datum));
+    assert(t);
+
+    d = darray_get(&t->fields, fnum);
+
+  if (d) {
+#ifndef SMACQ_OPT_FORCEFIELDCACHE
+   offset = d->offset;
+   if (!data) {
+#endif 
+    dts_object * field;
+
+    if (offset >= 0) {
+      field = dts_construct(tenv, d->type, datum->data+offset);
+    } else {
+      field = (dts_object*)_smacq_alloc(dts_type_bynum(tenv, d->type)->info.size, d->type);
+      if (!d->desc.getfunc(datum, field)) {
+	dts_decref(field);
+	field = NULL;
+      }
+    }
+#ifdef SMACQ_OPT_FORCEFIELDCACHE
+    if (field) {
+      darray_set(&((dts_object*)datum)->fields, fnum, field);
+      dts_incref(field, 1);
+    }
+#endif
+    return field;
+#ifndef SMACQ_OPT_FORCEFIELDCACHE
+   } else {
+    data->type = d->type;
+    data->len = dts_type_bynum(tenv, d->type)->info.size;
+    
+    if (offset >= 0) {
+      //fprintf(stderr, "%s offset %d (constant), len = %d\n", name, offset, *len);
+      data->data = dts_getdata(datum) + offset;
+      return data;
+    } else {
+      //fprintf(stderr, "offset %d; calling getfunc()%p for %s\n", offset, d->desc.getfunc, name);
+      
+      assert(d->desc.getfunc);
+      if (!d->desc.getfunc(datum, data)) {
+     	return NULL;
+      } else {
+      	return data;
+      }
+    }
+   }
+#endif
+  } else {
+#ifndef SMACQ_OPT_NOMSGS
+    return msg_check(tenv, datum, fnum, data);
+#else
+    return NULL;
+#endif
+  }
+  }
+}
+
+#define SMACQ_OPT_NOSCRATCHFIELD
+
+static inline const dts_object* dts_getfield(dts_environment * tenv, const dts_object * datum, dts_field fieldv, dts_object * scratch) {
+  const dts_object * parent = datum;
+  const dts_object * f;
+
+  parent = dts_getfield_single(tenv, parent, dts_field_first(fieldv), scratch);
+  fieldv = dts_field_next(fieldv); 
+
+  if (!dts_field_first(fieldv)) return parent;
+
+  /* Must go deeper */
+  while (1) {
+    f = dts_getfield_single(tenv, parent, dts_field_first(fieldv), scratch);
+
+    /* Get rid of intermediate field */
+    dts_decref(parent);
+
+    fieldv = dts_field_next(fieldv); 
+    if (!dts_field_first(fieldv) || !f)
+      return f;
+
+    parent = f;
+
+#ifndef SMACQ_OPT_NOSCRATCHFIELD
+    if (parent == scratch) {
+      /* If getfield used the scratch space, make sure we don't use it again */
+      scratch = NULL;
+    }
+#endif
+  }
+}
+
+/* Get the named field from a datum */
+static inline const dts_object * smacq_getfield(smacq_environment * env, const dts_object * datum, dts_field field, dts_object * data) {
+  return(dts_getfield(env->types, datum, field, data));
+}
+
+/* Same as above, but return a new copy of the data */
+static inline const dts_object * smacq_getfield_copy(smacq_environment * env, const dts_object * datum, dts_field field, dts_object * field_data) {
+	dts_object * retval = (dts_object*)smacq_getfield(env, datum, field, field_data);
+	if (retval && !retval->free_data) {
+		retval->data = memdup(retval->data, retval->len);
+		retval->free_data = 1;
+	}
+	return retval;
+}
+
+
 
 #endif
 

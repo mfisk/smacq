@@ -1,6 +1,11 @@
 #ifndef SMACQ_H
 #define SMACQ_H
+
+/* Turn on performance optimizations: */
 #define SMACQ_OPT_NOPTHREADS
+#define SMACQ_OPT_NOMSGS
+#define SMACQ_OPT_FORCEFIELDCACHE
+#define SMACQ_OPT_DEMUX
 
 #include <stdio.h>
 #include <gmodule.h>
@@ -240,6 +245,7 @@ void dts_init_object(dts_object * d);
 	#define inline __inline 
 #endif
 
+#include <smacq-internal.h>
 #include <types-inline.c>
 
 #endif

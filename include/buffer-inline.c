@@ -4,7 +4,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <pthread.h>
-#include <smacq-internal.h>
+#include <smacq.h>
 
 static inline void ring_enqueue(smacq_graph * f, dts_object * d) {
   pthread_mutex_lock(&f->qlock);
