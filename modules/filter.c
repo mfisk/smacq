@@ -22,20 +22,12 @@ static smacq_result filter_produce(struct state* state, const dts_object ** datu
 }
 
 static smacq_result filter_consume(struct state * state, const dts_object * datum, int * outchan) {
-  int same_types;
-  
   assert(datum);
   assert(state->argv[0]);
   
-  if (dts_gettype(datum) != state->type) {
-    same_types = 0;
-  } else {
-    same_types = 1;
-  }
-
   state->type = dts_gettype(datum);
 
-  if (smacq_match(state->env, datum, state->comp, same_types)) 
+  if (smacq_match(state->env, datum, state->comp)) 
     return SMACQ_PASS;
   else
     return SMACQ_FREE;
