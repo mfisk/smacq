@@ -62,7 +62,7 @@ static inline int pop_runable(struct runq * runq, smacq_graph ** f, const dts_ob
 	}
 
 	*f = runq->head->f;
-	*d = runq->tail->d;
+	*d = runq->head->d;
 
 	//fprintf(stderr, "%p for %p off queue from %p/%p\n", runq->head->d, runq->head->f, runq, runq->head);
 
