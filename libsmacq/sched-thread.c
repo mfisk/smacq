@@ -1,4 +1,4 @@
-#include <smacq-internal.h>
+#include <smacq.h>
 #include <stdio.h>
 
 #ifndef SMACQ_OPT_NOPTHREADS

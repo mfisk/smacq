@@ -1,4 +1,4 @@
-#include <smacq-internal.h>
+#include <smacq.h>
 #include <stdio.h>
 
 void msg_send(dts_environment * tenv, dts_field_element fieldnum, dts_object * data, dts_comparison * comparisons) {

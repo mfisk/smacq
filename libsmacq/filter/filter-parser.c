@@ -84,7 +84,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <smacq.h>
-#include <smacq-internal.h>
+#include <smacq.h>
 #include "filter.h"
 #include "filter-parser.h"
 #define YYERROR_VERBOSE

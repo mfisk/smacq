@@ -1,4 +1,4 @@
-#include <smacq-internal.h>
+#include <smacq.h>
 #include <stdio.h>
 #include <string.h>
 #define RINGSIZE 4

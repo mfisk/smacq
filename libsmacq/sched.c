@@ -1,4 +1,4 @@
-#include <smacq-internal.h>
+#include <smacq.h>
 #include <stdio.h>
 
 static int smacq_start_single(smacq_graph * objs, enum smacq_scheduler scheduler, dts_environment * tenv) {

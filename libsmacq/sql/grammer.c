@@ -90,7 +90,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <smacq-internal.h>
+#include <smacq.h>
 #include "smacq-parser.h"
 //#define DEBUG
   
