@@ -340,6 +340,7 @@ static smacq_result pcapfile_produce(struct state * state, const dts_object ** d
     void * payload; 
 
     ((dts_object *)datum)->data = hdrp;
+    ((dts_object *)datum)->len = sizeof(struct dts_pkthdr) + hdrp->caplen;
     payload = read_file(state, NULL, hdrp->caplen, MAP);
 
     if (payload != hdrp +1) {
