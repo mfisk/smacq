@@ -1,13 +1,11 @@
 include config.mk
 
-ETHEREAL=ethereal-0.9.11
+ETHEREAL=ethereal-0.9.12
 ARCAT=$(TOPSRCDIR)/misc/arcat
 
 all: $(WITH)
 
 ethereal: libpacket-ethereal.a
-
-all: #libpacket-ethereal.a #libpcap.la #snort-1.9.0
 
 reallyclean: clean
 clean:
@@ -30,7 +28,7 @@ libpcap-current.tar.gz:
 	wget -N http://public.lanl.gov/cpw/$@
 
 $(SRCDIR)/ethereal-%.tar.gz:
-	cd $(SRCDIR); wget -N http://www.ethereal.com/distribution/$@
+	cd $(SRCDIR); wget -N http://www.ethereal.com/distribution/`basename $@`
 
 libethereal.a: $(ETHEREAL)
 	$(ARCAT) $@ $</*.o $</reassemble.o $</tap.o $</register.o `find $< -name \*.a -print`
@@ -39,15 +37,15 @@ packet-ethereal.o: packet-ethereal.c $(ETHEREAL)
 	$(CC) -c $< $(CFLAGS) -I$(ETHEREAL)
 	
 packet-ethereal-bundle-strong.o: packet-ethereal.o libethereal.a
-	$(LD) -r -o $@ $< -L. -lethereal -lglib -lpcap
+	$(LD) -r -o $@ $< -L. -lethereal -L$(USR)//lib -lglib -lpcap
 
-%.o: %-strong.o
-	objcopy --weaken $< $@
-
-lib%.a: %-bundle.o
+lib%.a: %-bundle-weak.o
 	$(AR) r $@ $<
 
-ethereal-%: ethereal-%.tar.gz
+%-weak.o: %-strong.o
+	objcopy --weaken $< $@
+
+ethereal-%: $(SRCDIR)/ethereal-%.tar.gz
 	tar xzf $<
 	cd $@; ./configure --disable-editcap --disable-mergecap --disable-text2pcap --disable-ethereal --disable-idl2eth && $(MAKE)
 
