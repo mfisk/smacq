@@ -4,7 +4,7 @@
 AC_PREREQ(2.57)
 AC_INIT(SMACQ, 1.0, mfisk@lanl.gov)
 AM_CONFIG_HEADER(config.h)
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE(1.7)
 AM_PROG_CC_STDC
 AC_CONFIG_SRCDIR([bin])
 #AC_CONFIG_HEADERS()
@@ -86,12 +86,12 @@ AC_SUBST(LIBS_MODULES_SHARED)
 PKG_CHECK_MODULES(GDA, libgda,
 	[LDFLAGS=${GDA_LIBS}
 	GLOBAL_INCLUDES="${GDA_CFLAGS} ${GLOBAL_INCLUDES}"
-	EXTRA_MODULE_SOURCES="${EXTRA_MODULE_SOURCES} sqlinsert.c"
-	OPTIONAL_TESTS="${OPTIONAL_TESTS} sqlinsert.test.opt"
+	OPTIONAL_MODULE_LIBS="${EXTRA_MODULE_SOURCES} sqlinsert.lo"
+	OPTIONAL_TESTS="${OPTIONAL_TESTS} sqlinsert.test"
 	],[echo "$GDA_PKG_ERRORS"
 	echo "Building without sqlinsert module"])
 
-AC_SUBST(EXTRA_MODULE_SOURCES)
+AC_SUBST(OPTIONAL_MODULE_LIBS)
 AC_SUBST(OPTIONAL_TESTS)
 AC_ARG_ENABLE(profile,
 	AC_HELP_STRING([--enable-profile],[enable gprof profiling]),
@@ -109,7 +109,7 @@ AC_ARG_ENABLE(debug,
 		CFLAGS="$CFLAGS -g"
 	fi],
 	[if test -n "$GCC"; then
-		CFLAGS="$CFLAGS -fast -g"
+		CFLAGS="$CFLAGS -g" # -fast on MacOS
 	fi
 	CO="-O9"
 	])
