@@ -31,17 +31,18 @@ struct state {
  
 static smacq_result clock_consume(struct state * state, const dts_object * datum, int * outchan) {
   const dts_object * ticko; 
-  unsigned long tick;
+  double ts;
+  long int tick;
 
   {
       	const dts_object * time;
 	time = smacq_getfield(state->env, datum, state->timefield, NULL);
   	if (!time) return SMACQ_PASS;
 
-  	tick = dts_data_as(time, double);
+  	ts = dts_data_as(time, double);
   	dts_decref(time);
   }
-  tick /= state->period;
+  tick = ts / state->period;
   //fprintf(stderr, "got time tick %f (period %f)\n", tick, state->period);
 
   ticko = smacq_dts_construct(state->env, state->ticktype, &tick); 
@@ -108,7 +109,6 @@ static smacq_result clock_produce(struct state * state, const dts_object ** datu
   }
 }
 
-/* Right now this serves mainly for type checking at compile time: */
 struct smacq_functions smacq_clock_table = {
   produce: &clock_produce, 
   consume: &clock_consume,
