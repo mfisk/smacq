@@ -32,7 +32,6 @@ static struct smacq_options options[] = {
 
 struct srcstat {
   struct timeval starttime, lasttime;
-  int expired;
   int id;
 
   unsigned int byte_count, byte_count_back;
@@ -149,13 +148,7 @@ static inline int output(struct state * state, struct srcstat * s) {
 static int expired(struct state * state, struct iovec * domainv, struct srcstat * s) {
   if (!state->hasinterval) return 0;
 
-  if (s->expired) {
-    assert(0); //Shouldn't happen
-  }
-
   if (!timeval_past(s->lasttime, state->edge)) {
-    s->expired = 1;
-
     output(state, s);
 
     // Cleanup
