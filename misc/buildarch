@@ -1,0 +1,19 @@
+#!/bin/sh
+
+platform=`uname -sm| sed 's/  */-/g'`
+
+srcdir=`pwd`
+builddir="build/$platform"
+
+if [ \! -f $builddir/Makefile ]; then
+	mkdir -p $builddir
+	cd $builddir
+	$srcdir/configure --srcdir=$srcdir
+else 
+	cd $builddir
+fi
+
+echo "Building in $builddir"
+make && make test 
+
+ln -sf $builddir/bin/smacqq
