@@ -1,6 +1,6 @@
-# Makefile.in generated automatically by automake 1.4-p4 from Makefile.am
+# Makefile.in generated automatically by automake 1.4-p6 from Makefile.am
 
-# Copyright (C) 1994, 1995-8, 1999 Free Software Foundation, Inc.
+# Copyright (C) 1994, 1995-8, 1999, 2001 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
@@ -97,6 +97,7 @@ CFLAGS = -DSMACQ_BUILD_DATE=\"`date --iso-8601`\"
 BUILTINS = $(top_builddir)/libsmacq/libsmacq.la -dlopen self -dlopen $(top_builddir)/modules/libsmacq_modules.la -dlopen $(top_builddir)/types/libdts_modules.la
 
 bin_PROGRAMS = smacqq #smacqq_static smacqq_dynamic #iterative-example
+smacqq_DEPENDENCIES = $(top_builddir)/libsmacq/libsmacq.la $(top_builddir)/modules/libsmacq_modules.la $(top_builddir)/types/libdts_modules.la
 smacqq_LDFLAGS = -export-dynamic -static $(BUILTINS) -lglib-2.0 -lgmodule-2.0 -lpthread
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = ../config.h
@@ -112,7 +113,6 @@ LIBS = @LIBS@
 smacqq_SOURCES = smacqq.c
 smacqq_OBJECTS =  smacqq.$(OBJEXT)
 smacqq_LDADD = $(LDADD)
-smacqq_DEPENDENCIES = 
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
@@ -224,7 +224,7 @@ TAGS:  $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) $(LISP)
 	  awk '    { files[$$0] = 1; } \
 	       END { for (i in files) print i; }'`; \
 	test -z "$(ETAGS_ARGS)$$unique$(LISP)$$tags" \
-	  || (cd $(srcdir) && etags $(ETAGS_ARGS) $$tags  $$unique $(LISP) -o $$here/TAGS)
+	  || (cd $(srcdir) && etags -o $$here/TAGS $(ETAGS_ARGS) $$tags  $$unique $(LISP))
 
 mostlyclean-tags:
 
