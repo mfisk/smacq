@@ -2,8 +2,6 @@
 #include <assert.h>
 #include <smacq.h>
 
-/* Programming constants */
-
 static struct smacq_options options[] = {
   END_SMACQ_OPTIONS
 };

@@ -13,10 +13,6 @@
 #include <smacq.h>
 #include <FieldVec.h>
 #include <bloom.h>
-#include <FieldVec.h>
-
-/* Programming constants */
-#define KEYBYTES 128
 
 SMACQ_MODULE(top, 
   PROTO_CTOR(top);

@@ -2,8 +2,6 @@
 #include <assert.h>
 #include <smacq.h>
 
-/* Programming constants */
-
 static struct smacq_options options[] = {
   {"t", {double_t:0}, "Lag time", SMACQ_OPT_TYPE_TIMEVAL},
   {"i", {string_t:"timeseries"}, "Time field used to update time", SMACQ_OPT_TYPE_STRING},

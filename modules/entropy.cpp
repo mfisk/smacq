@@ -4,12 +4,6 @@
 #include <assert.h>
 #include <smacq.h>
 
-/* Programming constants */
-
-#define VECTORSIZE 21
-#define ALARM_BITS 15
-#define KEYBYTES 128
-
 SMACQ_MODULE(entropy,
   PROTO_CTOR(entropy);
   PROTO_CONSUME();

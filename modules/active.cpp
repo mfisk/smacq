@@ -15,13 +15,6 @@
 #include <assert.h>
 #include <smacq.h>
 #include <FieldVec.h>
-#include <FieldVec.h>
-
-/* Programming constants */
-
-#define VECTORSIZE 21
-#define ALARM_BITS 15
-#define KEYBYTES 128
 
 static struct smacq_options options[] = {
   {"t", {double_t:0}, "Threshold quiet time", SMACQ_OPT_TYPE_TIMEVAL},

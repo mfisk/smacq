@@ -4,11 +4,7 @@
 #include <assert.h>
 #include <smacq.h>
 #include <FieldVec.h>
-#include <FieldVec.h>
 #include <ThreadedSmacqModule.h>
-
-/* Programming constants */
-#define KEYBYTES 128
 
 static struct smacq_options options[] = {
   {"pdf", {boolean_t:0}, "Report probabilities rather than absolute counts", SMACQ_OPT_TYPE_BOOLEAN},

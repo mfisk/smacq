@@ -3,15 +3,7 @@
 #include <math.h>
 #include <assert.h>
 #include <smacq.h>
-#include <smacq.h>
 #include <FieldVec.h>
-#include <FieldVec.h>
-
-/* Programming constants */
-
-#define KEYBYTES 128
-
-enum mode { ROUND_ROBIN, UNIQUE, BUCKET };
 
 static struct smacq_options options[] = {
   END_SMACQ_OPTIONS
