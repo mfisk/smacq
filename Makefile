@@ -1,6 +1,12 @@
 default: 
 	misc/buildarch
 
+bootstrap:
+	libtoolize -n
+	aclocal
+	autoconf
+	automake
+
 cvsinter:
 		# Have to force timestamp update even if contents unchanged
 	cvs commit -m 'update timestamp' -f stamp-h.in aclocal.m4 *.in `find * -name \*.in`  
