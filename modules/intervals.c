@@ -31,7 +31,7 @@ struct srcstat {
 struct state {
   smacq_environment * env;
   struct fieldset fieldset;
-  GHashTableofBytes *stats;
+  struct iovec_hash *stats;
 
   int hasupdateinterval;
   struct timeval updateinterval, nextupdate;
@@ -75,10 +75,11 @@ static void print_extent(gpointer key, gpointer value, gpointer userdata) {
       }
   } else {
     int offset = 0;
-    struct bytedata * b = key;
+    struct element * b = key;
     const dts_object * lastd;
     i=0;
 
+    /*
     while((i = smacq_nextfielddata(&state->fieldset, &lastd, i))) {
         const dts_object * d = (dts_object*)lastd;
 	const dts_object * dstr = NULL;
@@ -91,6 +92,7 @@ static void print_extent(gpointer key, gpointer value, gpointer userdata) {
         fprintf(state->printfd, "%s ", (char*)dstr->data);
 	dts_decref(dstr);
     }
+    */
 
   }
   fprintf(state->printfd, "\t%lu -\t%lu\t%u\n", (unsigned long)stats->starttime.tv_sec, (unsigned long)stats->lasttime.tv_sec, stats->count);
