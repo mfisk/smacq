@@ -11,6 +11,11 @@ static int smacqtype_nushort_get_string(const dts_object * obj, dts_object * fie
   return 1;
 }
 
+static int smacqtype_nushort_get_uint32(const dts_object * o, dts_object * field) {
+	dts_set(field, uint, ntohs(dts_data_as(o, ushort)));
+	return 1;
+}
+
 static int parse_nushort(char * buf,  const dts_object * d) {
   return dts_set(d, ushort, htons(atol(buf)));
 }
@@ -29,6 +34,7 @@ int nushort_lt(void * num1, int size1, void * num2, int size2) {
 
 struct dts_field_descriptor dts_type_nushort_fields[] = {
 	{ "string",   "string",	smacqtype_nushort_get_string },
+	{ "uint32",   "uint32",	smacqtype_nushort_get_uint32 },
         { END,        NULL }
 };
 
