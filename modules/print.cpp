@@ -72,14 +72,18 @@ smacq_result printModule::consume(DtsObject datum, int & outchan) {
       datum->prime_all_fields();
       std::vector<DtsObject> v = datum->get_all_fields();
       std::vector<DtsObject>::iterator j;
-      int num;
-	  printed=1;
 
+	  int num;
       for (num=0, j=v.begin(); j != v.end(); ++j, ++num) {
 			if (*j) {
 				DtsObject str = (*j)->getfield(string_transform);
 				f[0] = num;
-				printf("\tField %2d: %15s = (obj %p) %s\n", num, dts->field_getname(f), j->get(), (char*)str->getdata());
+				if (internals) {
+					printf("\tField %2d: %15s = (obj %p) %s\n", num, 
+						dts->field_getname(f), j->get(), (char*)str->getdata());
+				} else {
+					printed = print_field(str, dts->field_getname(f), printed, column);
+				}
 			}
       }
 
