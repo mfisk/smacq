@@ -25,31 +25,54 @@ static smacq_result print_produce(struct state* state, const dts_object ** datum
   return SMACQ_ERROR;
 }
 
-static smacq_result print_consume(struct state * state, const dts_object * datum, int * outchan) {
-  int i,j;
-  int printed = 0;
-  const dts_object *field;
-  assert(datum);
-
-  for (i = 0; i < state->argc; i++) {
-    if (printed) {
-      	printf(state->delimiter);
-    }
-    if ((field = smacq_getfield(state->env, datum, state->fields[i], NULL))) {
-        if (!printed) {
-    	   for (j=0; j<i; j++) 
+static int print_field(struct state * state, const dts_object * field, char * fname, int printed, int column) {
+        if (printed) {
+      	   printf(state->delimiter);
+    	} else {
+	   int j;
+    	   for (j=0; j<column; j++) 
     		printf(state->delimiter);
         }
-        printed++;
+
 	if (state->verbose) {
-		printf("%.20s = %s", state->argv[i], (char *)dts_getdata(field));
+		printf("%.20s = %s", fname, (char *)dts_getdata(field));
 	} else {
 		printf("%s", (char*)dts_getdata(field));
 	}
         dts_decref(field);
+
+	return 1;
+}
+
+static smacq_result print_consume(struct state * state, const dts_object * datum, int * outchan) {
+  int i,j;
+  int printed = 0;
+  int column = 0;
+  const dts_object *field;
+  assert(datum);
+
+  for (i = 0; i < state->argc; i++) {
+    if (!state->fields[i]) {
+	int j;
+
+	dts_prime_all_fields(state->env->types, datum);
+
+	for (j = 0; j <= datum->fields.max; j++) {
+		field = dts_getfield_single(state->env->types, datum, j);
+		if (field) {
+			printed = print_field(state, field, "FOO", printed, column);
+			column++;
+		}
+	}
+	column--;
+
+    } else if ((field = smacq_getfield(state->env, datum, state->fields[i], NULL))) {
+	printed = print_field(state, field, state->argv[i], printed, column);
+
     } else if (state->verbose) {
-      fprintf(stderr, "Warning: print: no field %s.string\n", state->argv[i]);
+        fprintf(stderr, "Warning: print: no field %s.string\n", state->argv[i]);
     }
+    column++;
   }
   if (printed) {
  	printf("\n");
@@ -87,7 +110,11 @@ static smacq_result print_init(struct smacq_init * context) {
   state->string_transform = smacq_requirefield(state->env, "string");
 
   for (i = 0; i < state->argc; i++) {
-	  state->fields[i] = smacq_requirefield(state->env, dts_fieldname_append(state->argv[i],"string")); 
+	  if (!strcmp(state->argv[i], "*")) {
+		state->fields[i] = NULL;
+	  } else {
+	  	state->fields[i] = smacq_requirefield(state->env, dts_fieldname_append(state->argv[i],"string")); 
+	  }
   }
   return 0;
 }
