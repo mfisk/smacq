@@ -41,7 +41,12 @@ const dts_object* dts_alloc(dts_environment * tenv, int size, int type) {
   const dts_object * o = *tenv->freelist.p;
 
   if (o && (size <= o->max_size)) {
+
     dts_init_object((dts_object*)o);
+    ((dts_object*)o)->type = type;
+    ((dts_object*)o)->len = size;
+
+    //fprintf(stderr, "dts_alloc reusing %p\n", o);
 
     *tenv->freelist.end = NULL;
 
