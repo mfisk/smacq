@@ -63,5 +63,8 @@ In addition to the dependencies in README, you probably want the following:
 	apt-get install tetex-extra ghostscript bison automake1.7 opensp4 docbook-dtd
 
  - Debian:		
-	apt-get isntall tetex-extra ghostscript bison automake1.7 docbook-to-man
+	apt-get install tetex-extra ghostscript bison automake1.7 docbook-to-man
+
+ - ArchLinux:
+	pacmac -S -y ghostscript
 
