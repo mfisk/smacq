@@ -4,9 +4,16 @@
 #include <string.h>
 #include <sys/time.h>
 #include <math.h>
+#include <time.h>
 #include "smacq.h"
 
 #include <netinet/in.h>
+
+static int smacqtype_timeval_get_sec(const dts_object * o, dts_object * field) {
+  struct timeval * t = dts_getdata(o);
+  unsigned long sec = t->tv_sec;
+  return dts_set(field, unsigned long, sec);
+}
 
 static int smacqtype_timeval_get_double(const dts_object * o, dts_object * field) {
   struct timeval * t = dts_getdata(o);
@@ -18,6 +25,15 @@ static int smacqtype_timeval_get_string(const dts_object * o, dts_object * field
   struct timeval * t = dts_getdata(o);
   dts_setsize(field, 64);
   snprintf(field->data, 64, "%lu.%06lu", (unsigned long)t->tv_sec, (unsigned long)t->tv_usec);
+  return 1;
+}
+
+static int smacqtype_timeval_get_ctime(const dts_object * o, dts_object * field) {
+  struct timeval * t = dts_getdata(o);
+  struct tm tm;
+  dts_setsize(field, 32);
+  strftime(field->data, 32, "%T", localtime_r(&(t->tv_sec), &tm));
+  
   return 1;
 }
 
@@ -45,7 +61,9 @@ static int timeval_lt(void * p1, int len1, void * p2, int len2) {
 
 struct dts_field_spec dts_type_timeval_fields[] = {
   { "string",		"string",	smacqtype_timeval_get_string },
+  { "string",		"ctime",	smacqtype_timeval_get_ctime },
   { "double", 	"double",	smacqtype_timeval_get_double },
+  { "uint32", 	"sec",	smacqtype_timeval_get_sec },
   { END,        NULL }
 };
 
