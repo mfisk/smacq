@@ -131,11 +131,14 @@ static void merge_tails(struct list * alist, struct list * blist) {
     assert(blist->parent); /* else this would be a common head and already removed */
     smacq_replace_child(blist->parent, blist->child, a);
     
-    if (blist->prev) {
-      /* Remove b tail from list of tails */
+    /* Remove b tail from list of tails */
+    /* XXX: Not freed because still used in current call stack */
+    if (blist->prev) 
       blist->prev->next = blist->next;
-      //free(blist);
-    }
+
+    if (blist->next)
+      blist->next->prev = blist->prev;
+
   }
 }
 
