@@ -64,7 +64,7 @@ void check_for_shutdown(struct runq ** runqp, struct filter *f) {
   /* No more active children.  Clean-up self and parents. */
   for (i=0; i < f->numchildren; i++) {
     if (f->next[i] && (! (f->next[i]->status & SMACQ_END))) 
-      flow_sched_iterative_shutdown(runqp, f->next[i]);
+      flow_sched_iterative_shutdown(f->next[i], (void**)runqp);
   }
   //do_shutdown(runqp, f);
 }

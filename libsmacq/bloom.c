@@ -210,7 +210,8 @@ int bloom_incrementv(struct bloom_summary * b, struct iovec * key, int keys) {
 
   if (b->type & BLOOM_PERFECT) {
     int current = 0;
-    if (bytes_hash_table_lookup_extendedv(b->perfectcount, key, keys, &current));
+    gpointer oldkey;
+    if (bytes_hash_table_lookup_extendedv(b->perfectcount, key, keys, &oldkey, (gpointer*)&current));
     bytes_hash_table_insertv(b->perfectcount, key, keys, (gpointer)(current+1));
 
     if (current < smallest) {
