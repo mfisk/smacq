@@ -87,8 +87,6 @@ static smacq_result tabularinput_produce(struct state* state, const dts_object *
 	if (!msgdata) {
 	    fprintf(stderr, "Unable to parse field %s as type %s\n", "", "");
 	    msgdata = default_parse(state, startp, endp);
-	//} else {
-	    //fprintf(stderr, "Parsed field %s as type %s to %s\n", "", "", msgdata->data);
 	}
     }
 
