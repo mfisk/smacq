@@ -68,11 +68,11 @@ static void print_extent(gpointer key, gpointer value, gpointer userdata) {
   int i;
 
   if (key == NULL) { // We're talking about the current value, not a table lookup
-      dts_object d;
+      const dts_object * d;
       i = 0;
       while((i = smacq_nextfielddata(&state->fieldset, &d, i))) {
-	smacq_getfield(state->env, &d, smacq_requirefield(state->env, "string"), &d);
-	fprintf(state->printfd, "%s ", (char*)d.data);
+	d = smacq_getfield(state->env, d, smacq_requirefield(state->env, "string"), NULL);
+	fprintf(state->printfd, "%s ", (char*)d->data);
       }
   } else {
     int offset = 0;
