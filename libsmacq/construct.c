@@ -267,10 +267,10 @@ smacq_graph * smacq_build_pipeline(int argc, char ** argv) {
 
 void downstream_filters(smacq_graph * mod, smacq_filter_callback_fn callback, void * data) {
   if (!strcmp(mod->name, "where") || !strcmp(mod->name, "equals")) {
-	  fprintf(stderr, "downstream_filters got a known op: %s\n", mod->name);
+	  //fprintf(stderr, "downstream_filters got a known op: %s\n", mod->name);
 	  callback(mod->name, mod->argc, mod->argv, data);
   } else {
-	  fprintf(stderr, "don't know anything about %s\n", mod->name);
+	  //fprintf(stderr, "don't know anything about %s\n", mod->name);
 	  return;
   }
 
