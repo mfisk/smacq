@@ -12,7 +12,7 @@
       <firstname>Mike</firstname>
       <surname>Fisk</surname>
     </author>
-    <date>$Date: 2003/03/19 03:25:49 $</date>
+    <date>$Date: 2003/04/09 05:55:31 $</date>
   </refentryinfo>
   <refmeta>
     <refentrytitle>smacqq</refentrytitle>
@@ -68,8 +68,22 @@
       Aliasing with "as" is supported:
       
       <computeroutput>
-	print dstip, totalbytes from select dstip, sum(len) as totalbytes from pcapfile("/tmp/dump")
+	print dstip, totalbytes from (select dstip, sum(len) as totalbytes from pcapfile("/tmp/dump"))
       </computeroutput>
+
+	Joins are supported as well:
+
+	<computeroutput>
+	print a.srcip, b.srcip from pcapfile("/tmp/dump") a, b where a.srcip != b.srcip	
+	</computeroutput>
+
+	When used with streams, joins require very large amounts of memory.  The "until" 
+	term can be used to define when elements can be removed from the pool of possible
+	values in a join:
+
+	<computeroutput>
+	print a.srcip, b.srcip from pcapfile("/tmp/dump") a until (new.a.ts > a.ts), b where a.srcip != b.srcip	
+	</computeroutput>
 
       Extended relational algebra provides aggregate functions and the
       "group by" and "having" terms.  This syntax is supported, but with slightly
@@ -137,15 +151,6 @@
       </computeroutput>&nbsp;
     </para>
 
-  </refsect1>
-  <refsect1>
-    <title>BUGS</title>
-
-    <para>
-      Joins are not yet supported.  They will be supported in multiple
-      forms:  joins within a buffer window, joins between
-      nondecreasing streams, etc.
-    </para>
   </refsect1>
   
 </refentry>
