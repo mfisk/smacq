@@ -19,8 +19,8 @@ typedef class IterativeScheduler SmacqScheduler;
 /* Usage:
 
 SMACQ_MODULE(foo,
-  private:
-    ...
+private:
+...
 );
 
 */
@@ -30,28 +30,28 @@ SMACQ_MODULE(foo,
 #define PROTO_CTOR(name) public: name##Module::name##Module(struct SmacqModule::smacq_init *); private:
 #define PROTO_DTOR(name) public: name##Module::~name##Module(); private:
 
-#define SMACQ_MODULE(name,defs...) \
- class name##Module : public SmacqModule {	\
+#define SMACQ_MODULE(name,defs...)		\
+  class name##Module : public SmacqModule {	\
   private:					\
-      defs					\
-  };					        \
+    defs					\
+      };					\
   EXPORT_SMACQ_MODULE(name, MODULE_ALGEBRA)
 
-#define SMACQ_MODULE_THREAD(name,defs...) \
- class name##Module : public ThreadedSmacqModule {	\
-  public:					\
-   smacq_result thread(struct SmacqModule::smacq_init* context);		\
+#define SMACQ_MODULE_THREAD(name,defs...)				\
+  class name##Module : public ThreadedSmacqModule {			\
+  public:								\
+    smacq_result thread(struct SmacqModule::smacq_init* context);	\
     name##Module(struct SmacqModule::smacq_init * context) : ThreadedSmacqModule(context) {} \
-  private:					\
-      defs					\
-  };					        \
+  private:								\
+    defs								\
+      };								\
   EXPORT_SMACQ_MODULE(name, MODULE_ALGEBRA)
 
-#define MODULE_ALGEBRA { \
-	stateless: SMACQ_MODULE_IS_STATELESS, \
-	vector: SMACQ_MODULE_IS_VECTOR, \
- 	annotation: SMACQ_MODULE_IS_ANNOTATION, \
-	demux: SMACQ_MODULE_IS_DEMUX }
+#define MODULE_ALGEBRA {			\
+  stateless: SMACQ_MODULE_IS_STATELESS,		\
+      vector: SMACQ_MODULE_IS_VECTOR,		\
+      annotation: SMACQ_MODULE_IS_ANNOTATION,	\
+      demux: SMACQ_MODULE_IS_DEMUX }
 
 #ifndef SMACQ_MODULE_IS_STATELESS
 #define SMACQ_MODULE_IS_STATELESS 0
@@ -66,14 +66,14 @@ SMACQ_MODULE(foo,
 #define SMACQ_MODULE_IS_DEMUX 0
 #endif
 
-#define EXPORT_SMACQ_MODULE(name, alg)					\
-  SMACQ_MODULE_CONSTRUCTOR(name);					\
-  struct smacq_functions smacq_##name##_table = {			\
-    constructor: &name##_constructor,					\
-    algebra: alg							\
+#define EXPORT_SMACQ_MODULE(name, alg)			\
+  SMACQ_MODULE_CONSTRUCTOR(name);			\
+  struct smacq_functions smacq_##name##_table = {	\
+    constructor: &name##_constructor,			\
+    algebra: alg					\
   };
 
-#define SMACQ_MODULE_CONSTRUCTOR(name) \
+#define SMACQ_MODULE_CONSTRUCTOR(name)					\
   static SmacqModule * name##_constructor(struct SmacqModule::smacq_init * context) { \
     return new name##Module(context);					\
   }				
@@ -83,14 +83,14 @@ SMACQ_MODULE(foo,
 ///
 
 /*!
-This document describes the programming interface used by authors of 
-dataflow modules.  These modules are dynamically loaded and may be
-instantiated multiple times.  Global and static variables are therefore
-deprecated for most cases.
+  This document describes the programming interface used by authors of 
+  dataflow modules.  These modules are dynamically loaded and may be
+  instantiated multiple times.  Global and static variables are therefore
+  deprecated for most cases.
 */
 
 class SmacqModule {
-  public:
+ public:
 
   /// This context structure is passed to SmacqModule constructors.
   /// It will be destroyed after the constructor returns, but the
@@ -156,8 +156,8 @@ class SmacqModule {
 
  protected:
   class UsesArray : public DynamicArray<bool> {
-	public: 
-	bool otherEntry(unsigned int f) const;
+  public: 
+    bool otherEntry(unsigned int f) const;
   };
 
   UsesArray usesFields;
@@ -188,47 +188,51 @@ class SmacqModule {
 #include <dts.h>
 
 inline bool SmacqModule::usesOtherFields(DtsField f) {
-	return usesFields.otherEntry(f[0]);
+  return usesFields.otherEntry(f[0]);
 }
 
 inline DtsField SmacqModule::usesfield(char * name) {
-	DtsField res = dts->requirefield(name);	
-	usesFields[res[0]] = true;
-	return res;	
+  DtsField res = dts->requirefield(name);	
+  usesFields[res[0]] = true;
+  return res;	
 }
 
 inline bool SmacqModule::UsesArray::otherEntry(unsigned int f) const {
-		DynamicArray<bool>::const_iterator i;
-		for (i = begin(); i != end(); ++i) {
-			if (*i != f) return true;
-		}
-		return false;
+  DynamicArray<bool>::const_iterator i;
+  unsigned int j;
+
+  for (i = begin(), j=0; i != end(); ++i, ++j) {
+    if (*i) {
+      if (j != f) return true;
+    }
+  }
+  return false;
 }
 
 inline SmacqModule::SmacqModule(struct smacq_init * context) 
-	: dts(context->dts), scheduler(context->scheduler), self(context->self)
+  : dts(context->dts), scheduler(context->scheduler), self(context->self)
 {}
 
 inline SmacqModule::~SmacqModule() {}
 
 inline smacq_result SmacqModule::consume(DtsObject datum, int & outchan) {
-	return SMACQ_ERROR;
+  return SMACQ_ERROR;
 }
 
 inline smacq_result SmacqModule::produce(DtsObject & datum, int & outchan) {
-	return SMACQ_END;
+  return SMACQ_END;
 }
 
 struct smacq_functions {
   SmacqModule::constructor_fn * constructor;
   struct SmacqModule::algebra algebra;
-/* Put constructor and algebra first so that we can use partial initializers in g++ */
+  /* Put constructor and algebra first so that we can use partial initializers in g++ */
 };
 
 #include <SmacqScheduler.h>
 
 inline void SmacqModule::enqueue(DtsObject & datum, int outchan) {
-	scheduler->queue_children(self, datum, outchan);
+  scheduler->queue_children(self, datum, outchan);
 }
 
 #else
