@@ -128,6 +128,7 @@ static inline int output(struct state * state, struct srcstat * s) {
       for (i = 0; i<state->fieldset.num; i++) {
 	assert(s->fields[i]);
 	dts_attach_field(refresh, state->fieldset.fields[i].num, s->fields[i]);
+	s->fields[i] = NULL; /* shouldn't be used again */
       }
 
       msgdata = smacq_dts_construct(state->env, state->timeval_type, &s->lasttime);
@@ -137,7 +138,7 @@ static inline int output(struct state * state, struct srcstat * s) {
       //dts_incref(msgdata, 1);
   
       attach_stats(state, s, refresh);
-
+      //fprintf(stderr, "enqueuing %p\n", refresh);
       smacq_produce_enqueue(&state->outputq, refresh, -1);
 
       return 1;
@@ -152,6 +153,7 @@ static inline void finalize(struct state * state, struct srcstat * s) {
     // Cleanup
     /* Don't have to decref fields, since their refcount will be picked up from being attached in the output routine */
     g_free(s->fields);
+    s->fields = NULL;
     g_free(s);
 }
 
@@ -164,16 +166,9 @@ static int finalize_wrap(struct element * e, void * val, void * user_data) {
   return 1;
 }
 
-static inline struct srcstat * stats_lookup(struct state * state, const dts_object * datum, struct iovec ** domainv, int * swapped) {
+static inline struct srcstat * stats_lookup(struct state * state, const dts_object * datum, struct iovec * domainv, int * swapped) {
 	struct srcstat * s;
-  	*domainv = fields2vec(state->env, datum, &state->fieldset);
-	assert(*domainv);
-	if (iovec_has_undefined(*domainv, state->fieldset.num)) {
-		*swapped = -1;
-		return NULL;
-	}
-
-	s = bytes_hash_table_lookupv(state->stats, *domainv, state->fieldset.num);
+	s = bytes_hash_table_lookupv(state->stats, domainv, state->fieldset.num);
 	if (s) return s;
 
 	/* Try reverse */
@@ -238,7 +233,7 @@ static smacq_result flowid_consume(struct state * state, const dts_object * datu
 
   const dts_object * field;
   dts_object * msgdata;
-  struct timeval * tsnow;
+  struct timeval tsnow;
   int size;
   int swapped = 0;
 
@@ -247,7 +242,7 @@ static smacq_result flowid_consume(struct state * state, const dts_object * datu
     fprintf(stderr, "error: timeseries not available\n");
     return SMACQ_PASS;
   } else {
-    tsnow = (struct timeval*) dts_getdata(field);
+    tsnow = dts_data_as(field, struct timeval);
     dts_decref(field);
   }
 
@@ -262,15 +257,18 @@ static smacq_result flowid_consume(struct state * state, const dts_object * datu
 
   // Update clock
   if (state->hasinterval) 
-    timeval_minus(*tsnow, state->interval, &state->edge);
+    timeval_minus(tsnow, state->interval, &state->edge);
 
-  s = stats_lookup(state, datum, &domainv, &swapped);
-
-  if (swapped == -1) {
+  domainv = fields2vec(state->env, datum, &state->fieldset);
+  assert(domainv);
+  if (iovec_has_undefined(domainv, state->fieldset.num)) {
+    /* Not all fields present */
     //fprintf(stderr, "Skipping datum\n");
-    return SMACQ_FREE;
+
+	return SMACQ_FREE;
   }
- 
+  s = stats_lookup(state, datum, domainv, &swapped);
+
   // Make new entry if necessary 
   if (!s) {
       int i;
@@ -279,8 +277,8 @@ static smacq_result flowid_consume(struct state * state, const dts_object * datu
       //fprintf(stderr, "new %p\n", s);
       //
       s->id = state->flowid++;
-      s->starttime = *tsnow;
-      s->lasttime = *tsnow;
+      s->starttime = tsnow;
+      s->lasttime = tsnow;
 
       s->fields = g_new(const dts_object*, state->fieldset.num);
       for (i = 0; i<state->fieldset.num; i++) {
@@ -298,7 +296,7 @@ static smacq_result flowid_consume(struct state * state, const dts_object * datu
       status = SMACQ_PASS;
   } else {
       // Update state
-      s->lasttime = *tsnow;
+      s->lasttime = tsnow;
 
       /* Cheaper not to move to end of timer list.
       if (state->hasinterval) {
@@ -329,8 +327,7 @@ static smacq_result flowid_consume(struct state * state, const dts_object * datu
   if (state->hasinterval) 
       timers_manage(state);
 
-  if (state->outputq)
-      status |= SMACQ_PRODUCE;
+  status |= smacq_produce_canproduce(&state->outputq);
 
   //fprintf(stderr, "Expires list length %d\n", list_length(state->expires));
   return status;
@@ -412,26 +409,25 @@ static smacq_result flowid_shutdown(struct state * state) {
 }
 
 static smacq_result flowid_produce(struct state * state, const dts_object ** datum, int * outchan) {
-  if (state->outputq) {
-    return smacq_produce_dequeue(&state->outputq, datum, outchan);
+  if (smacq_produce_canproduce(&state->outputq)) {
+    return 255&smacq_produce_dequeue(&state->outputq, datum, outchan);
   } else {
-    //fprintf(stderr, "flowid: produce called with nothing in queue.  Outputing everything in current table!\n");
+    /* fprintf(stderr, "flowid: produce called with nothing in queue.  Outputing everything in current table!\n"); */
 
     bytes_hash_table_foreach_remove(state->stats, finalize_wrap, state);
 
-    if (!state->outputq)
-	    return SMACQ_FREE;
+    if (!smacq_produce_canproduce(&state->outputq))
+	    return SMACQ_FREE|SMACQ_END;
 
     return flowid_produce(state, datum, outchan);
   }
 }
 
-/* Right now this serves mainly for type checking at compile time: */
 struct smacq_functions smacq_flowid_table = {
-  &flowid_produce, 
-  &flowid_consume,
-  &flowid_init,
-  &flowid_shutdown,
+  produce: &flowid_produce, 
+  consume: &flowid_consume,
+  init: &flowid_init,
+  shutdown: &flowid_shutdown,
   algebra: { nesting: 1},
 };
 
