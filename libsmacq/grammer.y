@@ -41,7 +41,7 @@
 %left '*' '/'
 
 %type <arglist> arg argument args moreargs spacedargs
-%type <string> function verb word string id number
+%type <string> function word string id number
 %type <op> op
 %type <comp> boolean test 
 %type <operand> operand expression subexpression
@@ -105,8 +105,6 @@ moreargs : null			{ $$ = NULL; }
 	| ',' arg moreargs 	{ $$ = $2; $$->next = $3; }
 	;
 
-verb :  id
-	;
 
 
 /************* From boolean parser: **********************/
@@ -144,7 +142,7 @@ subexpression :
 test : 	
 	operand		{  $$ = comp_new(EXIST, $1, $1); }
 	| subexpression op subexpression      { $$ = comp_new($2, $1, $3); }
-	| verb '(' args ')'	{ 
+	| function '(' args ')'	{ 
 				  int argc; char ** argv;
 				  arglist2argv($3, &argc, &argv);
 				  $$ = comp_new_func($1, argc, argv, $3);

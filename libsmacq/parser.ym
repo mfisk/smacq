@@ -117,8 +117,8 @@ having : null			{ $$ = NULL; }
 	;
 
 parenquery : '(' query ')'	{ $$ = $2; }
-	| verb '(' args ')'	{ $$ = newmodule($1, $3); }
-	| verb			{ $$ = newmodule($1, NULL); }
+	| function '(' args ')'	{ $$ = newmodule($1, $3); }
+	| function			{ $$ = newmodule($1, NULL); }
 	;
 
 moreparenquery : parenquery
@@ -132,8 +132,8 @@ moreparenquery : parenquery
 	   }
 	;
 
-action : verb args 		{ $$ = newmodule($1, $2); }
-	| verb '(' args ')'	{ $$ = newmodule($1, $3); }
+action : function args 		{ $$ = newmodule($1, $2); }
+	| function '(' args ')'	{ $$ = newmodule($1, $3); }
 	| '(' query ')'		{ $$ = $2; }
 	| '(' parenquery '+' moreparenquery ')'
 	   {
