@@ -128,9 +128,6 @@ static PyObject * DTS_getattr(PyDtsObject & self, char * name) {
 
 //	printf("# Getting %s attr for a PyDtsObject!\n", name);
 
-	field = malloc(sizeof(DtsObject));
-	dts_module_init(field);
-
 	pyAttr = PyObject_New(PyDtsObject, &PyDTSType);
 	pyAttr->ob_name = strdup(name);
 	pyAttr->ob_datum = self->ob_datum->getfield(dts->requirefield(name));
