@@ -132,7 +132,7 @@ joinModule::joinModule(SmacqModule::smacq_init * context)
 
 	    SmacqGraph * invariants = where_graph->get_invariants_over_field(a.field);
 		fprintf(stderr, "Invariant tests for alias %s:\n", context->argv[i]);
-	    where_graph->print(stderr, 15);
+	    invariants->print(stderr, 15);
 		a.where = new SmacqScheduler(dts, invariants, false);
 		invariants->init(dts, a.where);
 
