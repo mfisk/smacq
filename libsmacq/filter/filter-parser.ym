@@ -49,6 +49,7 @@ static void print_comp(dts_environment * tenv, dts_comparison * c) {
 		case EXIST: op = "exist"; break;
 		case LIKE: op = "like"; break;
 		case FUNC: op = "FN"; break;
+		case NOT: op = "!"; break;
 	}
 
 #if DEBUG
