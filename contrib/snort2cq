@@ -67,6 +67,9 @@ while ($ARGV[0]) {
 #print STDERR "snort2cq: reading from @ARGV\n";
 
 open(SNORT, ">/tmp/snortcq.conf") || die;
+open(SET, ">/tmp/set.cq") || die;
+print SET "pcapfile from $SMACQ_INPUT where ";
+
 while(<>) {
   $srcip = '';
   $dstip = '';
@@ -149,10 +152,10 @@ while(<>) {
     } elsif ($op eq "seq") {
       #$snortrule .= "seq:\"$arg\"; ";
       #$seq = $arg;
-    } elsif ($op eq "msg" || $op eq "reference" || $op eq "classtype" || $op eq "rev" || $op eq "depth" || $op eq "nocase") {
+    } elsif ($op eq "msg" || $op eq "reference" || $op eq "classtype" || $op eq "rev" || $op eq "depth" || $op eq "nocase" || $op eq "flow" ) {
       
     } else {
-      print stderr "[$op:$arg] in %_\n";
+      print stderr "[$op:$arg] in $_\n";
     }
   }
 
@@ -166,12 +169,12 @@ while(<>) {
   if ($seen{$rule}) { next; }
   $seen{$rule} = $sid;
 
-  &notany("mask(srcip, 'ARG')", $srcip);
   &notany("mask(dstip, 'ARG')", $dstip);
+  &notany("mask(srcip, 'ARG')", $srcip);
   &notany("srcport = 'ARG'", $srcport);
   &notany("dstport = 'ARG'", $dstport);
-  #&notany("seq = ARG", $seq);
-  #&notany("ipid = ARG", $ipid);
+  &notany("seq = ARG", $seq);
+  &notany("ipid = ARG", $ipid);
   foreach $c (@contents) {
   	&notany("substr(payload, \"ARG\")", $c);
   }
@@ -187,7 +190,9 @@ while(<>) {
   }
 
   print "$q\n";
-
+  push(@SETORS, ("( " . join(' and ', @tests) . " )"));
   print SNORT "$snortrule msg:\"$sid\"; )\n";
 }
+
+print SET join(" or ", @SETORS);
 	  
