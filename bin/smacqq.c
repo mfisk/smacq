@@ -8,7 +8,7 @@
 #include <string.h>
 #include <smacq.h>
 
-#define MAX_QUERY_SIZE 4096
+#define MAX_QUERY_SIZE 4096*100
 
 struct thread_args {
   smacq_graph * f;
