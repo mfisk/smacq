@@ -1,0 +1,9 @@
+modules/intervals.c:
+	BUG: Doesn't do well when fields change in size and type.
+	Fix: Need to save field vectors rather than bytearray
+
+Scheduler:
+	"pcapfile \| head 100 \| intervals"  doesn't result in the produce or shutdown calls to intervals being called.
+	What is head returning, or what is the scheduler doing wrong?
+
+

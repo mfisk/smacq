@@ -1,0 +1,8 @@
+Building this package depends on the following Debian packages:
+	zlib1g libglib2.0 libpcap0 zlib1g-dev libpcap-dev libglib2.0-dev docbook-to-man groff python2.2-dev wget
+
+The libpcap build depends on:
+	bison flex
+
+The snort build depends on:
+

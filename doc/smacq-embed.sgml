@@ -1,0 +1,126 @@
+<!doctype refentry PUBLIC "-//OASIS//DTD DocBook V4.1//EN" [
+  <!ENTITY docbook "<productname>DocBook</productname>">
+  <!ENTITY sgml    "<abbrev>SGML</abbrev>">
+]>
+
+<refentry>
+  <refentryinfo>
+    <address>
+      <email>mfisk@lanl.gov</email>
+    </address>
+    <author>
+      <firstname>Mike</firstname>
+      <surname>Fisk</surname>
+    </author>
+    <date>$Date: 2002/10/30 23:23:14 $</date>
+  </refentryinfo>
+  <refmeta>
+    <refentrytitle>libsmacq-embed</refentrytitle>
+    <manvolnum>3</manvolnum>
+  </refmeta>
+  <refnamediv>
+    <refname>libsmacq-embed</refname>
+    <refpurpose>Embedding libsmacq in applications</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+    <funcsynopsis>
+      <funcsynopsisinfo>
+	#include &lt;smacq-internal.h&gt;
+      </funcsynopsisinfo>
+    </funcsynopsis>
+  </refsynopsisdiv>
+  
+  <refsect1>
+    <title>DESCRIPTION</title>
+
+    <para>
+      SMACQ (the System for Modular Analysis and Continuous Queries) is an
+      extensible component system for analyzing streams of structured
+      data.  This manpage describes the API used by applications that wish to use this system.
+    </para>
+
+    <funcsynopsis>
+      <funcprototype>
+	<funcdef>struct filter * <function>smacq_build_pipeline</function></funcdef>
+	<paramdef>       int argc</paramdef>
+	<paramdef>       char ** argv</paramdef>
+      </funcprototype>
+    </funcsynopsis>
+
+      <para>
+	Given an argument vector in the typical format, parse those
+	arguments and create and return a data-flow pipeline.  An
+	argument of "|" is used to delimit modules in the pipeline.
+      </para>
+
+    <funcsynopsis>
+      <funcprototype>
+	<funcdef>struct filter * <function>flow_start</function></funcdef>
+	<paramdef>       struct filter * graph</paramdef>
+	<paramdef>       enum flow_scheduler</paramdef>
+	<paramdef>       dts_environment * tenv</paramdef>
+	</funcprototype>
+    </funcsynopsis>
+    
+      <para>
+	Given the specified data-flow graph, instantiate the modules and
+	begin the scheduler.  Possible scheduler values are ITERATIVE,
+	RECURSIVE, and THREADED.   In the case of RECURSIVE or
+	THREADED, flow_start() will never return.  In the case of
+	ITERATIVE, the scheduler must be repeatedl;y called using the
+	following flow_sched_iterative() function.
+      </para>
+
+      <para>
+	If tenv is NULL, a new type environment will automatically be
+	created.  If dts_objects are to be passed between data-flow
+	graphs, the same type environment must be used by those graphs.
+      </para>
+
+    <funcsynopsis>
+      <funcprototype>
+	<funcdef>int <function>flow_sched_iterative</function></funcdef>
+	<paramdef>        struct filter * graph</paramdef>
+	<paramdef>        const 	dts_object * data_in</paramdef>
+	<paramdef>        dts_object ** data_out</paramdef>
+	<paramdef>        void ** state</paramdef>
+	<paramdef>        int produce_first</paramdef>
+	</funcprototype>
+      </funcsynopsis>
+      
+      <para>
+	Execute the iterative scheduler until one data object is
+	produced, or the system has terminated itself.   
+      </para>
+
+      <para>
+	If data is produced, a pointer to it will be stored in
+	data_out.  If the return value is 0, then flow_sched_iterative() 
+	should not be called again.
+      </para>
+
+      <para>
+	If the caller wishes to inject data into the graph, a non-null
+	data_in argument should be used.  
+      </para>
+
+      <para>
+	The Boolean produce_first argument specifies that the head node of the
+	graph can produce data when more is needed.
+      </para>
+
+      <para>
+	On the first call, the state argument should be a pointer to a
+	void * initialized to NULL.  
+      </para>
+
+  </refsect1>
+  <refsect1>
+    <title>SEE ALSO</title>
+
+    <para>smacqp(1), smacq-modules(3)</para>
+
+  </refsect1>
+  
+</refentry>
