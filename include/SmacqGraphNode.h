@@ -27,7 +27,6 @@ class SmacqGraphNode{
 
   // Ring buffer mgmt
   std::vector<DtsObject> q;
-  int ringsize;
   int ring_produce;
   int ring_consume;
 #ifndef SMACQ_OPT_NOPTHREADS
@@ -63,7 +62,6 @@ inline bool SmacqGraphNode::set(int argc, char ** argv) {
   this->name = *argv;
   this->argv = argv;
   this->argc = argc;
-  this->q.resize(this->ringsize);
   
 #ifndef SMACQ_OPT_NOPTHREADS
   smacq_pthread_mutex_init(&this->qlock, NULL);
