@@ -2,3 +2,4 @@ print cmd from tabularinput(-f, test/multistr.test, cmd, arg) where substr(cmd, 
 #!/bin/sh
 print cmd from tabularinput(-d, " ", -f, test/multistr.test, cmd, arg) where substr(cmd, "bin")
 bin/smacqq
+print cmd from tabularinput(-f, test/multistr.test, cmd, arg) where substr(cmd, "print")
