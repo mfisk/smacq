@@ -8,8 +8,10 @@
 #include <strucio.h>
 
 static struct smacq_options options[] = {
-  {"l", {boolean_t:0}, "Read list of input files from STDIN", SMACQ_OPT_TYPE_BOOLEAN},
-  {"z", {boolean_t:0}, "Use gzip compression", SMACQ_OPT_TYPE_BOOLEAN},
+  {"starttime", {double_t:0}, "Start time for input files", SMACQ_OPT_TYPE_DOUBLE},
+  {"endtime", {double_t:0}, "End time for input files", SMACQ_OPT_TYPE_DOUBLE},
+  {"l", {boolean_t:0}, "List of files to read is on STDIN", SMACQ_OPT_TYPE_BOOLEAN},
+  {"z", {boolean_t:1}, "Use gzip compression", SMACQ_OPT_TYPE_BOOLEAN},
   {"M", {boolean_t:0}, "Disable memory-mapped I/O", SMACQ_OPT_TYPE_BOOLEAN},
   {NULL, {string_t:NULL}, NULL, 0}
 };
@@ -37,7 +39,6 @@ static smacq_result cflow_produce(struct state * state, const dts_object ** datu
   }
 
   *datump = datum;
-
   return SMACQ_PASS|SMACQ_PRODUCE;
 }
 
@@ -59,9 +60,11 @@ static smacq_result cflow_init(struct smacq_init * context) {
   state->rdr = strucio_init();
   state->env = context->env;
   {
-    smacq_opt list, gzip, avoid_mmap;
+    smacq_opt list, gzip, avoid_mmap, start, end;
 
     struct smacq_optval optvals[] = {
+      { "starttime", &start}, 
+      { "endtime", &end}, 
       { "l", &list}, 
       { "z", &gzip}, 
       { "M", &avoid_mmap}, 
@@ -70,14 +73,18 @@ static smacq_result cflow_init(struct smacq_init * context) {
     smacq_getoptsbyname(context->argc-1, context->argv+1,
 				 &state->argc, &state->argv,
 				 options, optvals);
-    
+   
+    if (start.double_t) {
+      assert(!list.boolean_t);
+      assert(state->argc);
+      strucio_register_filelist_bounded(state->rdr, state->argv[0], start.double_t, end.double_t);
+    }
+ 
     if (list.boolean_t) {
       strucio_register_filelist_stdin(state->rdr);
     }
 
-    if (gzip.boolean_t) {
-      strucio_set_use_gzip(state->rdr, gzip.boolean_t);
-    }
+    strucio_set_use_gzip(state->rdr, gzip.boolean_t);
 
     if (avoid_mmap.boolean_t) {
       strucio_set_read_type(state->rdr, COPY);

@@ -3,6 +3,7 @@
 #define _LARGEFILE64_SOURCE
 #endif
 
+#define INDEXFILE ".strucio_index"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -45,6 +46,11 @@ struct strucio {
   /* For filelist_args */
   int argc;
   char ** argv;
+
+  /* For index lookup */
+  long long lower_bound, upper_bound;
+  char * indexroot;
+  FILE * index_fh;
 };
 
 struct strucio * strucio_init() {
@@ -80,7 +86,41 @@ void strucio_set_rotate(struct strucio * r, long long size) {
   r->maxfilesize = size;
 }
 
-static char * filelist_stdin(struct strucio * r, void * data) {
+void filelist_bounded_init(struct strucio * r) {
+  char * indexfile = alloca(strlen(r->indexroot) + strlen(INDEXFILE) + 2);
+  sprintf(indexfile, "%s/%s", r->indexroot, INDEXFILE);
+
+  r->index_fh = fopen(indexfile, "r");
+  if (!r->index_fh) {
+ 	fprintf(stderr, "No index file %s\n", indexfile);
+	exit(-1); 
+	/* Sould probably brute-force it instead */
+  }
+}
+
+static char * filelist_bounded(struct strucio * r, void * user) {
+  long long key, offset;
+  char file[4096];
+
+  if (!r->index_fh) {
+	filelist_bounded_init(r);
+  }
+
+  while (1) {
+	/* Find next matching line entry */
+	int res = fscanf(r->index_fh, "%lld %s %lld", &key, file, &offset);
+	if (res == -1) return NULL;
+
+	assert(res == 3);
+	/* fprintf(stderr, "Looking for %lld in file starting at %lld: %s\n", r->lower_bound, key, file); */
+	if (key >= r->lower_bound && key <= r->upper_bound) {
+		return strdup(file); /* memory leak */
+        } 
+  }
+  return NULL; /* Shouldn't get here */
+}
+
+static char * filelist_stdin(struct strucio * r, void * user) {
   int res;
   char * filename = NULL;
 
@@ -105,6 +145,13 @@ static char * filelist_args(struct strucio * rdr, void * data) {
     rdr->argc--; rdr->argv++;
     return filename;
   }
+}
+
+void strucio_register_filelist_bounded(struct strucio * r, char * root, long long lower, long long upper) {
+  r->indexroot = root;
+  r->lower_bound = lower;
+  r->upper_bound = upper;
+  strucio_register_filelist(r, filelist_bounded, NULL);
 }
 
 void strucio_register_filelist_stdin(struct strucio * r) {
@@ -142,8 +189,8 @@ static inline void * read_current_file(struct strucio * rdr, void * buf, int len
 	return buf;
       } else if (rdr->gzfh) {
 	retval = gzread(rdr->gzfh, buf, len);
-	//fprintf(stderr, "gzread returned %d\n", retval);
-	return( (retval==1) ? buf : NULL );
+	/* fprintf(stderr, "gzread returned %d\n", retval); */
+	return( (retval) ? buf : NULL );
       } else if (rdr->fh) {
 	retval = fread(buf, len, 1, rdr->fh);
 	//fprintf(stderr, "fread returned %d on length %u\n", retval, len);
@@ -178,6 +225,7 @@ static inline void * strucio_read_multi(struct strucio * rdr, void * buf, int le
 
   if (read_type == MMAP && !rdr->mmap) {
     /* Can't fulfil MMAP request */
+    fprintf(stderr, "strucio error: MMAP read requested of non-mmapped file\n");
     return NULL;
   }
     
@@ -250,6 +298,7 @@ static inline int open_filename(struct strucio * rdr, char * filename) {
   return(1); /* success */
 }
 
+/* Return 1 on success */
 int strucio_open(struct strucio * rdr) {
   char * filename;
 
@@ -264,13 +313,13 @@ int strucio_open(struct strucio * rdr) {
 
   if (!filename) return 0;
 
-  if (0 == open_filename(rdr, filename)) return 0;
+  if (!open_filename(rdr, filename)) return 0;
 
   if (rdr->newfile_fn) {
     return rdr->newfile_fn(rdr, rdr->newfile_data);
   }
-  
-  return 0;
+   
+  return 1;
 }
 
 

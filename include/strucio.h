@@ -16,6 +16,7 @@ typedef int strucio_newfile_fn(struct strucio *, void *);
 void strucio_register_filelist(struct strucio *, strucio_nextfilename_fn * fn, void *);
 void strucio_register_filelist_stdin(struct strucio *);
 void strucio_register_filelist_args(struct strucio * r, int argc, char ** argv);
+void strucio_register_filelist_bounded(struct strucio * r, char * index_location, long long lower, long long upper);
 void strucio_register_file(struct strucio *, char * filename);
 
 void strucio_set_rotate(struct strucio *, long long size);
