@@ -3,6 +3,7 @@
 sub notany($resultstr, $arg) {
   local($resultstr, $arg) = @_;
 
+  if ($arg eq '') { return; }
   if ($arg eq 'any') { return; }
   
   $resultstr =~ s|ARG|$arg|g;
@@ -33,6 +34,16 @@ if ($ARGV[0] eq "-p") {
 
 open(SNORT, ">/tmp/snortcq.conf") || die;
 while(<>) {
+  $srcip = '';
+  $dstip = '';
+  $srcport = '';
+  $dstport = '';
+  $proto = '';
+  $ipid = '';
+  $seq = '';
+  $sid = '';
+  @contents = ();
+
   chomp;
   s|\$EXTERNAL_NET|!\$HOME_NET|g;
   s|\$HOME_NET|128.165.0.0/16|g;
@@ -58,12 +69,6 @@ while(<>) {
   $srcip =~ s|\[([^,]+),.*\]|$1|;
   $dstip =~ s|\[([^,]+),.*\]|$1|;
 
-  &notany("mask(srcip, 'ARG')", $srcip);
-  &notany("mask(dstip, 'ARG')", $dstip);
-  &notany("srcport = 'ARG'", $srcport);
-  &notany("dstport = 'ARG'", $dstport);
-  
-  #print "Splitting $criteria\n";
   $criteria =~ s|^\(\s*||;
   $criteria =~ s|\s*\)\s*$||;
 
@@ -71,10 +76,7 @@ while(<>) {
   $criteria =~ s|([^\\]);|$1 ;|g;
   @crits = split(/[^\\];/, $criteria);
   
-  $content = '';
-  $sid = '0';
   $snortrule = "alert $proto $srcip $srcport -> $dstip $dstport (";
-  $nontrivial = 0;
 
   foreach $test (@crits) {
     $test =~ s|^\s+||;
@@ -97,20 +99,16 @@ while(<>) {
       #$snortrule .= "dsize:$arg; ";
     } elsif (($op eq "content") || ($op eq "uricontent")) { 
       if ($arg =~ /^!/) { next; }
-      $nontrivial = 1;
-
       $parsedcontent = $arg; 
       $parsedcontent =~ s/\|([^|]*)\|/&hex2octalstr($1)/eg;
-      &notany("substr(payload, \"ARG\")", $parsedcontent);
-
+      push(@contents, $parsedcontent);
       $snortrule .= "content:\"$arg\"; ";
     } elsif ($op eq "id") {
-      &notany("ipid = ARG", $arg);
-      $snortrule .= "id:\"$arg\"; ";
+      #$snortrule .= "id:\"$arg\"; ";
+      #$ipid = $arg;
     } elsif ($op eq "seq") {
-      $nontrivial = 1;
-      &notany("seq = ARG", $arg);
-      $snortrule .= "seq:\"$arg\"; ";
+      #$snortrule .= "seq:\"$arg\"; ";
+      #$seq = $arg;
     } elsif ($op eq "msg" || $op eq "reference" || $op eq "classtype" || $op eq "rev" || $op eq "depth" || $op eq "nocase") {
       
     } else {
@@ -118,8 +116,24 @@ while(<>) {
     }
   }
 
-  if (!$nontrivial) {
+  if (! (@contents || $ipid || $seq)) {
+  	#Skip trivial rules
   	next;
+  }
+
+  # Skip duplicate matches since Snort is first-match only
+  $rule = join('-', ($srcip, $dstip, $srcport, $dstport, $proto, $parsedcontent, $seq, $ipid));
+  if ($seen{$rule}) { next; }
+  $seen{$rule} = $sid;
+
+  &notany("mask(srcip, 'ARG')", $srcip);
+  &notany("mask(dstip, 'ARG')", $dstip);
+  &notany("srcport = 'ARG'", $srcport);
+  &notany("dstport = 'ARG'", $dstport);
+  #&notany("seq = ARG", $seq);
+  #&notany("ipid = ARG", $ipid);
+  foreach $c (@contents) {
+  	&notany("substr(payload, \"ARG\")", $c);
   }
 
   $q = "print sid, srcip, dstip, ts from (const('$sid', sid) from pcapfile(/hog/traces/aa.80)";
