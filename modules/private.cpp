@@ -6,12 +6,14 @@ SMACQ_MODULE(private,
   PROTO_CONSUME();
 );
 
-smacq_result noopModule::consume(DtsObject datum, int & outchan) {
-  enqueue(datum->private_copy());
+smacq_result privateModule::consume(DtsObject datum, int & outchan) {
+  DtsObject o = datum->private_copy();
+  //enqueue(datum->private_copy());
+  enqueue(o);
   
   return SMACQ_FREE;
 }
 
-noopModule::noopModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
+privateModule::privateModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
 }
 
