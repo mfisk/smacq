@@ -117,14 +117,16 @@ static smacq_result count_init(struct smacq_init * context) {
   	state->counttype = smacq_requiretype(state->env, "int");
   }
 
-  state->counters = bytes_hash_table_new(KEYBYTES, CHAIN, NOFREE);
+  if (state->fieldset.num) 
+  	state->counters = bytes_hash_table_new(KEYBYTES, CHAIN, NOFREE);
 
   return 0;
 }
 
 static smacq_result count_shutdown(struct state * state) {
   //fprintf(stderr, "count_shutdown!\n");
-  bytes_hash_table_destroy(state->counters);
+  if (state->fieldset.num) 
+  	bytes_hash_table_destroy(state->counters);
   free(state);
   // Print counters
   return 0;
