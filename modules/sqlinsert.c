@@ -70,7 +70,7 @@ static smacq_result sqlinsert_consume(struct state * state, const dts_object * d
   gdares = gda_connection_execute_non_query(state->gda_connection, state->gda_cmd, NULL);
   
   if (gdares == -1) {
-    fprintf(stderr, "Error executing SQL command: %s\n", gda_command_get_text(state->gda_cmd));
+    fprintf(stderr, "Error executing SQL command: %s\n\t", gda_command_get_text(state->gda_cmd));
     print_gda_errors(state->gda_connection);
     return SMACQ_ERROR|SMACQ_END;
   }  else {
@@ -80,6 +80,7 @@ static smacq_result sqlinsert_consume(struct state * state, const dts_object * d
 
 static smacq_result sqlinsert_init(struct smacq_init * context) {
   struct state * state;
+  char qbuf[BUFSIZE];
   smacq_opt table_name, database_name, provider_name;
   int i;
 
@@ -120,15 +121,30 @@ static smacq_result sqlinsert_init(struct smacq_init * context) {
 				   GDA_COMMAND_OPTION_STOP_ON_ERRORS);
 
   snprintf(state->insert_format, BUFSIZE, "INSERT INTO %s(", table_name.string_t);
-
+  /* Would use "IF NOT EXISTS", but sqlite doesn't take it */
+  snprintf(qbuf, BUFSIZE, "create table %s (", table_name.string_t);
+  
   for (i = 0; i < state->argc; i++) {
     state->fields[i] = smacq_requirefield(state->env, dts_fieldname_append(state->argv[i],"string")); 
-    if (i) strncat(state->insert_format, ",", BUFSIZE);
+
+    if (i) { /* Not first column */
+	strncat(state->insert_format, ",", BUFSIZE);
+    	strncat(qbuf, ",", BUFSIZE);
+    }
     strncat(state->insert_format, state->argv[i], BUFSIZE);
+    strncat(qbuf, state->argv[i], BUFSIZE);
+    strncat(qbuf, " varchar(255) ", BUFSIZE);
   }
 
   strncat(state->insert_format, ") VALUES (%s)", BUFSIZE);
+  strncat(qbuf, ");", BUFSIZE);
 
+  gda_command_set_text(state->gda_cmd, qbuf);
+  if (-1 == gda_connection_execute_non_query(state->gda_connection, state->gda_cmd, NULL)) {
+    	fprintf(stderr, "Error executing SQL command: %s\n\t", gda_command_get_text(state->gda_cmd));
+    	print_gda_errors(state->gda_connection);
+	/* return(SMACQ_ERROR|SMACQ_END); */
+  }
   return 0;
 }
 
