@@ -195,6 +195,7 @@ struct filter * smacq_add_new_child(struct filter * parent, int argc, char ** ar
 int smacq_add_child(struct filter * parent, struct filter * newo);
 struct filter * smacq_new_module(int argc, char ** argv);
 EXTERN void smacq_free_module(struct filter * f);
+EXTERN void smacq_destroy_graph(struct filter * f);
 struct filter * smacq_clone_child(struct filter * parent, int child);
 struct filter * smacq_clone_tree(struct filter * donorParent, struct filter * newParent, int child);
 
