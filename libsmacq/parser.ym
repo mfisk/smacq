@@ -79,11 +79,6 @@ query:
 			graph_join(&($$), $1);
 		}
 	   }
-	| action where 
-           {
-	   	$$ = $2;
-		graph_join(&($$), $1);
-	   }
 	| query '|' action where group
            {
 	   	$$ = $1;
@@ -98,7 +93,7 @@ query:
 	;
 
 fromwhere:
-	from where 
+	from0 where 
 	   { 
 		$$=$1; 
 		graph_join(&($$), $2); 
