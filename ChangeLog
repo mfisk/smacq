@@ -1,5 +1,7 @@
 VERSION 2.2 - unreleased
 ========================
+2005-02 - smacqq: -O remove; optimization always on now
+2005-02 - uniqobj module added: replaces uniq -o and solves memory "leak"
 2005-02 - private module added: private copy of fieldspace
 2005-01 - SmacqModule::usesfield() wraps DTS::requirefield() but facilitates join optimization
 2005-01 - join optimization: early evaluation of per-alias invariant predicates

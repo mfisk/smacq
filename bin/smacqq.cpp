@@ -17,7 +17,6 @@ struct thread_args {
 static struct smacq_options options[] = {
   {"t", {string_t:NULL}, "Describe the specified type", SMACQ_OPT_TYPE_STRING},
   {"m", {boolean_t:0}, "Multiple queries on STDIN", SMACQ_OPT_TYPE_BOOLEAN},
-  {"O", {boolean_t:0}, "Optimize multiple queries", SMACQ_OPT_TYPE_BOOLEAN},
   {"f", {string_t:"-"}, "File to read queries from", SMACQ_OPT_TYPE_STRING},
   {"g", {boolean_t:0}, "Show final graph", SMACQ_OPT_TYPE_BOOLEAN},
   {"q", {boolean_t:0}, "Ignore warnings", SMACQ_OPT_TYPE_BOOLEAN},
@@ -71,6 +70,8 @@ int main(int argc, char ** argv) {
    	exit(0);
   }
 
+  SmacqScheduler s;
+
   if (multiple.boolean_t) {
       char * queryline;
       int qno=1;
@@ -95,7 +96,7 @@ int main(int argc, char ** argv) {
 	      if (queryline[strlen(queryline)-1] == '\n')
 		      queryline[strlen(queryline)-1] = '\0';
 
-	      newgraph = SmacqGraph::newQuery(&dts, 1, &queryline);
+	      newgraph = SmacqGraph::newQuery(&dts, &s, 1, &queryline);
 	      if (!newgraph) {
 		      fprintf(stderr, "Fatal error at line %d\n", qno);
 		      exit(-1);
@@ -109,20 +110,17 @@ int main(int argc, char ** argv) {
       }
 
   } else {
-      graphs = SmacqGraph::newQuery(&dts, qargc, qargv);
-      assert(graphs);
+    graphs = SmacqGraph::newQuery(&dts, &s, qargc, qargv);
+    assert(graphs);
   }
 
-  if (optimize.boolean_t) {
-    graphs->optimize();
-  }
-
-  SmacqScheduler * s = new SmacqScheduler(&dts, graphs, true);
+  graphs->init(&dts, &s);
 
   if (showgraph.boolean_t) {
       graphs->print(stderr, 8);
   }
 
-  return (! s->busy_loop());
+  s.seed_produce(graphs);
+  return (! s.busy_loop());
 }
 

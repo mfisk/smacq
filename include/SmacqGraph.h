@@ -17,6 +17,7 @@ else in that chain.
 #include <DynamicArray.h>
 #include <set>
 #include <vector>
+#include <deque>
 #include <assert.h>
 
 
@@ -61,20 +62,24 @@ class SmacqGraph : public SmacqGraphNode {
   ~SmacqGraph();
 
   /// This method must be called before a graph is used.
-  void init(DTS * dts, SmacqScheduler *);
+  void init(DTS *, SmacqScheduler *);
 
   /// @name Parent/Child Relationships
   /// @{
 
   void replace(SmacqGraph *);
 
-  int numchildren() const;
   void add_child(SmacqGraph * child, unsigned int channel = 0);
   void remove_parent(SmacqGraph * parent);
-  void remove_childgraph(SmacqGraph*);
   void remove_child(int, int);
+  void remove_child(SmacqGraph *);
   void replace_child(int, int, SmacqGraph * newchild);
   void replace_child(SmacqGraph * oldchild, SmacqGraph * newchild);
+  static void move_children(SmacqGraph * from, SmacqGraph * to, bool addvector=false);
+
+  bool live_children();
+  bool live_parents();
+
   /// @}
 
   /// @name Combining Graphs
@@ -100,7 +105,7 @@ class SmacqGraph : public SmacqGraphNode {
   /// @{
 
   /// Parse a query and construct a new graph to execute it 
-  static SmacqGraph * newQuery(DTS * tenv, int argc, char ** argv);
+  static SmacqGraph * newQuery(DTS*, SmacqScheduler*, int argc, char ** argv);
 
   /// Construct a new graph using the given arguments.  The new graph
   /// is automatically attached as a child of the current graph.
@@ -123,8 +128,8 @@ class SmacqGraph : public SmacqGraphNode {
   /// Return a subgraph containing only invariants over the specified field.
   /// The subgraph will contain only stateless filters that are applied to
   /// all objects in the graph (e.g. not within an OR) and that do NOT use 
-  /// the specified field.
-  SmacqGraph * get_invariants_over_field(DtsField field);
+  /// the specified field.  The returned graph is newly allocated.
+  SmacqGraph * get_invariants_over_field(DTS*, SmacqScheduler*, DtsField&);
 
   /// @}
 
@@ -132,7 +137,7 @@ class SmacqGraph : public SmacqGraphNode {
 
  private:
   void downstream_filter_one(smacq_filter_callback_fn callback, void * data);
-  void init_node_one(DTS * dts, SmacqScheduler *);
+  void init_node_one(DTS *, SmacqScheduler *);
   int print_one(FILE * fh, int indent);
   void add_parent(SmacqGraph * parent);
   void foreach_tail(SmacqGraphCallback & cb);
@@ -145,18 +150,16 @@ class SmacqGraph : public SmacqGraphNode {
   }
   
   SmacqGraph * find_branch();
-  struct list * list_tails(struct list * list, SmacqGraph * parent, int, int);
+  void list_tails(std::deque<SmacqGraph*> &);
   static bool compare_element_names(SmacqGraph * a, SmacqGraph * b);
-  static bool compare_elements(SmacqGraph * a, SmacqGraph * b);
-  static bool merge_tail_ends(SmacqGraph * a, SmacqGraph * b);
-  static void merge_tails(struct list * alist, struct list * blist);
+  static bool equiv(SmacqGraph * a, SmacqGraph * b);
+  static bool same_children(SmacqGraph * a, SmacqGraph * b);
+  bool merge_redundant_parents();
   void merge_redundant_children();
-  void merge_all_tails();
+  void merge_tails();
+  void merge_heads();
+  static bool merge_nodes(SmacqGraph * a, SmacqGraph * b);
   void add_args(SmacqGraph * b);
-  static bool merge_demuxs(SmacqGraph * a, SmacqGraph * b);
-  static bool merge_vectors(SmacqGraph * a, SmacqGraph * b);
-  static bool merge_fanouts(SmacqGraph * a, SmacqGraph * b);
-  static bool merge_trees(SmacqGraph * a, SmacqGraph * b);
 
   /// Iff a module node:
   SmacqGraph * next_graph;
@@ -168,16 +171,7 @@ class SmacqGraph : public SmacqGraphNode {
 
 class fanout : public DynamicArray<SmacqGraph *> {};
 
-/// Return current number of children a graph has
-inline int SmacqGraph::numchildren() const {
-  int total = 0;
-  for (unsigned int i = 0; i < children.size(); i++) {
-    total += children[i].size();
-  }
-  return total;
-}
-
-/// Establish a parent/child relationship with the specified child.
+/// Establish a parent/child relationship on the specified channel
 inline void SmacqGraph::add_child(SmacqGraph * newo, unsigned int channel) {
   if (channel >= children.size()) {
     children.resize(channel+1);
@@ -255,6 +249,8 @@ inline void SmacqGraph::init(DTS * dts, SmacqScheduler * sched) {
   for (SmacqGraph * g = this; g; g=g->next_graph) {
     g->init_node_one(dts, sched);
   }
+
+  optimize();
 }
 
 inline void SmacqGraph::init_node_one(DTS * dts, SmacqScheduler * sched) {
@@ -268,7 +264,7 @@ inline void SmacqGraph::init_node_one(DTS * dts, SmacqScheduler * sched) {
 
   this->SmacqGraphNode::init(context);
 
-  FOREACH_CHILD(this, child->init(dts,sched));
+  FOREACH_CHILD(this, child->init(dts, sched));
 }
   
 
@@ -329,6 +325,7 @@ inline void SmacqGraph::replace_child(SmacqGraph * oldchild,
   FOREACH_CHILD(this, {
       if (child == oldchild) {
 	replace_child(i, j, newchild);
+	return;
       }
     });
 }
@@ -342,18 +339,23 @@ inline void SmacqGraph::replace_child(int i, int j, SmacqGraph * newchild) {
   children[i][j] = newchild;
 }
 
-inline void SmacqGraph::remove_childgraph(SmacqGraph * g) {
-  FOREACH_CHILD(g, {if (child == g) { remove_child(i,j); --j; } });
-}
-
 inline void SmacqGraph::remove_child(int i, int j) {
   //assert(!algebra.demux && !algebra.vector); //okay when called from shutdown
-  int size = children[i].size() - 1;
+  int max = children[i].size() - 1;
 
   children[i][j]->remove_parent(this);
-  children[i][j] = children[i][size];
-  children[i].resize(size);
+  children[i][j] = children[i][max];
+  children[i].resize(max);
 }
+
+inline void SmacqGraph::remove_child(SmacqGraph * oldchild) {
+  FOREACH_CHILD(this, {
+      if (child == oldchild) {
+	remove_child(i,j);
+	return;
+      }
+    });
+ }
 
 inline double SmacqGraph::count_nodes() {
   double count = 1;
@@ -472,7 +474,7 @@ inline void SmacqGraph::replace(SmacqGraph * g) {
   numparents = 0;
 }
 
-inline SmacqGraph * SmacqGraph::get_invariants_over_field(DtsField field) {
+inline SmacqGraph * SmacqGraph::get_invariants_over_field(DTS * dts, SmacqScheduler * sched, DtsField & field) {
   SmacqGraph * more;
   if (!algebra.stateless) {
     fprintf(stderr, "%s is not stateless, so stopping invariant search\n", argv[0]);
@@ -480,13 +482,16 @@ inline SmacqGraph * SmacqGraph::get_invariants_over_field(DtsField field) {
   }
 
   if (children.size() == 1 && children[0].size() == 1) {
-    more = children[0][0]->get_invariants_over_field(field);
+    more = children[0][0]->get_invariants_over_field(dts, sched, field);
   } else {
     more = NULL;
   }
 
+  if (!instance) 
+    init(dts, sched);
+
   if (!instance->usesOtherFields(field)) {
-    SmacqGraph * result = new_child(argc, argv);
+    SmacqGraph * result = new SmacqGraph(argc, argv);
     if (more) result->add_child(more);
     return result;
   } else {
@@ -494,6 +499,23 @@ inline SmacqGraph * SmacqGraph::get_invariants_over_field(DtsField field) {
     return more;
   }
 }
+
+inline bool SmacqGraph::live_children() {
+  FOREACH_CHILD(this, {
+      if (child && !child->shutdown)
+	return true;
+    });
+
+  return false;
+}
+
+inline bool SmacqGraph::live_parents() {
+  for (int i = 0; i < numparents; i++) {
+    if (!parent[i]->shutdown) return true;
+  }
+  return false;
+}
+
 
 #endif
 
