@@ -35,6 +35,8 @@ static smacq_result print_consume(struct state * state, const dts_object * datum
   assert(state->argv[0]);
 
   for (i = 0; i < state->argc; i++) {
+    if (i>0)
+      printf(state->delimiter);
     if (flow_getfield(state->env, datum, state->fields[i], &field_data)) {
       int r = flow_presentdata(state->env, &field_data, state->string_transform, (void*)&str, &slen);
       if (r == -1) {
@@ -54,7 +56,6 @@ static smacq_result print_consume(struct state * state, const dts_object * datum
     } else if (state->verbose) {
       fprintf(stderr, "Warning: print: no field %s\n", state->argv[i]);
     }
-    printf(state->delimiter);
   }
   if (printed) printf("\n");
   if (state->flush) fflush(stdout); 
