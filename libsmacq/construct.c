@@ -58,6 +58,9 @@ int smacq_graph_print(FILE * fh, smacq_graph * f, int indent) {
   fprintf(fh, "\n");
 
   for (i=0; i<f->numchildren; i++) {
+#ifdef SMACQ_DEBUG_GRAPHEDGES
+    fprintf(fh, "%*s  n%x -> n%x ;\n", indent, "", f, f->child[i]);
+#endif
     fprintf(fh, "%*s+ Child %d is ", indent, "", i);
     count += smacq_graph_print(fh, f->child[i], indent+2);
   }
