@@ -114,6 +114,18 @@ static dts_field_element type_requirefield_single(dts_environment * tenv, char *
   }
 }
 
+int dts_comparefields(dts_field a, dts_field b) {
+	while (1) {
+		if (!a && !b) return 1;
+		if (!a || !b) return 0;
+		if (dts_field_first(a) != dts_field_first(b)) return 0;
+		//if (!dts_field_first(a) && !dts_field_first(b)) return 1;
+		//if (!dts_field_first(a) || !dts_field_first(b)) return 0;
+		a = dts_field_next(a);
+		b = dts_field_next(a);
+	}
+}
+
 dts_field type_requirefield(dts_environment * tenv, char * name) {
   char * p;
   int i = 0;

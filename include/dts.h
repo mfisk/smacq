@@ -122,6 +122,7 @@ dts_object * dts_construct(dts_environment * tenv, int type, void * data);
 static void dts_decref(const dts_object * d_const);
 
 #define dts_field_first(x) (x[0])
+int dts_comparefields(dts_field a, dts_field b);
 
 const dts_object* dts_alloc(dts_environment * tenv, int size, int type);
 
