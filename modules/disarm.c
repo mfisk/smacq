@@ -11,12 +11,21 @@
 
 #define MAX_LINE 1000000
 
+struct get_line {
+	FILE * fh;
+	int buffer_size;
+	int buffer_used;
+	int leading;
+	char * read_buffer;
+};
+
 struct state {
   smacq_environment * env;
   int datasock;
   FILE * datafh;
   unsigned long lineno;
   int sv4_type;
+  struct get_line linebuf;
 };
 
 static struct smacq_options options[] = {
@@ -52,24 +61,58 @@ static unsigned char hex2val[256] = {
     XX,XX,XX,XX, XX,XX,XX,XX, XX,XX,XX,XX, XX,XX,XX,XX, /* 240 - 255 */
 };
 
+#define GETLINEBUFSIZE 4096
+
+void init_get_line(struct get_line * s, FILE * fh) {
+	s->fh = fh;
+	s->buffer_size = GETLINEBUFSIZE;
+	s->read_buffer = malloc(s->buffer_size);
+	s->leading = 0;
+	s->buffer_used = 0;
+}
 
 /* Fills buffer upto a newline or EOF.  There is no NULL terminator. */
 /* Return value is string length */
-int get_line(char * buf, int buflen, FILE * fh) {
+int get_line(char * buf, int buflen, struct get_line * s) {
 	/* 
-	 * Having to use fgetc really sucks. What we need is an fgets
-   	 * that stops at newlines or NULLs.  NULLs in a line screws up fgets. 
+	 * What we need is an fgets that stops at newlines or NULLs 
+	 * since NULLs in a line screws up fgets. 
+	 * Having to use fgetc is really slow, so we to do our own buffering.
          */
-	char * p = buf;
-	int c;
-	while (buflen > 0) {
-		c = fgetc(fh);
-		if (c == EOF || c == '\n') break;
-		*p = c;
-		buflen--;
-		p++;
+	int already_checked = s->leading;
+	while (1) {
+	    char * offset = memchr(s->read_buffer + already_checked, '\n', s->buffer_used - already_checked);
+	    if (offset) {
+		int len = offset - (s->read_buffer + s->leading) + 1;
+		assert(buflen > len);
+		memcpy(buf, s->read_buffer + s->leading, len);
+		s->leading += len;
+		return len;
+	    } else {
+		int got;
+		if (s->leading) {
+			s->buffer_used -= s->leading;
+			memmove(s->read_buffer, s->read_buffer + s->leading, s->buffer_used);
+			s->leading = 0;
+		}
+		if (s->buffer_used == s->buffer_size) {
+			/* Not a whole line, but buffer is full */
+			memcpy(buf, s->read_buffer, s->buffer_used);
+			return s->buffer_size; 
+		}
+		got = fread(s->read_buffer + s->buffer_used, 1, s->buffer_size - s->buffer_used, s->fh);
+		if (got > 0) {
+			already_checked = s->buffer_used;
+			s->buffer_used += got;
+			/* Iterate and check for null */
+		} else {
+			/* EOF or something terminal */
+			memcpy(buf, s->read_buffer, s->buffer_used);
+			s->buffer_used = 0;
+			return s->buffer_used;
+		}
+	    }
 	}
-	return p - buf;
 }
 
 static smacq_result disarm_produce(struct state * state, const dts_object ** datump, int * outchan) {
@@ -79,7 +122,7 @@ static smacq_result disarm_produce(struct state * state, const dts_object ** dat
 	int len;
 	const dts_object * datum;
 
-	len = get_line(hex, MAX_LINE, state->datafh);
+	len = get_line(hex, MAX_LINE, &state->linebuf);
 	assert(len < MAX_LINE);
 	if (len == 0) {
 		return SMACQ_END;
@@ -300,6 +343,8 @@ static smacq_result disarm_init(struct smacq_init * context) {
     	} 
 	state->datafh = fdopen(state->datasock, "r");
   }
+
+  init_get_line(&state->linebuf, state->datafh);
 
   return 0;
 }
