@@ -38,7 +38,7 @@ enum argtype { WORD, FUNCTION };
 EXTERN char * expression2fieldname(struct dts_operand * expr);
   EXTERN struct graph newmodule(char * module, struct arglist * alist);
   EXTERN void graph_join(struct graph * graph, struct graph newg);
-  EXTERN struct graph newgroup(struct group, struct vphrase);
+  EXTERN struct graph newgroup(struct group, struct graph vphrase);
   EXTERN void arglist2argv(struct arglist * al, int * argc, char *** argv);
   EXTERN char * arglist2str(struct arglist * al);
   EXTERN struct arglist * newarg(char * arg, enum argtype argtype, struct arglist * func_args);
