@@ -39,6 +39,7 @@ char * arglist2str(struct arglist * alist) {
 		len += strlen(al->arg) + 1;
 
 	argstr = malloc(len);
+	argstr[0] = '\0';
 
 	for(al=alist; al; al=al->next) {
 		strcatn(argstr, len, al->arg);
@@ -287,7 +288,7 @@ char * print_comparison(dts_comparison * comp) {
   	case NOT:
 	  assert(comp->group);
 	  b = print_comparison(comp->group);
-	  size = strlen(b) + strlen("NOT ") + 1;
+	  size = strlen(b) + 10;
 	  buf = realloc(buf, size);
 	  strcpy(buf, "NOT ");
 	  strcatn(buf, size, b);
@@ -295,11 +296,14 @@ char * print_comparison(dts_comparison * comp) {
 	  break;
 	  
   	case AND:
-  	case OR:
+                   case OR:
+                       buf = malloc(100);
+	    buf[0] = '\0';
+
     		for (c = comp->group; c; c=c->next) {
       			assert(c);
       			b = print_comparison(c);
-      			size += strlen(b) + 5;
+      			size += strlen(b) + 6;
       			buf = realloc(buf, size);
       			strcatn(buf, size, b);
       			free(b);
@@ -326,6 +330,7 @@ char * print_comparison(dts_comparison * comp) {
 		break;
 
   }
+
 
   //fprintf(stderr, "parse_comparison output: %s\n", buf);
   return(buf);
