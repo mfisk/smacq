@@ -1,46 +1,62 @@
-/*
- *      Unless marked otherwise, all software in this package was
- *      written by Mike Fisk <mfisk@lanl.gov> and falls under the
- *      following license:
- *
- *      This software and ancillary information (herein called
- *      "SOFTWARE") called "SMACQ" is made available under the terms
- *      described here.  The SOFTWARE has been approved for release
- *      with associated LA-CC number 02-058.
- *
- *      Unless otherwise indicated, this SOFTWARE has been authored by
- *      an employee or employees of the University of California,
- *      operator of the Los Alamos National Laboratory under Contract
- *      No. W-7405-ENG-36 with the U.S.  Department of Energy. The
- *      U.S. Government has rights to use, reproduce, and distribute
- *      this SOFTWARE. The public may copy, distribute, prepare
- *      derivative works and publicly display this SOFTWARE without
- *      charge, provided that this Notice and any statement of
- *      authorship are reproduced on all copies. Neither the
- *      Government nor the University makes any warranty, express or
- *      implied, or assumes any liability or responsibility for the
- *      use of this SOFTWARE. If SOFTWARE is modified to produce
- *      derivative works, such modified SOFTWARE should be clearly
- *      marked, so as not to confuse it with the version available
- *      from LANL.
- *
- *     Some of this code has been taken from tcpdump, which was
- *     developed by the Network Research Group at Lawrence Berkeley
- *     National Lab, and is copyrighted by the University of
- *     California Regents.
- *
- *     All source-code contained here-in is relesased under the GNU
- *     Lesser General Public License version 2.1, unless stated
- *     otherwise elsewhere in this distribution.
- *
- *     If you have not received a copy of the GNU Lesser General
- *     Public License, write to * the Free Software Foundation, Inc.,
- *     59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
- *
- *     The Python and Snort reassembly based modules are not linked in
- *     by default, but the smacq_python.so and smacq_reassemble.so
- *     binary modules are subject to the license restrictions of the
- *     respective applications.
- *   
- */
+AUTHORS
+=======
+Unless otherwise indicated, all files in this package were authored
+Mike Fisk <mfisk@lanl.gov>.
 
+LICENSE
+=======
+This software and ancillary information (herein called "SOFTWARE")
+called "SMACQ" is made available under the terms described here.  The
+SOFTWARE has been approved for release with associated LA-CC number
+02-058.
+  
+Unless otherwise indicated, this SOFTWARE has been authored by an
+employee or employees of the University of California, operator of the
+Los Alamos National Laboratory under Contract No. W-7405-ENG-36 with
+the U.S.  Department of Energy. The U.S. Government has rights to use,
+reproduce, and distribute this SOFTWARE. The public may copy,
+distribute, prepare derivative works and publicly display this
+SOFTWARE without charge, provided that this Notice and any statement
+of authorship are reproduced on all copies. Neither the Government nor
+the University makes any warranty, express or implied, or assumes any
+liability or responsibility for the use of this SOFTWARE. If SOFTWARE
+is modified to produce derivative works, such modified SOFTWARE should
+be clearly marked, so as not to confuse it with the version available
+from LANL.
+
+All source-code contained here-in is relesased under the GNU Lesser
+General Public License version 2.1, unless stated otherwise elsewhere
+in this distribution.
+  
+If you have not received a copy of the GNU Lesser General Public
+License, write to the Free Software Foundation, Inc., 59 Temple Place,
+Suite 330, Boston, MA 02111-1307 USA.
+
+NON-LANL WORKS
+==============
+The following software is included in this package and the authors
+greatfully acknowledged:
+
+TCPDUMP
+-------
+pcap handling routines were derived from tcpdump, which was developed by
+the Network Research Group at Lawrence Berkeley National Lab, and is
+copyrighted by the University of California Regents.
+  	
+GNULIB
+------
+The code in the libgnu directory is imported from the gnulib project.
+The copyright for this code is held by the Free Software Foundation
+and the code is released under the GPL and/or LGPL license, as
+specified in each file.
+
+PATRICIA
+--------
+The PATRICIA implementation in the patricia subdirectory is extracted
+from Dave Plonka's Net::Patricia package (released under the GPL) for
+perl which in turn extracted it from MRT's patricia code from
+radix.[ch], which was worked on by Masaki Hirabaru and Craig Labovitz.
+For more info on MRT see: http://www.mrtd.net/
+   
+The MRT patricia code owes some heritage to GateD's radix code, which
+in turn owes something to the BSD kernel.
