@@ -255,7 +255,7 @@ be used with records that do not have this field.
 .PP 
 Filter out all objects in the stream that do not satisfy all 
 of the specified criteria.  This is the select (sigma) 
-operation from relational algebra. 
+operation from relational algebra ("where" in SQL). 
  
 .SS "Project" 
 .PP 
@@ -263,7 +263,7 @@ operation from relational algebra.
 .PP 
 Replace all objects in the input stream with new objects 
 containing only the specified fields.  This is the project (Pi) 
-operation from relational algebra. 
+operation from relational algebra ("select <fields>" in SQL). 
  
 .SS "Rename" 
 .PP 
@@ -271,7 +271,7 @@ operation from relational algebra.
 .PP 
 Given a list of alternating old and new field names, make a copy of the old field with the new name. 
 Combined with the Project module, this can implement the rename (rho) 
-operation from relational algebra. 
+operation from relational algebra ("as" in SQL). 
  
 .SS "Delta" 
 .PP 
@@ -395,4 +395,4 @@ records that pass this filter.
 .PP 
 \fBdts-types\fP(3), \fBsmacq-modules\fP(3), 
 \fBsmacq-embed\fP(3) 
-...\" created by instant / docbook-to-man, Mon 16 Dec 2002, 21:52 
+...\" created by instant / docbook-to-man, Mon 16 Dec 2002, 21:55 
