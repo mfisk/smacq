@@ -130,6 +130,8 @@ struct smacq_init {
 enum _dts_comp_op { EQUALITY, INEQUALITY, EXIST, LT, GT, LIKE, AND, OR, FUNC };
 typedef enum _dts_comp_op dts_compare_operation;
 
+struct arglist;
+
 typedef struct _dts_comparison {
   dts_compare_operation op;
   dts_field field;
@@ -137,8 +139,8 @@ typedef struct _dts_comparison {
 
   char * fieldname;
   char * valstr;
+  struct arglist * arglist;
   int size;
-  dts_field rh_field;  /* Set iff valstr==NULL */
   struct _dts_comparison * next;
 
   struct _dts_comparison * group;
