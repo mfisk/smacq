@@ -77,14 +77,14 @@
 
 
 /* Copy the first part of user declarations.  */
-#line 9 "grammer.y"
+#line 24 "grammer.y"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <smacq-internal.h>
 #include "smacq-parser.h"
-#undef DEBUG
+#define DEBUG
   
   extern int yylex();
   extern void yy_scan_string(const char *);
@@ -126,7 +126,7 @@
 #endif
 
 #ifndef YYSTYPE
-#line 62 "grammer.y"
+#line 77 "grammer.y"
 typedef union {
   struct graph graph;
   struct arglist * arglist;
@@ -333,10 +333,10 @@ static const yysigned_char yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const unsigned char yyrline[] =
 {
-       0,    71,    71,    80,    82,    95,    96,    99,   100,   104,
-     105,   108,   109,   112,   113,   116,   119,   120,   123,   125,
-     127,   128,   131,   132,   135,   138,   139,   142,   145,   146,
-     151,   152,   155,   156,   161
+       0,    86,    86,    95,    97,   110,   111,   114,   115,   119,
+     120,   123,   124,   127,   128,   131,   134,   135,   138,   140,
+     142,   143,   146,   147,   150,   153,   154,   157,   160,   161,
+     164,   165,   168,   169,   172
 };
 #endif
 
@@ -1007,7 +1007,7 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 72 "grammer.y"
+#line 87 "grammer.y"
     { 
 #ifdef DEBUG
 	   	print_graph(yyvsp[-1].graph.head); 
@@ -1017,7 +1017,7 @@ yyreduce:
     break;
 
   case 4:
-#line 83 "grammer.y"
+#line 98 "grammer.y"
     {
 	   	yyval.graph.head = (yyval.graph.tail = NULL);
 	   	graph_join(&(yyval.graph), yyvsp[-2].graph);
@@ -1031,112 +1031,112 @@ yyreduce:
     break;
 
   case 5:
-#line 95 "grammer.y"
+#line 110 "grammer.y"
     { yyval.graph.head = NULL; yyval.graph.tail = NULL; }
     break;
 
   case 6:
-#line 96 "grammer.y"
+#line 111 "grammer.y"
     { yyval.graph = yyvsp[0].graph; }
     break;
 
   case 8:
-#line 100 "grammer.y"
+#line 115 "grammer.y"
     { yyval.graph = yyvsp[-1].graph; }
     break;
 
   case 9:
-#line 104 "grammer.y"
+#line 119 "grammer.y"
     { yyval.graph = nullgraph; }
     break;
 
   case 10:
-#line 105 "grammer.y"
+#line 120 "grammer.y"
     { yyval.graph = newmodule("filter", yyvsp[0].arglist); }
     break;
 
   case 11:
-#line 108 "grammer.y"
+#line 123 "grammer.y"
     { yyval.group.args = NULL; yyval.group.having = NULL;}
     break;
 
   case 12:
-#line 109 "grammer.y"
+#line 124 "grammer.y"
     { yyval.group.args = yyvsp[-1].arglist; yyval.group.having = yyvsp[0].arglist; }
     break;
 
   case 13:
-#line 112 "grammer.y"
+#line 127 "grammer.y"
     { yyval.arglist = NULL; }
     break;
 
   case 14:
-#line 113 "grammer.y"
+#line 128 "grammer.y"
     { yyval.arglist = yyvsp[0].arglist; }
     break;
 
   case 18:
-#line 123 "grammer.y"
+#line 138 "grammer.y"
     { yyval.string = yystring; }
     break;
 
   case 19:
-#line 125 "grammer.y"
+#line 140 "grammer.y"
     { yyval.string = yystring; }
     break;
 
   case 21:
-#line 128 "grammer.y"
+#line 143 "grammer.y"
     { yyval.arglist->rename = yyvsp[0].string; }
     break;
 
   case 22:
-#line 131 "grammer.y"
+#line 146 "grammer.y"
     { yyval.arglist = newarg(yyvsp[0].string, 0, NULL); }
     break;
 
   case 23:
-#line 132 "grammer.y"
+#line 147 "grammer.y"
     { yyval.arglist = newarg(yyvsp[-3].string, 1, yyvsp[-1].arglist); }
     break;
 
   case 25:
-#line 138 "grammer.y"
+#line 153 "grammer.y"
     { yyval.graph = newmodule(yyvsp[0].string, NULL); }
     break;
 
   case 26:
-#line 139 "grammer.y"
+#line 154 "grammer.y"
     { yyval.graph = newmodule(yyvsp[-3].string, yyvsp[-1].arglist); }
     break;
 
   case 27:
-#line 142 "grammer.y"
+#line 157 "grammer.y"
     { yyval.vphrase = newvphrase(yyvsp[-1].string, yyvsp[0].arglist); }
     break;
 
   case 28:
-#line 145 "grammer.y"
+#line 160 "grammer.y"
     { yyval.arglist = yyvsp[-1].arglist; }
     break;
 
   case 30:
-#line 151 "grammer.y"
+#line 164 "grammer.y"
     { yyval.arglist = NULL; }
     break;
 
   case 31:
-#line 152 "grammer.y"
+#line 165 "grammer.y"
     { yyval.arglist = yyvsp[-1].arglist; yyval.arglist->next = yyvsp[0].arglist; }
     break;
 
   case 32:
-#line 155 "grammer.y"
+#line 168 "grammer.y"
     { yyval.arglist = NULL; }
     break;
 
   case 33:
-#line 156 "grammer.y"
+#line 169 "grammer.y"
     { yyval.arglist = yyvsp[-1].arglist; yyval.arglist->next = yyvsp[0].arglist; }
     break;
 
@@ -1363,7 +1363,7 @@ yyreturn:
 }
 
 
-#line 164 "grammer.y"
+#line 175 "grammer.y"
 
 
 int smacq_execute_query(int argc, char ** argv) {
@@ -1436,7 +1436,8 @@ static void graph_join(struct graph * graph, struct graph newg) {
 		return;
 	}
 
-	fprintf(stderr, "Adding %s after %s\n", newg.head->name, graph->tail->name);
+	/* fprintf(stderr, "Adding %s after %s\n", newg.head->name, graph->tail->name); */
+
 	/* Splice them together */
 	assert(graph->tail);
 
@@ -1452,15 +1453,6 @@ static void graph_append(struct graph * graph, struct filter * newmod) {
 		graph->head = newmod;
 }
 
-/*
-static struct arglist * arglist_alloc(struct arglist * addition) {
-	struct arglist * newa = malloc(sizeof(struct arglist));
-	newa->arg = addition;
-	newa->NULL;
-	return newa;
-}
-*/
-	
 static struct arglist * arglist_append(struct arglist * tail, struct arglist * addition) {
 	for (; tail->next; tail=tail->next) ;
 	tail->next = addition;
@@ -1475,8 +1467,9 @@ static struct graph newgroup(struct group group, struct vphrase vphrase) {
 	 * calling syntax for "groupby" and constructing arguments for it.
 	 */
 	struct arglist * atail;
-	struct graph g;
+	struct graph g = { NULL, NULL};
 	struct arglist * ap;
+	int argcont = 0;
 
 	if (!group.args) { 
 		/* Do nothing if this was "group by" NULL */
@@ -1487,14 +1480,17 @@ static struct graph newgroup(struct group group, struct vphrase vphrase) {
 
 	/* Insert function operations */
         for(ap=vphrase.args; ap; ap=ap->next) {
-	   fprintf(stderr, "group arg %s isfunc = %d\n", ap->arg, ap->isfunc);
+	   /* fprintf(stderr, "group arg %s isfunc = %d\n", ap->arg, ap->isfunc); */
      	   if (ap->isfunc) {
+	        if (argcont) 
+			atail = arglist_append(atail, newarg("|", 0, NULL));
 	        atail = arglist_append(atail, newarg(ap->arg, 0, NULL));
 	        atail = arglist_append(atail, ap->func_args);
-	        atail = arglist_append(atail, newarg("|", 0, NULL));
 		ap->isfunc = 0;
+		argcont = 1;
  	   }
 	}
+#if 0
 	atail = arglist_append(atail, newarg(vphrase.verb, 0, NULL));
 	atail = arglist_append(atail, vphrase.args);
 
@@ -1502,6 +1498,15 @@ static struct graph newgroup(struct group group, struct vphrase vphrase) {
 
 	if (group.having) 
 		graph_join(&g, newmodule("filter", group.having));
+#else
+	if (argcont) 
+		g = newmodule("groupby", group.args);
+
+	if (group.having) 
+		graph_join(&g, newmodule("filter", group.having));
+
+	graph_join(&g, newmodule(vphrase.verb, vphrase.args));
+#endif
 
 	return g;
 }

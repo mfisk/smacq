@@ -4,6 +4,21 @@
  *    - Use of renamed arguments later in the argument list is not supported:
  *		select counter() as count, count ....
  *      This is because renames are done as a batch just before the VERB
+ *
+ *    - Cannot call the same function twice with different "as" names
+ *      This is because renames are done as a batch just before the VERB
+ *
+ *    - Cannot use nested functions as arguments
+ *      FIX: we-write arguments recursively or something
+ *
+ */
+
+/*
+ * Examples:
+ *
+ *	print srcip from (uniq srcip, dstip from pcapfile("/hog/traces/aa.80")) group by srcip having "counter>10"
+ *	print srcip, counter(), sum(len) from (uniq srcip, dstip from pcapfile("/hog/traces/aa.80")) group by srcip having "counter>10"
+ *
  */
  
 %{
@@ -146,8 +161,6 @@ args : 	'(' arglist ')' 	{ $$ = $2; }
 	| arglist 
 	;
 
-/* argset : null | arg argset ; */
-
 arglist : null 			{ $$ = NULL; }
 	| arg moreargs 		{ $$ = $1; $$->next = $2; }
 	;
@@ -155,8 +168,6 @@ arglist : null 			{ $$ = NULL; }
 moreargs : null			{ $$ = NULL; }
 	| ',' arg moreargs 	{ $$ = $2; $$->next = $3; }
 	;
-
-/* arg : STRING ; */
 
 verb :  id
 	;
@@ -233,7 +244,8 @@ static void graph_join(struct graph * graph, struct graph newg) {
 		return;
 	}
 
-	fprintf(stderr, "Adding %s after %s\n", newg.head->name, graph->tail->name);
+	/* fprintf(stderr, "Adding %s after %s\n", newg.head->name, graph->tail->name); */
+
 	/* Splice them together */
 	assert(graph->tail);
 
@@ -249,15 +261,6 @@ static void graph_append(struct graph * graph, struct filter * newmod) {
 		graph->head = newmod;
 }
 
-/*
-static struct arglist * arglist_alloc(struct arglist * addition) {
-	struct arglist * newa = malloc(sizeof(struct arglist));
-	newa->arg = addition;
-	newa->NULL;
-	return newa;
-}
-*/
-	
 static struct arglist * arglist_append(struct arglist * tail, struct arglist * addition) {
 	for (; tail->next; tail=tail->next) ;
 	tail->next = addition;
@@ -272,8 +275,9 @@ static struct graph newgroup(struct group group, struct vphrase vphrase) {
 	 * calling syntax for "groupby" and constructing arguments for it.
 	 */
 	struct arglist * atail;
-	struct graph g;
+	struct graph g = { NULL, NULL};
 	struct arglist * ap;
+	int argcont = 0;
 
 	if (!group.args) { 
 		/* Do nothing if this was "group by" NULL */
@@ -284,14 +288,17 @@ static struct graph newgroup(struct group group, struct vphrase vphrase) {
 
 	/* Insert function operations */
         for(ap=vphrase.args; ap; ap=ap->next) {
-	   fprintf(stderr, "group arg %s isfunc = %d\n", ap->arg, ap->isfunc);
+	   /* fprintf(stderr, "group arg %s isfunc = %d\n", ap->arg, ap->isfunc); */
      	   if (ap->isfunc) {
+	        if (argcont) 
+			atail = arglist_append(atail, newarg("|", 0, NULL));
 	        atail = arglist_append(atail, newarg(ap->arg, 0, NULL));
 	        atail = arglist_append(atail, ap->func_args);
-	        atail = arglist_append(atail, newarg("|", 0, NULL));
 		ap->isfunc = 0;
+		argcont = 1;
  	   }
 	}
+#if 0
 	atail = arglist_append(atail, newarg(vphrase.verb, 0, NULL));
 	atail = arglist_append(atail, vphrase.args);
 
@@ -299,6 +306,15 @@ static struct graph newgroup(struct group group, struct vphrase vphrase) {
 
 	if (group.having) 
 		graph_join(&g, newmodule("filter", group.having));
+#else
+	if (argcont) 
+		g = newmodule("groupby", group.args);
+
+	if (group.having) 
+		graph_join(&g, newmodule("filter", group.having));
+
+	graph_join(&g, newmodule(vphrase.verb, vphrase.args));
+#endif
 
 	return g;
 }
