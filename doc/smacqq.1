@@ -116,10 +116,27 @@ not "group by" is used.
  
  
 .PP 
+When queries are nested deeply, the syntax described above can become 
+complex.  As a result, commas are optional between arguments, and SMACQ  
+also supports the | symbol used in Unix shells.  The result is a syntax  
+much more familiar to Unix shell users.  Thus the following queries are  
+all equivalent: 
+ 
+\f(CW	print srcip, dstip from (uniq srcip, dstip from pcapfile("/tmp/dump")) 
+\fP  
+\f(CW	print srcip, dstip from uniq srcip, dstip from pcapfile "/tmp/dump" 
+\fP  
+\f(CW	print srcip dstip from uniq srcip dstip from pcapfile "/tmp/dump" 
+\fP  
+\f(CW	pcapfile "/tmp/dump" | uniq srcip dstip | print srcip dstip 
+\fP  
+. 
+ 
+.PP 
 SMACQ is an extensible system that the user can add modules to. 
 See the \fBsmacqp\fP(1) manpage for a detailed 
 description of modules.  Many modules take flags which, like all 
-arguments, must be separated with commas: 
+arguments, can be separated with commas or spaces: 
  
 \f(CW	print -v, srcip, dstip from pcapfile("/tmp/dump") 
 \fP\  
@@ -130,4 +147,4 @@ Joins are not yet supported.  They will be supported in multiple
 forms:  joins within a buffer window, joins between 
 nondecreasing streams, etc. 
  
-...\" created by instant / docbook-to-man, Tue 18 Mar 2003, 20:25 
+...\" created by instant / docbook-to-man, Wed 09 Apr 2003, 00:27 

@@ -1,10 +1,11 @@
 DOCS=smacq.1 smacqq.1 smacqp.1 smacq-modules.3 dts.3 dts-modules.3 smacq-embed.3
-DOCTXTS=$(patsubst %,%.txt,$(DOCS))
-DOCPDFS=$(patsubst %,%.pdf,$(DOCS))
+DOCDSTS=$(patsubst %,$(SRCDIR)/%,$(DOCS))
+DOCTXTS=$(patsubst %,$(SRCDIR)/%.txt,$(DOCS))
+DOCPDFS=$(patsubst %,$(SRCDIR)/%.pdf,$(DOCS))
 
 PRODUCTS=$(DOCTXTS) $(DOCPDFS)
 
-all: $(DOCS) $(PRODUCTS)
+all: $(DOCDSTS) $(PRODUCTS)
 
 reallyclean: clean
 	rm -f smacq-embed.3 dts-types.3 smacqq.1 smacqp.1
@@ -19,7 +20,7 @@ publish:
 	groff -man $< > $@
 
 %.pdf: %.ps
-	ps2pdf $<
+	ps2pdf $< $@
 
 %.3.txt: %.3
 	nroff -man $< > $@

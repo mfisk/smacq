@@ -111,7 +111,7 @@ Given the specified data-flow graph, instantiate the modules and
 begin the scheduler.  Possible scheduler values are ITERATIVE, 
 RECURSIVE, and THREADED.   In the case of RECURSIVE or 
 THREADED, smacq_start() will never return.  In the case of 
-ITERATIVE, the scheduler must be repeatedl;y called using the 
+ITERATIVE, the scheduler must be repeatedly called using the 
 following smacq_sched_iterative() function. 
  
 .PP 
@@ -127,7 +127,7 @@ graphs, the same type environment must be used by those graphs.
 \fB        smacq_graph * graph\fR, 
 \fB        const 	dts_object * data_in\fR, 
 \fB        dts_object ** data_out\fR, 
-\fB        void ** state\fR, 
+\fB        struct runq ** runq\fR, 
 \fB        int produce_first\fR); 
 .fi 
 .PP 
@@ -151,7 +151,17 @@ graph can produce data when more is needed.
 On the first call, the state argument should be a pointer to a 
 void * initialized to NULL.   
  
+.PP 
+.nf 
+.ta 8n 16n 24n 32n 40n 48n 56n 64n 72n 
+.sp 1 
+\fBint \fBsmacq_sched_iterative_shutdown\fP\fR( 
+\fB        smacq_graph * graph\fR, 
+\fB        struct runq ** runq\fR); 
+.fi 
+.PP 
+ 
 .SH "SEE ALSO" 
 .PP 
 smacqp(1), smacq-modules(3) 
-...\" created by instant / docbook-to-man, Tue 18 Mar 2003, 20:25 
+...\" created by instant / docbook-to-man, Wed 09 Apr 2003, 00:27 
