@@ -5,7 +5,7 @@
 #include <time.h>
 #include <netinet/in.h>
 #include <dts-module.h>
-#include "getdate_tv.h"
+#include <getdate_tv.h>
 
 static int smacqtype_ntime_get_double(DtsObject o, DtsObject field) {
   time_t t = dts_data_as(o, time_t);
