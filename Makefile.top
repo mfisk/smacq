@@ -10,6 +10,9 @@ test: warn test.RECURSE
 smacq.iso: .ALWAYS #reloc.RECURSE
 	TOPSRCDIR=$(TOPSRCDIR) TOPBINDIR=$(TOPBINDIR) $(SRCDIR)/misc/mkiso
 
+smacq.iso.gz: smacq.iso
+	gzip -c -9 smacq.iso > $@
+
 warn: 
 	$(MAKE) dirs >/dev/null
 
