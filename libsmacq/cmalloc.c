@@ -37,7 +37,7 @@ struct cmalloc * cmalloc_init(int minsize, int maxfree) {
 static inline struct cmalloc_element * cmalloc_new(int size) {
 	struct cmalloc_element * e = malloc(sizeof(struct cmalloc_element) + size);
 	e->size = size;
-	return e;
+	return e+1;
 }
 
 void * cmrealloc(void * data, int size) {
