@@ -1,0 +1,189 @@
+<!doctype refentry PUBLIC "-//OASIS//DTD DocBook V4.1//EN" [
+  <!ENTITY docbook "<productname>DocBook</productname>">
+  <!ENTITY sgml    "<abbrev>SGML</abbrev>">
+]>
+
+<refentry>
+  <refentryinfo>
+    <author>
+      <firstname>Neale</firstname>
+      <surname>Pickett</surname>
+    </author>
+    <address>
+      <email>neale@lanl.gov</email>
+    </address>
+    <date>$Date$</date>
+  </refentryinfo>
+  <refmeta>
+    <refentrytitle>smacq-python</refentrytitle>
+    <manvolnum>1</manvolnum>
+  </refmeta>
+  <refnamediv>
+    <refname>smacq-python</refname>
+    <refpurpose>SMACQ Python bindings</refpurpose>
+  </refnamediv>
+  <refsect1>
+    <title>DESCRIPTION</title>
+
+    <para>
+      The SMACQ Python bindings allow creation of SMACQ modules in
+      the Python language.  No compilation is necessary, and all of
+      Python's high-level facilities may be used.  This manual page
+      describes the use of the Python language bindings.
+    </para>
+  </refsect1>
+
+  <refsect1>
+    <title>SEQUENCE OF EVENTS</title>
+
+    <cmdsynopsis>
+      <command>python</command>
+      <arg choice="req"><replaceable/module/</arg>
+    </cmdsynopsis>
+
+    <para>
+      The Python bindings are invoked with the <command/python/ command.
+      Directories in the <literal/PYTHONPATH/ environment variable are
+      searched for a module named <literal/module/, which should define
+      a callable object named <literal/init/.  <literal/init/ is called
+      with an instance of a smacq object (see below).
+    </para>
+
+    <para>
+      The call to <literal/init/ must return an object implementing a
+      <literal/consume/ function accepting a single parameter,
+      <literal/data/: a data object (see below), and returning either a
+      data object to output, or <literal/None/ to stop processing of the
+      current data object.
+    </para>
+  </refsect1>
+
+  <refsect1>
+    <title>SMACQ OBJECT</title>
+
+    <para>
+      The parameter to the <literal/init/ function is a SMACQ object.
+      This object contains the internal state of the module instance,
+      and allows Python programs to make calls back into the SMACQ
+      system.
+    </para>
+
+    <refsect2>
+      <title>Enqueue a data object</title>
+
+      <cmdsynopsis>
+	<command>smacq.enqueue</command>
+        <arg choice="req"><replaceable/dts/</arg>
+      </cmdsynopsis>
+
+      <para>
+        The <command/smacq.enqueue/ method places a data object on the
+        outbound queue, effectively passing the data object to the next
+        module in the chain.  This function may be used to "buffer" data
+        objects, for modules which need this functionality (eg. a
+        sorting module).
+      </para>      
+    </refsect2>
+  </refsect1>
+
+  <refsect1>
+    <title>DATA OBJECTS</title>
+
+    <para>
+      Data objects represent heirarchical SMACQ data.  Every data object
+      may be referenced with the <literal/type()/ (return a string type
+      representation), <literal/raw()/ (return the raw bytes), and
+      <literal/value()/ (return value as an appropriate Python type)
+      methods.
+    <para>
+
+    <para>
+      Data object data may also be treated like a Python dictionary of
+      data objects, allowing complex data types to be further parsed.  If
+      a named value is present as a field in the indexed data object, a
+      new data object representing that field will be returned.  For
+      instance, given a "packet" data object (such as those produced by
+      the <literal/pcapfile/ module) <literal/d/:
+    </para>
+
+    <literallayout>
+      >>> print "source IP,port: (%s, %d)" % (d['srcip'].value, d['srcport'].value)
+      source IP,port: (127.0.0.1, 4538)
+      >>> print "raw IP bytes: %s" % (`d['srcip'].raw`)
+      raw IP bytes: '\x7f\x00\x00\x01'
+    </literallayout>
+  </refsect1>
+
+  <refsect1>
+    <title>EXAMPLES</title>
+
+    <refsect2>
+      <title>Pass-through handler</title>
+
+      <para>
+        This simple module does nothing, simply passing through every
+        data object.
+      </para>
+
+      <literallayout>
+      class Passthrough:
+        def consume(self, datum):
+	  return datum
+
+      init = Passthrough
+      </literallayout>
+    </refsect2>
+
+
+    <refsect2>
+      <title>Delayed Output</title>
+
+      <para>
+        This example buffers up one packet, always outputting the
+        previous packet.  The very first call will return
+        <literal/None/, halting processing of the current data object.
+        Each subsequent call will return the previous data object.
+      </para>
+
+      <literallayout>
+      class Buffer:
+        def __init__(self, smacq):
+	  self.smacq = smacq
+	  self.last = None
+
+        def consume(self, datum):
+	  last = self.last
+	  self.last = datum
+	  return last
+
+      init = Buffer
+      </literallayout>
+    </refsect2>
+
+    <refsect2>
+      <title>Batch Output</title>
+
+      <para>
+        This example uses the <literal/enqueue/ method of the SMACQ
+        object to send out data objects, 5 at a time.
+      </para>
+
+      <literallayout>
+      class Batch:
+        def __init__(self, smacq):
+	  self.smacq = smacq
+	  self.batch = []
+
+        def consume(self, datum):
+	  self.batch.append(datum)
+	  if len(self.batch) == 5:
+	    for d in self.batch:
+	      self.smacq.enqueue(d)
+	    self.batch = []
+	  return None
+
+      init = Batch
+      </literallayout>
+    </refsect2>
+  </refsect>
+</refentry>

@@ -4,7 +4,7 @@ TESTFILE=$TEST/0325@1112-snort.pcap
 PYTHONPATH=$TEST; export PYTHONPATH
 
 ${BINDIR}smacqq -m <<EOF 
-pcapfile $TESTFILE | python("pythontest")
+pcapfile $TESTFILE | python("pythontest") | print ts
 EOF
 
 exit 1
