@@ -228,7 +228,11 @@ void smacq_init_modules(smacq_graph * f, smacq_environment * env) {
   context->self = f;
   context->thread_fn = f->ops.thread_fn;
   
-  f->ops.init(context);
+  if ((SMACQ_END|SMACQ_ERROR) & f->ops.init(context)) { 
+ 	fprintf(stderr, "Error initializing module %s\n", f->name);	 	
+	exit(-1);
+  }
+
   f->state = context->state;
   free(context);
 
