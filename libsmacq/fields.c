@@ -19,7 +19,7 @@ void fields_init(smacq_environment * env, struct fieldset * fieldset, int argc, 
     }
   }
 
-  fieldset->currentdata = g_new0(dts_object*, fieldset->num);
+  fieldset->currentdata = g_new0(const dts_object*, fieldset->num);
 }
 
 static const dts_object ** fields2data(smacq_environment * env,
