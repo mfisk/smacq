@@ -245,6 +245,25 @@ static smacq_result disarm_init(struct smacq_init * context) {
 	fclose(fh);
 
 	sin_size = sizeof(struct sockaddr_in);
+	{
+		fd_set fds;
+		struct timeval tv = {3,0};
+		int res;
+
+		do {
+			FD_ZERO(&fds);
+			FD_SET(listen_fd, &fds);
+			res = select(listen_fd + 1, &fds, NULL, NULL, &tv);
+		} while (res == -1);
+
+		if (res == 0) /* timeout */ {
+			fprintf(stderr, "disarm: Timeout waiting for server connection\n");
+			exit(-1);
+		} 
+
+		assert(FD_ISSET(listen_fd, &fds));
+	}
+
     	if ((state->datasock = accept(listen_fd, (struct sockaddr *)&server_addr, &sin_size)) == -1) {
 		perror("disarm server accept");
 		exit(-1);
