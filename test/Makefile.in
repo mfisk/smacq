@@ -169,7 +169,7 @@ EXTRA_TESTS = python.test sqlinsert.test
 TESTS_ENVIRONMENT = SRCDIR=$(srcdir) TOP_SRCDIR=$(top_srcdir) BINDIR=$(top_builddir)/bin/ $(top_srcdir)/misc/runtest
 subdir = test
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+mkinstalldirs = $(SHELL) $(top_srcdir)/config/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
 DIST_SOURCES =

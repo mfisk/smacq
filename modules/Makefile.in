@@ -168,7 +168,7 @@ EXTRA_LTLIBRARIES = #libpcaplive.la libreassemble.la libbench_field.la
 #BUILT_SOURCES = count.cpp
 SUFFIXES = .sc
 
-libsmacq_modules_la_SOURCES = print.cpp pcaplive.cpp pcapfile.cpp socket.cpp uniq.cpp count.cpp last.cpp top.cpp head.cpp filter.cpp msgtest.cpp entropy.cpp derivative.cpp encrypt.cpp pdf.cpp fifo.cpp delta.cpp tabularinput.cpp rusage.cpp groupby.cpp flowid.cpp sum.cpp fifodelay.cpp project.cpp rename.cpp mask.cpp const.cpp ndjoin.cpp lor.cpp counter_loop.cpp dfa.cpp expr.cpp equals.cpp cflow.cpp clock.cpp disarm.cpp substr-main.cpp iplookup.cpp streamalias.cpp join.cpp changes.cpp
+libsmacq_modules_la_SOURCES = print.cpp pcaplive.cpp pcapfile.cpp socket.cpp uniq.cpp count.cpp last.cpp top.cpp head.cpp filter.cpp msgtest.cpp entropy.cpp derivative.cpp encrypt.cpp pdf.cpp fifo.cpp delta.cpp tabularinput.cpp rusage.cpp groupby.cpp flowid.cpp sum.cpp fifodelay.cpp project.cpp rename.cpp mask.cpp const.cpp ndjoin.cpp lor.cpp counter_loop.cpp dfa.cpp expr.cpp equals.cpp cflow.cpp clock.cpp disarm.cpp substr-main.cpp iplookup.cpp streamalias.cpp join.cpp changes.cpp histogram.cpp
 
 EXTRA_libsmacq_modules_la_SOURCES = sqlinsert.cpp python.cpp
 
@@ -206,7 +206,7 @@ SNORT_VERSION = snort-1.8.7
 SNORT_HOME = ../contrib/$(SNORT_VERSION)
 subdir = modules
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+mkinstalldirs = $(SHELL) $(top_srcdir)/config/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
@@ -218,7 +218,7 @@ am_libsmacq_modules_la_OBJECTS = print.lo pcaplive.lo pcapfile.lo \
 	fifodelay.lo project.lo rename.lo mask.lo const.lo ndjoin.lo \
 	lor.lo counter_loop.lo dfa.lo expr.lo equals.lo cflow.lo \
 	clock.lo disarm.lo substr-main.lo iplookup.lo streamalias.lo \
-	join.lo changes.lo
+	join.lo changes.lo histogram.lo
 libsmacq_modules_la_OBJECTS = $(am_libsmacq_modules_la_OBJECTS)
 libtest_dynamic_la_LDFLAGS =
 libtest_dynamic_la_LIBADD =
@@ -226,7 +226,7 @@ am_libtest_dynamic_la_OBJECTS = noop.lo
 libtest_dynamic_la_OBJECTS = $(am_libtest_dynamic_la_OBJECTS)
 
 DEFAULT_INCLUDES =  -I. -I$(srcdir) -I$(top_builddir)
-depcomp = $(SHELL) $(top_srcdir)/depcomp
+depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__depfiles_maybe = depfiles
 @AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/cflow.Plo ./$(DEPDIR)/changes.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/clock.Plo ./$(DEPDIR)/const.Plo \
@@ -238,15 +238,16 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@	./$(DEPDIR)/fifo.Plo ./$(DEPDIR)/fifodelay.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/filter.Plo ./$(DEPDIR)/flowid.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/groupby.Plo ./$(DEPDIR)/head.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/iplookup.Plo ./$(DEPDIR)/join.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/last.Plo ./$(DEPDIR)/lor.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/mask.Plo ./$(DEPDIR)/msgtest.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/ndjoin.Plo ./$(DEPDIR)/noop.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/pcapfile.Plo ./$(DEPDIR)/pcaplive.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/pdf.Plo ./$(DEPDIR)/print.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/project.Plo ./$(DEPDIR)/python.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/rename.Plo ./$(DEPDIR)/rusage.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/socket.Plo ./$(DEPDIR)/sqlinsert.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/histogram.Plo ./$(DEPDIR)/iplookup.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/join.Plo ./$(DEPDIR)/last.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/lor.Plo ./$(DEPDIR)/mask.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/msgtest.Plo ./$(DEPDIR)/ndjoin.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/noop.Plo ./$(DEPDIR)/pcapfile.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/pcaplive.Plo ./$(DEPDIR)/pdf.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/print.Plo ./$(DEPDIR)/project.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/python.Plo ./$(DEPDIR)/rename.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/rusage.Plo ./$(DEPDIR)/socket.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/sqlinsert.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/streamalias.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/substr-main.Plo ./$(DEPDIR)/sum.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/tabularinput.Plo ./$(DEPDIR)/top.Plo \
@@ -321,6 +322,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/flowid.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/groupby.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/head.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/histogram.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/iplookup.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/join.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/last.Plo@am__quote@

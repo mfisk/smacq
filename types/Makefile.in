@@ -171,7 +171,7 @@ libdts_modules_la_DEPENDENCIES =
 libdts_modules_la_LDFLAGS = -rpath /bogus
 subdir = types
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+mkinstalldirs = $(SHELL) $(top_srcdir)/config/mkinstalldirs
 CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
@@ -184,7 +184,7 @@ am_libdts_modules_la_OBJECTS = bytes.lo empty.lo ipproto.lo ntime.lo \
 libdts_modules_la_OBJECTS = $(am_libdts_modules_la_OBJECTS)
 
 DEFAULT_INCLUDES =  -I. -I$(srcdir) -I$(top_builddir)
-depcomp = $(SHELL) $(top_srcdir)/depcomp
+depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__depfiles_maybe = depfiles
 @AMDEP_TRUE@DEP_FILES = ./$(DEPDIR)/bytes.Plo ./$(DEPDIR)/cflow.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/double.Plo ./$(DEPDIR)/empty.Plo \
