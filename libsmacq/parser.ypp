@@ -1,5 +1,4 @@
 %start queryline
-%defines
 
 %{
 void yysmacql_error(char*);
@@ -45,9 +44,12 @@ void yysmacql_error(char*);
      #define yyrule   yysmacql_yyrule
 
 #include <smacq-parser.h>
+#include <smacq-dataflow.h>
 static struct graph nullgraph = { head: NULL, tail: NULL };
-static smacq_graph * Graph;
+smacq_graph * Graph;
+extern int yylex();
 %}
+%defines
 
 %type <graph> query from0 from where action parenquery moreparenquery
 %type <group> group
@@ -185,7 +187,7 @@ expression :
 				} 
 	| subexpression arithop subexpression  
 				{
-				  $$ = comp_arith(parse_tenv, $2, $1, $3); 
+				  $$ = parse_dts->comp_arith($2, $1, $3); 
 				}
 	;
 
@@ -321,53 +323,6 @@ extern void yysmacql_scan_string(char*);
   #warning "No PTHREAD_MUTEX_INITIALIZER"
 #endif
 #endif
-
-smacq_graph * smacq_build_query(dts_environment * tenv, int argc, char ** argv) {
-  int size = 0;
-  int i;
-  char * qstr; 
-  smacq_graph * graph;
-  int res;
-
-  parse_tenv = tenv;
-
-  for (i=0; i<argc; i++) {
-  	size += strlen(argv[i]);
-  }
-  size += argc;
-
-  qstr = (char*)malloc(size);
-  qstr[0] = '\0';
-  	
-  for (i=0; i<argc; i++) {
-  	strcatn(qstr, size, argv[i]);
-  	strcatn(qstr, size, " ");
-  }
-
-  /* LOCK */
-  pthread_mutex_lock(&local_lock);
-
-  yysmacql_scan_string(qstr);
-  //fprintf(stderr, "parsing buffer: %s\n", qstr); 
-
-  res = yysmacql_parse();
-
-  graph = Graph;
-
-  /* UNLOCK */
-  pthread_mutex_unlock(&local_lock);
-
-  if (res) {
-    fprintf(stderr, "smacq_build_query: error parsing query: %s\n", qstr);
-    return NULL;
-  }
-
-  if (!graph) {
-    fprintf(stderr, "unknown parse error\n");
-  }
-
-  return graph;
-}
 
 void yysmacql_error(char * msg) {
   fprintf(stderr, "%s near %s\n", msg, yytext-1);

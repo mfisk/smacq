@@ -130,7 +130,7 @@ expression :
 				} 
 	| subexpression arithop subexpression  
 				{
-				  $$ = comp_arith(parse_tenv, $2, $1, $3); 
+				  $$ = parse_dts->comp_arith($2, $1, $3); 
 				}
 	;
 
