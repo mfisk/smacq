@@ -12,7 +12,7 @@
       <firstname>Mike</firstname>
       <surname>Fisk</surname>
     </author>
-    <date>$Date: 2003/12/12 03:42:04 $</date>
+    <date>$Date: 2004/03/07 19:24:37 $</date>
   </refentryinfo>
   <refmeta>
     <refentrytitle>smacq</refentrytitle>
@@ -37,9 +37,62 @@
       <command>smacqp(1)</command>  and <command>smacqp(1)</command>
       as well as a C API described in <command>smacq-embed(3)</command>.
     </para>
+
+    <para>
+      The function modules included in the system are described in the
+      following sections:  I/O, Boolean, Annotation, and Miscellaneous 
+      Analysis functions.
+    </para>
+  </refsect1>
+
+  <refsect1>
+    <title>QUERY SYNTAX</title>
+    <para>
+    Smacq queries are specified using the following SQL-like grammer:
+    </para>
+
+    <literallayout>
+    query : action from [WHERE boolean] [GROUP BY args [HAVING boolean]]
+          | action [WHERE boolean]
+	  | WHERE boolean
+	  | query '|' action [WHERE boolean] [GROUP BY args [HAVING boolean]]
+
+    action : function args
+    	   | function ( args )
+	   | ( query )
+	   | ( parenquery + parenquery )
+	   
+    parenquery : ( query )
+    	       | function ( args )
+	       | function
+
+    from : FROM action [from]
+    </literallayout>
+
+    <para>
+    Arguments can be given in a space separated list or a comma separated list.
+    Any argument can be followed by the phrase "AS alias" to be
+    given the specified alias.
+    </para>
+
+    <literallayout>
+    argument: word 
+            | function ( args ) 
+	    | '[' expression ']'
+
+    boolean : ( boolean )
+    	    | boolean AND boolean
+	    | boolean OR boolean
+	    | NOT boolean
+	    | operand
+	    | subexpression op subexpression
+	    | function ( args )
+	    ; 
+    </literallayout>
+
   </refsect1>
   <refsect1>
-    <title>STANDARD INPUT/OUTPUT MODULES</title>
+    <title>INPUT/OUTPUT FUNCTIONS</title>
 
     <refsect2>
       <title>Print</title>
@@ -185,7 +238,6 @@
       </para>
     </refsect2>
 
-
     <refsect2>
       <title>Socket</title>
       <cmdsynopsis>
@@ -224,7 +276,15 @@
 
   </refsect1>
   <refsect1>
-    <title>FILTER MODULES (BOOLEAN FUNCTIONS)</title>
+    <title>BOOLEAN FUNCTIONS</title>
+
+    <refsect2>
+      <title></title>
+      <para>
+      Boolean functions immediately either filter-out or pass-on each
+      data object they are given.
+      </para>
+    </refsect2>
 
     <refsect2>
       <title>IP Address Mask Lookup</title>
@@ -286,36 +346,6 @@
     </refsect2>
 
     <refsect2>
-      <title>Last</title>
-      <cmdsynopsis>
-	<command>last</command>
-	<arg>-t <replaceable>time</replaceable></arg>
-	<arg rep=repeat><replaceable>fields</replaceable></arg>
-      </cmdsynopsis>
-
-      <para>
-        If any fields are specified, treat those fields as a tuple and keep track of the last object seen 
-	with that tuple value.  After there is no more data, output the objet for each tuple value.
-      </para>
-
-      <para>
-	The <option>-t</option> option specifies, as a real number,
-	the number of seconds between periodic updates.  After the specified
-        amount of time, the last object seen for each tuple value will be emitted 
-	(just as is done at the end of the data stream).  At the end of the update, an
-        object of type "<literal>refresh</literal>" will be sent with a 
-	"<literal>timeseries</literal>" field of type "<literal>timeval</literal>"
-	containing the time.
-	Note: Time is not the wall-clock time, but is instead the
-	time stored in the record in the
-	"<literal>timeseries</literal>" field of type
-	"<literal>timeval</literal>".  The <option>-t</option> cannot
-	be used with records that do not have this field.
-      </para>
-      
-    </refsect2>
-
-    <refsect2>
       <title>Filter</title>
       <cmdsynopsis>
 	<command>filter</command>
@@ -357,7 +387,6 @@
       
     </refsect2>
 
-
     <refsect2>
       <title>Top</title>
       <cmdsynopsis>
@@ -392,7 +421,6 @@
       </para>
     </refsect2>
 
-
     <refsect2>
       <title>Head</title>
       <cmdsynopsis>
@@ -410,8 +438,35 @@
   </refsect1>
 
   <refsect1>
-    <title>ANALYSIS MODULES</title>
-    
+    <title>ANNOTATION FUNCTIONS</title>
+  
+    <refsect2>
+    <title></title>
+    <para>
+    An annotation function always adds a field to every data object and
+    the name of that field is identical to the name of the function.
+    </para>
+    </refsect2>
+
+    <refsect2>
+      <title>Clock</title>
+      <cmdsynopsis>
+	<command>clock</command> 
+	<arg> -t <replaceable>seconds</replaceable></arg>
+	<arg choice=req> <replaceable>field</replaceable></arg>
+      </cmdsynopsis>
+
+      <para>
+	The clock module is used to bin input data into discrete
+	clock periods.  Each object is annotated with a clock field
+	containing the numerical value of the current clock.  The current 
+	clock value is determined by keeping track of the largest value
+	seen for the specified field (presumably a time) and dividing
+	that value by the optional time period, which defaults to 1. 
+	The input is assumed to be sorted in increasing order.
+      </para>
+    </refsect2>
+
     <refsect2>
       <title>Constant Annotation</title>
       <cmdsynopsis>
@@ -426,7 +481,72 @@
 	as the value string.
       </para>
     </refsect2>
+    <refsect2>
+      <title>Delta</title>
+      <cmdsynopsis>
+	<command>delta</command>
+	<arg choice=req> <replaceable>xfield</replaceable></arg>
+      </cmdsynopsis>
 
+      <para>
+	For each data object seen, compute the delta from the previous x field to this current xfield.
+	The data object is annotate with a "<literal>delta</literal>"
+	field of type "<literal>double</literal>" containing the result.  The x field must be convertable to doubles as well.
+      </para>
+    </refsect2>
+
+    <refsect2>
+      <title>Derivative</title>
+      <cmdsynopsis>
+	<command>derivative</command>
+	<arg choice=req> <replaceable>yfield</replaceable></arg>
+	<arg choice=req><replaceable>xfield</replaceable></arg>
+      </cmdsynopsis>
+
+      <para>
+	For each data object seen, compute the derivative of the y field with respect to the x field
+	between this point and the last object seen.  The data object is annotate with a "<literal>derivative</literal>"
+	field of type "<literal>double</literal>" containing the result.  The x and y fields must be convertable
+	to doubles as well.
+      </para>
+    </refsect2>
+
+    <refsect2>
+      <title>Flow ID</title>
+      <cmdsynopsis>
+	<command>flowid</command>
+	<arg>-t <replaceable>time</replaceable></arg>
+	<arg>-r </arg>
+	<arg choice=req rep=repeat> <replaceable>fields</replaceable></arg>
+      </cmdsynopsis>
+
+      <para>
+	Treat the specified field(s) as a tuple and assign a unique
+	flow id number to each object based on the typle value.  The
+	annotated field is called "flowid".  All but the first packet
+	will be filtered out.
+      </para>
+
+      <para>
+	The <option>-r</option> option specifies that the same flow id
+	should be assigned to packets in the reverse direction.
+	Separate flow statistics will be kept for each direction.
+      </para>
+
+      <para>
+	The <option>-t</option> option specifies a number of seconds
+	idle time before a flow is timed out.  When it times out a
+	REFRESH record with the flows identifying fields (as specified
+	in the arguments), the current time (timeseries) and the
+	packet and byte counters ("packets", "packetsback", "bytes",
+	"bytesout") and the "start" and "finish" times.
+      </para>
+      
+    </refsect2>
+  </refsect1>
+    
+  <refsect1>
+    <title>MISCELLANEOUS ANALYSIS FUNCTIONS</title>
     <refsect2>
       <title>Counter</title>
       <cmdsynopsis>
@@ -456,7 +576,6 @@
 	then every object is passed and annotated with a
 	running value.
       </para>
-
     </refsect2>
 
     <refsect2>
@@ -494,6 +613,36 @@
     </refsect2>
 
     <refsect2>
+      <title>Last</title>
+      <cmdsynopsis>
+	<command>last</command>
+	<arg>-t <replaceable>time</replaceable></arg>
+	<arg rep=repeat><replaceable>fields</replaceable></arg>
+      </cmdsynopsis>
+
+      <para>
+        If any fields are specified, treat those fields as a tuple and keep track of the last object seen 
+	with that tuple value.  After there is no more data, output the objet for each tuple value.
+      </para>
+
+      <para>
+	The <option>-t</option> option specifies, as a real number,
+	the number of seconds between periodic updates.  After the specified
+        amount of time, the last object seen for each tuple value will be emitted 
+	(just as is done at the end of the data stream).  At the end of the update, an
+        object of type "<literal>refresh</literal>" will be sent with a 
+	"<literal>timeseries</literal>" field of type "<literal>timeval</literal>"
+	containing the time.
+	Note: Time is not the wall-clock time, but is instead the
+	time stored in the record in the
+	"<literal>timeseries</literal>" field of type
+	"<literal>timeval</literal>".  The <option>-t</option> cannot
+	be used with records that do not have this field.
+      </para>
+      
+    </refsect2>
+
+    <refsect2>
       <title>Discrete Probability Density Function</title>
       <cmdsynopsis>
 	<command>pdf</command>
@@ -523,7 +672,6 @@
       </para>
     </refsect2>
 
-
     <refsect2>
       <title>Rename</title>
       <cmdsynopsis>
@@ -535,36 +683,6 @@
         Given a list of alternating old and new field names, make a copy of the old field with the new name.
         Combined with the Project module, this can implement the rename (rho)
         operation from relational algebra ("as" in SQL).
-      </para>
-    </refsect2>
-
-    <refsect2>
-      <title>Delta</title>
-      <cmdsynopsis>
-	<command>delta</command>
-	<arg choice=req> <replaceable>xfield</replaceable></arg>
-      </cmdsynopsis>
-
-      <para>
-	For each data object seen, compute the delta from the previous x field to this current xfield.
-	The data object is annotate with a "<literal>delta</literal>"
-	field of type "<literal>double</literal>" containing the result.  The x field must be convertable to doubles as well.
-      </para>
-    </refsect2>
-
-    <refsect2>
-      <title>Derivative</title>
-      <cmdsynopsis>
-	<command>derivative</command>
-	<arg choice=req> <replaceable>yfield</replaceable></arg>
-	<arg choice=req><replaceable>xfield</replaceable></arg>
-      </cmdsynopsis>
-
-      <para>
-	For each data object seen, compute the derivative of the y field with respect to the x field
-	between this point and the last object seen.  The data object is annotate with a "<literal>derivative</literal>"
-	field of type "<literal>double</literal>" containing the result.  The x and y fields must be convertable
-	to doubles as well.
       </para>
     </refsect2>
 
@@ -582,39 +700,6 @@
 	and added as an annotation of type <literal>double</literal> to a refresh object.  
 	See the "<literal>last</literal>" module for more information on <literal>refresh</literal> objects.
       </para>
-    </refsect2>
-
-    <refsect2>
-      <title>Flow ID</title>
-      <cmdsynopsis>
-	<command>flowid</command>
-	<arg>-t <replaceable>time</replaceable></arg>
-	<arg>-r </arg>
-	<arg choice=req rep=repeat> <replaceable>fields</replaceable></arg>
-      </cmdsynopsis>
-
-      <para>
-	Treat the specified field(s) as a tuple and assign a unique
-	flow id number to each object based on the typle value.  The
-	annotated field is called "flowid".  All but the first packet
-	will be filtered out.
-      </para>
-
-      <para>
-	The <option>-r</option> option specifies that the same flow id
-	should be assigned to packets in the reverse direction.
-	Separate flow statistics will be kept for each direction.
-      </para>
-
-      <para>
-	The <option>-t</option> option specifies a number of seconds
-	idle time before a flow is timed out.  When it times out a
-	REFRESH record with the flows identifying fields (as specified
-	in the arguments), the current time (timeseries) and the
-	packet and byte counters ("packets", "packetsback", "bytes",
-	"bytesout") and the "start" and "finish" times.
-      </para>
-      
     </refsect2>
 
     <refsect2>
