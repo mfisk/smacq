@@ -23,22 +23,20 @@ gram.c:	gram.y scan.l
 	-bison -t -y -d $< -o $@
 
 gram.o:	gram.c
-#	gcc -o $@ -c -DYYDEBUG $(CFLAGS) $<
-	gcc -o $@ -c $(CFLAGS) $<
+	$(CC) -o $@ -c $(CFLAGS) $<
 
 scan.c: scan.l gram.c 
 #	flex -d -i -o$@ $<
 	-flex -i -o$@ $<
 
 scan.o:	scan.c
-#	gcc -o $@ -c -DYYDEBUG $(CFLAGS) $<
-	gcc -o $@ -c $(CFLAGS) $<
+	$(CC) -o $@ -c $(CFLAGS) $<
 
 libsql.o: $(OBJS)
 	$(LD) -r -o $@ $+
 
 %.o: %.c
-	gcc -o $@ -c $(CFLAGS) $<
+	$(CC) -o $@ -c $(CFLAGS) $<
 
 clean: 
 	rm -f *.o *.a scan.c gram.c gram.h nohup.out
