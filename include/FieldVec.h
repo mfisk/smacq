@@ -136,14 +136,22 @@ inline size_t DtsObjectVec::hash(const int seed) const {
   return result;
 }
 
+/// Return true iff argument vector mask fits this vector.  
 inline bool DtsObjectVec::masks (const DtsObjectVec &b) const {
   DtsObjectVec::const_iterator i;
   DtsObjectVec::const_iterator j;
   
-  if (size() != b.size()) return false;
-  if (this == &b) return true;
+  if (size() != b.size()) {
+	fprintf(stderr, "Warning: Masking with vector of different size!\n");
+	return false;
+  }
+  if (this == &b) { 
+	fprintf(stderr, "Warning: Masking with self!\n");
+	return true;
+  }
   
   for (i = begin(), j=b.begin(); i != end(); i++, j++) {
+    // i & j point to DtsObjects; IFF both are specified, see if they are equal (overloaded)
     if (i->get() && j->get() && (*i != *j)) {
       return false;
     }
