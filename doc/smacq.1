@@ -421,6 +421,16 @@ between this point and the last object seen.  The data object is annotate with a
 field of type "\fBdouble\fP" containing the result.  The x and y fields must be convertable 
 to doubles as well. 
  
+.SS "Div" 
+.PP 
+\fBdiv\fR [ -d \fIdivisor\fR]  [\fIfield\fR]  
+.PP 
+The div module annotates each object with a field of type 
+"int" and the name "div".  The field is computed by dividing 
+the speficied field by the specified divisor (or 1 by 
+default).  The result is then truncated.  See the "clock" 
+module for similar functionality. 
+ 
 .SS "Flow ID" 
 .PP 
 \fBflowid\fR [-t \fItime\fR]  [-r ]  \fIfields\fR \&...  
@@ -442,6 +452,14 @@ REFRESH record with the flows identifying fields (as specified
 in the arguments), the current time (timeseries) and the 
 packet and byte counters ("packets", "packetsback", "bytes", 
 "bytesout") and the "start" and "finish" times. 
+ 
+.SS "Now" 
+.PP 
+\fBnow\fR [ -f \fIfield\fR]  
+.PP 
+The now module annotates each object with an object of type 
+"timeval" (a struct timeval) with the given name, or "now" by 
+default. 
  
 .SH "MISCELLANEOUS ANALYSIS FUNCTIONS" 
 .SS "Counter" 
@@ -632,4 +650,4 @@ boolean:
 \fBDTS\fR(3),  
 \fBSmacqGraph\fR(3) 
  
-.\" created by instant / docbook-to-man, Mon 03 Jan 2005, 13:17 
+.\" created by instant / docbook-to-man, Sun 13 Feb 2005, 14:22 

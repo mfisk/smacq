@@ -348,24 +348,40 @@ AANNNNOOTTAATTIIOONN FFUUNNCCTTIIOONNSS
        bles as well.
 
 
+   DDiivv
+       ddiivv [ -d _d_i_v_i_s_o_r]  [_f_i_e_l_d]
+
+       The div module annotates each object with a field of type "int" and the
+       name  "div".   The field is computed by dividing the speficied field by
+       the specified divisor (or 1 by default).  The result is then truncated.
+       See the "clock" module for similar functionality.
+
+
    FFllooww IIDD
        fflloowwiidd [-t _t_i_m_e]  [-r ]  _f_i_e_l_d_s ...
 
-       Treat the specified field(s) as a tuple and assign  a  unique  flow  id
+       Treat  the  specified  field(s)  as a tuple and assign a unique flow id
        number to each object based on the typle value.  The annotated field is
        called "flowid".  All but the first packet will be filtered out.
 
 
-       The --rr option specifies that the same flow id  should  be  assigned  to
-       packets  in  the  reverse  direction.  Separate flow statistics will be
+       The  --rr  option  specifies  that the same flow id should be assigned to
+       packets in the reverse direction.  Separate  flow  statistics  will  be
        kept for each direction.
 
 
-       The --tt option specifies a number of seconds idle time before a flow  is
+       The  --tt option specifies a number of seconds idle time before a flow is
        timed out.  When it times out a REFRESH record with the flows identify-
-       ing fields (as specified in the arguments),  the  current  time  (time-
-       series)  and  the  packet  and byte counters ("packets", "packetsback",
+       ing  fields  (as  specified  in the arguments), the current time (time-
+       series) and the packet and  byte  counters  ("packets",  "packetsback",
        "bytes", "bytesout") and the "start" and "finish" times.
+
+
+   NNooww
+       nnooww [ -f _f_i_e_l_d]
+
+       The  now  module annotates each object with an object of type "timeval"
+       (a struct timeval) with the given name, or "now" by default.
 
 
 MMIISSCCEELLLLAANNEEOOUUSS AANNAALLYYSSIISS FFUUNNCCTTIIOONNSS
@@ -377,9 +393,9 @@ MMIISSCCEELLLLAANNEEOOUUSS AANNAALLYYSSIISS FFUUNNCCTT
        count the number of occurrences of each value for that tuple.
 
 
-       Unless the "-p" flag is specified, then a double value named "probabil-
-       ity"  is annotated instead.  The "-f" flag can still be used to specify
-       an alternate field name.
+       Unless  the  "-p"  flag  is  specified,  then  a  double  value   named
+       "probability" is annotated instead.  The "-f" flag can still be used to
+       specify an alternate field name.
 
 
        Normally an annotation is made to only the final object and  all  other

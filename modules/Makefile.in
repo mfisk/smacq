@@ -167,7 +167,7 @@ noinst_LTLIBRARIES = libsmacq_modules.la libtest_dynamic.la
 EXTRA_LTLIBRARIES = libpython.la libsqlinsert.la libpcaplive.la
 SUFFIXES = .sc
 
-libsmacq_modules_la_SOURCES = print.cpp pcapfile.cpp socket.cpp uniq.cpp count.cpp last.cpp top.cpp head.cpp filter.cpp msgtest.cpp entropy.cpp derivative.cpp encrypt.cpp pdf.cpp fifo.cpp delta.cpp tabularinput.cpp rusage.cpp groupby.cpp flowid.cpp sum.cpp fifodelay.cpp project.cpp rename.cpp mask.cpp const.cpp ndjoin.cpp lor.cpp counter_loop.cpp dfa.cpp expr.cpp equals.cpp cflow.cpp clock.cpp disarm.cpp substr-main.cpp iplookup.cpp streamalias.cpp join.cpp changes.cpp histogram.cpp now.cpp div.cpp
+libsmacq_modules_la_SOURCES = print.cpp pcapfile.cpp socket.cpp uniq.cpp count.cpp last.cpp top.cpp head.cpp filter.cpp msgtest.cpp entropy.cpp derivative.cpp encrypt.cpp pdf.cpp fifo.cpp delta.cpp tabularinput.cpp rusage.cpp groupby.cpp flowid.cpp sum.cpp fifodelay.cpp project.cpp rename.cpp mask.cpp const.cpp ndjoin.cpp lor.cpp counter_loop.cpp dfa.cpp expr.cpp equals.cpp cflow.cpp clock.cpp disarm.cpp substr-main.cpp iplookup.cpp streamalias.cpp join.cpp changes.cpp histogram.cpp now.cpp div.cpp private.cpp
 
 libsmacq_modules_la_DEPENDENCIES = substr/libsubstr.la patricia/libpatricia.la libpcaplive.la @EXTRA_STATIC_MODULES@
 libsmacq_modules_la_LIBADD = $(libsmacq_modules_la_DEPENDENCIES)
@@ -226,7 +226,7 @@ am_libsmacq_modules_la_OBJECTS = print.lo pcapfile.lo socket.lo uniq.lo \
 	fifodelay.lo project.lo rename.lo mask.lo const.lo ndjoin.lo \
 	lor.lo counter_loop.lo dfa.lo expr.lo equals.lo cflow.lo \
 	clock.lo disarm.lo substr-main.lo iplookup.lo streamalias.lo \
-	join.lo changes.lo histogram.lo now.lo div.lo
+	join.lo changes.lo histogram.lo now.lo div.lo private.lo
 libsmacq_modules_la_OBJECTS = $(am_libsmacq_modules_la_OBJECTS)
 libsqlinsert_la_LDFLAGS =
 libsqlinsert_la_DEPENDENCIES =
@@ -260,9 +260,9 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@	./$(DEPDIR)/noop.Plo ./$(DEPDIR)/now.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/pcapfile.Plo ./$(DEPDIR)/pcaplive.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/pdf.Plo ./$(DEPDIR)/print.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/project.Plo ./$(DEPDIR)/rename.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/rusage.Plo ./$(DEPDIR)/socket.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/streamalias.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/private.Plo ./$(DEPDIR)/project.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/rename.Plo ./$(DEPDIR)/rusage.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/socket.Plo ./$(DEPDIR)/streamalias.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/substr-main.Plo ./$(DEPDIR)/sum.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/tabularinput.Plo ./$(DEPDIR)/top.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/uniq.Plo
@@ -359,6 +359,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pcaplive.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pdf.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/print.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/private.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/project.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rename.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rusage.Plo@am__quote@
