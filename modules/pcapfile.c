@@ -240,7 +240,7 @@ static inline int open_filename(struct state * state, char * filename) {
   
   parse_pcapfile(state, &state->pcap_file_header);
   
-  if (0 && try_mmap && !state->swapped && !state->extended) {
+  if (try_mmap && !state->swapped && !state->extended) {
     struct stat stats;
     fstat(fileno(state->fh), &stats);
 
