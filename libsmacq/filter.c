@@ -64,7 +64,7 @@ static inline fetch_operand(dts_environment * tenv, const dts_object * datum,
   switch(op->type) {
 	case FIELD: 
 	  op->valueo = dts_getfield(tenv, datum, op->field);
-	  if (!op->valueo) fprintf(stderr, "Field %s not found in obj %p\n", op->str, datum);
+	  //if (!op->valueo) fprintf(stderr, "Field %s not found in obj %p\n", op->str, datum);
 	  break;
 
 	case CONST: 
