@@ -226,7 +226,7 @@ static inline void * strucio_read_multi(struct strucio * rdr, void * buf, int le
   if (read_type == MMAP && !rdr->mmap) {
     /* Can't fulfil MMAP request */
     fprintf(stderr, "strucio error: MMAP read requested of non-mmapped file\n");
-    return NULL;
+    return 0;
   }
     
   while (1) {
@@ -240,8 +240,8 @@ static inline void * strucio_read_multi(struct strucio * rdr, void * buf, int le
       
     /* Need to try another file */
     close_file(rdr);
-    if (!strucio_open(rdr)) {
-      return NULL;
+    if (0 != strucio_open(rdr)) {
+      return 0; /* error */
     } 
   }
 }
@@ -298,7 +298,7 @@ static inline int open_filename(struct strucio * rdr, char * filename) {
   return(1); /* success */
 }
 
-/* Return 1 on success */
+/* Return 0 on success */
 int strucio_open(struct strucio * rdr) {
   char * filename;
 
@@ -308,22 +308,23 @@ int strucio_open(struct strucio * rdr) {
   } else if (rdr->nextfilename_fn) {
     filename = rdr->nextfilename_fn(rdr, rdr->nextfilename_data);
   } else {
-    return 0;
+    return -1;
   }
 
-  if (!filename) return 0;
+  if (!filename) return -1;
 
-  if (!open_filename(rdr, filename)) return 0;
+  if (!open_filename(rdr, filename)) return -1;
 
   if (rdr->newfile_fn) {
     return rdr->newfile_fn(rdr, rdr->newfile_data);
   }
    
-  return 1;
+  return 0;
 }
 
 
 /* -1 iff error */
+/* 0 on success */
 static int strucio_openwrite(struct strucio * rdr) {
   char sufbuf[256];
   char * filename;

@@ -147,7 +147,7 @@ int newfile_read(struct strucio * rdr, void * data) {
 
   fprintf(stderr, ")\n");
 
-  return 0;
+  return 0; /* Success */
 }
 
 static smacq_result pcapfile_produce(struct state * state, const dts_object ** datump, int * outchan) {
@@ -163,7 +163,9 @@ static smacq_result pcapfile_produce(struct state * state, const dts_object ** d
   pkt = (struct dts_pkthdr*)dts_getdata(datum);
 
   hdrp = strucio_read(state->rdr, &pkt->pcap_pkthdr, state->hdr_size);
-  if (!hdrp) return SMACQ_END;
+  if (!hdrp) {
+	return SMACQ_END;
+  }
 
   fixup_pcap(state, hdrp);
 
@@ -189,8 +191,10 @@ static smacq_result pcapfile_produce(struct state * state, const dts_object ** d
   
   if (hdrp == &pkt->pcap_pkthdr) {
     //fprintf(stderr, "reading packet of caplen %d\n", hdrp->caplen);
-    if (!strucio_read_copy(state->rdr, hdrp + 1, hdrp->caplen)) 
+    if (!strucio_read_copy(state->rdr, hdrp + 1, hdrp->caplen)) {
+      fprintf(stderr, "pcapfile: Error: Premature end of file\n");
       return SMACQ_END;
+    }
 
   } else {
     void * payload; 
@@ -361,7 +365,6 @@ static smacq_result pcapfile_init(struct smacq_init * context) {
   return 0;
 }
 
-/* Right now this serves mainly for type checking at compile time: */
 struct smacq_functions smacq_pcapfile_table = {
   produce: &pcapfile_produce, 
   consume: &pcapfile_consume,

@@ -12,7 +12,7 @@
       <firstname>Mike</firstname>
       <surname>Fisk</surname>
     </author>
-    <date>$Date: 2003/04/07 18:37:34 $</date>
+    <date>$Date: 2003/11/21 21:55:34 $</date>
   </refentryinfo>
   <refmeta>
     <refentrytitle>strucio</refentrytitle>
@@ -93,6 +93,8 @@
 	Register a function that is to be called any time a new file is opened.
                    The user pointer will be passed as an argument when the callback is made.
                    The function can read or write file headers as needed.
+		   The registered function should return 0 on success
+		   and -1 to reject the file.
       </para>
 
 
