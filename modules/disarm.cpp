@@ -11,7 +11,7 @@
 #include <netdb.h>
 #include <SmacqGraph.h>
 
-#define MAX_LINE (1 * 10^7) /* == 1e7 == 10MB */
+#define MAX_LINE 10000000 /* 10MB */
 
 struct get_line {
 	FILE * fh;

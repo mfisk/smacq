@@ -1,9 +1,13 @@
-#include <Python.h>
 #define DUMP_ENABLE
-#include "dump.h"
-#undef DUMP_ENABLE
+#include <Python.h>
+#include <stdint.h>
+#include <limits.h>
 #include <netinet/in.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
 #include "smacq.h"
+#include "dump.h"
 #include "dts.h"
 
 static int init_count = 0;
@@ -227,70 +231,7 @@ static int PyDts_length(PyObject *p)
   return 0;
 }
 
-static PyObject * PyDts_set(PyObject *p,
-                            PyObject *args)
-{
-  PyDtsObject *self   = (PyDtsObject *)p;
-  PyObject    *pVal;
-  int          size;
-  int          passed = 0;
-
-  if (! PyArg_ParseTuple(args, "O", &pVal)) {
-    return NULL;
-  }
-
-  DUMP();
-  do {
-    size = self->d->get()->getsize();
-
-    if (PyInt_Check(pVal)) {
-      long l;
-
-      l = PyInt_AsLong(pVal);
-      switch (self->d->get()->getsize()) {
-        case sizeof(char):
-          if 
-          DUMP();
-          break;
-        case sizeof(short):
-          DUMP();
-          break;
-        case sizeof(int):
-          DUMP();
-          break;
-#ifdef HAVE_LONG_LONG
-#ifdef NEALE_FIGURED_OUT_HOW_TO_CHECK_IN_CPP_WHETHER_INT_IS_THE_SAME_AS_LONG_INT
-        case sizeof(long):
-          DUMP();
-          break;
-#endif
-        case sizeof(long long):
-          DUMP();
-          break;
-#endif
-    default:
-      PyErr_Format(PyExc_ValueError,
-                   "No integer type for data of length %d",
-                   self->d->get()->getsize());
-      break;
-      }
-    } else {
-      DUMP_s("It's not a trap!");
-    }
-
-    passed = 1;
-  } while (0);
-
-  if (! passed) {
-    return NULL;
-  }
-
-  Py_XINCREF(Py_None);
-  return Py_None;
-}
-
 static PyMethodDef PyDts_methods[] = {
-  {"set", PyDts_set, METH_VARARGS, NULL},
   {NULL, NULL},
 };
 
@@ -347,9 +288,22 @@ enum datatype {
   UINT32,
 };
 
-/** Return DtsObject data as a string
+/** Return type name
  */
-static PyObject *PyDts_getdata(PyObject *p, void *closure)
+static PyObject *PyDts_gettype(PyObject *p, void *closure)
+{
+  PyDtsObject *self = (PyDtsObject *)p;
+  char        *dtsname;
+  dts_typeid   dtstype;
+
+  dtstype = self->d->get()->gettype();
+  dtsname = self->dts->typename_bynum(dtstype);
+  return Py_BuildValue("s", dtsname);
+}
+
+/** Return raw data
+ */
+static PyObject *PyDts_getraw(PyObject *p, void *closure)
 {
   PyDtsObject *self = (PyDtsObject *)p;
 
@@ -358,154 +312,52 @@ static PyObject *PyDts_getdata(PyObject *p, void *closure)
                        self->d->get()->getsize());
 }
 
-/** Set DtsObject data from a string
+/** Return data as an appropriate Python type
  */
-static int PyDts_setdata(PyObject *p, PyObject *pVal, void *closure)
+static PyObject *PyDts_getvalue(PyObject *p, void *closure)
 {
   PyDtsObject *self = (PyDtsObject *)p;
-  char        *buf;
-  int          buflen;
+  dts_typeid   dtstype;
+  char        *dtsname;
+  void        *data;
+  PyObject    *pRet;
 
-  if (PyString_AsStringAndSize(pVal, &buf, &buflen)) {
-    return -1;
+  dtstype = self->d->get()->gettype();
+  data    = self->d->get()->getdata();
+  dtsname = self->dts->typename_bynum(dtstype);
+
+  if (strcmp(dtsname, "ubyte") == 0) {
+    pRet = PyInt_FromLong((long)*((unsigned char *)data));
+  } else if (strcmp(dtsname, "ushort") == 0) {
+    pRet = PyInt_FromLong((long)*((unsigned short *)data));
+  } else if (strcmp(dtsname, "nushort") == 0) {
+    pRet = PyInt_FromLong((long)ntohs(*((unsigned short *)data)));
+  } else if (strcmp(dtsname, "uint32") == 0) {
+    pRet = PyLong_FromLongLong((long long)*((unsigned long *)data));
+  } else if (strcmp(dtsname, "nuint32") == 0) {
+    pRet = PyLong_FromLongLong((long long)ntohl(*((unsigned long *)data)));
+  } else if (strcmp(dtsname, "ip") == 0) {
+    /* We presume that "ip" means "ipv4" */
+    char str[INET_ADDRSTRLEN];
+
+    if (NULL == inet_ntop(AF_INET, data, str, sizeof(str))) {
+      pRet = PyString_FromStringAndSize((const char *)data,
+                                        self->d->get()->getsize());
+    } else {
+      pRet = PyString_FromString((const char *)str);
+    }
+  } else {
+    pRet = PyString_FromStringAndSize((const char *)data,
+                                      self->d->get()->getsize());
   }
 
-  if (self->d->get()->getsize() != buflen) {
-    PyErr_Format(PyExc_ValueError,
-                 "This field's length is %d, cannot set to string of length %d.",
-                 buflen,
-                 self->d->get()->getsize());
-    return -1;
-  }
-
-  self->d->get()->setcopy(buf);
-  return 0;
-}
-
-/** Return DtsObject data as a signed int
- *
- * This does some special butt-magic by checking the length of the data
- * against known integer types, and doing the right typecast.  If the
- * length is something weird (like 6), you get an AttributeError.
- */
-static PyObject *PyDts_getint(PyObject *p, void *closure)
-{
-  PyDtsObject   *self = (PyDtsObject *)p;
-  PyObject      *pRet = NULL;
-  unsigned char *val;
-
-  val = self->d->get()->getdata();
-  switch (self->d->get()->getsize()) {
-    case sizeof(char):
-      pRet = PyInt_FromLong((long)*(char *)val);
-      break;
-    case sizeof(short):
-      pRet = PyInt_FromLong((long)*(short *)val);
-      break;
-    case sizeof(int):
-      pRet = PyInt_FromLong((long)*(int *)val);
-      break;
-#ifdef HAVE_LONG_LONG
-#ifdef NEALE_FIGURED_OUT_HOW_TO_CHECK_IN_CPP_WHETHER_INT_IS_THE_SAME_AS_LONG_INT
-    case sizeof(long):
-      pRet = PyLong_FromLong(*(long *)val);
-      break;
-#endif
-    case sizeof(long long):
-      pRet = PyLong_FromLongLong(*(long long *)val);
-      break;
-#endif
-    default:
-      PyErr_Format(PyExc_ValueError,
-                   "No integer type for data of length %d",
-                   self->d->get()->getsize());
-      break;
-  }
-  return pRet;
-}
-
-/** Set DtsObject data as a signed int
- */
-static int PyDts_setint(PyObject *p, PyObject *pVal, void *closure)
-{
-  PyDtsObject *self = (PyDtsObject *)p;
-  long long    l;
-
-  l = PyLong_AsLongLong(l);
-  switch (self->d->get()->getsize()) {
-    case sizeof(char):
-      l = PyInt_AsLongFromLong((long)*(char *)val);
-      break;
-    case sizeof(short):
-      pRet = PyInt_FromLong((long)*(short *)val);
-      break;
-    case sizeof(int):
-      pRet = PyInt_FromLong((long)*(int *)val);
-      break;
-#ifdef HAVE_LONG_LONG
-#ifdef NEALE_FIGURED_OUT_HOW_TO_CHECK_IN_CPP_WHETHER_INT_IS_THE_SAME_AS_LONG_INT
-    case sizeof(long):
-      pRet = PyLong_FromLong(*(long *)val);
-      break;
-#endif
-    case sizeof(long long):
-      pRet = PyLong_FromLongLong(*(long long *)val);
-      break;
-#endif
-    default:
-      PyErr_Format(PyExc_ValueError,
-                   "No integer type for data of length %d",
-                   self->d->get()->getsize());
-      break;
-  }
-
-  return 0;
-}
-
-/** Return DtsObject data as an unsigned int
- *
- * Same thing as PyDts_getint, but with unsigned ints this time.
- */
-static PyObject *PyDts_getuint(PyObject *p, void *closure)
-{
-  PyDtsObject   *self = (PyDtsObject *)p;
-  PyObject      *pRet = NULL;
-  unsigned char *val;
-
-  val = self->d->get()->getdata();
-  switch (self->d->get()->getsize()) {
-    case sizeof(unsigned char):
-      pRet = PyInt_FromLong((long)*(unsigned char *)val);
-      break;
-    case sizeof(unsigned short):
-      pRet = PyInt_FromLong((long)*(unsigned short *)val);
-      break;
-    case sizeof(unsigned int):
-      pRet = PyLong_FromUnsignedLong((unsigned long)*(unsigned int *)val);
-      break;
-#ifdef HAVE_LONG_LONG
-#ifdef NEALE_FIGURED_OUT_HOW_TO_CHECK_IN_CPP_WHETHER_INT_IS_THE_SAME_AS_LONG_INT
-    case sizeof(unsigned long):
-      pRet = PyLong_FromUnsignedLong(*(unsigned long *)val);
-      break;
-#endif
-    case sizeof(unsigned long long):
-      pRet = PyLong_FromUnsignedLongLong(*(unsigned long long *)val);
-      break;
-#endif
-    default:
-      PyErr_Format(PyExc_ValueError,
-                   "No unsigned integer type for data of length %d",
-                   self->d->get()->getsize());
-      break;
-  }
   return pRet;
 }
 
 static PyGetSetDef PyDts_getset[] = {
-  {"data", PyDts_getdata, NULL, "data as a string"},
-  {"int",  PyDts_getint,  NULL, "data as a signed int"},
-  {"uint", PyDts_getuint, NULL, "data as an unsigned int"},
+  {"type",  PyDts_gettype,  NULL, "named type of data"},
+  {"raw",   PyDts_getraw,   NULL, "raw data as a string"},
+  {"value", PyDts_getvalue, NULL, "data as an appropriate Python type"},
   {NULL}                        /* Sentinel */
 };
 

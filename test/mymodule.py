@@ -5,15 +5,8 @@ class Censor:
         print ('init', args)
 
     def __call__(self, dts):
-        try:
-            print ('call',
-                   dts['srcip'].uint,
-                   dts['dstip'].uint,
-                   dts['ipprotocol'].uint,
-                   dts['len'].uint)
-        except KeyError:
-            print ('call', 'KeyError')
-
-        dts['len'].set(12)
+        for i in 'srcip', 'dstip', 'ipprotocol', 'len':
+            v = dts[i].value
+            print (dts[i].type, type(v), v)
 
 init = Censor
