@@ -11,8 +11,8 @@ typedef union {
   double double_t;
   unsigned int uint_t;
   uint32_t uint32_t;
-  gushort ushort_t;
-  gushort ubyte_t;
+  unsigned short ushort_t;
+  unsigned short ubyte_t;
   struct timeval timeval_t;
   char boolean_t;
 } smacq_opt;
