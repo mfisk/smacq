@@ -78,10 +78,10 @@ static smacq_result cflow_init(struct smacq_init * context) {
       assert(!list.boolean_t);
       assert(state->argc);
       strucio_register_filelist_bounded(state->rdr, state->argv[0], start.double_t, end.double_t);
-    }
- 
-    if (list.boolean_t) {
+    } else if (list.boolean_t) {
       strucio_register_filelist_stdin(state->rdr);
+    } else {
+      strucio_register_filelist_args(state->rdr, state->argc, state->argv);
     }
 
     strucio_set_use_gzip(state->rdr, gzip.boolean_t);
