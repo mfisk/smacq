@@ -17,7 +17,6 @@ else in that chain.
 #include <DynamicArray.h>
 #include <set>
 #include <vector>
-#include <deque>
 #include <assert.h>
 
 
@@ -32,24 +31,6 @@ class DTS;
 class SmacqGraph;
 
 typedef void smacq_filter_callback_fn(char * operation, int argc, char ** argv, void * data);
-
-/// This is pure-virtual class used to instantiate callback objects
-/// for SmacqGraph::foreach_tail().
-class SmacqGraphCallback {
- public:
-  virtual void callback(SmacqGraph *g) = 0;
-  virtual ~SmacqGraphCallback() {}
-};
-
-class joincallback : public SmacqGraphCallback {
- public:
-  joincallback(SmacqGraph * g) : newg(g) {}
-    void callback(SmacqGraph * g);
-
- private:
-    SmacqGraph * newg;
-    std::set<SmacqGraph*> seen;
-};
 
 #include <SmacqGraphNode.h>
 
@@ -140,8 +121,6 @@ class SmacqGraph : public SmacqGraphNode {
   void init_node_one(DTS *, SmacqScheduler *);
   int print_one(FILE * fh, int indent);
   void add_parent(SmacqGraph * parent);
-  void foreach_tail(SmacqGraphCallback & cb);
-  friend void joincallback::callback(SmacqGraph *g);
 
   friend SmacqGraph * smacq_graph_add_graph(SmacqGraph * a, SmacqGraph *b) {
     if (!a) return b;
@@ -149,8 +128,8 @@ class SmacqGraph : public SmacqGraphNode {
     return a;
   }
   
-  SmacqGraph * find_branch();
-  void list_tails(std::deque<SmacqGraph*> &);
+  void list_tails(std::set<SmacqGraph*> &);
+  void list_tails_recurse(std::set<SmacqGraph*> &list);
   static bool compare_element_names(SmacqGraph * a, SmacqGraph * b);
   static bool equiv(SmacqGraph * a, SmacqGraph * b);
   static bool same_children(SmacqGraph * a, SmacqGraph * b);
@@ -173,6 +152,7 @@ class fanout : public DynamicArray<SmacqGraph *> {};
 
 /// Establish a parent/child relationship on the specified channel
 inline void SmacqGraph::add_child(SmacqGraph * newo, unsigned int channel) {
+  assert(newo != this);
   if (channel >= children.size()) {
     children.resize(channel+1);
   }
@@ -180,62 +160,41 @@ inline void SmacqGraph::add_child(SmacqGraph * newo, unsigned int channel) {
   newo->add_parent(this);
 }
 
-/// Find the highest child that has fanout.
-/// NULL is returned if none of our children fan out.
-inline SmacqGraph * SmacqGraph::find_branch() {
-  assert(children.size());
+/// Recursively initialize a list of all the tails of this bag of graphs
+inline void SmacqGraph::list_tails(std::set<SmacqGraph*> &list) {
+  for(SmacqGraph * sg = this; sg; sg=sg->next_graph) {
+  	sg->list_tails_recurse(list);
+  }
+}
 
-  if (children[0].size() == 0)
-    return NULL;
+/// Recursively initialize a list of all the tails in this given graph
+inline void SmacqGraph::list_tails_recurse(std::set<SmacqGraph*> &list) {
+  bool has_child = false;
 
-  if (children.size() == 1 && children[0].size() == 1) 
-    return children[0][0]->find_branch();
+  FOREACH_CHILD(this, {
+	has_child = true;
+	child->list_tails_recurse(list);
+	});
   
-  return this;
-}
-
-typedef void foreach_graph_fn(SmacqGraph *);
-
-/* Return a list of all the tails in the given graph (list=NULL initially) */
-inline void SmacqGraph::foreach_tail(SmacqGraphCallback & cb) {
-  /* A tail is the highest point in the tree that only has linear (fanout = 1) children */
-  SmacqGraph * g = this->find_branch();
-
-  if (g) {
-    assert(g->children.size() < 2);
-
-    FOREACH_CHILD(g, child->foreach_tail(cb));
-  } else {
-    cb.callback(this);
+  if (!has_child) {
+    list.insert(this); // Will ignore dups
   }
 }
 
-inline void joincallback::callback(SmacqGraph * g) {
-  // Find end of tail
-  while(g->children[0].size()) {
-    assert(g->children[0].size() == 1);
-    g = g->children[0][0];
-
-    // Tails may share some children, so make sure we haven't already done this one
-    if (! seen.insert(g).second) {
-      return;
-    }
-  }
-
-  for(SmacqGraph * sg = newg; sg; sg=sg->next_graph) {
-    g->add_child(sg); 
-  }
-}
 
 inline void SmacqGraph::join(SmacqGraph * newg) {
   if (!newg) { return; }
 
-  joincallback j(newg);
-  for(SmacqGraph *g = this; g; g=g->next_graph) {
-    g->foreach_tail(j);
+  std::set<SmacqGraph*> list;
+  std::set<SmacqGraph*>::iterator i;
+  list_tails(list);
+
+  for(i = list.begin(); i != list.end(); ++i) {
+    for(SmacqGraph * sg = newg; sg; sg=sg->next_graph) {
+      (*i)->add_child(sg); 
+    }
   }
 }
-
 
 inline void SmacqGraph::add_graph(SmacqGraph * b) {
   SmacqGraph * ap;

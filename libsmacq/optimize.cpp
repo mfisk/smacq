@@ -1,21 +1,6 @@
 #include <assert.h>
 #include <SmacqGraph.h>
 
-/// Recursively initialize a list of all the tails in this given graph
-inline void SmacqGraph::list_tails(std::deque<SmacqGraph*> &list) {
-  SmacqGraph * b = this->find_branch();
-
-  if (b) {
-    FOREACH_CHILD(b, child->list_tails(list));
-  } else if (this->children[0].size()) {
-    // not interested in tails that are heads, but we will take their children
-    return this->children[0][0]->list_tails(list);
-  } else {
-    // base case: found a tail
-    list.push_back(this);
-  }
-}
-
 inline bool SmacqGraph::compare_element_names(SmacqGraph * a, SmacqGraph * b) {
   return !strcmp(a->argv[0], b->argv[0]);
 }
@@ -39,14 +24,9 @@ inline bool SmacqGraph::equiv(SmacqGraph * a, SmacqGraph * b) {
 }
 
 inline void SmacqGraph::merge_tails() {
-  SmacqGraph * bp;
-  std::deque<SmacqGraph*> list;
-  std::deque<SmacqGraph*>::iterator lpa, lpb;
-
-  /* Get all the tails we have */
-  for (bp = this; bp; bp=bp->next_graph) {
-    bp->list_tails(list);
-  }
+  std::set<SmacqGraph*> list;
+  std::set<SmacqGraph*>::iterator lpa, lpb;
+  list_tails(list);
 
   /* n**2 comparison between each tails */
   for (lpa = list.begin(); lpa != list.end(); lpa++) {
