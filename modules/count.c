@@ -85,7 +85,7 @@ static smacq_result count_consume(struct state * state, const dts_object * datum
 
 static smacq_result count_init(struct smacq_init * context) {
   int argc = 0;
-  char ** argv;
+  char ** argv = NULL;
   smacq_opt probability, countfield, allflag;
   struct state * state = context->state = g_new0(struct state, 1);
   state->env = context->env;
@@ -120,6 +120,7 @@ static smacq_result count_init(struct smacq_init * context) {
   if (state->fieldset.num) 
   	state->counters = bytes_hash_table_new(KEYBYTES, CHAIN|NOFREE);
 
+  if (argv) free(argv);
   return 0;
 }
 

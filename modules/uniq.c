@@ -70,7 +70,7 @@ static smacq_result uniq_consume(struct state * state, const dts_object * datum,
 
 static smacq_result uniq_init(struct smacq_init * context) {
   int argc;
-  char ** argv;
+  char ** argv = NULL;
   struct state * state = context->state = g_new0(struct state, 1);
   state->env = context->env;
 
@@ -100,6 +100,7 @@ static smacq_result uniq_init(struct smacq_init * context) {
     state->summary = bloom_summary_init(KEYBYTES, state->prob * 1024 * 1024 * 8);
   }
 
+  if (argv) free(argv);
   return 0;
 }
 
