@@ -11,7 +11,7 @@
 #include "bytehash.h"
 
 static struct smacq_options options[] = {
-  {"r", {boolean_t:0}, "Output sum only on refresh", SMACQ_OPT_TYPE_BOOLEAN},
+  {"a", {boolean_t:0}, "Output sum only on refresh", SMACQ_OPT_TYPE_BOOLEAN},
   {NULL, {string_t:NULL}, NULL, 0}
 };
 
@@ -28,7 +28,8 @@ struct state {
   dts_field sumfield;
   int refreshtype;
   
-  int refreshonly;
+  int outputall;
+  const dts_object * lastin;
 }; 
  
 static smacq_result sum_consume(struct state * state, const dts_object * datum, int * outchan) {
@@ -47,12 +48,16 @@ static smacq_result sum_consume(struct state * state, const dts_object * datum, 
     dts_decref(newx);
   }
 
-  if ( (!state->refreshonly) || (dts_gettype(datum) == state->refreshtype)) {
+  if (state->outputall || (dts_gettype(datum) == state->refreshtype)) {
     msgdata = smacq_dts_construct(state->env, state->sumtype, &state->total);
     dts_attach_field(datum, state->sumfield, msgdata); 
 	
     return SMACQ_PASS;
   } else {
+    if (state->lastin) dts_decref(state->lastin);
+    state->lastin = datum;
+    dts_incref(state->lastin, 1);
+
     return SMACQ_FREE;
   }
     
@@ -64,12 +69,11 @@ static smacq_result sum_init(struct smacq_init * context) {
   struct state * state = context->state = g_new0(struct state, 1);
   state->env = context->env;
 
-
   {
-    smacq_opt refresh;
+    smacq_opt outputall;
 
     struct smacq_optval optvals[] = {
-      {"r", &refresh},
+      {"a", &outputall},
       {NULL, NULL}
     };
 
@@ -77,7 +81,7 @@ static smacq_result sum_init(struct smacq_init * context) {
 		       &argc, &argv,
 		       options, optvals);
 
-    state->refreshonly = refresh.boolean_t;
+    state->outputall = outputall.boolean_t;
   }
 
   assert(argc==1);
@@ -99,13 +103,22 @@ static smacq_result sum_shutdown(struct state * state) {
 
 
 static smacq_result sum_produce(struct state * state, const dts_object ** datum, int * outchan) {
-  return SMACQ_END;
+  if (state->lastin) {
+        const dts_object * msgdata = smacq_dts_construct(state->env, state->sumtype, &state->total);
+        dts_attach_field(state->lastin, state->sumfield, msgdata); 
+	
+	*datum = state->lastin;
+	state->lastin = NULL;
+  	//fprintf(stderr, "sum last call for %p\n", *datum);
+	return SMACQ_PASS|SMACQ_END;
+  } else {
+  	return SMACQ_FREE|SMACQ_END;
+  }
 }
 
-/* Right now this serves mainly for type checking at compile time: */
 struct smacq_functions smacq_sum_table = {
-  &sum_produce, 
-  &sum_consume,
-  &sum_init,
-  &sum_shutdown
+  produce: &sum_produce, 
+  consume: &sum_consume,
+  init: &sum_init,
+  shutdown: &sum_shutdown
 };
