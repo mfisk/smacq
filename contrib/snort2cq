@@ -134,7 +134,7 @@ while(<>) {
       }
       #&notany("payloadsize $op 'ARG'", $arg);
       #$snortrule .= "dsize:$arg; ";
-    } elsif ($op eq "content") {
+    } elsif ($op eq "content" || $op eq "uricontent") {
       if ($arg =~ /^!/) { next; }
       $parsedcontent = $arg; 
       $parsedcontent =~ s/\|([^|]*)\|/&hex2octalstr($1)/eg;
@@ -171,8 +171,21 @@ while(<>) {
 
   &notany("mask(dstip, 'ARG')", $dstip);
   &notany("mask(srcip, 'ARG')", $srcip);
-  &notany("srcport = 'ARG'", $srcport);
-  &notany("dstport = 'ARG'", $dstport);
+
+  if ($srcport =~ /^(\d+):(\d+)$/) {
+  	&notany("srcport >= '$1'", $srcport);
+  	&notany("srcport <= '$2'", $srcport);
+  } else {
+  	&notany("srcport = 'ARG'", $srcport);
+  }
+
+  if ($dstport =~ /^(\d+):(\d+)$/) {
+  	&notany("dstport >= '$1'", $dstport);
+  	&notany("dstport <= '$2'", $dstport);
+  } else {
+  	&notany("dstport = 'ARG'", $dstport);
+  }
+
   &notany("seq = ARG", $seq);
   &notany("ipid = ARG", $ipid);
   foreach $c (@contents) {
