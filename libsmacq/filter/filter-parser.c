@@ -1304,6 +1304,7 @@ static void print_comp(dts_environment * tenv, dts_comparison * c) {
 		case LEQ: op = "<="; break;
 		case EXIST: op = "exist"; break;
 		case LIKE: op = "like"; break;
+		case FUNC: op = "[FUNC NOT SUPPORTED]"; break;
 	}
 
 	//fprintf(stderr, "Comparison %p: field %d op %s %s, next %p, group %p\n", c, c->field, op, c->valstr, c->next, c->group);
@@ -1334,7 +1335,7 @@ dts_comparison * dts_parse_tests(dts_environment * localtenv, int argc, char ** 
   	strcatn(qstr, size, " ");
   }
   yyfilter_scan_string(qstr);
-  fprintf(stderr, "parsing filter buffer: %s\n", qstr); 
+  //fprintf(stderr, "parsing filter buffer: %s\n", qstr); 
 
   if (yyfilterparse()) {
   	/* Should free the comparisons? */

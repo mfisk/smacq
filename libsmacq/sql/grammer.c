@@ -1676,7 +1676,7 @@ smacq_graph * smacq_build_query(dts_environment * tenv, int argc, char ** argv) 
   pthread_mutex_lock(&local_lock);
 
   yy_scan_string(qstr);
-  fprintf(stderr, "parsing buffer: %s\n", qstr); 
+  //fprintf(stderr, "parsing buffer: %s\n", qstr); 
 
   res = yyparse();
 
