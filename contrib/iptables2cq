@@ -63,8 +63,6 @@ while (($_ = <>)) {
 	} else {
 		print STDERR "Unknown target $target! $_\n";
 	}
-		
-	#print "$target where " . join(' and ', @and) . "\n"; 
 };
 
 if (!$found) {
@@ -79,7 +77,10 @@ if (@DENIES) {
 	if (@ACCEPTS) { print " and "; }
 }
 if (@ACCEPTS) {
-	print " ( " . join(' or ', @ACCEPTS) . " )\n ";
+	print " ( " . join(' or ', @ACCEPTS) . " )";
+}
+if (@ACCEPTS || @DENIES) {
+	print "\n";
 }
 
 sub ProtoNum() {
