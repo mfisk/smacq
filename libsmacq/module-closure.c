@@ -1,9 +1,16 @@
 #include <smacq.h>
 #include <dlfcn.h>
 #include <setjmp.h>
+#include <signal.h> /* Needed on MacOS for ucontext.h */
 #include <ucontext.h>
 
 #define STACK_SIZE 65535
+
+#ifdef __APPLE__
+#define setcontext(a) assert(!"context switching not supported on MacOS")
+#define getcontext(a) assert(!"context switching not supported on MacOS")
+#define makecontext(a...) assert(!"context switching not supported on MacOS")
+#endif
 
 struct state {
   jmp_buf event_stack;
