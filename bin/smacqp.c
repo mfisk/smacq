@@ -19,11 +19,11 @@ int main(int argc, char ** argv) {
   struct filter * objs;
 
   assert(argc > 1);
-
+/*
   if (strcmp(argv[1], "-s") == 0) {
     objs = parse_stmt(argc-1, argv+1);
   }
-  else {
+  else*/ {
     objs = smacq_build_pipeline(argc-1, argv+1);
   }
   return smacq_start(objs, RECURSIVE, NULL);

@@ -81,7 +81,7 @@ void smacq_free_module(struct filter * f) {
   free(f);
 }
 
-int smacq_add_child(struct filter * parent, struct filter * newo) {
+int smacq_add_child_only(struct filter * parent, struct filter * newo) {
     /* Add to dataflow */
 
     if (parent) {
@@ -99,9 +99,17 @@ int smacq_add_child(struct filter * parent, struct filter * newo) {
     return 0;
 }
 
+int smacq_add_child(struct filter * parent, struct filter * child) {
+	int res;
+	res = smacq_add_child_only(parent, child);
+	add_parent(child, parent);
+
+	return res;
+}
+
 struct filter * smacq_add_new_child(struct filter * parent, int argc, char ** argv){
   struct filter * newo = smacq_new_module(argc, argv);
-  smacq_add_child(parent, newo);
+  smacq_add_child_only(parent, newo);
   return newo;
 }
 
@@ -169,6 +177,8 @@ struct filter * smacq_build_pipeline(int argc, char ** argv) {
 struct filter * smacq_build_query(int argc, char ** argv) {
   struct filter * objs = NULL;
   struct filter * last = NULL;
+
+  assert(0 && "Not implemented!");
 
   while(argc > 0) {
     int q_argc = 0, w_argc = 0, f_argc=0;

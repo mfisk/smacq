@@ -191,8 +191,10 @@ EXTERN int smacq_start(struct filter *, enum smacq_scheduler, dts_environment *)
 void smacq_init_modules(struct filter *, smacq_environment *);
 EXTERN struct filter * smacq_build_pipeline(int argc, char ** argv);
 struct filter * smacq_build_query(int argc, char ** argv);
+int smacq_execute_query(int argc, char ** argv);
 struct filter * smacq_add_new_child(struct filter * parent, int argc, char ** argv);
 int smacq_add_child(struct filter * parent, struct filter * newo);
+
 struct filter * smacq_new_module(int argc, char ** argv);
 EXTERN void smacq_free_module(struct filter * f);
 EXTERN void smacq_destroy_graph(struct filter * f);
