@@ -1,5 +1,4 @@
 SUBDIRS=substr patricia
-INCLUDES = @GLOBAL_INCLUDES@ -I$(top_srcdir)/include -I/usr/include/pcap
 noinst_LTLIBRARIES = libsmacq_modules.la libtest_dynamic.la 
 EXTRA_LTLIBRARIES = #libpcaplive.la libreassemble.la libbench_field.la 
 #BUILT_SOURCES = count.cpp
@@ -63,5 +62,5 @@ libsnort.la: $(SNORT_HOME)
 	$(LIBTOOL) $(CCLD) -dynamic -r -L/sw/lib -o $@ $</*.o -lpcap -lm
 
 spp_export_pkt.lo: spp_export_pkt.c spp_export_pkt.h $(SNORT_HOME)
-	$(CC) $(CFLAGS) -DHAVE_CONFIG_H -I$(SNORT_HOME) -I. -g -O2 -Wall -ggdb -c $<
+	$(CC) $(CFLAGS) -DHAVE_CONFIG_H -I$(SNORT_HOME) -c $<
 
