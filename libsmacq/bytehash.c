@@ -281,7 +281,7 @@ void bytes_hash_table_foreach(GHashTableofBytes * ht, GHFunc func, gpointer user
   g_hash_table_foreach(ht->ht, func, user_data);
 }
 
-int bytes_hash_table_remove(GHashTableofBytes * ht, struct bytedata * s) {
+static int bytes_hash_table_remove(GHashTableofBytes * ht, struct bytedata * s) {
   int res;
 
   s->expired = 1;
