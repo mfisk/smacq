@@ -5,6 +5,11 @@
  *
 */
 
+/* 
+ * XXX: Never deletes things from hash table.  Uses horribly inefficient list operations.
+ * Need to use different data structures.
+ */
+
 #include <stdlib.h>
 #include <netdb.h>
 #include <sys/socket.h>
@@ -44,7 +49,6 @@ struct state {
   int hasinterval;
 
   GList * expires;
-  int gc_count;
 
   int timeseries; // Field number
 
@@ -80,10 +84,6 @@ static int timeval_past(struct timeval x, struct timeval y) {
   if (x.tv_sec > y.tv_sec) return 1;
   if ((x.tv_sec == y.tv_sec) && (x.tv_usec > y.tv_usec)) return 1;
   return 0;
-}
-
-static int isexpired(gpointer key, gpointer value, gpointer userdata) {
-	return ((struct srcstat*)value)->expired;
 }
 
 /*
@@ -135,13 +135,11 @@ static smacq_result flowid_consume(struct state * state, const dts_object * datu
 	  state->product = refresh;
 	  status |= SMACQ_PRODUCE;
 	}
-    }
-  }
 
-  // Garbage collect
-  if (! --state->gc_count) {
-  	bytes_hash_table_foreach_remove(state->stats, isexpired, NULL);
-   	state->gc_count = 1000;
+	//bytes_hash_table_removev(state->stats, ...);
+	//free(this);
+	//free(thisel);
+    }
   }
 
   // Find this entry
