@@ -13,6 +13,7 @@
 #include <dts-module.h>
 #include <DtsField.h>
 #include <stack>
+#include <map>
 #include <DynamicArray.h>
 
 static inline char * dts_fieldname_append(const char * old, const char * newf) {
@@ -57,6 +58,14 @@ typedef struct _dts_msg {
   dts_comparison * criteria;
   struct _dts_msg * next;
 } dts_message;
+
+struct ltstr 
+{
+  bool operator()(const char* s1, const char* s2) const
+  {
+    return strcmp(s1, s2) < 0;
+  }
+};
 
 /// DTS is a Dynamic Type System run-time environment.
 /// You probably only want one instance of the DTS
@@ -179,11 +188,22 @@ class DTS {
   DtsObject msg_check(DtsObject o, dts_field_element field);
   ///@}
 
+  ///@name Warnings
+  ///@{
+	/// Don't warn 
+	void set_no_warnings() { warnings = false; }
+
+    /// Get current setting
+    bool warn_missing_fields() { return warnings; }
+  ///@}
+
  private:
-  GHashTable * types_byname;
-  GHashTable * fields_byname; 
   int max_type; 
   int max_field; 
+  bool warnings;
+
+  std::map<const char *, struct dts_type *, ltstr> types_byname;
+  std::map<const char *, int, ltstr> fields_byname;
   DynamicArray<dts_message*> messages_byfield;
   DynamicArray<struct dts_type *> types; 
   DynamicArray<char*> fields_bynum; 
@@ -193,7 +213,6 @@ class DTS {
   
   dts_field_element requirefield_single(char * name);
   
-
   int pickle_getnewtype(int fd, struct sockdatum * hdr, struct pickle * pickle);
   int pickle_addnewtype(char * name, unsigned int extnum, struct pickle * pickle, int fd);
   void print_comp(dts_comparison * c);
@@ -212,9 +231,10 @@ inline char * DTS::typename_bynum(const dts_typeid num) {
 }
 
 inline int DTS::typenum_byname(const char * name) {
-  struct dts_type * t = (dts_type*)g_hash_table_lookup(types_byname, name);
-  if (!t) return -1;
-  return t->num;
+  std::map<const char *, struct dts_type*>::iterator i;
+  i = types_byname.find(name);
+  if (i == types_byname.end()) return -1;
+  return (*i).second->num;
 }
 
 

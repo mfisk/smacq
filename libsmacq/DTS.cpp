@@ -26,21 +26,6 @@ DtsObject DTS::construct(dts_typeid type, void * data) {
 	return dobj;
 }
 
-/*
-int DTS::getfieldoffset(DtsObject datum, int fnum, int * dtype, int * offset, int * len) {
-  struct dts_type * t = type_bynum(datum->gettype());
-  struct dts_field_info * d;
-
-  if (!t) return 0;
-
-  *dtype = t->fields[fnum]->type;
-  *len = type_bynum(d->type)->info.size;
-  *offset = t->fields[fnum]->offset;
-
-  return 1;
-}
-*/
-
 char * DTS::field_getname(DtsField &f) {
   char * name;
 
@@ -73,13 +58,13 @@ char * DTS::field_getname(DtsField &f) {
 }
 
 dts_field_element DTS::requirefield_single(char * name) {
-  int t = (int)g_hash_table_lookup(fields_byname, name);
-  if (t) {
-    return t;
+  std::map<const char*, int>::iterator i = fields_byname.find(name); 
+  if (i != fields_byname.end()) {
+	return ((*i).second);
   } else {
-    ++max_field;
-    g_hash_table_insert(fields_byname, strdup(name), (void*)max_field);
-    fields_bynum[max_field] = strdup(name);
+	name = strdup(name);
+	fields_byname[name] = ++max_field;
+    fields_bynum[max_field] = name;
     return max_field;
   }
 }
@@ -147,11 +132,10 @@ static int dts_load_module(struct dts_type * t) {
 }
 
 dts_typeid DTS::requiretype(const char * name) {
-  struct dts_type * t;
+  struct dts_type *& t = types_byname[name];
+  if (t) return t->num;
 
-  t = (struct dts_type*)g_hash_table_lookup(types_byname, name);
-  if (t)  return(t->num);
-
+  // Else:
   t = new dts_type;
   //darray_init(&t->fields, max_field);
   t->name=strdup(name);
@@ -164,9 +148,8 @@ dts_typeid DTS::requiretype(const char * name) {
 
   t->num = ++max_type;
   
-  g_hash_table_insert(types_byname, t->name, t);
-  //fprintf(stderr, "added type %s as %d, up from %d\n", t->name, t->num, max_type);
   types[t->num] = t;
+  //fprintf(stderr, "added type %s as %d, up from %d\n", t->name, t->num, max_type);
 
   if (t->description) {
     int offset = 0;
@@ -202,18 +185,12 @@ dts_typeid DTS::requiretype(const char * name) {
 }
 
 int DTS::dts_lt(int type, void * p1, int len1, void * p2, int len2) {
-  struct dts_type * t = (struct dts_type*)types[type];
+  struct dts_type * t = types[type];
   assert(t->info.lt);
   return t->info.lt(p1, len1, p2, len2);
 }
 
-DTS::DTS() : max_type(0), max_field(0) {
-  //darray_init(&messages_byfield, max_field);
-  //darray_init(&types, max_type);
-  //darray_init(&fields_bynum, max_field);
-
-  types_byname = g_hash_table_new(g_str_hash, g_str_equal);
-  fields_byname = g_hash_table_new(g_str_hash, g_str_equal);
+DTS::DTS() : max_type(0), max_field(0), warnings(true) {
 }
 
 DtsObject DTS::construct_fromstring(dts_typeid type, char * data) {
