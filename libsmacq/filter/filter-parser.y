@@ -105,7 +105,7 @@ static void print_comp(dts_environment * tenv, dts_comparison * c) {
 		case LIKE: op = "like"; break;
 	}
 
-	fprintf(stderr, "Comparison %p: field %d op %s %s, next %p, group %p\n", c, c->field, op, c->valstr, c->next, c->group);
+	//fprintf(stderr, "Comparison %p: field %d op %s %s, next %p, group %p\n", c, c->field, op, c->valstr, c->next, c->group);
 	print_comp(tenv, c->group);
 	print_comp(tenv, c->next);
 
@@ -132,7 +132,7 @@ dts_comparison * dts_parse_tests(dts_environment * localtenv, int argc, char ** 
   	strcat(qstr, " ");
   }
   yyfilter_scan_string(qstr);
-  fprintf(stderr, "parsing filter buffer: %s\n", qstr); 
+  //fprintf(stderr, "parsing filter buffer: %s\n", qstr); 
 
   if (yyfilterparse()) {
   	/* Should free the comparisons? */
