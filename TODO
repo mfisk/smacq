@@ -1,8 +1,36 @@
-modules/intervals.c:
+Looking for volunteers:
+	- Regex parsing for tabularinput
+	- Make all vectorizing occur through a module callback that
+		accepts or rejects an additional set of arguments
+	- Module to read, write, increment DB3 files
+	- Add -w flag to en/disable warnings about non-existent fields
+
+Loose ends:
+
+  OR:
+	We currently use the lor module for all boolean or operations, even if the
+	tests are simple and the OR could be done within the filter module.
+	
+  Resolve:
+	Join needs where information to determine type of join
+	Pcaplive and Disarm modules could take advantage of where information
+
+	Should modules volunteer to take care of where info (and then delegate if necessary)?
+
+	How do you specify different types of joins?  Word at end of join list?
+
+  getfield:
+	objects need the ability to depend on each other for payload.
+	Consider getfield(tcp.port).  tcp is intermediate field and will be freed.
+	If it owns the payload that port points to, then the returned object will point to freed
+	memory.
+
+
+  modules/intervals.c:
 	BUG: Doesn't do well when fields change in size and type.
 	Fix: Need to save field vectors rather than bytearray
 
-Scheduler:
+  Scheduler:
 	"pcapfile \| head 100 \| intervals"  doesn't result in the produce or shutdown calls to intervals being called.
 	What is head returning, or what is the scheduler doing wrong?
 

@@ -1,0 +1,125 @@
+#include <stdlib.h>
+#include <netdb.h>
+#include <sys/socket.h>
+#include <signal.h>
+#include <time.h>
+#include <string.h>
+#include <math.h>
+#include <assert.h>
+#include <smacq.h>
+#include <fields.h>
+#include "bytehash.h"
+
+static struct smacq_options options[] = {
+  {"a", {boolean_t:0}, "Output sum only on refresh", SMACQ_OPT_TYPE_BOOLEAN},
+  {NULL, {string_t:NULL}, NULL, 0}
+};
+
+struct state {
+  smacq_environment * env;
+  struct fieldset fieldset;
+  struct iovec_hash *counters;
+
+  double total;
+  dts_field xfield;
+  char * xfieldname;
+
+  int sumtype;
+  dts_field sumfield;
+  int refreshtype;
+  
+  int outputall;
+  const dts_object * lastin;
+}; 
+ 
+static smacq_result sum_consume(struct state * state, const dts_object * datum, int * outchan) {
+  const dts_object * newx;
+  dts_object * msgdata;
+  
+  if (dts_gettype(datum) != state->refreshtype) {
+    if (! (newx = smacq_getfield(state->env, datum, state->xfield, NULL))) {
+      fprintf(stderr, "sum: no %s field\n", state->xfieldname);
+      return SMACQ_PASS;
+    }
+    
+    // assert(newx.type == state->doubletype);
+
+    state->total += dts_data_as(newx, double);
+    dts_decref(newx);
+  }
+
+  if (state->outputall || (dts_gettype(datum) == state->refreshtype)) {
+    msgdata = smacq_dts_construct(state->env, state->sumtype, &state->total);
+    dts_attach_field(datum, state->sumfield, msgdata); 
+	
+    return SMACQ_PASS;
+  } else {
+    if (state->lastin) dts_decref(state->lastin);
+    state->lastin = datum;
+    dts_incref(state->lastin, 1);
+
+    return SMACQ_FREE;
+  }
+    
+}
+
+static smacq_result sum_init(struct smacq_init * context) {
+  int argc = 0;
+  char ** argv;
+  struct state * state = context->state = g_new0(struct state, 1);
+  state->env = context->env;
+
+  {
+    smacq_opt outputall;
+
+    struct smacq_optval optvals[] = {
+      {"a", &outputall},
+      {NULL, NULL}
+    };
+
+    smacq_getoptsbyname(context->argc-1, context->argv+1,
+		       &argc, &argv,
+		       options, optvals);
+
+    state->outputall = outputall.boolean_t;
+  }
+
+  assert(argc==1);
+
+  state->refreshtype = smacq_requiretype(state->env, "refresh");
+  state->sumtype = smacq_requiretype(state->env, "double");
+  state->sumfield = smacq_requirefield(state->env, "sum");
+  
+  state->xfieldname = dts_fieldname_append(argv[0], "double");
+  state->xfield = smacq_requirefield(state->env, state->xfieldname);
+
+  return 0;
+}
+
+static smacq_result sum_shutdown(struct state * state) {
+  free(state);
+  return 0;
+}
+
+
+static smacq_result sum_produce(struct state * state, const dts_object ** datum, int * outchan) {
+  if (state->lastin) {
+        const dts_object * msgdata = smacq_dts_construct(state->env, state->sumtype, &state->total);
+        dts_attach_field(state->lastin, state->sumfield, msgdata); 
+	
+	*datum = state->lastin;
+	state->lastin = NULL;
+  	//fprintf(stderr, "sum last call for %p\n", *datum);
+	return SMACQ_PASS|SMACQ_END;
+  } else {
+  	return SMACQ_FREE|SMACQ_END;
+  }
+}
+
+struct smacq_functions smacq_sum_table = {
+  produce: &sum_produce, 
+  consume: &sum_consume,
+  init: &sum_init,
+  shutdown: &sum_shutdown,
+  algebra: { nesting: 1},
+};

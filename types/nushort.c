@@ -5,26 +5,24 @@
 #include <stdlib.h>
 #include "smacq.h"
 
-static int flowtype_nushort_get_string(void * data, int dlen, void ** transform, int * tlen) {
-  char buf[64]; // Only has to hold log10(2**32)
-
-  assert(dlen==sizeof(unsigned short));
-
-  snprintf(buf, 64, "%hu", ntohs(*(unsigned short*)data));
-  *transform = strdup(buf);
-  *tlen = strlen(data);
-
+static int smacqtype_nushort_get_string(const dts_object * obj, dts_object * field) {
+  dts_setsize(field, 64); // Only has to hold log10(2**32)
+  snprintf(field->data, 64, "%hu", ntohs(dts_data_as(obj, unsigned short)));
   return 1;
 }
 
-static int parse_nushort(char * buf, void ** resp, int * reslen) {
-  ushort * us = g_new(ushort, 1);
-  *us = htons(atol(buf));
+static int smacqtype_nushort_get_uint32(const dts_object * o, dts_object * field) {
+	dts_set(field, uint, ntohs(dts_data_as(o, ushort)));
+	return 1;
+}
 
-  *resp = us;
-  *reslen = sizeof(unsigned short);
+static int smacqtype_nushort_get_double(const dts_object * o, dts_object * field) {
+	dts_set(field, double, ntohs(dts_data_as(o, ushort)));
+	return 1;
+}
 
-  return 1;
+static int parse_nushort(char * buf,  const dts_object * d) {
+  return dts_set(d, ushort, htons(atol(buf)));
 }
 
 int nushort_lt(void * num1, int size1, void * num2, int size2) {
@@ -38,9 +36,11 @@ int nushort_lt(void * num1, int size1, void * num2, int size2) {
 
 	return(a < b);
 }
-      
-struct dts_transform_descriptor dts_type_nushort_transforms[] = {
-	{ "string",   flowtype_nushort_get_string },
+
+struct dts_field_spec dts_type_nushort_fields[] = {
+	{ "string",   "string",	smacqtype_nushort_get_string },
+	{ "uint32",   "uint32",	smacqtype_nushort_get_uint32 },
+	{ "double",   "double",	smacqtype_nushort_get_double },
         { END,        NULL }
 };
 

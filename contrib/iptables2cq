@@ -1,0 +1,95 @@
+#!/usr/bin/perl
+
+$ANY = "0.0.0.0/0";
+$found = 0;
+
+while (($_ = <>)) {
+	$found = 1;
+	@and = ();
+
+	$_ =~ s|^\s+||g;
+	if ($_ =~ /^Chain /) { next; }
+	if ($_ =~ /^pkts bytes/) { next; }
+	if ($_ =~ /^\s*$/) { next; }
+
+	chomp;
+	($pkts, $bytes, $target, $prot, $opt, $in, $out, $source, $destination, $misc) = split(/\s+/, $_, 10);
+
+	if ($source eq $ANY) { $source = ""; }
+	else { push(@and, "mask(srcip, $source)"); }
+
+	if ($destination eq $ANY) { $destination = ""; }
+	else { push(@and, "mask(dstip, $destination)"); }
+
+	if ($prot eq "all") { $prot = ""; }
+	else { 
+		push(@and, "ipprotocol = " . &ProtoNum($prot)); 
+	}
+
+	if ($misc) {
+		if ($misc =~ /(..p) (d|s)pt:(\!?)(\d+)/) {
+			($mproto, $mdir, $mnot, $mport) = ($1, $2, $3, $4);
+			if ( $mdir eq "d" ) { $mdir = "dst"; }
+			elsif ($mdir eq "s" ) { $mdir = "src"; }
+
+			push(@and, "${mdir}port $mnot= $mport");
+		} elsif ($misc =~ /(..p) (d|s)pts:(\d+):(\d+)/) {
+			($mproto, $mdir, $mmin, $mmax) = ($1, $2, $3, $4);
+
+			if ( $mdir eq "d" ) { $mdir = "dst"; }
+			elsif ($mdir eq "s" ) { $mdir = "src"; }
+
+			push (@and, "ipprotocol >= $mmin"); 
+			push (@and, "ipprotocol <= $mmax"); 
+		} elsif ($misc =~ /MAC ([0-9a-fA-F:]+)/) {
+			push(@and, "(srcmac = $1 or dstmac = $1)");
+		} else {
+			print STDERR "Unknown criteria $misc!\n";
+			next;
+		}
+	}
+	if ($in eq "*") { $in = ""; }
+	if ($out eq "*") { $out = ""; }
+
+	if (! @and) {
+		print STDERR "Empty rule! $_\n";
+		next;
+	}
+
+	if ($target eq "ACCEPT") {
+		push(@ACCEPTS, "( " . join(' and ', @and) . " )");
+	} elsif ($target eq "DROP") {
+		push(@DENIES,  "( " . join(' and ', @and) . " )");
+	} else {
+		print STDERR "Unknown target $target! $_\n";
+	}
+};
+
+if (!$found) {
+	print STDERR "Usage: $0\n";
+	print STDERR "\tInput 'iptables -nvL INPUT' output on STDIN\n";
+	print STDERR "\tThe SMACQ equivalent will be output.\n";
+	exit -1;
+}
+
+if (@DENIES) {
+	print "not ( " . join(' or ', @DENIES) . " )";
+	if (@ACCEPTS) { print " and "; }
+}
+if (@ACCEPTS) {
+	print " ( " . join(' or ', @ACCEPTS) . " )";
+}
+if (@ACCEPTS || @DENIES) {
+	print "\n";
+}
+
+sub ProtoNum() {
+	local($val) = @_;
+	if ($val =~ /^\d+$/) {
+		return $val; #Already a number
+	} else {
+		@_ = getprotobyname($val);
+		return $_[2];
+	}
+}
+

@@ -1,0 +1,15 @@
+#!/bin/sh
+
+if [ "$#" != "0" ]; then
+	exec "$DIR/smacqq" "$@"
+	exit -1
+fi
+
+DIR=`echo "$0" | sed 's/[^/]*$//'`
+clear
+while true; do
+	echo "============================================================================"
+	echo "Enter a new SMACQ query:"
+	read -r -e
+	echo "$REPLY" | "$DIR/smacqq" -m
+done

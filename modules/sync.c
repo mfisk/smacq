@@ -3,7 +3,7 @@
 #include <math.h>
 #include <assert.h>
 #include <smacq.h>
-#include <flow-internal.h>
+#include <smacq.h>
 #include <fields.h>
 #include <bytehash.h>
 
@@ -20,14 +20,14 @@ static struct smacq_options options[] = {
 struct state {
   smacq_environment * env;
   const dts_object * product;
-  void * runq;
-  struct filter * graph;
+  struct runq * runq;
+  smacq_graph * graph;
   int done; 
   int isfirst;
 }; 
 
 static smacq_result sync_consume(struct state * state, const dts_object * datum, int * outchan) {
- int more = flow_sched_iterative(state->graph, datum, &state->product, 
+ int more = smacq_sched_iterative(state->graph, datum, &state->product, 
 			     &state->runq, state->isfirst);
 
  more = (more ? 0 : SMACQ_END);
@@ -44,7 +44,7 @@ static smacq_result sync_consume(struct state * state, const dts_object * datum,
   return SMACQ_PASS;
 }
 
-static int sync_init(struct flow_init * context) {
+static smacq_result sync_init(struct smacq_init * context) {
   int argc = 0;
   int i;
   char ** argv;
@@ -56,7 +56,7 @@ static int sync_init(struct flow_init * context) {
   	struct smacq_optval optvals[] = {
     		{NULL, NULL}
   	};
-  	flow_getoptsbyname(context->argc-1, context->argv+1,
+  	smacq_getoptsbyname(context->argc-1, context->argv+1,
 			       &argc, &argv,
 			       options, optvals);
 
@@ -69,12 +69,12 @@ static int sync_init(struct flow_init * context) {
   }
 
   state->graph = smacq_build_pipeline(argc, argv);
-  flow_start(state->graph, ITERATIVE, state->env->types);
+  smacq_start(state->graph, ITERATIVE, state->env->types);
   
   return 0;
 }
 
-static int sync_shutdown(struct state * state) {
+static smacq_result sync_shutdown(struct state * state) {
   return SMACQ_END;
 }
 

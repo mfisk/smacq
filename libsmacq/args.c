@@ -1,7 +1,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
+#include <string.h>
 #include <smacq_args.h>
 
 struct smacq_options * get_optstruct_byname(struct smacq_options * opts, char * name) {
@@ -42,7 +42,7 @@ void set_opts_to_default(struct smacq_options * smacq_options,
 	}
 }
 
-int flow_getoptsbyname( int argc, char ** argv,
+int smacq_getoptsbyname( int argc, char ** argv,
 			int * argc_left, char *** argv_left,
 			struct smacq_options * options, 
 			struct smacq_optval * optvals) {

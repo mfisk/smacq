@@ -3,30 +3,30 @@
 #include <string.h>
 #include "smacq.h"
 
-static int flowtype_ushort_get_string(void * data, int dlen, void ** transform, int * tlen) {
-  char buf[64]; // Only has to hold log10(2**32)
-
-  assert(dlen==sizeof(unsigned short));
-
-  snprintf(buf, 64, "%hu", *(unsigned short*)data);
-  *transform = strdup(buf);
-  *tlen = strlen(data);
-
+static int smacqtype_ushort_get_uint32(const dts_object * o, dts_object * field) {
+  dts_set(field, unsigned int, dts_data_as(o, ushort));
   return 1;
 }
 
-static int parse_ushort(char * buf, void ** resp, int * reslen) {
-  ushort * us = g_new(ushort, 1);
-  *us = atol(buf);
-
-  *resp = us;
-  *reslen = sizeof(unsigned short);
-
+static int smacqtype_ushort_get_double(const dts_object * o, dts_object * field) {
+  dts_set(field, double, dts_data_as(o, ushort));
   return 1;
 }
 
-struct dts_transform_descriptor dts_type_ushort_transforms[] = {
-  { "string",   flowtype_ushort_get_string },
+static int smacqtype_ushort_get_string(const dts_object * o, dts_object * field) {
+  dts_setsize(field, 64); // Only has to hold log10(2**32)
+  snprintf(field->data, 64, "%hu", dts_data_as(o, unsigned short));
+  return 1;
+}
+
+static int parse_ushort(char * buf,  const dts_object * d) {
+  return dts_set(d, ushort, atol(buf));
+}
+
+struct dts_field_spec dts_type_ushort_fields[] = {
+  { "string",   "string",	smacqtype_ushort_get_string },
+  { "uint32",   "uint32",	smacqtype_ushort_get_uint32 },
+  { "double",   "double",	smacqtype_ushort_get_double },
   { END,        NULL }
 };
 

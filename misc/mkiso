@@ -1,0 +1,50 @@
+#!/bin/sh  -e
+
+DSTDIR="$TOPSRCDIR/build/iso/"
+REPOSITORY=:pserver:anonymous@cvs.sourceforge.net:/cvsroot/smacq
+
+rm -Rf "$DSTDIR"
+mkdir -p "$DSTDIR/doc/"
+mkdir -p "$DSTDIR/.bin"
+
+cd $TOPSRCDIR
+
+Get_CVS() {
+	echo "$REPOSITORY A" > /tmp/cvs.$$
+	(cd "$DSTDIR"; CVS_PASSFILE=/tmp/cvs.$$ cvs -q -d $REPOSITORY co -P smacq; mv smacq src)
+	rm /tmp/cvs.$$
+}
+
+MacApp() {
+	cp -rpf misc/SMACQ.app "$DSTDIR/" #For MacOS
+	mkdir -p "$DSTDIR/SMACQ.app/Contents/Resources/.bin/Darwin-Power-Macintosh/"
+	(cd "$DSTDIR" && ln .bin/Darwin-Power-Macintosh/* "SMACQ.app/Contents/Resources/.bin/Darwin-Power-Macintosh/")
+	(cd "$DSTDIR" && ln smacqq "SMACQ.app/Contents/Resources/smacqq")
+}
+
+
+	cp misc/smacq.ico misc/autorun.inf "$DSTDIR"
+	cp doc/*.txt doc/*.pdf "$DSTDIR/doc/" 
+	platforms=`cd build; echo *-*`
+
+	for p in $platforms; do
+		mkdir -p "$DSTDIR/.bin/$p/"
+		cp "build/$p/bin/smacqq" "$DSTDIR/.bin/$p/"
+		cp `misc/deplibs build/$p/bin/smacqq` "$DSTDIR/.bin/$p/"
+		cp "build/$p/"smacq*.tar.* "$DSTDIR/"
+		#cp "build/$p/doc/"*.txt "build/$p/doc/"*.pdf "$DSTDIR/doc/" || true
+	done	
+	
+	cp misc/reloc "$DSTDIR/.bin"
+	(cd "$DSTDIR"; ln -f .bin/reloc smacqq)
+
+	#Get_CVS
+	MacApp
+
+	if [ `uname -s` != Darwin ]; then
+		ISO_OPTIONS="--osx-double"
+	fi
+
+	# -hidden removes from Unix and requires /A on DOS, but shows on MacOS
+	# -hide-joliet only hides from DOS/MacOSX
+	mkisofs -hfs -hide-joliet '.*' -hide-hfs autorun.inf -hidden 'autorun.inf' -hide-hfs '*.ico'  -hide-joliet SMACQ.app -hide SMACQ.app -hidden '*.ico' -V SMACQ -hfs-volid "SMACQ for Mac" $ISO_OPTIONS -R "$DSTDIR" > smacq.iso

@@ -2,9 +2,49 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <smacq.h>
+#include <sys/types.h>
+#ifndef linux 
+#include <netinet/in_systm.h>
+struct tcphdr
+  {
+    u_int16_t source;
+    u_int16_t dest;
+    u_int32_t seq;
+    u_int32_t ack_seq;
+#  if __BYTE_ORDER == __LITTLE_ENDIAN
+    u_int16_t res1:4;
+    u_int16_t doff:4;
+    u_int16_t fin:1;
+    u_int16_t syn:1;
+    u_int16_t rst:1;
+    u_int16_t psh:1;
+    u_int16_t ack:1;
+    u_int16_t urg:1;
+    u_int16_t res2:2;
+#  elif __BYTE_ORDER == __BIG_ENDIAN
+    u_int16_t doff:4;
+    u_int16_t res1:4;
+    u_int16_t res2:2;
+    u_int16_t urg:1;
+    u_int16_t ack:1;
+    u_int16_t psh:1;
+    u_int16_t rst:1;
+    u_int16_t syn:1;
+    u_int16_t fin:1;
+#  else
+#   error "Adjust your <bits/endian.h> defines"
+#  endif
+    u_int16_t window;
+    u_int16_t check;
+    u_int16_t urg_ptr;
+};
+#endif
+#include <netinet/in.h>
 #include <netinet/ip.h>
+#ifdef linux
 #include <netinet/tcp.h>
-#include <netinet/ether.h>
+#endif
+#include <net/ethernet.h>
 #include <dts_packet.h>
 
 static struct smacq_options options[] = {
@@ -22,18 +62,18 @@ static inline int min(int a, int b) {
 
 static smacq_result warden_consume(struct state * state, const dts_object * datum, int * outchan) {
   struct dts_pkthdr * pkthdr;
-  struct ethhdr * ethhdr;
-  struct iphdr * iphdr;
+  struct ether_header * ethhdr;
+  struct ip * iphdr;
   struct tcphdr * tcphdr;
 
  state->datum = dts_writable(state->env, datum);
  pkthdr = (struct dts_pkthdr*)state->datum->data;
- ethhdr = (struct ethhdr*)(pkthdr+1);
- if (ethhdr->h_proto != htons(ETH_P_IP)) return SMACQ_PASS; // Not IP
- else iphdr = (struct iphdr *)(ethhdr+1);
+ ethhdr = (struct ether_header*)(pkthdr+1);
+ if (ethhdr->ether_type != htons(ETHERTYPE_IP)) return SMACQ_PASS; // Not IP
+ else iphdr = (struct ip *)(ethhdr+1);
 
- if (iphdr->protocol != 6) return SMACQ_PASS;
- else tcphdr = (struct tcphdr *)((char *)iphdr + (iphdr->ihl<<2));
+ if (iphdr->ip_p != 6) return SMACQ_PASS;
+ else tcphdr = (struct tcphdr *)((char *)iphdr + (iphdr->ip_hl<<2));
  
  // Urgent ptr without urgent bit
  if (tcphdr->urg) {
@@ -47,22 +87,22 @@ static smacq_result warden_consume(struct state * state, const dts_object * datu
  // RST implies no TCP payload
  if (tcphdr->rst) {
    // Make sure IP payload size = TCP header only
-   iphdr->tot_len = htons((iphdr->ihl<<2) + (tcphdr->doff << 2));
+   iphdr->ip_len = htons((iphdr->ip_hl<<2) + (tcphdr->doff << 2));
  }
 
  // Urgent pointer must be within TCP payload
- if (tcphdr->urg_ptr > (ntohs(iphdr->tot_len) - (tcphdr->doff<<2))) {
+ if (tcphdr->urg_ptr > (ntohs(iphdr->ip_len) - (tcphdr->doff<<2))) {
    tcphdr->urg_ptr = 0;
    tcphdr->urg = 0;
 }
 
  // Remove covert trailers in the payload
- pkthdr->pcap_pkthdr.caplen = pkthdr->pcap_pkthdr.len = ntohs(iphdr->tot_len) + sizeof(struct ethhdr);
+ pkthdr->pcap_pkthdr.caplen = pkthdr->pcap_pkthdr.len = ntohs(iphdr->ip_len) + sizeof(struct ether_header);
 
  return SMACQ_FREE|SMACQ_PRODUCE;
 }
 
-static int warden_init(struct flow_init * context) {
+static smacq_result warden_init(struct smacq_init * context) {
   int argc = 0;
   char ** argv;
   struct state * state = context->state = g_new0(struct state, 1);
@@ -72,7 +112,7 @@ static int warden_init(struct flow_init * context) {
     struct smacq_optval optvals[] = {
       {NULL, NULL}
     };
-    flow_getoptsbyname(context->argc-1, context->argv+1,
+    smacq_getoptsbyname(context->argc-1, context->argv+1,
 		       &argc, &argv,
 		       options, optvals);
     
@@ -82,7 +122,7 @@ static int warden_init(struct flow_init * context) {
   return 0;
 }
 
-static int warden_shutdown(struct state * state) {
+static smacq_result warden_shutdown(struct state * state) {
   return SMACQ_END;
 }
 

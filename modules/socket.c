@@ -1,11 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
-#include <netinet/if_ether.h>
 #include <zlib.h>
-#include "smacq.h"
-#include "dts_packet.h"
-
+#include <smacq.h>
 #include <unistd.h>
 #include <string.h>
 #include <sys/types.h>
@@ -65,7 +62,7 @@ static smacq_result socket_produce(struct state * state, const dts_object ** dat
   struct sockaddr_in their_addr;
   int i, new_fd, temp;
   int sin_size;
-  int num_ready_fds, picked_fd;
+  int num_ready_fds, picked_fd = 0;
   fd_set tempset;  
 
   sin_size = sizeof(struct sockaddr_in);
@@ -127,7 +124,7 @@ static smacq_result socket_consume(struct state * state, const dts_object * datu
   return SMACQ_FREE;
 }
 
-static int socket_shutdown(struct state * state) {
+static smacq_result socket_shutdown(struct state * state) {
   int i;
 
   for (i = 0; i <= state->max_fd; i++) {
@@ -204,7 +201,7 @@ static void client_init(struct state * state, int port, char * hostname) {
   *state->client_type_array = 0; 
 }
 
-static int socket_init(struct flow_init * context) {
+static smacq_result socket_init(struct smacq_init * context) {
   struct state * state;
   smacq_opt port, hostname, serverd;
   context->state = state = (struct state*) calloc(sizeof(struct state),1);
@@ -220,7 +217,7 @@ static int socket_init(struct flow_init * context) {
     };
     
     //XXX: for some reason the following nulls state 	
-    flow_getoptsbyname(context->argc-1, context->argv+1,
+    smacq_getoptsbyname(context->argc-1, context->argv+1,
 				 NULL, NULL,
 				 options, optvals);
     //fprintf(stderr,"state: %p", state);

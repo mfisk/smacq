@@ -7,7 +7,6 @@
 #include <math.h>
 #include <assert.h>
 #include <smacq.h>
-#include <dts_packet.h>
 #include <fields.h>
 #include "bytehash.h"
 
@@ -29,16 +28,17 @@ struct obj_list{
 struct state {
   smacq_environment * env;
   struct fieldset fieldset;
-  GHashTableofBytes *last;
+  struct iovec_hash *last;
   
   struct obj_list * outputq, *list;
 
-  int refreshtype, probtype, probfield, countfield;
+  int refreshtype, probtype;
+  dts_field probfield, countfield;
   unsigned long long total;
 }; 
 
 static void compute_all(struct state * state) {
-  dts_object count; 
+  const dts_object * count; 
   dts_object * pfield; 
   struct obj_list * n;
   double p;
@@ -47,24 +47,24 @@ static void compute_all(struct state * state) {
   state->list = NULL;
 
   for (n = state->outputq; n; n = n->next) {
-  	if (!flow_getfield(state->env, n->obj, state->countfield, &count)) {
+  	if (! (count = smacq_getfield(state->env, n->obj, state->countfield, NULL))) {
 		assert(0);
 	}
-	p = (double)(*(int*)(count.data)) / (double)(state->total);
+	p = (double)(dts_data_as(count, int)) / (double)(state->total);
 	//fprintf(stderr, "%d / %lld = %g\n", *(int*)(count.data), state->total, p);
-	pfield = flow_dts_construct(state->env, state->probtype, &p);
-	dts_incref(pfield, 1);
+	pfield = smacq_dts_construct(state->env, state->probtype, &p);
 	dts_attach_field(n->obj, state->probfield, pfield); 
+	dts_decref(count);
   }
 
   state->total = 0;
 }
   
 static smacq_result pdf_consume(struct state * state, const dts_object * datum, int * outchan) {
-  dts_object count; 
+  const dts_object * count; 
   smacq_result res = SMACQ_FREE;
 
-  if (!flow_getfield(state->env, datum, state->countfield, &count)) {
+  if (! (count = smacq_getfield(state->env, datum, state->countfield, NULL))) {
       if (dts_gettype(datum) == state->refreshtype) {
           compute_all(state);
 	  res = SMACQ_PASS;
@@ -80,7 +80,8 @@ static smacq_result pdf_consume(struct state * state, const dts_object * datum, 
 
 	dts_incref(datum, 1);
 
-  	state->total += (*(int*)(count.data));
+  	state->total += dts_data_as(count, int);
+	dts_decref(count);
   }
 
   if (state->outputq) res |= SMACQ_PRODUCE;
@@ -88,7 +89,7 @@ static smacq_result pdf_consume(struct state * state, const dts_object * datum, 
   return(res);
 }
 
-static int pdf_init(struct flow_init * context) {
+static smacq_result pdf_init(struct smacq_init * context) {
   int argc = 0;
   char ** argv;
   struct state * state = context->state = g_new0(struct state, 1);
@@ -98,21 +99,21 @@ static int pdf_init(struct flow_init * context) {
   	struct smacq_optval optvals[] = {
     		{NULL, NULL}
   	};
-  	flow_getoptsbyname(context->argc-1, context->argv+1,
+  	smacq_getoptsbyname(context->argc-1, context->argv+1,
 			       &argc, &argv,
 			       options, optvals);
 
   }
 
-  state->countfield = flow_requirefield(state->env, "count");
-  state->probfield = flow_requirefield(state->env, "probability");
-  state->probtype = flow_requiretype(state->env, "double");
-  state->refreshtype = flow_requiretype(state->env, "refresh");
+  state->countfield = smacq_requirefield(state->env, "count");
+  state->probfield = smacq_requirefield(state->env, "probability");
+  state->probtype = smacq_requiretype(state->env, "double");
+  state->refreshtype = smacq_requiretype(state->env, "refresh");
 
   return 0;
 }
 
-static int pdf_shutdown(struct state * state) {
+static smacq_result pdf_shutdown(struct state * state) {
   return 0;
 }
 

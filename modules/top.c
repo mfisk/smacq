@@ -11,7 +11,6 @@
 #include <math.h>
 #include <assert.h>
 #include <smacq.h>
-#include <dts_packet.h>
 #include <fields.h>
 #include <bloom.h>
 #include "bytehash.h"
@@ -25,9 +24,9 @@
 struct state {
   smacq_environment * env;
   struct fieldset fieldset;
-  GHashTableofBytes *drset;
+  struct iovec_hash *drset;
   struct bloom_summary *summary;
-  double prob; // Use probabilistic algorithms?
+  double prob; // Use probabilistic algebraorithms?
   int threshold;
 
   // Non-probabilisitic only:
@@ -37,7 +36,7 @@ struct state {
   int do_count;
   int do_filter;
 
-  int count_field;
+  dts_field count_field;
   int int_type;
 };
 
@@ -75,7 +74,7 @@ static smacq_result top_consume(struct state * state, const dts_object * datum, 
   val++;
 
   if (state->do_count) {
-    dts_object * msgdata = flow_dts_construct(state->env, state->int_type, &val);
+    dts_object * msgdata = smacq_dts_construct(state->env, state->int_type, &val);
     dts_attach_field(datum, state->count_field, msgdata);   
   }
 
@@ -96,7 +95,7 @@ static smacq_result top_consume(struct state * state, const dts_object * datum, 
   }
 }
 
-static int top_init(struct flow_init * context) {
+static smacq_result top_init(struct smacq_init * context) {
   int argc;
   char ** argv;
   smacq_opt pcount;
@@ -112,7 +111,7 @@ static int top_init(struct flow_init * context) {
 		{ "f", &pcount},
     		{NULL, NULL}
   	};
-  	flow_getoptsbyname(context->argc-1, context->argv+1,
+  	smacq_getoptsbyname(context->argc-1, context->argv+1,
 			       &argc, &argv,
 			       options, optvals);
 
@@ -124,7 +123,7 @@ static int top_init(struct flow_init * context) {
   fields_init(state->env, &state->fieldset, argc, argv);
 
   if (!state->prob) {
-    state->drset = bytes_hash_table_new(KEYBYTES, chain);
+    state->drset = bytes_hash_table_new(KEYBYTES, CHAIN|NOFREE);
   } else {
     state->summary = bloom_counter_init(KEYBYTES, state->prob/4 * 1024 * 1024);
   }
@@ -132,8 +131,8 @@ static int top_init(struct flow_init * context) {
   state->do_filter = (state->threshold == 0);
 
   if (strcmp(pcount.string_t,  "")) {
-    state->count_field = flow_requirefield(state->env, pcount.string_t);
-    state->int_type = flow_requiretype(state->env, "int");
+    state->count_field = smacq_requirefield(state->env, pcount.string_t);
+    state->int_type = smacq_requiretype(state->env, "int");
     state->do_count = 1;
   } else {
     state->do_count = 0;
@@ -142,7 +141,7 @@ static int top_init(struct flow_init * context) {
   return 0;
 }
 
-static int top_shutdown(struct state * state) {
+static smacq_result top_shutdown(struct state * state) {
   return 0;
 }
 

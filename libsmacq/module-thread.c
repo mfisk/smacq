@@ -1,4 +1,6 @@
 #include <smacq.h>
+
+#ifndef SMACQ_OPT_NOPTHREADS
 #include <semaphore.h>
 #include <dlfcn.h>
 
@@ -20,7 +22,7 @@ struct dts_list {
   struct dts_list * next;
 };
 
-const dts_object * smacq_read(struct flow_init * context) {
+const dts_object * smacq_read(struct smacq_init * context) {
   struct state * state = context->state;
   // fprintf(stderr, "thread: smacq_read blocking for new data\n");
   sem_wait(&state->newdata);
@@ -28,7 +30,7 @@ const dts_object * smacq_read(struct flow_init * context) {
   return state->datum;
 }
 
-void  smacq_flush(struct flow_init * context) {
+void  smacq_flush(struct smacq_init * context) {
   struct state * state = context->state;
   int empty;
   pthread_mutex_lock(&state->produce_lock);
@@ -43,7 +45,7 @@ void  smacq_flush(struct flow_init * context) {
   return;
 }
 
-void smacq_decision(struct flow_init * context, const dts_object * datum, smacq_result result) {
+void smacq_decision(struct smacq_init * context, const dts_object * datum, smacq_result result) {
   struct state * state = context->state;
   state->result = result;
   // fprintf(stderr,"thread: smacq_decision signalling data consumed \n");
@@ -71,17 +73,17 @@ smacq_result smacq_thread_shutdown(struct state * state) {
 
 
 static void * smacq_thread_init_void(void * void_context) {
-  struct flow_init * context = void_context;
+  struct smacq_init * context = void_context;
   assert(context->thread_fn);
   return (void*)context->thread_fn(context);
 }
 
-smacq_result smacq_thread_init(struct flow_init * volatile_context) {
-  struct flow_init * context;
+smacq_result smacq_thread_init(struct smacq_init * volatile_context) {
+  struct smacq_init * context;
   struct state * state = g_new0(struct state, 1);
   volatile_context->state = state;
   
-  context = memdup(volatile_context, sizeof(struct flow_init));
+  context = memdup(volatile_context, sizeof(struct smacq_init));
 
   pthread_mutex_init(&state->produce_lock, NULL);
   sem_init(&state->newdata, 0, 0);
@@ -131,3 +133,4 @@ smacq_result smacq_thread_produce(struct state * state, const dts_object ** datu
 
   return result;
 }
+#endif

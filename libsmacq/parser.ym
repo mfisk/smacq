@@ -1,0 +1,210 @@
+%start queryline
+%defines
+
+%{
+void yysmacql_error(char*);
+     #define    yymaxdepth yysmacql_maxdepth
+     #define    yyparse yysmacql_parse
+     #define    yylex   yysmacql_lex
+     #define    yyerror yysmacql_error
+     #define    yylval  yysmacql_lval
+     #define    yychar  yysmacql_char
+     #define    yydebug yysmacql_debug
+     #define    yypact  yysmacql_pact
+     #define    yyr1    yysmacql_r1
+     #define    yyr2    yysmacql_r2
+     #define    yydef   yysmacql_def
+     #define    yychk   yysmacql_chk
+     #define    yypgo   yysmacql_pgo
+     #define    yyact   yysmacql_act
+     #define    yyexca  yysmacql_exca
+     #define yyerrflag yysmacql_errflag
+     #define yynerrs    yysmacql_nerrs
+     #define    yyps    yysmacql_ps
+     #define    yypv    yysmacql_pv
+     #define    yys     yysmacql_s
+     #define    yy_yys  yysmacql_yys
+     #define    yystate yysmacql_state
+     #define    yytmp   yysmacql_tmp
+     #define    yyv     yysmacql_v
+     #define    yy_yyv  yysmacql_yyv
+     #define    yyval   yysmacql_val
+     #define    yylloc  yysmacql_lloc
+     #define yyreds     yysmacql_reds
+     #define yytoks     yysmacql_toks
+     #define yylhs      yysmacql_yylhs
+     #define yylen      yysmacql_yylen
+     #define yydefred yysmacql_yydefred
+     #define yydgoto    yysmacql_yydgoto
+     #define yysindex yysmacql_yysindex
+     #define yyrindex yysmacql_yyrindex
+     #define yygindex yysmacql_yygindex
+     #define yytable     yysmacql_yytable
+     #define yycheck     yysmacql_yycheck
+     #define yyname   yysmacql_yyname
+     #define yyrule   yysmacql_yyrule
+
+#include <smacq-parser.h>
+static struct graph nullgraph = { head: NULL, tail: NULL };
+static smacq_graph * Graph;
+%}
+
+%type <graph> query from0 from where action parenquery moreparenquery
+%type <group> group
+%type <comp> having
+
+m4_include(grammer.y)
+
+queryline: query YYSTOP	
+	   { 
+#ifdef DEBUG
+	   	smacq_graph_print(stderr, $1.head, 0); 
+#endif
+		Graph = $1.head;
+		return 0;
+	   }
+	;
+
+query : action from where group
+           {
+	   	$$ = $2;
+		graph_join(&($$), $3);
+		if ($4.args) {
+			graph_join(&($$), newgroup($4, $1));
+		} else {
+			graph_join(&($$), $1);
+		}
+	   }
+	| action where 
+           {
+	   	$$ = $2;
+		graph_join(&($$), $1);
+	   }
+	| query '|' action where group
+           {
+	   	$$ = $1;
+		graph_join(&($$), $4);
+		if ($5.args) {
+			graph_join(&($$), newgroup($5, $3));
+		} else {
+			graph_join(&($$), $3);
+		}
+	   }
+        | WHERE boolean { $$ = optimize_bools($2); }
+	;
+
+from0 : from
+	| null		{ $$ = nullgraph; }
+	;
+
+from :  FROM action from0
+           {
+	   	$$ = $3;
+		graph_join(&($$), $2);
+	   }
+	;
+
+where : null 		{ $$ = nullgraph; }
+        | WHERE boolean { $$ = optimize_bools($2); }
+	;
+
+group : null 			{ $$.args = NULL; $$.having = NULL;}
+	| GROUP BY args having 	{ $$.args = $3; $$.having = $4; }
+	;
+
+having : null			{ $$ = NULL; }
+	| HAVING boolean	{ $$ = $2; }
+	;
+
+parenquery : '(' query ')'	{ $$ = $2; }
+	| function '(' args ')'	{ $$ = newmodule($1, $3); }
+	| function			{ $$ = newmodule($1, NULL); }
+	;
+
+moreparenquery : parenquery
+	| parenquery '+' moreparenquery
+	   {
+	   	smacq_graph * g = $1.head;
+		while(g->next_graph)
+			g=g->next_graph;
+		g->next_graph = $3.head;
+		$$ = $1;
+	   }
+	;
+
+action : function args 		{ $$ = newmodule($1, $2); }
+	| function '(' args ')'	{ $$ = newmodule($1, $3); }
+	| '(' query ')'		{ $$ = $2; }
+	| '(' parenquery '+' moreparenquery ')'
+	   {
+	   	smacq_graph * g = $2.head;
+		while(g->next_graph)
+			g=g->next_graph;
+		g->next_graph = $4.head;
+		$$ = $2;
+	   }
+	;
+%%
+
+extern void yysmacql_scan_string(char*);
+
+#ifndef SMACQ_OPT_NOPTHREADS
+#ifdef PTHREAD_MUTEX_INITIALIZER
+  static pthread_mutex_t local_lock = PTHREAD_MUTEX_INITIALIZER;
+#else
+  static pthread_mutex_t local_lock;
+  #warning "No PTHREAD_MUTEX_INITIALIZER"
+#endif
+#endif
+
+smacq_graph * smacq_build_query(dts_environment * tenv, int argc, char ** argv) {
+  int size = 0;
+  int i;
+  char * qstr; 
+  smacq_graph * graph;
+  int res;
+
+  parse_tenv = tenv;
+
+  for (i=0; i<argc; i++) {
+  	size += strlen(argv[i]);
+  }
+  size += argc;
+
+  qstr = (char*)malloc(size);
+  qstr[0] = '\0';
+  	
+  for (i=0; i<argc; i++) {
+  	strcatn(qstr, size, argv[i]);
+  	strcatn(qstr, size, " ");
+  }
+
+  /* LOCK */
+  pthread_mutex_lock(&local_lock);
+
+  yysmacql_scan_string(qstr);
+  //fprintf(stderr, "parsing buffer: %s\n", qstr); 
+
+  res = yysmacql_parse();
+
+  graph = Graph;
+
+  /* UNLOCK */
+  pthread_mutex_unlock(&local_lock);
+
+  if (res) {
+    fprintf(stderr, "smacq_build_query: error parsing query: %s\n", qstr);
+    return NULL;
+  }
+
+  if (!graph) {
+    fprintf(stderr, "unknown parse error\n");
+  }
+
+  return graph;
+}
+
+void yysmacql_error(char * msg) {
+  fprintf(stderr, "%s near %s\n", msg, yytext-1);
+}
+

@@ -7,7 +7,6 @@
 #include <math.h>
 #include <assert.h>
 #include <smacq.h>
-#include <dts_packet.h>
 #include <fields.h>
 #include "bytehash.h"
 
@@ -52,24 +51,22 @@ static smacq_result slice_consume(struct state * state, const dts_object * datum
   int c;
 
   if (state->hasinterval) {
-    int len, type;
-    struct timeval * value;
+    dts_object * ts;
+    int type;
 
-    if (!flow_getfield(state->env, datum, "timeseries", &type, (void**)&value, &len)) {
+    if (! (ts =smacq_getfield(state->env, datum, state->ts_field, NULL)) {
       fprintf(stderr, "error: timeseries not available\n");
     } else {
-      assert(len == sizeof(struct timeval));
-      
       if (!state->istarted) {
 	state->istarted = 1;
-	state->nextinterval = *value;
+	state->nextinterval = get_data_as(ts, struct timeval);
 	timeval_inc(&state->nextinterval, state->interval);
-      } else if (timeval_ge(*value, state->nextinterval)) {
+      } else if (timeval_ge(dts_data_as(ts, struct timeval), state->nextinterval)) {
 	// Print counters
 	printout(state);
 
 	timeval_inc(&state->nextinterval, state->interval);
-	while (timeval_past(*value, state->nextinterval)) { // gap in timeseries
+	while (timeval_past(dts_data_as(ts, struct timeval) state->nextinterval)) { // gap in timeseries
 	  timeval_inc(&state->nextinterval, state->interval);
 	}
       }
@@ -92,7 +89,7 @@ static smacq_result slice_consume(struct state * state, const dts_object * datum
   return SMACQ_PASS;
 }
 
-static int slice_init(struct flow_init * context) {
+static smacq_result slice_init(struct smacq_init * context) {
   int argc = 0;
   char ** argv;
   struct state * state = context->state = g_new0(struct state, 1);
@@ -105,7 +102,7 @@ static int slice_init(struct flow_init * context) {
     		{ "t", &interval}, 
     		{NULL, NULL}
   	};
-  	flow_getoptsbyname(context->argc-1, context->argv+1,
+  	smacq_getoptsbyname(context->argc-1, context->argv+1,
 			       &argc, &argv,
 			       options, optvals);
 
@@ -120,12 +117,12 @@ static int slice_init(struct flow_init * context) {
   // Consume rest of arguments as fieldnames
   fields_init(&state->fieldset, argc, argv);
 
-  state->counters = bytes_hash_table_new(KEYBYTES, chain);
+  state->counters = bytes_hash_table_new(KEYBYTES, CHAIN|NOFREE);
 
   return 0;
 }
 
-static int slice_shutdown(struct state * state) {
+static smacq_result slice_shutdown(struct state * state) {
   // Print counters
   printout(state);
   return 0;

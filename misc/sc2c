@@ -1,0 +1,47 @@
+#!/usr/bin/perl
+
+$filename = $ARGV[0];
+
+while(<>) {
+	$input .= $_;
+	if (/SMACQ_FIELD\( *([a-z\-\_]+) *\)/) {
+		if (! grep(/^$1$/, @fields)) {
+			push(@fields, $1);
+		}
+	}
+	if (/SMACQ_TYPE\( *([a-z\-\_]+) *\)/) {
+		if (! grep(/^$1$/, @types)) {
+			push(@types, $1);
+		}
+	}
+}
+
+print "/* DO NOT EDIT THIS OUTPUT FILE.  Edit the .sc file instead */\n";
+print "#define SMACQ_DECLS_SC2C ";
+foreach $f (@fields) {
+	print "dts_field field_$f;";
+}
+foreach $f (@types) {
+	print "int type_$f;";
+}
+print "\n";
+
+print "#define SMACQ_INITS_SC2C ";
+foreach $f (@fields) {
+	print "SMACQ_FIELD_INIT($f);";
+}
+foreach $f (@types) {
+	print "SMACQ_TYPE_INIT($f);";
+}
+print "\n";
+
+print "#define SMACQ_FREES_SC2C ";
+foreach $f (@fields) {
+	print "SMACQ_FIELD_FREE($f)";
+}
+print "\n";
+
+print "# 1 \"$filename\"\n";
+
+print $input;
+

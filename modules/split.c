@@ -23,9 +23,9 @@ struct state {
   int children;
   int bucket;
   enum mode mode;
-  struct filter * self;
+  smacq_graph * self;
 
-  GHashTableofBytes * hashtable;
+  struct iovec_hash * hashtable;
 }; 
 
 static smacq_result split_consume(struct state * state, const dts_object * datum, int * outchan) {
@@ -39,22 +39,24 @@ static smacq_result split_consume(struct state * state, const dts_object * datum
   } else if (!partitionv) {
     bucket = 0;
   } else if (state->mode == BUCKET) {
-    bucket = (bytes_hash_valuev(state->hashtable, state->fieldset.num, partitionv) / 2  % state->children);
+    bucket = bytes_hashv_into(partitionv, state->fieldset.num, state->children);
   } else if (state->mode == UNIQUE) {
     bucket = (int)bytes_hash_table_lookupv(state->hashtable, partitionv, state->fieldset.num);
     if (!bucket) {
-	struct filter * newClone;
+	smacq_graph * newClone;
 	bucket = state->bucket++;
 	//fprintf(stderr, "Cloning %d\n", state->bucket);
         newClone = smacq_clone_tree(state->self, state->self, 0);
-	flow_init_modules(newClone, state->env);
+	smacq_init_modules(newClone, state->env);
 
 	// 0 return value is error, so everything is inflated by 1
-    	bytes_hash_table_insertv(state->hashtable, partitionv, state->fieldset.num, (gpointer)state->bucket);
+    	bytes_hash_table_setv(state->hashtable, partitionv, state->fieldset.num, (gpointer)state->bucket);
     } else { 
 	// 0 return value is error, so everything is inflated by 1
 	bucket--;
     }
+  } else {
+    assert(0);
   }
 
   // bucket = (state->bucket++) % state->children;
@@ -63,7 +65,7 @@ static smacq_result split_consume(struct state * state, const dts_object * datum
   return SMACQ_PASS;
 }
 
-static int split_init(struct flow_init * context) {
+static smacq_result split_init(struct smacq_init * context) {
   int argc = 0;
   char ** argv;
   int i;
@@ -78,7 +80,7 @@ static int split_init(struct flow_init * context) {
     		{"b", &buckets},
     		{NULL, NULL}
   	};
-  	flow_getoptsbyname(context->argc-1, context->argv+1,
+  	smacq_getoptsbyname(context->argc-1, context->argv+1,
 			       &argc, &argv,
 			       options, optvals);
 
@@ -94,7 +96,7 @@ static int split_init(struct flow_init * context) {
 
   	state->mode = UNIQUE;
   	fields_init(state->env, &state->fieldset, argc, argv);
-  	state->hashtable = bytes_hash_table_new(KEYBYTES, chain);
+  	state->hashtable = bytes_hash_table_new(KEYBYTES, CHAIN|NOFREE);
   } else if (!state->children) {
 	fprintf(stderr, "Must specify either -b or fields\n");
 	assert(0);
@@ -109,7 +111,7 @@ static int split_init(struct flow_init * context) {
   return 0;
 }
 
-static int split_shutdown(struct state * state) {
+static smacq_result split_shutdown(struct state * state) {
   return SMACQ_END;
 }
 

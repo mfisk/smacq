@@ -15,7 +15,7 @@
          * everytime we return to the dataflow engine.
 	 *
 	 * The Dynamic Type System will be interfaced with an extension class
-	 * whose __getattr__() method does flow_getfield() calls.
+	 * whose __getattr__() method does smacq_getfield() calls.
 	 *
 	 */
 
@@ -36,7 +36,7 @@ typedef struct {
 	struct state * state;
 } DTSObject;
 
-static smacq_result python_init(struct flow_init * context) {
+static smacq_result python_init(struct smacq_init * context) {
 	char * cmd, * filename;
 	PyObject * builtins, * tmpargs = NULL;
 	struct state * state = context->state = g_new0(struct state, 1);
@@ -142,13 +142,14 @@ static PyObject * DTS_getattr(DTSObject * self, char * name) {
 //	printf("# Getting %s attr for a DTSObject!\n", name);
 
 	field = malloc(sizeof(dts_object));
+	dts_module_init(field);
 
 	pyAttr = (PyObject *)PyObject_New(DTSObject, &DTSType);
 	((DTSObject *)(pyAttr))->state = self->state;
 	((DTSObject *)(pyAttr))->ob_name = strdup(name);
 
-	if (flow_getfield(self->state->env, self->ob_datum,
-		flow_requirefield(self->state->env, name), field) == 0) {
+	if (smacq_getfield(self->state->env, self->ob_datum,
+		smacq_requirefield(self->state->env, name), field) == 0) {
 //		printf("# %s field not found\n", name);
 		((DTSObject *)(pyAttr))->ob_datum = NULL;
 	} else {
@@ -176,8 +177,8 @@ static PyObject * DTS_repr(DTSObject * self) {
 	if (self->ob_datum == NULL) {
 		str = strdup("datum doesn't exist");
 	} else {
-		flow_presentdata(self->state->env, self->ob_datum, 
-			flow_transform(self->state->env, "string"),
+		smacq_presentdata(self->state->env, self->ob_datum, 
+			smacq_transform(self->state->env, "string"),
 			(void *)&str, &len);
 	}
 

@@ -3,48 +3,45 @@
 #include <string.h>
 #include "smacq.h"
 
-static int flowtype_double_get_double(void * data, int dlen, void ** transform, int * tlen) {
-  double * dbl = malloc(sizeof(double));
-  *dbl = *(double*)data;
-  *transform = dbl;
-  *tlen = sizeof(double);
+static int smacqtype_double_get_double(const dts_object * o, dts_object * field) {
+  return dts_set(field, double, dts_data_as(o, double));
+}
 
+static int smacqtype_double_get_string(const dts_object * o, dts_object * field) {
+  dts_setsize(field, 64);
+  snprintf(field->data, 64, "%g", dts_data_as(o, double));
   return 1;
 }
 
-static int flowtype_double_get_string(void * data, int dlen, void ** transform, int * tlen) {
-  char buf[64]; 
-
-  snprintf(buf, 64, "%g", *(double*)data);
-
-  *transform = strdup(buf);
-  *tlen = strlen(data);
-
-  return 1;
-}
-
-static int parse_string(char * buf, void ** resp, int * reslen) {
-  double * dbl = malloc(sizeof(double));
+static int parse_string(char * buf,  const dts_object * d) {
+  double dbl;
   char * left = NULL;
-  *dbl = strtod(buf, &left);
+  dbl = strtod(buf, &left);
   if (left == buf) {
-	free(dbl);
 	return 0;
   }  
-  *resp = dbl;
-  *reslen = sizeof(double);
-    
-  return 1;
+  return dts_set(d, double, dbl);
 }
 
-struct dts_transform_descriptor dts_type_double_transforms[] = {
-	{ "string",   flowtype_double_get_string },
-	{ "double",   flowtype_double_get_double },
-        { END,        NULL }
+static int double_lt(void * num1, int size1, void * num2, int size2) {
+        double * a = num1;
+        double * b = num2;
+
+        assert(size1 == sizeof(double));
+        assert(size2 == sizeof(double));
+
+        return(*a < *b);
+}
+
+struct dts_field_spec dts_type_double_fields[] = {
+  { "string",   "string",	smacqtype_double_get_string },
+  { "double",   "double",	smacqtype_double_get_double },
+  { END,        NULL }
 };
 
 struct dts_type_info dts_type_double_table = {
         size: sizeof(double),
-  	fromstring: parse_string
+  	fromstring: parse_string,
+	lt: double_lt
 };
 

@@ -16,9 +16,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
-#include <netinet/if_ether.h>
+#include <sys/types.h>
+#include <net/ethernet.h>
 #include <smacq.h>
-#include "pcapfile.h"
+#include <pcap.h>
+#include <dts_packet.h>
+ 
 
 static struct smacq_options options[] = {
   {"i", {string_t:"any"}, "Interface", SMACQ_OPT_TYPE_STRING},
@@ -27,18 +30,41 @@ static struct smacq_options options[] = {
   {NULL, {string_t:NULL}, NULL, 0}
 };
 
+struct state {
+	/* State if using libpcap */
+  pcap_t * pcap;		
+  dts_object * datum;	
+  pcap_dumper_t * dumper;
+
+	/* Dynamic dataflow environment */
+  smacq_environment * env;
+  int argc;
+  char ** argv;
+  int 	dts_pkthdr_type;		
+
+  const dts_object * linktype_o;
+  const dts_object * snaplen_o;
+
+  dts_field linktype_field;
+  dts_field snaplen_field;
+};
+
 static void ProcessPacket(struct state * state, struct old_pcap_pkthdr * hdr, 
-		   struct ethhdr * ethhdr) {
+		   struct ether_header * ethhdr) {
   struct dts_pkthdr * pkt;
 
-  state->datum = (dts_object*)flow_alloc(state->env, hdr->len + sizeof(struct dts_pkthdr), 0);
-  flow_datum_settype(state->datum, state->dts_pkthdr_type);
+  state->datum = (dts_object*)smacq_alloc(state->env, hdr->len + sizeof(struct dts_pkthdr), 0);
+  smacq_datum_settype(state->datum, state->dts_pkthdr_type);
   pkt = (struct dts_pkthdr*)dts_getdata(state->datum);
 
   pkt->pcap_pkthdr = *hdr;
   // extended header is uninitialized
-  pkt->linktype = pcap_datalink(state->pcap);
-  pkt->snaplen = pcap_snapshot(state->pcap);
+
+  dts_incref(state->snaplen_o, 1);
+  dts_attach_field(state->datum, state->snaplen_field, state->snaplen_o);
+
+  dts_incref(state->linktype_o, 1);
+  dts_attach_field(state->datum, state->linktype_field, state->linktype_o);
 
   memcpy(dts_getdata(state->datum) + sizeof(struct dts_pkthdr), ethhdr, hdr->caplen);
 
@@ -46,8 +72,6 @@ static void ProcessPacket(struct state * state, struct old_pcap_pkthdr * hdr,
 
 static smacq_result pcaplive_produce(struct state* state, const dts_object ** datump, int * outchan) {
   int retval;
-
-  if (!state->produce) return SMACQ_ERROR;
 
   assert(state->pcap);
   state->datum = NULL;
@@ -60,25 +84,7 @@ static smacq_result pcaplive_produce(struct state* state, const dts_object ** da
   return(SMACQ_PASS|SMACQ_PRODUCE);
 }
 
-static smacq_result pcaplive_consume(struct state * state, const dts_object * datum, int * outchan) {
-  assert(datum);
-
-  assert(0);
-
-  if (state->dts_pkthdr_type == dts_gettype(datum)) {
-    //struct dts_pkthdr * pkt = datum->data;
-	//xxx_inject;
-
-  } else {
-	fprintf(stderr, "Received unknown structure type\n");
-	exit(-1);
-  }
-	
-  return SMACQ_FREE;
-}
-
-
-static int pcaplive_shutdown(struct state * state) {
+static smacq_result pcaplive_shutdown(struct state * state) {
 	if (state->dumper) {
 		pcap_dump_close(state->dumper);
 		state->dumper = NULL;
@@ -112,7 +118,7 @@ static char * merge_args(int argc, char ** argv) {
 }
   
 
-static int pcaplive_init(struct flow_init * context) {
+static smacq_result pcaplive_init(struct smacq_init * context) {
   char ebuf[PCAP_ERRBUF_SIZE];
   struct state * state;
   smacq_opt snapleno, promisco, interfaceo;
@@ -122,57 +128,61 @@ static int pcaplive_init(struct flow_init * context) {
   state->env = context->env;
 
   {
-
     struct smacq_optval optvals[] = {
       { "i", &interfaceo}, 
       { "p", &promisco}, 
       { "s", &snapleno}, 
       {NULL, NULL}
     };
-    flow_getoptsbyname(context->argc-1, context->argv+1,
+    smacq_getoptsbyname(context->argc-1, context->argv+1,
 				 &state->argc, &state->argv,
 				 options, optvals);
   }
 
-  if (context->isfirst) {
-	fprintf(stderr, "Reading pcapfile from - (no predecessor)\n");
-	if (context->islast) {
-		fprintf(stderr, "Error: nobody to produce for!\n");
-		exit(-1);
-	}
-	state->pcap = pcap_open_live(interfaceo.string_t, snapleno.int_t, promisco.boolean_t, 0, ebuf);
-	if (! state->pcap) {
-	    pcap_perror(state->pcap, "pcap_open");
-	    exit(-1);
-	}
-
-	{
-	  struct bpf_program filter;
-	  bpf_u_int32 net, netmask;
-	  char * filterstr = merge_args(state->argc, state->argv);
-
-	  if (pcap_lookupnet(interfaceo.string_t, &net, &netmask, ebuf)) 
-	    pcap_perror(state->pcap, "pcap_lookupnet");
-
-	  if (pcap_compile(state->pcap, &filter, filterstr, 1, netmask))
-	    pcap_perror(state->pcap, "pcap_compile");
-
-	  if (pcap_setfilter(state->pcap, &filter))
-	    pcap_perror(state->pcap, "pcap_setfilter");
-	  
-	  //free(filterstr);
-	}
-
-	state->produce = 1;
-  } else if (context->islast) {
-	fprintf(stderr, "Writing pcapfile to - (Open for consumption only!)\n");
-  } else {
-	fprintf(stderr, "pcapfile module must be at beginning or end of dataflow\n");
-	exit(-1);
+  state->pcap = pcap_open_live(interfaceo.string_t, snapleno.int_t, promisco.boolean_t, 0, ebuf);
+  if (! state->pcap) {
+    fprintf(stderr, "pcaplive: error: %s\n", ebuf);
+    exit(-1);
+  }
+  
+  {
+    struct bpf_program filter;
+    bpf_u_int32 net, netmask;
+    char * filterstr = merge_args(state->argc, state->argv);
+    
+    if (pcap_lookupnet(interfaceo.string_t, &net, &netmask, ebuf)) 
+      pcap_perror(state->pcap, "pcap_lookupnet");
+    
+    if (pcap_compile(state->pcap, &filter, filterstr, 1, netmask))
+      pcap_perror(state->pcap, "pcap_compile");
+    
+    if (pcap_setfilter(state->pcap, &filter))
+      pcap_perror(state->pcap, "pcap_setfilter");
+    
+    //free(filterstr);
   }
 
-  flow_requiretype(context->env, "packet");
-  state->dts_pkthdr_type = smacq_opt_typenum_byname(state->env, "packet");
+  smacq_requiretype(context->env, "packet");
+  state->dts_pkthdr_type = smacq_requiretype(state->env, "packet");
+
+  state->snaplen_field = smacq_requirefield(state->env, "snaplen");
+  state->linktype_field = smacq_requirefield(state->env, "linktype");
+
+
+  {
+    int linktype = pcap_datalink(state->pcap);
+    int snaplen = pcap_snapshot(state->pcap);
+
+    int snaplen_type = smacq_requiretype(state->env, "int");
+    int linktype_type = smacq_requiretype(state->env, "int");
+
+
+    state->snaplen_o = 
+      smacq_dts_construct(state->env, snaplen_type, &snaplen);
+
+    state->linktype_o = 
+      smacq_dts_construct(state->env, linktype_type, &linktype);
+  }
 
   return 0;
 }
@@ -180,9 +190,8 @@ static int pcaplive_init(struct flow_init * context) {
 
 /* Right now this serves mainly for type checking at compile time: */
 struct smacq_functions smacq_pcaplive_table = {
-  &pcaplive_produce, 
-  &pcaplive_consume,
-  &pcaplive_init,
-  &pcaplive_shutdown
+  produce: &pcaplive_produce, 
+  init: &pcaplive_init,
+  shutdown: &pcaplive_shutdown
 };
 

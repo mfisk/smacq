@@ -12,21 +12,21 @@
       <firstname>Mike</firstname>
       <surname>Fisk</surname>
     </author>
-    <date>$Date: 2002/10/30 23:23:14 $</date>
+    <date>$Date: 2003/03/19 03:25:49 $</date>
   </refentryinfo>
   <refmeta>
-    <refentrytitle>libsmacq-embed</refentrytitle>
+    <refentrytitle>smacq-embed</refentrytitle>
     <manvolnum>3</manvolnum>
   </refmeta>
   <refnamediv>
-    <refname>libsmacq-embed</refname>
+    <refname>smacq-embed</refname>
     <refpurpose>Embedding libsmacq in applications</refpurpose>
   </refnamediv>
   
   <refsynopsisdiv>
     <funcsynopsis>
       <funcsynopsisinfo>
-	#include &lt;smacq-internal.h&gt;
+	#include &lt;smacq.h&gt;
       </funcsynopsisinfo>
     </funcsynopsis>
   </refsynopsisdiv>
@@ -42,7 +42,7 @@
 
     <funcsynopsis>
       <funcprototype>
-	<funcdef>struct filter * <function>smacq_build_pipeline</function></funcdef>
+	<funcdef>smacq_graph * <function>smacq_build_pipeline</function></funcdef>
 	<paramdef>       int argc</paramdef>
 	<paramdef>       char ** argv</paramdef>
       </funcprototype>
@@ -50,15 +50,31 @@
 
       <para>
 	Given an argument vector in the typical format, parse those
-	arguments and create and return a data-flow pipeline.  An
+	arguments and create and return a data-flow graph.  An
 	argument of "|" is used to delimit modules in the pipeline.
       </para>
 
     <funcsynopsis>
       <funcprototype>
-	<funcdef>struct filter * <function>flow_start</function></funcdef>
-	<paramdef>       struct filter * graph</paramdef>
-	<paramdef>       enum flow_scheduler</paramdef>
+	<funcdef>smacq_graph * <function>smacq_build_query</function></funcdef>
+	<paramdef>       dts_environment *</paramdef>
+	<paramdef>       int argc</paramdef>
+	<paramdef>       char ** argv</paramdef>
+      </funcprototype>
+    </funcsynopsis>
+
+      <para>
+	Given an argument vector in the typical format, parse those
+	arguments according to the SMACQ query language described in
+	<command>smacq</command>(1) as a single string and create and
+	return a data-flow graph.  
+      </para>
+
+    <funcsynopsis>
+      <funcprototype>
+	<funcdef>smacq_graph * <function>smacq_start</function></funcdef>
+	<paramdef>       smacq_graph * graph</paramdef>
+	<paramdef>       enum smacq_scheduler</paramdef>
 	<paramdef>       dts_environment * tenv</paramdef>
 	</funcprototype>
     </funcsynopsis>
@@ -67,9 +83,9 @@
 	Given the specified data-flow graph, instantiate the modules and
 	begin the scheduler.  Possible scheduler values are ITERATIVE,
 	RECURSIVE, and THREADED.   In the case of RECURSIVE or
-	THREADED, flow_start() will never return.  In the case of
-	ITERATIVE, the scheduler must be repeatedl;y called using the
-	following flow_sched_iterative() function.
+	THREADED, smacq_start() will never return.  In the case of
+	ITERATIVE, the scheduler must be repeatedly called using the
+	following smacq_sched_iterative() function.
       </para>
 
       <para>
@@ -80,14 +96,14 @@
 
     <funcsynopsis>
       <funcprototype>
-	<funcdef>int <function>flow_sched_iterative</function></funcdef>
-	<paramdef>        struct filter * graph</paramdef>
+	<funcdef>int <function>smacq_sched_iterative</function></funcdef>
+	<paramdef>        smacq_graph * graph</paramdef>
 	<paramdef>        const 	dts_object * data_in</paramdef>
 	<paramdef>        dts_object ** data_out</paramdef>
-	<paramdef>        void ** state</paramdef>
+	<paramdef>        struct runq ** runq</paramdef>
 	<paramdef>        int produce_first</paramdef>
-	</funcprototype>
-      </funcsynopsis>
+      </funcprototype>
+    </funcsynopsis>
       
       <para>
 	Execute the iterative scheduler until one data object is
@@ -96,7 +112,7 @@
 
       <para>
 	If data is produced, a pointer to it will be stored in
-	data_out.  If the return value is 0, then flow_sched_iterative() 
+	data_out.  If the return value is 0, then smacq_sched_iterative() 
 	should not be called again.
       </para>
 
@@ -114,6 +130,16 @@
 	On the first call, the state argument should be a pointer to a
 	void * initialized to NULL.  
       </para>
+
+    <funcsynopsis>
+      <funcprototype>
+	<funcdef>int <function>smacq_sched_iterative_shutdown</function></funcdef>
+	<paramdef>        smacq_graph * graph</paramdef>
+	<paramdef>        struct runq ** runq</paramdef>
+      </funcprototype>
+    </funcsynopsis>
+      
+      <para>
 
   </refsect1>
   <refsect1>

@@ -29,10 +29,6 @@
  *     National Lab, and is copyrighted by the University of
  *     California Regents.
  *
- *     Some of this code has been taken from PostgreSQL, which is
- *     copyrighted by the University of California Regents and the
- *     PostgreSQL Global Development Group.
- *
  *     All source-code contained here-in is relesased under the GNU
  *     Lesser General Public License version 2.1, unless stated
  *     otherwise elsewhere in this distribution.

@@ -22,11 +22,14 @@ struct extended_pkthdr {
 };
 
 struct dts_pkthdr {
+/*
   int linktype;
   int snaplen;
-
-  struct extended_pkthdr extended;
+*/
   struct old_pcap_pkthdr pcap_pkthdr;
+/*
+  struct extended_pkthdr extended;
+*/
 };
 
 

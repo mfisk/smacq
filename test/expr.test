@@ -1,0 +1,5 @@
+#!/bin/sh
+
+bin/smacqq -O -m <<EOF 
+print -v, seq, ipid, seq.double, [ ipid.uint32 * 10000000 ] as foo from pcapfile($TEST/0325@1112-snort.pcap) 
+EOF

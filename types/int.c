@@ -3,37 +3,32 @@
 #include <string.h>
 #include "smacq.h"
 
-static int flowtype_int_get_string(void * data, int dlen, void ** transform, int * tlen) {
-  char buf[64]; // Only has to hold log10(2**32)
-
-  snprintf(buf, 64, "%d", *(int*)data);
-  *transform = strdup(buf);
-  *tlen = strlen(data);
-
+static int smacqtype_int_get_string(const dts_object * o, dts_object * field) {
+  dts_setsize(field, 64); // Only has to hold log10(2**32)
+  snprintf(field->data, 64, "%d", dts_data_as(o, int));
   return 1;
 }
 
-static int flowtype_int_get_double(void * data, int dlen, void ** transform, int * tlen) {
-  double * d = g_new(double, 1);
-  int * i = (int*)data;
-  *d = *i;
-  *transform = d;
-  *tlen = sizeof(double);
-
+static int smacqtype_int_get_hexstring(const dts_object * o, dts_object * field) {
+  dts_setsize(field, 64); // Only has to hold log10(2**32)
+  snprintf(field->data, 64, "%x", dts_data_as(o, unsigned int));
   return 1;
 }
 
-static int parse_string(char * buf, void ** resp, int * reslen) {
-	int * val = malloc(sizeof(int));
+static int smacqtype_int_get_double(const dts_object * o, dts_object * field) {
+  double d = dts_data_as(o, int);
+  return dts_set(field, double, d);
+}
+
+static int parse_string(char * buf, const dts_object * d) {
+	int val;
 	char * left = NULL;
-	*val = strtol(buf, &left, 10);
+	val = strtol(buf, &left, 10);
  	if (left == buf) {
-		free(*resp);
 		return(0);
 	}
-	*resp = val;
-	*reslen = sizeof(int);
-	return 1;
+
+	return dts_set(d, int, val);
 }
 
 int int_lt(void * num1, int size1, void * num2, int size2) {
@@ -45,11 +40,12 @@ int int_lt(void * num1, int size1, void * num2, int size2) {
 
 	return(*a < *b);
 }
-	
-struct dts_transform_descriptor dts_type_int_transforms[] = {
-	{ "string",   flowtype_int_get_string },
-	{ "double",   flowtype_int_get_double },
-        { END,        NULL }
+
+struct dts_field_spec dts_type_int_fields[] = {
+  { "string",   "string",	smacqtype_int_get_string },
+  { "string",   "hexstring",	smacqtype_int_get_hexstring },
+  { "double",   "double",	smacqtype_int_get_double },
+  { END,        NULL }
 };
 
 struct dts_type_info dts_type_int_table = {

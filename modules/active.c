@@ -1,3 +1,10 @@
+/*
+ * This module assigns a flow-id number to objects based on a tuple of
+ * fields.  Optionally, flows can be made to timeout after an idle
+ * time.  In this case, an end-of-flow record will be output.
+ *
+*/
+
 #include <stdlib.h>
 #include <netdb.h>
 #include <sys/socket.h>
@@ -7,7 +14,6 @@
 #include <math.h>
 #include <assert.h>
 #include <smacq.h>
-#include <dts_packet.h>
 #include <fields.h>
 #include "bytehash.h"
 
@@ -32,7 +38,7 @@ struct srcstat {
 struct state {
   smacq_environment * env;
   struct fieldset fieldset;
-  GHashTableofBytes *stats;
+  struct iovec_hash *stats;
 
   FILE * printfd;
 
@@ -72,20 +78,28 @@ static int isexpired(gpointer key, gpointer value, gpointer userdata) {
 	return ((struct srcstat*)value)->expired;
 }
 
+/*
+ * Plan of attack: 
+ *
+ * 1) Find out what time it is now.
+ * 2) See if the current object belongs to an active flow, else create one
+ * 3) Timout idle flows and send out a final record
+ *
+ */
 static smacq_result active_consume(struct state * state, const dts_object * datum, int * outchan) {
   struct iovec * domainv = NULL;
   struct srcstat * s;
 
-  dts_object field;
+  const dts_object * field;
   dts_object * activefielddata;
   struct timeval * value;
 
   // Get current time
-  if (!flow_getfield(state->env, datum, state->timeseries, &field)) {
+  if (!(field = smacq_getfield(state->env, datum, state->timeseries, &NULL))) {
     fprintf(stderr, "error: timeseries not available\n");
     return SMACQ_PASS;
   } else {
-    value = (struct timeval*)field.data;
+    value = (struct timeval*)dts_getdata(field);
     assert(field.len == sizeof(struct timeval));
   }
 
@@ -131,7 +145,7 @@ static smacq_result active_consume(struct state * state, const dts_object * datu
 
   if (!s) {
     s = g_new(struct srcstat,1);
-    bytes_hash_table_insertv(state->stats, domainv, state->fieldset.num, s);
+    bytes_hash_table_setv(state->stats, domainv, state->fieldset.num, s);
     state->active++;
   } else if (s->expired) {
     s->expired = 0;
@@ -140,14 +154,14 @@ static smacq_result active_consume(struct state * state, const dts_object * datu
   s->lasttime = *value;
 
   // Attach active count to this datum
-  activefielddata = flow_dts_construct(state->env, state->activetype, &state->active);
+  activefielddata = smacq_dts_construct(state->env, state->activetype, &state->active);
   dts_attach_field(datum, state->activefield, activefielddata);
 
   //fprintf(stderr, "Expires list length %d\n", g_list_length(state->expires));
   return SMACQ_PASS;
 }
 
-static int active_init(struct flow_init * context) {
+static smacq_result active_init(struct smacq_init * context) {
   int argc = 0;
   char ** argv;
   struct state * state = context->state = g_new0(struct state, 1);
@@ -160,27 +174,27 @@ static int active_init(struct flow_init * context) {
     		{ "t", &interval}, 
     		{NULL, NULL}
   	};
-  	flow_getoptsbyname(context->argc-1, context->argv+1,
+  	smacq_getoptsbyname(context->argc-1, context->argv+1,
 			       &argc, &argv,
 			       options, optvals);
 
 	state->interval = interval.timeval_t;
 	state->hasinterval = (state->interval.tv_usec || state->interval.tv_sec); 
 
-	state->timeseries = flow_requirefield(state->env, "timeseries");
-	state->activefield = flow_requirefield(state->env, "active");
-	state->activetype = flow_requiretype(state->env, "int");
+	state->timeseries = smacq_requirefield(state->env, "timeseries");
+	state->activefield = smacq_requirefield(state->env, "active");
+	state->activetype = smacq_requiretype(state->env, "int");
   }
 
   // Consume rest of arguments as field names
   fields_init(state->env, &state->fieldset, argc, argv);
 
-  state->stats = bytes_hash_table_new(KEYBYTES, chain);
+  state->stats = bytes_hash_table_new(KEYBYTES, CHAIN|FREE);
 
   return 0;
 }
 
-static int active_shutdown(struct state * state) {
+static smacq_result active_shutdown(struct state * state) {
   return SMACQ_END;
 }
 

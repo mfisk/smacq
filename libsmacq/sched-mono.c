@@ -1,7 +1,7 @@
-#include <flow-internal.h>
+#include <smacq.h>
 #include <stdio.h>
 
-int mono_propagate(struct filter * f, const dts_object * d) {
+int mono_propagate(smacq_graph * f, const dts_object * d) {
   int status;
   int i;
   int retval;
@@ -10,7 +10,7 @@ int mono_propagate(struct filter * f, const dts_object * d) {
   if (!f) return 0;
   
   if (d) {
-    retval = f->consume(f->state, d, &outchan);
+    retval = f->ops.consume(f->state, d, &outchan);
   } else {
     // Force last call
     retval = (SMACQ_PRODUCE|SMACQ_PASS|SMACQ_END);
@@ -22,7 +22,7 @@ int mono_propagate(struct filter * f, const dts_object * d) {
     do {
       int numleft = 0;
       const dts_object * newd;
-      status = f->produce(f->state, &newd, &outchan);
+      status = f->ops.produce(f->state, &newd, &outchan);
 
       if (! (status & SMACQ_PASS)) { 
 	//fprintf(stderr, "%s couldn't produce\n", f->name);
@@ -33,10 +33,10 @@ int mono_propagate(struct filter * f, const dts_object * d) {
 
       if (outchan >= 0) {
 	      assert(outchan < f->numchildren);
-	      numleft += mono_propagate(f->next[outchan], newd);
+	      numleft += mono_propagate(f->child[outchan], newd);
       } else {
       	   for (i=0; i < f->numchildren; i++) 
-		numleft += mono_propagate(f->next[i], newd);
+		numleft += mono_propagate(f->child[i], newd);
       }
 
       if (!numleft && f->numchildren) { // No more children
@@ -53,10 +53,10 @@ int mono_propagate(struct filter * f, const dts_object * d) {
     int numleft = 0;
     if (outchan >= 0) {
 	      assert(outchan < f->numchildren);
-	      numleft += mono_propagate(f->next[outchan], d);
+	      numleft += mono_propagate(f->child[outchan], d);
     } else {
    	 for (i=0; i < f->numchildren; i++) 
-      		numleft += mono_propagate(f->next[i], d);
+      		numleft += mono_propagate(f->child[i], d);
     }
     
     if (!numleft && f->numchildren) 
@@ -64,8 +64,8 @@ int mono_propagate(struct filter * f, const dts_object * d) {
   }
 
   if (retval & SMACQ_END)  {
-    if (f->shutdown)
-      f->shutdown(f->state);
+    if (f->ops.shutdown)
+      f->ops.shutdown(f->state);
 
     return 0;
   }
@@ -74,6 +74,6 @@ int mono_propagate(struct filter * f, const dts_object * d) {
 }
 
 
-void sched_mono(struct filter * objs) {
+void sched_mono(smacq_graph * objs) {
   mono_propagate(objs, NULL);
 }

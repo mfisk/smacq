@@ -1,0 +1,4 @@
+#!/bin/sh
+
+bin/smacqq "print ts from pcapfile($TEST/0325@1112-snort.pcap)" 
+

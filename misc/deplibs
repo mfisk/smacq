@@ -1,0 +1,21 @@
+#!/bin/sh  -e
+
+dylibs() {
+	if [ -f /usr/bin/otool ]; then
+	   	otool -L "$1" | grep -v : | sed 's/ .*//g'
+	else
+	   	ldd "$1" | grep = | cut -d\  -f3
+	fi
+}
+
+deps() {
+	for f in `dylibs "$1"`; do
+		echo $f 
+		if [ "$f" != "$1" ]; then
+			deps $f
+		fi
+	done
+}
+
+deps "$1" | sort | uniq
+exit 0

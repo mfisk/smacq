@@ -1,8 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
-#include <netinet/if_ether.h>
-#include <zlib.h>
 #include "smacq.h"
 
 struct state {
@@ -26,7 +24,7 @@ static smacq_result head_consume(struct state * state, const dts_object * datum,
   return SMACQ_END;
 }
 
-static int head_init(struct flow_init * context) {
+static smacq_result head_init(struct smacq_init * context) {
   struct state * state;
   int argc;
   char ** argv;
@@ -39,7 +37,7 @@ static int head_init(struct flow_init * context) {
     struct smacq_optval optvals[] = {
       {NULL, NULL}
     };
-    flow_getoptsbyname(context->argc-1, context->argv+1,
+    smacq_getoptsbyname(context->argc-1, context->argv+1,
 				 &argc, &argv,
 				 options, optvals);
   }
@@ -54,9 +52,9 @@ static int head_init(struct flow_init * context) {
 
 /* Right now this serves mainly for type checking at compile time: */
 struct smacq_functions smacq_head_table = {
-  &head_produce, 
-  &head_consume,
-  &head_init,
-  NULL
+  produce: &head_produce, 
+  consume: &head_consume,
+  init: &head_init,
+  algebra: { nesting: 1},
 };
 

@@ -1,0 +1,222 @@
+#!/usr/bin/perl
+
+#
+# This script reads Snort rule (conf) files and translates rules
+# into discrete queries in the query language used by SMACQ.
+# This output can be piped to "smacqq -m" which will execute each
+# query simulatenously.  The "-O" option for smacqq will cause
+# the queries to be optimized before execution
+#
+# Snort terms that are not supported by SMACQ are ignored.  A Snort
+# syntax file is output as /tmp/snortcq.conf.  This file can be used
+# to benchmark Snort against SMACQ for the set of functionality common
+# to both systems.
+#
+# This script takes a "-p <value>" option that causes rules to be
+# probabilistically included with the given probability.  The default is 1.
+#
+
+#
+# The following variable definitions will be used when parsing Snort rules:
+#
+$HOME_NET 	= "128.165.0.0/16";
+$EXTERNAL_NET 	= "!$HOME_NET";
+$SMACQ_INPUT 	= "pcapfile";
+
+############################################################################
+
+sub notany() {
+  local($resultstr, $arg, $field) = @_;
+
+  if ($arg eq '') { return; }
+  if ($arg eq 'any') { return; }
+  
+  $resultstr =~ s|ARG|$arg|g;
+
+  push(@tests, $resultstr);
+  $Clauses{$resultstr} = 1;
+  $Fields{$field} = 1;
+}
+
+sub hex2octalstr() {
+  local($hex) = @_;
+  $res = '';
+
+  while($hex) {
+    if (! ($hex =~ /^(..) *(.*)$/)) { return $res; }
+    $res .= '\\x' . $1;
+    $hex = $2;
+  }
+
+  return $res;
+}
+
+$prob = 1;
+
+while ($ARGV[0]) {
+	if ($ARGV[0] eq "-p") {
+		shift(@ARGV);
+		$prob = shift(@ARGV);
+	} elsif ($ARGV[0] eq "-f") {
+		shift(@ARGV);
+		$SMACQ_INPUT = "pcapfile(\"$ARGV[0]\")";
+		shift(@ARGV);
+	} else {
+		last;
+	}
+}
+
+#print STDERR "snort2cq: reading from @ARGV\n";
+
+open(SNORT, ">/tmp/snortcq.conf") || die;
+open(SET, ">/tmp/set.cq") || die;
+open(TERMS, ">/tmp/terms") || die;
+print SET "pcapfile from $SMACQ_INPUT where ";
+
+while(<>) {
+  $snortrule = '';
+  $srcip = '';
+  $dstip = '';
+  $srcport = '';
+  $dstport = '';
+  $proto = '';
+  $ipid = '';
+  $seq = '';
+  $sid = '';
+  @contents = ();
+  @uricontents = ();
+
+  chomp;
+  s|\$EXTERNAL_NET|$EXTERNAL_NET|g;
+  s|\$HOME_NET|$HOME_NET|g;
+  s|\$[A-Z]+_SERVERS|any|g;
+  s|\$HTTP_PORTS|80|g;
+  s|\$[A-Z]+_PORTS|any|g;
+  s|\$SMTP|any|g;
+
+  ($action,$proto,$srcip,$srcport,$dir,$dstip,$dstport,$criteria) = split(/\s+/, $_, 8);
+ 
+  $ipproto = $proto; 
+  if ($action ne "alert") { next; }
+
+  #This is a rule, but do we want it?
+  if (rand() > $prob) { next; }
+
+  @tests = ();
+
+  $srcip =~ s|\[([^,]+),.*\]|$1|;
+  $dstip =~ s|\[([^,]+),.*\]|$1|;
+
+  $criteria =~ s|^\(\s*||;
+  $criteria =~ s|\s*\)\s*$||;
+
+  # Split on unescaped semicolons
+  $criteria =~ s|([^\\]);|$1 ;|g;
+  @crits = split(/[^\\];/, $criteria);
+  
+  foreach $test (@crits) {
+    $test =~ s|^\s+||;
+    $test =~ s|\s+$||;
+
+    ($op,$arg) = split(/\s*:\s*/, $test, 2);
+    $arg =~ s|^\"||;
+    $arg =~ s|\"$||;
+    if ($op eq "sid") { 
+      $sid = $arg; 
+      $snortrule .= "sid:$sid; ";
+    } elsif ($op eq "dsize") {
+      if ($arg =~ /^([<>=]+)(.*)$/) {
+      	$op = $1;
+	$arg = $2;
+      }  else {
+      	$op = "=";
+      }
+      #&notany("payloadsize $op 'ARG'", $arg, "payloadsize");
+      #$snortrule .= "dsize:$arg; ";
+    } elsif ($op eq "content" || $op eq "uricontent") {
+      if ($arg =~ /^!/) { next; }
+      $parsedcontent = $arg; 
+      $parsedcontent =~ s/\|([^|]*)\|/&hex2octalstr($1)/eg;
+      push(@contents, $parsedcontent);
+      $snortrule .= "content:\"$arg\"; ";
+    } elsif ($op eq "uricontent") {
+      if ($arg =~ /^!/) { next; }
+      $parsedcontent = $arg; 
+      $parsedcontent =~ s/\|([^|]*)\|/&hex2octalstr($1)/eg;
+      push(@uricontents, $parsedcontent);
+      $snortrule .= "uricontent:\"$arg\"; ";
+    } elsif ($op eq "id") {
+      #$snortrule .= "id:\"$arg\"; ";
+      #$ipid = $arg;
+    } elsif ($op eq "seq") {
+      #$snortrule .= "seq:\"$arg\"; ";
+      #$seq = $arg;
+    } elsif ($op eq "ip_proto") {
+      $snortrule .= "ip_proto:$arg; ";
+      $ipproto = $arg;
+    } elsif ($op eq "msg" || $op eq "reference" || $op eq "classtype" || $op eq "rev" || $op eq "depth" || $op eq "nocase" || $op eq "flow" ) {
+      
+    } else {
+      print stderr "[$op:$arg] in $_\n";
+    }
+  }
+
+  if ($ipproto ne "ip") {
+  	&notany("ipprotocol = 'ARG'", $ipproto, "ipprotocol");
+  }
+
+  $snortrule = "alert $proto $srcip $srcport -> $dstip $dstport ($snortrule";
+
+  if (! (@contents || @uricontents || $ipid || $seq)) {
+  	#Skip trivial rules
+  	next;
+  }
+
+  # Skip duplicate matches since Snort is first-match only
+  $rule = join('-', ($srcip, $dstip, $srcport, $dstport, $proto, $parsedcontent, $seq, $ipid));
+  if ($seen{$rule}) { next; }
+  $seen{$rule} = $sid;
+
+  &notany("mask(dstip, 'ARG')", $dstip, "dstip");
+  &notany("mask(srcip, 'ARG')", $srcip, "srcip");
+
+  if ($srcport =~ /^(\d+):(\d+)$/) {
+  	&notany("srcport >= '$1'", $srcport, "srcport");
+  	&notany("srcport <= '$2'", $srcport, "srcport");
+  } else {
+  	&notany("srcport = 'ARG'", $srcport, "srcport");
+  }
+
+  if ($dstport =~ /^(\d+):(\d+)$/) {
+  	&notany("dstport >= '$1'", $dstport, "dstport");
+  	&notany("dstport <= '$2'", $dstport, "dstport");
+  } else {
+  	&notany("dstport = 'ARG'", $dstport, "dstport");
+  }
+
+  &notany("seq = ARG", $seq, "seq");
+  &notany("ipid = ARG", $ipid, "ipid");
+  foreach $c (@contents) {
+  	&notany("substr(payload, \"ARG\")", $c, "payload");
+  }
+  foreach $c (@uricontents) {
+  	&notany("substr(payload.urldecode, \"ARG\")", $c, "payload.urldecode");
+  }
+
+  #$q = "print sid, srcip, dstip, ts from (const('$sid', sid) from $SMACQ_INPUT";
+  $q = "pcapfile from $SMACQ_INPUT";
+  if (@tests) {
+  	$q .= " where ";
+  	$q .= join(' and ', @tests);
+  }
+
+  print "$q\n";
+  push(@SETORS, ("( " . join(' and ', @tests) . " )"));
+  print SNORT "$snortrule msg:\"$sid\"; )\n";
+}
+
+print SET join(" or ", @SETORS);
+
+$terms = keys(%Clauses);
+$fields = keys(%Fields);
+print TERMS "$terms\t$fields\tterms, fields\n";

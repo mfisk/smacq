@@ -7,14 +7,10 @@
 #include <math.h>
 #include <assert.h>
 #include <smacq.h>
-#include <dts_packet.h>
 #include <fields.h>
 #include "bytehash.h"
 
 /* Programming constants */
-
-#define VECTORSIZE 21
-#define ALARM_BITS 15
 #define KEYBYTES 128
 
 static struct smacq_options options[] = {
@@ -22,22 +18,17 @@ static struct smacq_options options[] = {
   {NULL, {string_t:NULL}, NULL, 0}
 };
 
-struct obj_list{
-  dts_object * obj;
-  struct obj_list * next;
-};
-
 struct state {
   smacq_environment * env;
   struct fieldset fieldset;
-  GHashTableofBytes *last;
+  struct iovec_hash *last;
   
   struct timeval interval, nextinterval;
   int istarted, hasinterval;
 
-  struct obj_list * outputq;
+  struct smacq_outputq * outputq;
 
-  int timeseries; // Field number
+  dts_field timeseries; // Field number
   int refreshtype, timevaltype;
 }; 
 
@@ -50,7 +41,6 @@ static inline void timeval_inc(struct timeval * x, struct timeval y) {
     x->tv_sec++;
     x->tv_usec -= 1000000;
   }
-
 }
 
 static inline int timeval_ge(struct timeval x, struct timeval y) {
@@ -78,35 +68,36 @@ static inline void timeval_minus(struct timeval x, struct timeval y, struct time
   return;
 }
 
-static void emit_last(gpointer key, gpointer value, gpointer userdata) {
+static int emit_last(struct element * key, void * value, void * userdata) {
   dts_object * d = value;
   struct state * state = userdata;
-  struct obj_list * newo = g_new(struct obj_list, 1);
-  
+
+  fprintf(stderr, "emit_last on obj %p\n", value);
+
+  smacq_produce_enqueue(&state->outputq, d, -1);
   dts_incref(d, 1);
-  newo->next = state->outputq;
-  newo->obj = d;
-  state->outputq = newo;
+
+  return 0;
 }
 	
 static void emit_all(struct state * state) {
-  // Build LIFO stack of objects to send
+  assert (!state->outputq);
+  bytes_hash_table_foreach(state->last, emit_last, state);
 
   // Last entry to be sent is a refresh message:
-  struct obj_list * newo = g_new(struct obj_list, 1);
-  dts_object * timefield;
   if (state->fieldset.num) {
-  	newo->obj = flow_dts_construct(state->env, state->refreshtype, NULL);
+	dts_object * obj = smacq_dts_construct(state->env, state->refreshtype, NULL);
+
   	if (state->hasinterval) {
-  		timefield = flow_dts_construct(state->env, state->timevaltype, &state->nextinterval);
-  		dts_attach_field(newo->obj, state->timeseries, timefield);
+  		dts_object * timefield;
+  		timefield = smacq_dts_construct(state->env, state->timevaltype, &state->nextinterval);
+  		dts_attach_field(obj, state->timeseries, timefield);
   	}
-  	newo->next = NULL;
-  	assert (!state->outputq);
-  	state->outputq = newo;
+
+  	smacq_produce_enqueue(&state->outputq, obj, -1);
+	//fprintf(stderr, "last enqueue refresh %p\n", obj);
   }
 
-  bytes_hash_table_foreach(state->last, emit_last, state);
 }
   
 static smacq_result last_consume(struct state * state, const dts_object * datum, int * outchan) {
@@ -114,13 +105,13 @@ static smacq_result last_consume(struct state * state, const dts_object * datum,
   int condproduce = 0;
 
   if (state->hasinterval) {
-    dts_object field_data;
+    const dts_object * field_data;
 
-    if (!flow_getfield(state->env, datum, state->timeseries, &field_data)) {
+    if (!(field_data = smacq_getfield(state->env, datum, state->timeseries, NULL))) {
       fprintf(stderr, "error: timeseries not available\n");
     } else {
-      struct timeval * tv = (struct timeval *)field_data.data;
-      assert(field_data.len == sizeof(struct timeval));
+      struct timeval * tv = (struct timeval *)dts_getdata(field_data);
+      assert(dts_getsize(field_data) == sizeof(struct timeval));
       
       if (!state->istarted) {
 	state->istarted = 1;
@@ -151,7 +142,8 @@ static smacq_result last_consume(struct state * state, const dts_object * datum,
 	dts_object * old; 
 
   	dts_incref(datum, 1);
-  	old = bytes_hash_table_replacev(state->last, domainv, state->fieldset.num, (gpointer)datum);
+  	old = bytes_hash_table_setv(state->last, domainv, state->fieldset.num, (gpointer)datum);
+	//fprintf(stderr, "last saving %p, releasing %p\n", datum, old);
 	if (old) 
 	  dts_decref(old);
   }
@@ -159,7 +151,7 @@ static smacq_result last_consume(struct state * state, const dts_object * datum,
   return(SMACQ_FREE|condproduce);
 }
 
-static int last_init(struct flow_init * context) {
+static smacq_result last_init(struct smacq_init * context) {
   int argc = 0;
   char ** argv;
   struct state * state = context->state = g_new0(struct state, 1);
@@ -172,7 +164,7 @@ static int last_init(struct flow_init * context) {
     		{ "t", &interval}, 
     		{NULL, NULL}
   	};
-  	flow_getoptsbyname(context->argc-1, context->argv+1,
+  	smacq_getoptsbyname(context->argc-1, context->argv+1,
 			       &argc, &argv,
 			       options, optvals);
 
@@ -187,15 +179,15 @@ static int last_init(struct flow_init * context) {
   // Consume rest of arguments as fieldnames
   fields_init(state->env, &state->fieldset, argc, argv);
 
-  state->timeseries = flow_requirefield(state->env, "timeseries");
-  state->refreshtype = flow_requiretype(state->env, "refresh");
-  state->timevaltype = flow_requiretype(state->env, "timeval");
-  state->last = bytes_hash_table_new(KEYBYTES, chain);
+  state->timeseries = smacq_requirefield(state->env, "timeseries");
+  state->refreshtype = smacq_requiretype(state->env, "refresh");
+  state->timevaltype = smacq_requiretype(state->env, "timeval");
+  state->last = bytes_hash_table_new(KEYBYTES, CHAIN|NOFREE);
 
   return 0;
 }
 
-static int last_shutdown(struct state * state) {
+static smacq_result last_shutdown(struct state * state) {
   return 0;
 }
 
@@ -204,15 +196,8 @@ static smacq_result last_produce(struct state * state, const dts_object ** datum
   if (!state->outputq) {
     emit_all(state);
   }
-    
-  if (state->outputq) {
-    *datum = state->outputq->obj;
-    state->outputq = state->outputq->next;
-  } else {
-    return SMACQ_END;
-  }
 
-  return(SMACQ_PASS|(state->outputq ? SMACQ_PRODUCE : 0));
+  return smacq_produce_dequeue(&state->outputq, datum, outchan);
 }
 
 /* Right now this serves mainly for type checking at compile time: */

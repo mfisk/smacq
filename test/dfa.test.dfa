@@ -1,0 +1,2 @@
+START FIRST seq
+FIRST STOP seq == previous.seq

@@ -1,0 +1,11 @@
+*.lo
+*.la
+.libs
+*.sw?
+smacqp
+smacqq
+smacqp-static
+smacqq-static
+smacqp-dynamic
+smacqq-dynamic
+iterative-example

@@ -2,20 +2,21 @@
 
 struct field {
   char * name;
-  int num;
+  dts_field num;
 };
 
 struct fieldset {
   int num;
   struct iovec * currentvecs;
-  dts_object * currentdata;
+  const dts_object ** currentdata;
   struct field * fields;
 
   //Private:
   int lasttype;
 };
 
-static inline int flow_nextfielddata(struct fieldset * fieldset, dts_object *d, int i) {
+
+static inline int smacq_nextfielddata(struct fieldset * fieldset, const dts_object **d, int i) {
      if (i >= fieldset->num) 
 	     	return 0;
 
@@ -23,8 +24,7 @@ static inline int flow_nextfielddata(struct fieldset * fieldset, dts_object *d, 
      return (i+1);
 }
 
-extern dts_object * fields2data(smacq_environment * env, const dts_object * datum, struct fieldset * fieldset);
 extern struct iovec * fields2vec(smacq_environment * env, const dts_object * datum, struct fieldset * fieldset);
 void fields_init(smacq_environment * env, struct fieldset * fieldset, int argc, char ** argv);
-
-
+int iovec_has_undefined(struct iovec *, int nvecs);
+void fieldset_destroy(struct fieldset * fieldset);

@@ -1,0 +1,375 @@
+%start queryline
+%defines
+
+%{
+void yysmacql_error(char*);
+     #define    yymaxdepth yysmacql_maxdepth
+     #define    yyparse yysmacql_parse
+     #define    yylex   yysmacql_lex
+     #define    yyerror yysmacql_error
+     #define    yylval  yysmacql_lval
+     #define    yychar  yysmacql_char
+     #define    yydebug yysmacql_debug
+     #define    yypact  yysmacql_pact
+     #define    yyr1    yysmacql_r1
+     #define    yyr2    yysmacql_r2
+     #define    yydef   yysmacql_def
+     #define    yychk   yysmacql_chk
+     #define    yypgo   yysmacql_pgo
+     #define    yyact   yysmacql_act
+     #define    yyexca  yysmacql_exca
+     #define yyerrflag yysmacql_errflag
+     #define yynerrs    yysmacql_nerrs
+     #define    yyps    yysmacql_ps
+     #define    yypv    yysmacql_pv
+     #define    yys     yysmacql_s
+     #define    yy_yys  yysmacql_yys
+     #define    yystate yysmacql_state
+     #define    yytmp   yysmacql_tmp
+     #define    yyv     yysmacql_v
+     #define    yy_yyv  yysmacql_yyv
+     #define    yyval   yysmacql_val
+     #define    yylloc  yysmacql_lloc
+     #define yyreds     yysmacql_reds
+     #define yytoks     yysmacql_toks
+     #define yylhs      yysmacql_yylhs
+     #define yylen      yysmacql_yylen
+     #define yydefred yysmacql_yydefred
+     #define yydgoto    yysmacql_yydgoto
+     #define yysindex yysmacql_yysindex
+     #define yyrindex yysmacql_yyrindex
+     #define yygindex yysmacql_yygindex
+     #define yytable     yysmacql_yytable
+     #define yycheck     yysmacql_yycheck
+     #define yyname   yysmacql_yyname
+     #define yyrule   yysmacql_yyrule
+
+#include <smacq-parser.h>
+static struct graph nullgraph = { head: NULL, tail: NULL };
+static smacq_graph * Graph;
+%}
+
+%type <graph> query from0 from where action parenquery moreparenquery
+%type <group> group
+%type <comp> having
+
+/*
+ * BUGS:
+ *
+ *    - Cannot call the same function twice with different "as" names
+ *      This is because renames are done as a batch just before the VERB
+ *
+ *    - Cannot use nested functions as arguments
+ *      FIX: re-write arguments recursively or something
+ *
+ */
+
+/*
+ * Examples:
+ *
+ *	print srcip from (uniq srcip, dstip from pcapfile("/hog/traces/aa.80")) group by srcip having "counter>10"
+ *	print srcip, counter(), sum(len) from (uniq srcip, dstip from pcapfile("/hog/traces/aa.80")) group by srcip having "counter>10"
+ *
+ */
+ 
+%{
+#include <smacq-parser.h>
+%}
+
+%token WHERE
+%token GROUP
+%token BY
+%token FROM
+%token SELECT
+%token AS
+%token HAVING
+%token UNION
+%token YYSTRING YYID YYNUMBER
+%token YYNEQ YYLEQ YYGEQ
+
+%token YYSTOP YYLIKE YYOR YYAND YYNOT
+
+%left YYAND YYOR
+%right YYNOT
+
+%left '+' '-'
+%left '*' '/'
+
+%type <arglist> arg argument args moreargs spacedargs
+%type <string> function word string id number
+%type <op> op
+%type <comp> boolean test 
+%type <operand> operand expression subexpression
+%type <arithop> arithop
+
+%union {
+  struct graph graph;
+  struct arglist * arglist;
+  struct vphrase vphrase;
+  char * string;
+  struct group group;
+  dts_compare_operation op;
+  enum dts_arith_operand_type arithop;
+  dts_comparison * comp;
+  struct dts_operand * operand;
+}
+%%
+
+null:   /* empty */ ;
+
+
+word:	id 		
+	| string
+	| number 
+	;
+
+number:	YYNUMBER 	{ $$ = yystring; }
+	;
+
+string:	YYSTRING 	{ $$ = yystring; }
+	;
+
+id:	YYID 		{ $$ = yystring; }
+        | YYOR          { $$ = "or"; }
+        | YYAND         { $$ = "and"; }
+        ;
+
+arg: argument 
+	| argument AS word		{ $$->rename = $3; }
+	;
+
+argument : word 			{ $$ = newarg($1, WORD, NULL); } 
+	| function '(' args ')' 	                  { $$ = newarg($1, FUNCTION, $3); }
+	| '[' expression ']'	                  { $$ = newarg("expr", FUNCTION, 
+					       newarg(print_operand($2), WORD, NULL)); 
+			                  }
+	;
+
+function : id 
+	;
+
+args :  arg ',' arg moreargs 	{ $$ = $1; $$->next = $3; $3->next = $4; }
+	| spacedargs	
+	;
+
+spacedargs : null		{ $$ = NULL; }
+	| arg spacedargs 	{ $$ = $1; $$->next = $2; }
+	;
+
+moreargs : null			{ $$ = NULL; }
+	| ',' arg moreargs 	{ $$ = $2; $$->next = $3; }
+	;
+
+
+
+/************* From boolean parser: **********************/
+
+
+boolean : '(' boolean ')'	{ $$ = $2; }
+	| boolean YYOR boolean	{ $$ = comp_join($1, $3, OR); }
+	| boolean YYAND boolean	{ $$ = comp_join($1, $3, AND); }
+	| YYNOT boolean 	{ $$ = comp_join($2, NULL, NOT); }
+	| test 		
+	;
+
+operand : id			{ $$ = comp_operand(FIELD, $1); }
+	| string 		{ $$ = comp_operand(CONST, $1); }
+	| number 		{ $$ = comp_operand(CONST, $1); }
+	;
+
+
+expression :   
+	'(' expression ')' 
+				{	  
+				  $$ = $2;  
+				} 
+	| subexpression arithop subexpression  
+				{
+				  $$ = comp_arith(parse_tenv, $2, $1, $3); 
+				}
+	;
+
+subexpression : 
+	expression
+	| operand
+	;
+
+test : 	
+	operand		{  $$ = comp_new(EXIST, $1, $1); }
+	| subexpression op subexpression      { $$ = comp_new($2, $1, $3); }
+	| function '(' args ')'	{ 
+				  int argc; char ** argv;
+				  arglist2argv($3, &argc, &argv);
+				  $$ = comp_new_func($1, argc, argv, $3);
+				}
+	;
+
+op : '=' 		{ $$ = EQ; }
+	| '>'		{ $$ = GT; }
+	| '<' 		{ $$ = LT; }
+	| YYGEQ		{ $$ = GEQ; }
+	| YYLEQ		{ $$ = LEQ; }
+	| YYNEQ		{ $$ = NEQ; }
+	| YYLIKE 	{ $$ = LIKE; }		 
+	;
+
+arithop : '+'		{ $$ = ADD; }
+	| '-'		{ $$ = SUB; }
+	| '/'		{ $$ = DIVIDE; }
+	| '*'		{ $$ = MULT; }
+	;
+
+
+queryline: query YYSTOP	
+	   { 
+#ifdef DEBUG
+	   	smacq_graph_print(stderr, $1.head, 0); 
+#endif
+		Graph = $1.head;
+		return 0;
+	   }
+	;
+
+query : action from where group
+           {
+	   	$$ = $2;
+		graph_join(&($$), $3);
+		if ($4.args) {
+			graph_join(&($$), newgroup($4, $1));
+		} else {
+			graph_join(&($$), $1);
+		}
+	   }
+	| action where 
+           {
+	   	$$ = $2;
+		graph_join(&($$), $1);
+	   }
+	| query '|' action where group
+           {
+	   	$$ = $1;
+		graph_join(&($$), $4);
+		if ($5.args) {
+			graph_join(&($$), newgroup($5, $3));
+		} else {
+			graph_join(&($$), $3);
+		}
+	   }
+        | WHERE boolean { $$ = optimize_bools($2); }
+	;
+
+from0 : from
+	| null		{ $$ = nullgraph; }
+	;
+
+from :  FROM action from0
+           {
+	   	$$ = $3;
+		graph_join(&($$), $2);
+	   }
+	;
+
+where : null 		{ $$ = nullgraph; }
+        | WHERE boolean { $$ = optimize_bools($2); }
+	;
+
+group : null 			{ $$.args = NULL; $$.having = NULL;}
+	| GROUP BY args having 	{ $$.args = $3; $$.having = $4; }
+	;
+
+having : null			{ $$ = NULL; }
+	| HAVING boolean	{ $$ = $2; }
+	;
+
+parenquery : '(' query ')'	{ $$ = $2; }
+	| function '(' args ')'	{ $$ = newmodule($1, $3); }
+	| function			{ $$ = newmodule($1, NULL); }
+	;
+
+moreparenquery : parenquery
+	| parenquery '+' moreparenquery
+	   {
+	   	smacq_graph * g = $1.head;
+		while(g->next_graph)
+			g=g->next_graph;
+		g->next_graph = $3.head;
+		$$ = $1;
+	   }
+	;
+
+action : function args 		{ $$ = newmodule($1, $2); }
+	| function '(' args ')'	{ $$ = newmodule($1, $3); }
+	| '(' query ')'		{ $$ = $2; }
+	| '(' parenquery '+' moreparenquery ')'
+	   {
+	   	smacq_graph * g = $2.head;
+		while(g->next_graph)
+			g=g->next_graph;
+		g->next_graph = $4.head;
+		$$ = $2;
+	   }
+	;
+%%
+
+extern void yysmacql_scan_string(char*);
+
+#ifndef SMACQ_OPT_NOPTHREADS
+#ifdef PTHREAD_MUTEX_INITIALIZER
+  static pthread_mutex_t local_lock = PTHREAD_MUTEX_INITIALIZER;
+#else
+  static pthread_mutex_t local_lock;
+  #warning "No PTHREAD_MUTEX_INITIALIZER"
+#endif
+#endif
+
+smacq_graph * smacq_build_query(dts_environment * tenv, int argc, char ** argv) {
+  int size = 0;
+  int i;
+  char * qstr; 
+  smacq_graph * graph;
+  int res;
+
+  parse_tenv = tenv;
+
+  for (i=0; i<argc; i++) {
+  	size += strlen(argv[i]);
+  }
+  size += argc;
+
+  qstr = (char*)malloc(size);
+  qstr[0] = '\0';
+  	
+  for (i=0; i<argc; i++) {
+  	strcatn(qstr, size, argv[i]);
+  	strcatn(qstr, size, " ");
+  }
+
+  /* LOCK */
+  pthread_mutex_lock(&local_lock);
+
+  yysmacql_scan_string(qstr);
+  //fprintf(stderr, "parsing buffer: %s\n", qstr); 
+
+  res = yysmacql_parse();
+
+  graph = Graph;
+
+  /* UNLOCK */
+  pthread_mutex_unlock(&local_lock);
+
+  if (res) {
+    fprintf(stderr, "smacq_build_query: error parsing query: %s\n", qstr);
+    return NULL;
+  }
+
+  if (!graph) {
+    fprintf(stderr, "unknown parse error\n");
+  }
+
+  return graph;
+}
+
+void yysmacql_error(char * msg) {
+  fprintf(stderr, "%s near %s\n", msg, yytext-1);
+}
+

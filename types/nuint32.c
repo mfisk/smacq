@@ -5,36 +5,41 @@
 #include <netinet/in.h>
 #include "smacq.h"
 
-static int flowtype_nuint32_get_string(void * data, int dlen, void ** transform, int * tlen) {
-  char buf[64]; // Only has to hold log10(2**32)
-
-  assert(dlen==sizeof(unsigned int));
-
-  snprintf(buf, 64, "%u", ntohl(*(unsigned int*)data));
-  *transform = strdup(buf);
-  *tlen = strlen(data);
-
+static int smacqtype_nuint32_get_string(const dts_object * o, dts_object * field) {
+  dts_setsize(field, 64); // Only has to hold log10(2**32)
+  snprintf(field->data, 64, "%u", ntohl(dts_data_as(o, unsigned int)));
   return 1;
 }
 
-static int parse_nuint32(char * buf, void ** resp, int * reslen) {
-  unsigned long * v = g_new(long, 1);
-  *v = atol(buf);
-
-  *resp = v;
-  *reslen = sizeof(unsigned long);
-  assert( sizeof(unsigned long) == 4);
-
+static int smacqtype_nuint32_get_double(const dts_object * o, dts_object * field) {
+  double d = ntohl(dts_data_as(o, unsigned long));
+  dts_data_as(field, double) = d;
   return 1;
 }
 
-struct dts_transform_descriptor dts_type_nuint32_transforms[] = {
-  { "string",   flowtype_nuint32_get_string },
+static int parse_nuint32(char * buf,  const dts_object * d) {
+  return dts_set(d, unsigned long, ntohl(atol(buf)));
+}
+
+static int nuint32_lt(void * num1, int size1, void * num2, int size2) {
+  unsigned long * a = num1;
+  unsigned long * b = num2;
+                                                                                                                                                        
+  assert(size1 == sizeof(unsigned long));
+  assert(size2 == sizeof(unsigned long));
+                                                                                                                                                        
+  return(ntohl(*a) < ntohl(*b));
+}
+                                                                                                                                                        
+struct dts_field_spec dts_type_nuint32_fields[] = {
+  { "string",   "string",	smacqtype_nuint32_get_string },
+  { "double",   "double",	smacqtype_nuint32_get_double },
   { END,        NULL }
 };
 
 struct dts_type_info dts_type_nuint32_table = {
   size: sizeof(unsigned int),
-  fromstring:parse_nuint32
+  fromstring:parse_nuint32,
+  lt: nuint32_lt
 };
 

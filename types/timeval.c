@@ -4,42 +4,55 @@
 #include <string.h>
 #include <sys/time.h>
 #include <math.h>
+#include <time.h>
 #include "smacq.h"
 
 #include <netinet/in.h>
 
-static int flowtype_timeval_get_double(void * data, int dlen, void ** transform, int * tlen) {
-  struct timeval * t = data;
-  double * dblp = malloc(sizeof(double));
-  *dblp = (double)t->tv_sec + 1e-6 * (double)t->tv_usec;
-  *transform = dblp;
-  *tlen = sizeof(double);
-
-  return 1;
+static int smacqtype_timeval_get_sec(const dts_object * o, dts_object * field) {
+  struct timeval * t = dts_getdata(o);
+  unsigned long sec = t->tv_sec;
+  return dts_set(field, unsigned long, sec);
 }
-static int flowtype_timeval_get_string(void * data, int dlen, void ** transform, int * tlen) {
-  struct timeval * t = data;
-  char buf[64]; 
 
-  assert(dlen=sizeof(struct timeval));
+static int smacqtype_timeval_get_double(const dts_object * o, dts_object * field) {
+  struct timeval * t = dts_getdata(o);
+  double dbl = (double)t->tv_sec + 1e-6 * (double)t->tv_usec;
+  return dts_set(field, double, dbl);
+}
 
-  snprintf(buf, 64, "%lu.%06lu", t->tv_sec, t->tv_usec);
-  *transform = strdup(buf);
-  *tlen = strlen(data);
-
+static int smacqtype_timeval_get_string(const dts_object * o, dts_object * field) {
+  struct timeval * t = dts_getdata(o);
+  dts_setsize(field, 64);
+  snprintf(field->data, 64, "%lu.%06lu", (unsigned long)t->tv_sec, (unsigned long)t->tv_usec);
   return 1;
 }
 
-static int parse_timeval(char * buf, void ** resp, int * reslen) {
-  struct timeval * rv = g_new(struct timeval, 1);
+static int smacqtype_timeval_get_ctime(const dts_object * o, dts_object * field) {
+  struct timeval * t = dts_getdata(o);
+  struct tm tm;
+  dts_setsize(field, 32);
+  strftime(field->data, 32, "%T", localtime_r(&(t->tv_sec), &tm));
+  
+  return 1;
+}
+
+static int smacqtype_timeval_get_date(const dts_object * o, dts_object * field) {
+  struct timeval * t = dts_getdata(o);
+  struct tm tm;
+  dts_setsize(field, 32);
+  strftime(field->data, 32, "%Y-%m-%d", localtime_r(&(t->tv_sec), &tm));
+  
+  return 1;
+}
+
+static int parse_timeval(char * buf,  const dts_object * d) {
+  struct timeval rv;
   double time = atol(buf);
-  rv->tv_sec = floor(time);
-  rv->tv_usec = (time - floor(time)) * 1e6;
+  rv.tv_sec = floor(time);
+  rv.tv_usec = (time - floor(time)) * 1e6;
 
-  *resp = rv;
-  *reslen = sizeof(struct timeval);
-
-  return 1;
+  return dts_set(d, struct timeval, rv);
 }
 
 int timeval_ge(struct timeval x, struct timeval y) {
@@ -55,10 +68,13 @@ static int timeval_lt(void * p1, int len1, void * p2, int len2) {
   return(!timeval_ge(*(struct timeval*)p1, *(struct timeval*)p2));
 }
 
-struct dts_transform_descriptor dts_type_timeval_transforms[] = {
-	{ "string",   	flowtype_timeval_get_string },
-	{ "double",   	flowtype_timeval_get_double },
-        { END,        NULL }
+struct dts_field_spec dts_type_timeval_fields[] = {
+  { "string",		"string",	smacqtype_timeval_get_string },
+  { "string",		"ctime",	smacqtype_timeval_get_ctime },
+  { "string",		"date",	smacqtype_timeval_get_date },
+  { "double", 	"double",	smacqtype_timeval_get_double },
+  { "uint32", 	"sec",	smacqtype_timeval_get_sec },
+  { END,        NULL }
 };
 
 struct dts_type_info dts_type_timeval_table = {

@@ -19,8 +19,8 @@ struct state {
 
   double total, prev_total;
 
-  int probfield; 
-  int entropyfield;
+  dts_field probfield; 
+  dts_field entropyfield;
   int refreshtype;
   int probtype;
 
@@ -30,7 +30,7 @@ struct state {
 static smacq_result entropy_consume(struct state * state, const dts_object * datum, int * outchan) {
 	if (dts_gettype(datum) == state->refreshtype) {
 		double total = state->total / log(2);
-    		dts_object * msgdata = flow_dts_construct(state->env, state->probtype, &total);
+    		dts_object * msgdata = smacq_dts_construct(state->env, state->probtype, &total);
 		// fprintf(stderr, "Got refresh\n");
     		dts_attach_field(datum, state->entropyfield, msgdata); 
 		//dts_incref(msgdata, 1);
@@ -40,7 +40,7 @@ static smacq_result entropy_consume(struct state * state, const dts_object * dat
 	
 		return SMACQ_PASS;
 	} else {
-		dts_object probo;
+		const dts_object * probo;
 		double prob;
 
 		// Keep last datum around so we can use it to spit out data when we're ready
@@ -50,18 +50,19 @@ static smacq_result entropy_consume(struct state * state, const dts_object * dat
 		state->lasto = datum;
 		dts_incref(datum, 1);
 
-		if (!flow_getfield(state->env, datum, state->probfield, &probo)) {
+		if (!(probo = smacq_getfield(state->env, datum, state->probfield, NULL))) {
 			fprintf(stderr, "No probability field\n");
 			return SMACQ_PASS;
 		}
-		prob = *(double*)probo.data;
+		prob = dts_data_as(probo, double);
+		dts_decref(probo);
 		state->total -= prob * log(prob);
   		
 		return SMACQ_FREE;
 	}
 }
 
-static int entropy_init(struct flow_init * context) {
+static smacq_result entropy_init(struct smacq_init * context) {
   int argc = 0;
   char ** argv;
   struct state * state = context->state = g_new0(struct state, 1);
@@ -72,20 +73,20 @@ static int entropy_init(struct flow_init * context) {
   	struct smacq_optval optvals[] = {
     		{NULL, NULL}
   	};
-  	flow_getoptsbyname(context->argc-1, context->argv+1,
+  	smacq_getoptsbyname(context->argc-1, context->argv+1,
 			       &argc, &argv,
 			       options, optvals);
   }
 
-  state->refreshtype = flow_requiretype(state->env, "refresh");
-  state->probfield = flow_requirefield(state->env, "probability");
-  state->probtype = flow_requiretype(state->env, "double");
-  state->entropyfield = flow_requirefield(state->env, "entropy");
+  state->refreshtype = smacq_requiretype(state->env, "refresh");
+  state->probfield = smacq_requirefield(state->env, dts_fieldname_append("probability", "double"));
+  state->probtype = smacq_requiretype(state->env, "double");
+  state->entropyfield = smacq_requirefield(state->env, "entropy");
 
   return 0;
 }
 
-static int entropy_shutdown(struct state * state) {
+static smacq_result entropy_shutdown(struct state * state) {
   return 0;
 }
 
@@ -100,8 +101,8 @@ static smacq_result entropy_produce(struct state * state, const dts_object ** da
   if (!total) {
     return SMACQ_END;
   } else {
-    //dts_object * refresh = flow_dts_construct(state->env, state->refreshtype, NULL);
-    dts_object * msgdata = flow_dts_construct(state->env, state->probtype, &total);
+    //dts_object * refresh = smacq_dts_construct(state->env, state->refreshtype, NULL);
+    dts_object * msgdata = smacq_dts_construct(state->env, state->probtype, &total);
     dts_attach_field(state->lasto, state->entropyfield, msgdata); 
     //dts_incref(msgdata, 1);
     *datum = state->lasto;

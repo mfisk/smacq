@@ -1,3 +1,8 @@
+#ifdef linux
+#define _FILE_OFFSET_BITS 64
+#define _LARGEFILE64_SOURCE
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -14,7 +19,7 @@ struct state {
   char  delimiter;
   FILE * fh;
 
-  int * field_name;
+  struct darray field_name;
   int * field_type;
   int fields;
 
@@ -23,27 +28,35 @@ struct state {
   int empty_type;
 };
 
-static inline const dts_object * flow_construct_fromstring(smacq_environment * env, int type, void * data) {
-  const dts_object * o = flow_alloc(env, 0, type);
-  dts_incref(o, 1);
-  if (flow_fromstring(env, type, data, (dts_object*)o)) {
-    return o;
-  } else {
-    dts_decref(o);
-    return NULL;
-  }
-}
-
 #define MAX_STR 4096
+
+static const dts_object * default_parse(struct state* state, char * startp, char * endp) {
+      char * badp;
+      const dts_object * msgdata;
+      double d = strtod(startp, &badp);
+
+      if (badp && badp != endp) {
+	//fprintf(stderr, "Double test failed, '%s' remains\n", badp);
+	msgdata = dts_construct_fromstring(state->env->types, state->string_type, startp);
+      } else {
+	//fprintf(stderr, "Double test succeeded for '%s'\n", startp);
+	msgdata = smacq_dts_construct(state->env, state->double_type, &d);
+      }
+
+      return msgdata;
+}
 
 static smacq_result tabularinput_produce(struct state* state, const dts_object ** datump, int * outchan) {
   int i;
-  char * startp, * stopp, * endp, * badp, line[MAX_STR];
+  char * startp, * stopp, * endp, line[MAX_STR];
   const dts_object * msgdata;
   char * result;
-  const dts_object * datum = flow_alloc(state->env, 0, state->empty_type);
-  dts_incref(datum, 1);
+  const dts_object * datum;
+  dts_field field;
+  assert(state);
 
+  datum = smacq_alloc(state->env, 0, state->empty_type);
+  
   result = fgets(line, MAX_STR, state->fh);
   if (!result) {
     return SMACQ_END;
@@ -71,29 +84,28 @@ static smacq_result tabularinput_produce(struct state* state, const dts_object *
     } else {
       endp[0] = '\0';
     }
-   
-    if (i >= state->fields || !state->field_type[i] ||
-	!(msgdata = flow_construct_fromstring(state->env, state->field_type[i], strdup(startp))))  {
-      double d = strtod(startp, &badp);
-      if (badp && badp != endp) {
-	//fprintf(stderr, "Double test failed, '%s' remains\n", badp);
-	msgdata = flow_construct_fromstring(state->env, state->string_type, strdup(startp));
-      } else {
-	msgdata = flow_dts_construct(state->env, state->double_type, &d);
-      }
+ 
+    if (i >= state->fields || !state->field_type[i]) {
+	msgdata = default_parse(state, startp, endp);
+    } else {
+	msgdata = dts_construct_fromstring(state->env->types, state->field_type[i], startp);
+	if (!msgdata) {
+	    fprintf(stderr, "Unable to parse field %s as type %s\n", "", "");
+	    msgdata = default_parse(state, startp, endp);
+	}
     }
 
-    if (!msgdata) 
     assert(msgdata);
 
-    if (i >= state->fields) {
+    field = darray_get(&state->field_name, i);
+    if (! field) {
       char buf[1024];
       sprintf(buf, "%d", i+1);
-      dts_attach_field(datum, flow_requirefield(state->env, buf), msgdata); 
-    } else {
-      dts_attach_field(datum, state->field_name[i], msgdata); 
+      field = smacq_requirefield(state->env, buf);
+      darray_set(&state->field_name, i, field);
     }
-
+    dts_attach_field(datum, field, msgdata); 
+    //fprintf(stderr, "Attached field %d (type %d) to %p\n", field[0], msgdata->type, datum);
   }
 
   *datump = datum;
@@ -107,11 +119,11 @@ static smacq_result tabularinput_consume(struct state * state, const dts_object 
 }
 
 
-static int tabularinput_shutdown(struct state * state) {
+static smacq_result tabularinput_shutdown(struct state * state) {
   return 0;
 }
 
-static int tabularinput_init(struct flow_init * context) {
+static smacq_result tabularinput_init(struct smacq_init * context) {
   struct state * state;
   smacq_opt delimitero, fileo;
   int argc;
@@ -128,7 +140,7 @@ static int tabularinput_init(struct flow_init * context) {
       { "f", &fileo}, 
       {NULL, NULL}
     };
-    flow_getoptsbyname(context->argc-1, context->argv+1,
+    smacq_getoptsbyname(context->argc-1, context->argv+1,
 				 &argc, &argv,
 				 options, optvals);
   }
@@ -145,23 +157,21 @@ static int tabularinput_init(struct flow_init * context) {
   }
 
   state->fields = argc;
-  state->field_name = calloc(argc, sizeof(int));
+  darray_init(&state->field_name, argc);
   state->field_type = calloc(argc, sizeof(int));
   
   for (i = 0; i < argc; i++) {
     char * name = strdup(argv[i]);
     char * type;
     type = index(name, ':');
+
     if (!type) {
       state->field_type[i] = 0;
-      state->field_name[i] = flow_requirefield(state->env, name);
     } else {
       type[0] = '\0';
-      //fprintf(stderr, "Added field %s type %s\n", name, type+1);
-      state->field_name[i] = flow_requirefield(state->env, name);
-      state->field_type[i] = flow_requiretype(state->env, type+1);
+      state->field_type[i] = smacq_requiretype(state->env, type+1);
     }
-
+    darray_set(&state->field_name, i, smacq_requirefield(state->env, name));
     free(name);
   }
   
@@ -170,9 +180,9 @@ static int tabularinput_init(struct flow_init * context) {
     assert(0);
   }
 
-  state->double_type = flow_requiretype(state->env, "double");
-  state->string_type = flow_requiretype(state->env, "string");
-  state->empty_type = flow_requiretype(state->env, "empty");
+  state->double_type = smacq_requiretype(state->env, "double");
+  state->string_type = smacq_requiretype(state->env, "string");
+  state->empty_type = smacq_requiretype(state->env, "empty");
 
   return 0;
 }
@@ -180,9 +190,9 @@ static int tabularinput_init(struct flow_init * context) {
 
 /* Right now this serves mainly for type checking at compile time: */
 struct smacq_functions smacq_tabularinput_table = {
-  &tabularinput_produce, 
-  &tabularinput_consume,
-  &tabularinput_init,
-  &tabularinput_shutdown
+	produce: &tabularinput_produce, 
+	consume: &tabularinput_consume,
+	init: &tabularinput_init,
+	shutdown: &tabularinput_shutdown
 };
 

@@ -1,0 +1,32 @@
+#!/bin/sh 
+
+target="$1"
+shift
+
+START=`pwd`
+DIR="/tmp/arcat.$$"
+mkdir -p $DIR
+
+
+for a in "$@"; do
+
+	if expr "$a" : "/" >/dev/null; then
+		true
+	else
+		a=`pwd`/$a
+	fi
+
+	if expr "$a" : ".*\.o$" >/dev/null; then
+		OBJS="${OBJS}$a "
+	else 
+		ADIR=$DIR/`basename $a`
+		mkdir -p $ADIR
+		cd $ADIR
+		ar x $a
+	fi
+	cd $START
+done
+
+ar r $target $OBJS $DIR/*/*.o
+rm -Rf $DIR
+

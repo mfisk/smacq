@@ -1,7 +1,8 @@
 #include <glib.h>
 #include <sys/uio.h>
+#include <stdint.h>
 
-#define WORDTYPE guint32
+#define WORDTYPE uint32_t
 
 extern struct bloom_summary * bloom_summary_init(int maxkeybytes, unsigned long long size);
 extern struct bloom_summary * bloom_counter_init(int maxkeybytes, unsigned long long size);
@@ -12,8 +13,8 @@ extern struct bloom_summary * bloom_load(char * filename);
 extern void bloom_save(char * filename, struct bloom_summary *);
 int bloom_set_hash_functions(struct bloom_summary * b, int numfilterfuncs);
 double bloom_get_usage(struct bloom_summary * b);
-ulong bloom_get_uniq(struct bloom_summary * b);
-ulong bloom_get_falsepositives(struct bloom_summary * b);
+unsigned long bloom_get_uniq(struct bloom_summary * b);
+unsigned long bloom_get_falsepositives(struct bloom_summary * b);
 inline int TestOrSetBit(WORDTYPE * array, unsigned int number, int op);
 void bloom_make_perfect(struct bloom_summary * b);
 int bloom_incrementv(struct bloom_summary * b, struct iovec * key, int keys);

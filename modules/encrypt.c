@@ -20,8 +20,8 @@ static struct smacq_options options[] = {
 struct state {
   smacq_environment * env;
   struct fieldset fieldset;
-  int changefield;
-  GHashTableofBytes * hashtable;
+  dts_field changefield;
+  struct iovec_hash * hashtable;
   const dts_object * datum;
 
   int add;
@@ -32,14 +32,15 @@ static inline int min(int a, int b) {
 }
 
 static smacq_result encrypt_consume(struct state * state, const dts_object * datum, int * outchan) {
-  dts_object field;
+  const dts_object * field;
   struct iovec * keyv;
   unsigned long hval;
 
-  if (! flow_getfield(state->env, datum, state->changefield, &field)) {
+  if (!(field = smacq_getfield(state->env, datum, state->changefield, NULL))) {
     fprintf(stderr, "Skipping packet without field\n");
     return SMACQ_PASS;
   }
+  dts_decref(field);
 
   keyv = fields2vec(state->env, datum, &state->fieldset);
   if (!keyv) {
@@ -47,30 +48,31 @@ static smacq_result encrypt_consume(struct state * state, const dts_object * dat
     return SMACQ_PASS;
   }
   
- state->datum = dts_writable(state->env, datum);
+  state->datum = dts_writable(state->env, datum);
 
-  if (! flow_getfield(state->env, state->datum, state->changefield, &field)) {
+  if (!(field = smacq_getfield(state->env, state->datum, state->changefield, NULL))) {
     fprintf(stderr, "Skipping packet without field\n");
     return SMACQ_PASS;
   }
 
-  hval = bytes_hash_valuev(state->hashtable, state->fieldset.num, keyv);
+  hval = bytes_hashv(keyv, state->fieldset.num);
 
   if (!state->add) {
-    memcpy(field.data, &hval, min(field.len, sizeof(unsigned long)));
+    memcpy(dts_getdata(field), &hval, min(dts_getsize(field), sizeof(unsigned long)));
   } else {
-    if (field.len == sizeof(unsigned long)) {
-      *(unsigned long*)field.data += hval;
+    if (dts_getsize(field) == sizeof(unsigned long)) {
+      *(unsigned long*)dts_getdata(field) += hval;
     } else {
-      fprintf(stderr, "Don't know how to use -add with %d byte fields\n", field.len);
+      fprintf(stderr, "Don't know how to use -add with %d byte fields\n", dts_getsize(field));
       assert(0);
     }
   }
-      
+     
+  dts_decref(field);
   return SMACQ_FREE|SMACQ_PRODUCE;
 }
 
-static int encrypt_init(struct flow_init * context) {
+static smacq_result encrypt_init(struct smacq_init * context) {
   int argc = 0;
   char ** argv;
   struct state * state = context->state = g_new0(struct state, 1);
@@ -83,7 +85,7 @@ static int encrypt_init(struct flow_init * context) {
      {"add", &add},
       {NULL, NULL}
     };
-    flow_getoptsbyname(context->argc-1, context->argv+1,
+    smacq_getoptsbyname(context->argc-1, context->argv+1,
 		       &argc, &argv,
 		       options, optvals);
     
@@ -92,7 +94,7 @@ static int encrypt_init(struct flow_init * context) {
 
   // Consume rest of arguments as fieldnames
   if (argc) {
-    state->changefield = flow_requirefield(state->env, argv[0]);
+    state->changefield = smacq_requirefield(state->env, argv[0]);
     if (!state->changefield) {
       fprintf(stderr, "No field to modify\n");
       return SMACQ_END;
@@ -103,7 +105,7 @@ static int encrypt_init(struct flow_init * context) {
 
   if (argc) {
     fields_init(state->env, &state->fieldset, argc, argv);
-    state->hashtable = bytes_hash_table_new(KEYBYTES, chain);
+    state->hashtable = bytes_hash_table_new(KEYBYTES, CHAIN|NOFREE);
   } else {
     state->hashtable = NULL;
   }
@@ -111,7 +113,7 @@ static int encrypt_init(struct flow_init * context) {
   return 0;
 }
 
-static int encrypt_shutdown(struct state * state) {
+static smacq_result encrypt_shutdown(struct state * state) {
   return SMACQ_END;
 }
 

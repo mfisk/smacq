@@ -1,0 +1,167 @@
+.\" This -*- nroff -*- file has been generated from
+.\" DocBook SGML with docbook-to-man on Debian GNU/Linux.
+...\"
+...\"	transcript compatibility for postscript use.
+...\"
+...\"	synopsis:  .P! <file.ps>
+...\"
+.de P!
+\\&.
+.fl			\" force out current output buffer
+\\!%PB
+\\!/showpage{}def
+...\" the following is from Ken Flowers -- it prevents dictionary overflows
+\\!/tempdict 200 dict def tempdict begin
+.fl			\" prolog
+.sy cat \\$1\" bring in postscript file
+...\" the following line matches the tempdict above
+\\!end % tempdict %
+\\!PE
+\\!.
+.sp \\$2u	\" move below the image
+..
+.de pF
+.ie     \\*(f1 .ds f1 \\n(.f
+.el .ie \\*(f2 .ds f2 \\n(.f
+.el .ie \\*(f3 .ds f3 \\n(.f
+.el .ie \\*(f4 .ds f4 \\n(.f
+.el .tm ? font overflow
+.ft \\$1
+..
+.de fP
+.ie     !\\*(f4 \{\
+.	ft \\*(f4
+.	ds f4\"
+'	br \}
+.el .ie !\\*(f3 \{\
+.	ft \\*(f3
+.	ds f3\"
+'	br \}
+.el .ie !\\*(f2 \{\
+.	ft \\*(f2
+.	ds f2\"
+'	br \}
+.el .ie !\\*(f1 \{\
+.	ft \\*(f1
+.	ds f1\"
+'	br \}
+.el .tm ? font underflow
+..
+.ds f1\"
+.ds f2\"
+.ds f3\"
+.ds f4\"
+'\" t 
+.ta 8n 16n 24n 32n 40n 48n 56n 64n 72n  
+.TH "smacq-embed" "3" 
+.SH "NAME" 
+smacq-embed \(em Embedding libsmacq in applications 
+.SH "SYNOPSIS" 
+.PP 
+.nf 
+.ta 8n 16n 24n 32n 40n 48n 56n 64n 72n 
+#include <smacq.h> 
+ 
+.fi 
+.SH "DESCRIPTION" 
+.PP 
+SMACQ (the System for Modular Analysis and Continuous Queries) is an 
+extensible component system for analyzing streams of structured 
+data.  This manpage describes the API used by applications that wish to use this system. 
+ 
+.PP 
+.nf 
+.ta 8n 16n 24n 32n 40n 48n 56n 64n 72n 
+.sp 1 
+\fBsmacq_graph * \fBsmacq_build_pipeline\fP\fR( 
+\fB       int argc\fR, 
+\fB       char ** argv\fR); 
+.fi 
+.PP 
+Given an argument vector in the typical format, parse those 
+arguments and create and return a data-flow graph.  An 
+argument of "|" is used to delimit modules in the pipeline. 
+ 
+.PP 
+.nf 
+.ta 8n 16n 24n 32n 40n 48n 56n 64n 72n 
+.sp 1 
+\fBsmacq_graph * \fBsmacq_build_query\fP\fR( 
+\fB       dts_environment *\fR, 
+\fB       int argc\fR, 
+\fB       char ** argv\fR); 
+.fi 
+.PP 
+Given an argument vector in the typical format, parse those 
+arguments according to the SMACQ query language described in 
+\fBsmacq\fP(1) as a single string and create and 
+return a data-flow graph.   
+ 
+.PP 
+.nf 
+.ta 8n 16n 24n 32n 40n 48n 56n 64n 72n 
+.sp 1 
+\fBsmacq_graph * \fBsmacq_start\fP\fR( 
+\fB       smacq_graph * graph\fR, 
+\fB       enum smacq_scheduler\fR, 
+\fB       dts_environment * tenv\fR); 
+.fi 
+.PP 
+Given the specified data-flow graph, instantiate the modules and 
+begin the scheduler.  Possible scheduler values are ITERATIVE, 
+RECURSIVE, and THREADED.   In the case of RECURSIVE or 
+THREADED, smacq_start() will never return.  In the case of 
+ITERATIVE, the scheduler must be repeatedly called using the 
+following smacq_sched_iterative() function. 
+ 
+.PP 
+If tenv is NULL, a new type environment will automatically be 
+created.  If dts_objects are to be passed between data-flow 
+graphs, the same type environment must be used by those graphs. 
+ 
+.PP 
+.nf 
+.ta 8n 16n 24n 32n 40n 48n 56n 64n 72n 
+.sp 1 
+\fBint \fBsmacq_sched_iterative\fP\fR( 
+\fB        smacq_graph * graph\fR, 
+\fB        const 	dts_object * data_in\fR, 
+\fB        dts_object ** data_out\fR, 
+\fB        struct runq ** runq\fR, 
+\fB        int produce_first\fR); 
+.fi 
+.PP 
+Execute the iterative scheduler until one data object is 
+produced, or the system has terminated itself.    
+ 
+.PP 
+If data is produced, a pointer to it will be stored in 
+data_out.  If the return value is 0, then smacq_sched_iterative()  
+should not be called again. 
+ 
+.PP 
+If the caller wishes to inject data into the graph, a non-null 
+data_in argument should be used.   
+ 
+.PP 
+The Boolean produce_first argument specifies that the head node of the 
+graph can produce data when more is needed. 
+ 
+.PP 
+On the first call, the state argument should be a pointer to a 
+void * initialized to NULL.   
+ 
+.PP 
+.nf 
+.ta 8n 16n 24n 32n 40n 48n 56n 64n 72n 
+.sp 1 
+\fBint \fBsmacq_sched_iterative_shutdown\fP\fR( 
+\fB        smacq_graph * graph\fR, 
+\fB        struct runq ** runq\fR); 
+.fi 
+.PP 
+ 
+.SH "SEE ALSO" 
+.PP 
+smacqp(1), smacq-modules(3) 
+...\" created by instant / docbook-to-man, Wed 09 Apr 2003, 00:27 

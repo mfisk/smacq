@@ -1,8 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
-#include <netinet/if_ether.h>
-#include <zlib.h>
 #include <smacq.h>
 #include <string.h>
 
@@ -19,31 +17,20 @@ static struct smacq_options options[] = {
   {NULL, {string_t:NULL}, NULL, 0}
 };
 
-static smacq_result filter_produce(struct state* state, const dts_object ** datum, int * outchan) {
-  return SMACQ_ERROR;
-}
-
 static smacq_result filter_consume(struct state * state, const dts_object * datum, int * outchan) {
-  int same_types;
-  
   assert(datum);
   assert(state->argv[0]);
   
-  if (dts_gettype(datum) != state->type) {
-    same_types = 0;
-  } else {
-    same_types = 1;
-  }
+  state->type = dts_gettype(datum);
 
-  if (flow_match(state->env, datum, state->comp, same_types)) 
+  if (smacq_match(state->env, datum, state->comp)) 
     return SMACQ_PASS;
   else
     return SMACQ_FREE;
 }
 
-static int filter_init(struct flow_init * context) {
+static smacq_result filter_init(struct smacq_init * context) {
   struct state * state;
-  int i;
 
   context->state = state = (struct state*) calloc(sizeof(struct state),1);
   assert(state);
@@ -53,34 +40,23 @@ static int filter_init(struct flow_init * context) {
     struct smacq_optval optvals[] = {
       {NULL, NULL}
     };
-    flow_getoptsbyname(context->argc-1, context->argv+1,
+    smacq_getoptsbyname(context->argc-1, context->argv+1,
 				 &state->argc, &state->argv,
 				 options, optvals);
     assert(state->argv);
   }
 
-  state->comp = g_new0(dts_comparison, state->argc);
+  state->comp = dts_parse_tests(state->env->types, state->argc, state->argv);
+  if (!state->comp) 
+	  return SMACQ_ERROR|SMACQ_END;
 
-  for (i=0; i < state->argc; i++) {
-    // Make array a linked list too
-    if (i) state->comp[i-1].next = state->comp+i;
-
-    flow_parsetest(state->env, state->comp+i, state->argv[i]);
-  }
-
-  if (context->isfirst) {
-    fprintf(stderr, "Error: no predecessor\n");
-    exit(-1);
-  }
-
-  return 0;
+  return 0; 
 }
 
 /* Right now this serves mainly for type checking at compile time: */
 struct smacq_functions smacq_filter_table = {
-  &filter_produce, 
-  &filter_consume,
-  &filter_init,
-  NULL
+  consume: &filter_consume,
+  init: &filter_init,
+  algebra: { boolean: 1},
 };
 

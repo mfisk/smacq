@@ -1,8 +1,103 @@
-Building this package depends on the following Debian packages:
-	zlib1g libglib2.0 libpcap0 zlib1g-dev libpcap-dev libglib2.0-dev docbook-to-man groff python2.2-dev wget
+=============================================================================
+			SMACQ BUILD INSTRUCTIONS
 
-The libpcap build depends on:
-	bison flex
+Quick & Dirty:
+--------------
+Type "make".
 
-The snort build depends on:
+This will make a build directory and a subdirectory for the platform
+you are building in.  In that directory, configure will be run and SMACQ
+will be built.
+
+Why not run ./configure like a normal package?
+----------------------------------------------
+You can, but the results will be built in the source tree (as you
+probably expect).  This prevents you from using the same directory 
+tree to build on multiple platforms.  We automate the "vpath trick" 
+so you don't have to.
+
+How do I pass configure options?
+--------------------------------
+Set them in the CONFIG environment variable before running make:
+	CONFIG="--with-ethereal" make
+	CONFIG="--enable-debug" make
+	CONFIG="--enable-profile --enable-debug" make
+
+Supported Platforms:
+--------------------
+Debian GNU/Linux is the development platform.  SMACQ has been built
+on Linux, FreeBSD, and MacOS/X + Fink.  
+
+Optional functionality:
+-----------------------
+The packet data-type can use Ethereal's EPAN system for decoding a 
+multitude of protocols.  This optional functionality can be included 
+using the following syntax:
+	rm -Rf build 
+	CONFIG="--with-ethereal" make 
+
+Troubleshooting:
+----------------
+If you have any problems with the build procedure, you may have gotten
+a package with some out of date files.  Type "make bootstrap" and try
+again.  Note that you will neet autoconf, automake, libtool, etc. installed
+in order to "make bootstrap".
+
+=============================================================================
+			PREREQUISITES
+
+Debian GNU/Linux:
+-----------------
+Run the following command to install the Debian packages require to compile
+and execute this package:
+	apt-get install \
+		g++ gcc \
+		zlib1g zlib1g-dev \
+		libglib2.0 libglib2.0-dev \
+		libpcap0 libpcap-dev \
+		libgda-dev gda-sqlite \
+		libtool groff #python2.2-dev 
+
+Red Hat Linux:
+--------------
+The following packages are required:
+	glib2-devel
+	...
+
+MacOS/X - Fink:
+----------------
+Run the following command to install the Fink packages require to compile
+and execute this package:
+	apt-get install \
+		pkgconfig dlcompat zlib glib2-dev libpcap libpcap-shlibs \
+		libtool groff #python  
+
+FreeBSD:
+--------
+Run the following commands to install the necessary packages:
+	pkg_add -r gmake libtool bison
+	make -C /usr/ports/devel/glib20 install
+
+=============================================================================
+		   	    MISCELLANEOUS NOTES
+
+To force the regeneration of intermediate files from SGML, Bison, and Flex run 
+the following command:
+	make reallyclean
+
+To run the regression tests:
+	make test
+
+To only see warning output (less verbose):
+	make warn
+
+
+=============================================================================
+				BUGS
+
+The grammer builds but doesn't seem to work correctly with Bison 1.35.  
+Bison 1.75 does work
+	
+=============================================================================
+See http://smacq.sf.net/ for more information.
 

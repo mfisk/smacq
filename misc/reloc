@@ -1,0 +1,29 @@
+#!/bin/sh
+
+SPEC="$0"
+
+if [ -L "$0" ]; then
+	SPEC=`readlink "$0"`
+fi
+
+RUNDIR=`echo "$SPEC" | sed 's/\/[^/]*$//'`
+PLAT=`uname -sm | sed 's/ /-/g'`
+CMD=`basename "$SPEC"`
+LD_LIBRARY_PATH=${RUNDIR}/.bin/${PLAT}:${LD_LIBRARY_PATH}
+DYLD_LIBRARY_PATH=${RUNDIR}/.bin/${PLAT}:${DYLD_LIBRARY_PATH}
+export LD_LIBRARY_PATH
+export DYLD_LIBRARY_PATH
+
+CMD="$RUNDIR/.bin/$PLAT/$CMD"
+ 
+if [ -f "$CMD" ]; then
+	exec -a "$0" "$CMD" "$@"
+else
+	(
+	echo "Error: $PLAT unsupported in this image." 
+	echo "This image is built for:"
+	(cd "${RUNDIR}/.bin/"; ls -d *-*)
+	) 1>&2
+	exit 1
+fi
+

@@ -7,7 +7,7 @@
 #include <math.h>
 #include <assert.h>
 #include <smacq.h>
-#include <flow-internal.h>
+#include <smacq.h>
 #include <dts_packet.h>
 #include <fields.h>
 #include "bytehash.h"
@@ -36,7 +36,7 @@ struct state {
   struct pcap_file_header pcap_file_header;
 
   struct fieldset fieldset;
-  guint32 memcap;
+  uint32_t memcap;
   unsigned int timeout;
 
   list_item * list_ptr;
@@ -105,7 +105,7 @@ list_item * list_dequeue() {
 }
 
 //////////////
-int reassemble_init(struct flow_init * context) {
+int reassemble_init(struct smacq_init * context) {
 //////////////
   int argc;
   char ** argv;
@@ -124,7 +124,7 @@ int reassemble_init(struct flow_init * context) {
 
   signal(SIGQUIT, CleanExit);
 
-  flow_requiretype(context->env, "packet");
+  smacq_requiretype(context->env, "packet");
   state->env = context->env;
 
   state->produce = 1;
@@ -137,7 +137,7 @@ int reassemble_init(struct flow_init * context) {
       {NULL, NULL}
   	};
 
-  	flow_getoptsbyname(context->argc-1, context->argv+1,
+  	smacq_getoptsbyname(context->argc-1, context->argv+1,
 			       &argc, &argv,
 			       options, optvals);
 
@@ -160,7 +160,7 @@ int reassemble_init(struct flow_init * context) {
   fprintf(stderr, "*** reassemble.c::reassemble_init(): timeout = %d\n", state->timeout);
 #endif
 
-  state->dts_pkthdr_type = smacq_opt_typenum_byname(context->env, "packet");
+  state->dts_pkthdr_type = smacq_requiretype(context->env, "packet");
   assert(state->dts_pkthdr_type);
 
 #ifdef DEBUG
@@ -243,12 +243,6 @@ smacq_result reassemble_produce(struct state * state, const dts_object ** datump
   fprintf(stderr, "*** reassemble.c::reassemble_produce(): entered...\n");
 #endif
 
-  if (!state->produce) { 
-    #ifdef DEBUG
-      fprintf(stderr, "*** reassemble.c::reassemble_produce(): state != produce...\n");
-    #endif
-	return SMACQ_END;
-  }
   if (!state) { 
     #ifdef DEBUG
       fprintf(stderr, "*** reassemble.c::reassemble_produce(): NULL state!...\n");
@@ -256,24 +250,35 @@ smacq_result reassemble_produce(struct state * state, const dts_object ** datump
 	return SMACQ_ERROR;
   }
 
+  if (!state->produce) { 
+    #ifdef DEBUG
+      fprintf(stderr, "*** reassemble.c::reassemble_produce(): state != produce...\n");
+    #endif
+	return SMACQ_END;
+  }
+
   // Walk the list of queued Packets...
   //
-  while ((li = list_dequeue()) != NULL) {
-   
-	if (!(li->packet)) {
-      fprintf(stderr, "*** reassemble.c::reassemble_produce(): NULL li->packet!\n");
-	  //break;
-	  return SMACQ_ERROR;
-	}
+  li = list_dequeue();
 
-	p = state->newpkt = li->packet;
+  if (li == NULL) {
+    return SMACQ_END;
+  }
+   
+    if (!(li->packet)) {
+      fprintf(stderr, "*** reassemble.c::reassemble_produce(): NULL li->packet!\n");
+      //break;
+      return SMACQ_ERROR;
+    }
+
+    p = state->newpkt = li->packet;
     state->produce_count++;
     //p = state->newpkt;
-    datum = flow_alloc(
-	  state->env, 
-      p->pkth->len + sizeof(struct dts_pkthdr), 
-	  state->dts_pkthdr_type
-    );
+    datum = smacq_alloc(
+		       state->env, 
+		       p->pkth->len + sizeof(struct dts_pkthdr), 
+		       state->dts_pkthdr_type
+		       );
 
     pkt = (struct dts_pkthdr *)datum->data;
 
@@ -288,21 +293,21 @@ smacq_result reassemble_produce(struct state * state, const dts_object ** datump
     free (li);
 
     #ifdef DEBUG
-      fprintf(stderr, "*** reassemble.c::reassemble_produce(): extended? = %d, refcount = %d, type = %d, datap = %p, linktype = %d, snaplen = %d, ifindex = %d, protocol = %u, pkt_type = %u, caplen = %u, len = %u\n",
+    fprintf(stderr, "*** reassemble.c::reassemble_produce(): extended? = %d, refcount = %d, type = %d, datap = %p, linktype = %d, snaplen = %d, ifindex = %d, protocol = %u, pkt_type = %u, caplen = %u, len = %u\n",
 
-      state->extended,
-      datum->refcount, 
-      datum->type, 
-      pkt, 
-      pkt->linktype, 
-      pkt->snaplen,
-      pkt->extended.ifindex,
-      pkt->extended.protocol,
-      pkt->extended.pkt_type,
-      pkt->pcap_pkthdr.caplen,
-      pkt->pcap_pkthdr.len
-      );
-      fprintf(stderr, "\n");
+	    state->extended,
+	    datum->refcount, 
+	    datum->type, 
+	    pkt, 
+	    pkt->linktype, 
+	    pkt->snaplen,
+	    pkt->extended.ifindex,
+	    pkt->extended.protocol,
+	    pkt->extended.pkt_type,
+	    pkt->pcap_pkthdr.caplen,
+	    pkt->pcap_pkthdr.len
+	    );
+    fprintf(stderr, "\n");
     #endif
 
     *datump = datum;
@@ -313,8 +318,6 @@ smacq_result reassemble_produce(struct state * state, const dts_object ** datump
 
     //return SMACQ_PASS;
     return SMACQ_PASS | SMACQ_PRODUCE;
-
-  } // while
 
 }
 

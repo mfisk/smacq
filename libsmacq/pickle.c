@@ -99,7 +99,7 @@ static int addnewtype(smacq_environment * env, char * name, int extnum, struct p
   int * typep = gettype(pickle, fd, extnum);
 
   if (! *typep) 
-      *typep = flow_requiretype(env, name);
+      *typep = smacq_requiretype(env, name);
 
   return *typep;
 }
@@ -129,7 +129,7 @@ int read_datum(smacq_environment * env, struct pickle * pickle, int fd, const dt
   struct sockdatum  hdr;
   int temp = receive_it(fd, &hdr, sizeof(struct sockdatum));
 
-  //fprintf(stderr, "recvd datum of type %d, size %d\n", dts_gettype(&hdr.datum), flow_datum_size(&hdr.datum));
+  //fprintf(stderr, "recvd datum of type %d, size %d\n", dts_gettype(&hdr.datum), dts_getsize(&hdr.datum));
 
   if (temp <= 0) return temp;
   
@@ -138,11 +138,11 @@ int read_datum(smacq_environment * env, struct pickle * pickle, int fd, const dt
       return -1;
   }
 
-  assert(flow_datum_size(&hdr.datum) + sizeof(struct sockdatum) > 0);
-  *datump = (dts_object*)env->alloc(flow_datum_size(&hdr.datum) + sizeof(dts_object),
+  assert(dts_getsize(&hdr.datum) + sizeof(struct sockdatum) > 0);
+  *datump = (dts_object*)smacq_alloc(env, dts_getsize(&hdr.datum) + sizeof(dts_object),
 					 maptype(pickle, dts_gettype(&hdr.datum), fd));
   
-  if ((temp = receive_it(fd, dts_getdata(*datump), flow_datum_size(&hdr.datum))) < 0) {
+  if ((temp = receive_it(fd, dts_getdata(*datump), dts_getsize(&hdr.datum))) < 0) {
       free((void*)*datump);
       return -1;
   }
@@ -174,7 +174,7 @@ int write_datum(smacq_environment * env, struct pickle * pickle, int fd, const d
     return -1;
   if (hdr.namelen && (1 > send_it(fd, name, hdr.namelen)))
     return -1;
-  if (1 > send_it(fd, dts_getdata(datum), flow_datum_size(datum)))  
+  if (1 > send_it(fd, dts_getdata(datum), dts_getsize(datum)))  
     return -1;
 
   return 1;

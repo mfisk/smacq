@@ -33,7 +33,7 @@ static smacq_result fifo_consume(struct state * state, const dts_object * datum,
   return(SMACQ_FREE|SMACQ_CANPRODUCE);
 }
 
-static int fifo_init(struct flow_init * context) {
+static smacq_result fifo_init(struct smacq_init * context) {
   int argc = 0;
   char ** argv;
   struct state * state = context->state = g_new0(struct state, 1);
@@ -43,7 +43,7 @@ static int fifo_init(struct flow_init * context) {
   	struct smacq_optval optvals[] = {
     		{NULL, NULL}
   	};
-  	flow_getoptsbyname(context->argc-1, context->argv+1,
+  	smacq_getoptsbyname(context->argc-1, context->argv+1,
 			       &argc, &argv,
 			       options, optvals);
   }
@@ -51,7 +51,7 @@ static int fifo_init(struct flow_init * context) {
   return 0;
 }
 
-static int fifo_shutdown(struct state * state) {
+static smacq_result fifo_shutdown(struct state * state) {
   return 0;
 }
 
