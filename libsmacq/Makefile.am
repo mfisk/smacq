@@ -21,5 +21,5 @@ expr-parser.ypp: grammer.ypp
 parser.ypp: grammer.ypp
 
 .ym.ypp:  grammer.ypp
-	cd $(srcdir) && m4 -I$(srcdir) -P -DBUILDDATE="`date`" < $< > $@
+	m4 -I$(srcdir) -P -DBUILDDATE="`date`" < $< > $@
 
