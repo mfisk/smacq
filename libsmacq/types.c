@@ -99,9 +99,7 @@ int type_fromstring_virtual(dts_environment * tenv, int type, char * datastr, dt
   assert(t->info.fromstring);
 
   data->type = type;
-  data->free_data = 1;
-  data->len = data->max_size;
-  return t->info.fromstring(datastr, &data->data, &data->len);
+  return t->info.fromstring(datastr, data);
 }
 
 static dts_field_element type_requirefield_single(dts_environment * tenv, char * name) {

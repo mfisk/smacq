@@ -14,14 +14,8 @@ static int smacqtype_ushort_get_string(const dts_object * o, dts_object * field)
   return 1;
 }
 
-static int parse_ushort(char * buf, void ** resp, int * reslen) {
-  ushort * us = g_new(ushort, 1);
-  *us = atol(buf);
-
-  *resp = us;
-  *reslen = sizeof(unsigned short);
-
-  return 1;
+static int parse_ushort(char * buf,  const dts_object * d) {
+  return dts_set(d, ushort, atol(buf));
 }
 
 struct dts_field_descriptor dts_type_ushort_fields[] = {

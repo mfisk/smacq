@@ -16,15 +16,8 @@ static int smacqtype_nuint32_get_string(const dts_object * o, dts_object * field
   return 1;
 }
 
-static int parse_nuint32(char * buf, void ** resp, int * reslen) {
-  unsigned long * v = g_new(long, 1);
-  *v = atol(buf);
-
-  *resp = v;
-  *reslen = sizeof(unsigned long);
-  assert( sizeof(unsigned long) == 4);
-
-  return 1;
+static int parse_nuint32(char * buf,  const dts_object * d) {
+  return dts_set(d, unsigned long, ntohl(atol(buf)));
 }
 
 struct dts_field_descriptor dts_type_nuint32_fields[] = {

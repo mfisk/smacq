@@ -16,16 +16,12 @@ static int smacqtype_ip_get_string(const dts_object * datum, dts_object * data) 
   return 1;
 }
 
-static int parse_ip(char * buf, void ** resp, int * reslen) {
-  struct in_addr * a = g_new(struct in_addr, 1);
-  if (!inet_aton(buf, a)) {
-    free(a);
+static int parse_ip(char * buf,  const dts_object * d) {
+  struct in_addr a;
+  if (!inet_aton(buf, &a)) {
     return 0;
   } else {
-    *resp = a;
-    *reslen = sizeof(struct in_addr);
-    
-    return 1;
+    return dts_set(d, struct in_addr, a);
   }
 }
 

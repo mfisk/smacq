@@ -23,17 +23,15 @@ static int smacqtype_int_get_double(const dts_object * o, dts_object * field) {
   return 1;
 }
 
-static int parse_string(char * buf, void ** resp, int * reslen) {
-	int * val = malloc(sizeof(int));
+static int parse_string(char * buf, const dts_object * d) {
+	int val;
 	char * left = NULL;
-	*val = strtol(buf, &left, 10);
+	val = strtol(buf, &left, 10);
  	if (left == buf) {
-		free(val);
 		return(0);
 	}
-	*resp = val;
-	*reslen = sizeof(int);
-	return 1;
+
+	return dts_set(d, int, val);
 }
 
 int int_lt(void * num1, int size1, void * num2, int size2) {

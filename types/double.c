@@ -24,18 +24,14 @@ static int smacqtype_double_get_string(const dts_object * o, dts_object * field)
   return 1;
 }
 
-static int parse_string(char * buf, void ** resp, int * reslen) {
-  double * dbl = malloc(sizeof(double));
+static int parse_string(char * buf,  const dts_object * d) {
+  double dbl;
   char * left = NULL;
-  *dbl = strtod(buf, &left);
+  dbl = strtod(buf, &left);
   if (left == buf) {
-	free(dbl);
 	return 0;
   }  
-  *resp = dbl;
-  *reslen = sizeof(double);
-    
-  return 1;
+  return dts_set(d, double, dbl);
 }
 
 struct dts_field_descriptor dts_type_double_fields[] = {

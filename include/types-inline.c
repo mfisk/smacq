@@ -237,7 +237,19 @@ static inline int dts_lt(dts_environment * env, int type, void * v1, int l1, voi
   return(env->lt(env, type, v1, l1, v2, l2));
 }
 
+static inline int dts_setsize(const dts_object * cd, int size) {
+	dts_object * d = (dts_object*)cd;
+	if (size > d->max_size) {
+		d->data = malloc(size);
+		d->free_data = 1;
+	}
+	d->len = size;
+
+	return 1;
+}
+
 #define dts_data_as(datum,type) (*((type*)((datum)->data)))
+#define dts_set(datum,type,val) dts_setsize((datum), sizeof(type)) , (*((type*)((datum)->data))) = (val), 1 
 	
 /* Convert a type number to a type name */
 static inline char * dts_typename_bynum(smacq_environment * env, int num) {

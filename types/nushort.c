@@ -16,14 +16,8 @@ static int smacqtype_nushort_get_string(const dts_object * obj, dts_object * fie
   return 1;
 }
 
-static int parse_nushort(char * buf, void ** resp, int * reslen) {
-  ushort * us = g_new(ushort, 1);
-  *us = htons(atol(buf));
-
-  *resp = us;
-  *reslen = sizeof(unsigned short);
-
-  return 1;
+static int parse_nushort(char * buf,  const dts_object * d) {
+  return dts_set(d, ushort, htons(atol(buf)));
 }
 
 int nushort_lt(void * num1, int size1, void * num2, int size2) {

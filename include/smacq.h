@@ -193,7 +193,7 @@ struct smacq_functions {
 };
 
 typedef int smacqtype_lt_fn(void *, int, void *, int);
-typedef int smacqtype_fromstring_fn(char *, void **, int*);
+typedef int smacqtype_fromstring_fn(char *, const dts_object *);
 
 
 struct dts_type_info {

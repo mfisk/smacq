@@ -25,19 +25,16 @@ static int smacqtype_ipproto_get_string(const dts_object * obj, dts_object * fie
   return 1;
 }
 
-static int parse_ipproto(char * buf, void ** resp, int * reslen) {
-  unsigned char * us = malloc(sizeof(unsigned char));
+static int parse_ipproto(char * buf,  const dts_object * d) {
+  unsigned char us;
   struct protoent * p = getprotobyname(buf);
   if (p) {
-	  *us = p->p_proto;
+	  us = p->p_proto;
   } else {
-	  *us = atol(buf);
+	  us = atol(buf);
   }
 
-  *resp = us;
-  *reslen = sizeof(unsigned char);
-
-  return 1;
+  return dts_set(d, unsigned char, us);
 }
 
 static int ipproto_lt(void * num1, int size1, void * num2, int size2) {

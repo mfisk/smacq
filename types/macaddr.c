@@ -23,12 +23,12 @@ static int smacqtype_macaddr_get_string(const dts_object * o, dts_object * field
   return 1;
 }
 
-static int parse_macaddr(char * buf, void ** resp, int * reslen) {
-  char * c = g_new(unsigned char, 6);
-  sscanf(buf, "%02hhx:%02hhx:%02hhx:%02hhx:%02hhx:%02hhx", c+0, c+1, c+2, c+3, c+4, c+5);
+static int parse_macaddr(char * buf,  const dts_object * d) {
+  unsigned char * c;
 
-  *resp = c;
-  *reslen = 6;
+  dts_setsize(d, 6);
+  c = d->data;
+  sscanf(buf, "%02hhx:%02hhx:%02hhx:%02hhx:%02hhx:%02hhx", c+0, c+1, c+2, c+3, c+4, c+5);
 
   return 1;
 }

@@ -14,14 +14,8 @@ static int smacqtype_ubyte_get_string(const dts_object * o, dts_object * field) 
   return 1;
 }
 
-static int parse_ubyte(char * buf, void ** resp, int * reslen) {
-  unsigned char * ub = g_new(unsigned char, 1);
-  *ub = atol(buf);
-
-  *resp = ub;
-  *reslen = sizeof(unsigned char);
-
-  return 1;
+static int parse_ubyte(char * buf,  const dts_object * d) {
+  return dts_set(d, unsigned char, atol(buf));
 }
 
 struct dts_field_descriptor dts_type_ubyte_fields[] = {

@@ -30,16 +30,13 @@ static int smacqtype_timeval_get_string(const dts_object * o, dts_object * field
   return 1;
 }
 
-static int parse_timeval(char * buf, void ** resp, int * reslen) {
-  struct timeval * rv = g_new(struct timeval, 1);
+static int parse_timeval(char * buf,  const dts_object * d) {
+  struct timeval rv;
   double time = atol(buf);
-  rv->tv_sec = floor(time);
-  rv->tv_usec = (time - floor(time)) * 1e6;
+  rv.tv_sec = floor(time);
+  rv.tv_usec = (time - floor(time)) * 1e6;
 
-  *resp = rv;
-  *reslen = sizeof(struct timeval);
-
-  return 1;
+  return dts_set(d, struct timeval, rv);
 }
 
 int timeval_ge(struct timeval x, struct timeval y) {

@@ -8,9 +8,9 @@ static int smacqtype_string_get_string(const dts_object * o, dts_object * data) 
   return 1;
 }
 
-static int parse_string(char * buf, void ** resp, int * reslen) {
-  *resp = strdup(buf);
-  *reslen = strlen(buf);
+static int parse_string(char * buf,  const dts_object * d) {
+  dts_setsize(d, strlen(buf));
+  strcpy(d->data, buf);
     
   return 1;
 }
