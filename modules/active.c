@@ -38,7 +38,7 @@ struct srcstat {
 struct state {
   smacq_environment * env;
   struct fieldset fieldset;
-  GHashTableofBytes *stats;
+  struct iovec_hash *stats;
 
   FILE * printfd;
 
