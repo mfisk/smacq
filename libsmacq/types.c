@@ -182,66 +182,23 @@ int type_requirefield(dts_environment * tenv, char * name) {
   }
 }
 
-
-#define TYPE_TABLE_NAME  "dts_type_%s_table"
-#define TYPE_TABLE_NAME  "dts_type_%s_table"
-
 static int type_load_module(struct dts_type * t) {
-    char table_sym[1024];
-    char fields_sym[1024];
-    char transforms_sym[1024];
-
     struct dts_type_info * infop;
-    void * self;
+    GModule * gmod;
 
-    snprintf(table_sym, 1024, "dts_type_%s_table", t->name);
-    snprintf(fields_sym, 1024, "dts_type_%s_fields", t->name);
-    snprintf(transforms_sym, 1024, "dts_type_%s_transforms", t->name);
+    infop = smacq_find_module(&gmod, "DTS_HOME", "types", "%s/dts_%s", "dts_type_%s_table", t->name);
+    if (infop) { 
+	t->info = *infop;
+    }
+    t->description = smacq_find_module(&gmod, "DTS_HOME", "types", "%s/dts_%s", "dts_type_%s_fields", t->name);
+    t->transform_description = smacq_find_module(&gmod, "DTS_HOME", "types", "%s/dts_%s", "dts_type_%s_transforms", t->name);
 
-    self = dlopen(NULL, RTLD_NOW);
-    if (!self) {
-      fprintf(stderr, "Warning: %s\n", dlerror());
+    if (infop || t->description || t->transform_description) {
+        return 1;
     } else {
-      struct dts_type_info * infop;
-
-      t->description = dlsym(self, fields_sym);
-      t->transform_description = dlsym(self, transforms_sym);
-
-      infop = dlsym(self, table_sym);
-      if (infop) t->info = *infop;
-
-      if (t->description || t->transform_description || infop) {
-	// fprintf(stderr, "Using already loaded type %s\n", t->name);
-	return 1;
-      }
+   	fprintf(stderr, "Error: unable to find type %s (Need to set %s?)\n", t->name, "DTS_HOME");
+    	return 0;
     }
-
-    //fprintf(stderr, "Dynamically loading type %s\n", t->name);
-
-    // Find a shared library
-    {
-      char modfile[1024];
-      char * path = getenv("DTS_HOME");
-      if (!path) path = "types"; 
-
-      snprintf(modfile, 1024, "%s/dts_%s", path, t->name);
-      t->module = g_module_open(modfile, 0);
-    
-      if (! t->module) {
-	fprintf(stderr, "%s: %s (Need to set DTS_HOME?)\n", t->name, g_module_error());
-	return 0;
-      }
-    }
-
-    if (g_module_symbol(t->module, table_sym, (gpointer *)&infop)) {
-      t->info = *infop;
-      //fprintf(stderr, "Type %s is size %d\n", t->name, t->info.size);
-    }
-
-    g_module_symbol(t->module, fields_sym, (gpointer *)&t->description);
-    g_module_symbol(t->module, transforms_sym, (gpointer *)&t->transform_description);
-
-    return 1;
 }
 
 

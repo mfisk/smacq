@@ -8,7 +8,7 @@ all: dirs libsmacq.la #libflow-static.a #libflow-engine.a libflow-engine-static.
 dirs: 
 	@for f in $(DIRS); do $(MAKE) -C $$f; done
 
-USEROBJS=libsmacq.lo bytehash.lo fields.lo bloom.lo args.lo pickle.lo types.lo sched-thread.lo sched-mono.lo sched-iter.lo construct.lo sched.lo msg.lo filter.lo module-thread.lo sql/libsql.la 
+USEROBJS=libsmacq.lo bytehash.lo fields.lo bloom.lo args.lo pickle.lo types.lo sched-thread.lo sched-mono.lo sched-iter.lo construct.lo sched.lo msg.lo filter.lo module-thread.lo dynloader.lo sql/libsql.la 
 
 ENGINEOBJS=types.lo construct.lo $(USEROBJS)
 

@@ -67,6 +67,8 @@ EXTERN int type_typenum_byname(dts_environment *, char*);
 EXTERN char * type_typename_bynum(dts_environment *, int);
 */
 
+void * smacq_find_module(GModule ** gmodulep, char * envvar, char * envdefault, char * modformat, char * symformat, char * sym);
+
 /*
  * Interfaces to msg system
  */

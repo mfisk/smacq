@@ -1,89 +1,28 @@
 #include <flow-internal.h>
 #include <stdio.h>
-#include <dlfcn.h>
 #include <string.h>
 #define RINGSIZE 4
 
-
-int flow_load_module(struct filter * module) {
-    struct smacq_functions * modtable;
-    void * self;
-    char buf[1024];
-
-    assert(module);
-    assert(module->name);
-    self = dlopen(NULL, RTLD_NOW);
-    if (!self) {
-	fprintf(stderr, "Warning: %s\n", dlerror());
-	return 0;
-    } else {
-	// Linux has no leading underscore
-        snprintf(buf, 1024, "smacq_%s_table", module->name);
-    	modtable = dlsym(self, buf);
-	if (!modtable) {
-		// Darwin has leading underscore
-        	snprintf(buf, 1024, "_smacq_%s_table", module->name);
-    		modtable = dlsym(self, buf);
-	}
-
-	if (modtable) {
-		// fprintf(stderr, "Info: found module %s internally\n", module->name);
+static inline void read_module(struct filter * module, struct smacq_functions * modtable) {
 		module->produce = modtable->produce;
 		module->consume = modtable->consume;
 		module->shutdown = modtable->shutdown;
 		module->init = modtable->init;
 		module->thread_fn = modtable->thread;
-		return 1;
-	}
-    }
+}
 
-    // Find a shared library
-    {
-      char modfile[256];
-      char * path = getenv("SMACQ_HOME");
-      if (!path) path = "modules";
+int flow_load_module(struct filter * module) {
+    struct smacq_functions * modtable;
 
-      snprintf(modfile, 256, "%s/smacq_%s.la", path, module->name);
+    assert(module);
 
-      assert(g_module_supported());
-
-      if (! (module->module = g_module_open(modfile, 0))) {
-         fprintf(stderr, "%s (%s): %s (Need to set SMACQ_HOME?)\n", module->name, modfile, g_module_error());
-         return 0;
-      }
-    }
-
-    g_module_symbol(module->module, "smacq_options", (gpointer)&module->options);
-    
-    if (g_module_symbol(module->module, buf, (gpointer)&modtable)) {
-	    	module->produce = modtable->produce;
-		module->consume = modtable->consume;
-		module->init = modtable->init;
-		module->shutdown = modtable->shutdown;
-		module->thread_fn = modtable->thread;
-
+    if ((modtable = smacq_find_module(&module->module, "SMACQ_HOME", "modules", "%s/smacq_%s", "smacq_%s_table", module->name))) {
+		read_module(module, modtable);
 		return 1;
     }
 
-    // Old style:
-    if (!g_module_symbol(module->module, "flow_produce", (gpointer)&module->produce)) {
-      fprintf(stderr, "Unable to resolve flow_produce in %s: %s\n", module->name, g_module_error());
-	return 0;
-    }
-      
-    if (!g_module_symbol(module->module, "flow_consume", (gpointer)&module->consume)) {
-      fprintf(stderr, "Unable to resolve flow_consume in %s: %s\n", module->name, g_module_error());
-      return 0;
-    }
-      
-    if (!g_module_symbol(module->module, "flow_init", (gpointer)&module->init)) {
-      fprintf(stderr, "Unable to resolve flow_init in %s: %s\n", module->name, g_module_error());
-      return 0;
-    }
-
-    g_module_symbol(module->module, "flow_shutdown", (gpointer)&module->shutdown);
-
-    return 1;
+    fprintf(stderr, "Error: unable to find module %s (Need to set %s?)\n", module->name, "SMACQ_HOME");
+    return 0;
 }
 
 static inline void add_parent(struct filter * newo, struct filter * parent) {
