@@ -18,7 +18,9 @@ struct GHashTableofBytes {
   guint32 * randoms;
   GHashTable * ht;
   
+#ifdef FORCE_GC
   int gc_count;
+#endif
 };
 
 static struct bytedata * make_bytesv(struct GHashTableofBytes * b, struct iovec * key, int numkeys) {
@@ -259,6 +261,7 @@ void bytes_hash_table_foreach_remove(GHashTableofBytes * ht, GHRFunc func, gpoin
   g_hash_table_foreach_remove(ht->ht, func, user_data);
 }
 
+#ifdef FORCE_GC
 static int isexpired(gpointer key, gpointer value, gpointer userdata) {
   assert(key);
   //fprintf(stderr, "glib delayed removal of value %p\n", value);
@@ -272,6 +275,7 @@ static inline void bytes_hash_table_gc(GHashTableofBytes * ht) {
     ht->gc_count = 1000;
   }
 }
+#endif
 
 void bytes_hash_table_foreach(GHashTableofBytes * ht, GHFunc func, gpointer user_data) {
   g_hash_table_foreach(ht->ht, func, user_data);
@@ -283,8 +287,10 @@ int bytes_hash_table_remove(GHashTableofBytes * ht, struct bytedata * s) {
   s->expired = 1;
   res = g_hash_table_remove(ht->ht, s);
 
+#ifdef FORCE_GC
   // Garbage collect since g_hash_table_remove doesn't seem to work
   bytes_hash_table_gc(ht);
+#endif
 
   return res;
 }
