@@ -22,6 +22,8 @@ AC_PROG_MAKE_SET
 AC_PROG_LIBTOOL
 AC_PROG_RANLIB
 
+# Libtool needs EGREP, but doesn't always express it
+AC_PROG_EGREP
 
 # Checks for libraries.
 # FIXME: Replace `main' with a function in `-lc':
