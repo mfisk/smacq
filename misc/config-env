@@ -10,6 +10,7 @@ config() {
 	LDXX=${LDXX:-g++}
 	DOCBOOK2MAN=${DOCBOOK2MAN:-docbook-to-man}
 	COPTS="-D_ISOC99_SOURCE -D_GNU_SOURCE" #To get NAN, among other things
+	COPTS="${COPTS} -DSMACQ_BUILD_DATE='\"`date --iso-8601`\"'"
 
 	if [ `uname -s` = "Darwin" ]; then 
 		echo 'MAKE=gnumake'
