@@ -412,6 +412,16 @@ static inline const dts_object * smacq_getfield_copy(smacq_environment * env, co
 }
 
 
+static inline const dts_object * smacq_construct_fromstring(smacq_environment * env, int type, void * data) {
+  const dts_object * o = smacq_alloc(env, 0, type);
+  //dts_incref(o, 1);
+  if (smacq_fromstring(env, type, data, (dts_object*)o)) {
+    return o;
+  } else {
+    dts_decref(o);
+    return NULL;
+  }
+}
 
 #endif
 
