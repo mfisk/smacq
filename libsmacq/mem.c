@@ -5,11 +5,12 @@
 #include <smacq.h>
 
 #define MINSIZE 100
+/* #define SMACQ_DEBUG_MEM */
 
 #ifdef SMACQ_DEBUG_MEM
-#define SDEBUG(x) x
+# define SMDEBUG(x) x
 #else
-#define SDEBUG(x)
+# define SMDEBUG(x)
 #endif
 
 static unsigned long Id = 0;
@@ -25,14 +26,14 @@ static inline void dts_init_object(dts_object * d) {
 #define max(a,b) ((a)>(b) ? (a) : (b))
 #endif
 
-SDEBUG(static int dts_object_count = 0);
-SDEBUG(static int dts_object_virtual_count = 0);
+SMDEBUG(static int dts_object_count = 0;)
+SMDEBUG(static int dts_object_virtual_count = 0;)
 
 static inline void dts_free_object(const dts_object * d) {
 	//fprintf(stderr,"dts_free freeing %p\n", d);
   	darray_free((struct darray *)(&d->fields));
-	free((void*)d);
-	SDEBUG(dts_object_count--);
+	g_free((void*)d);
+	SMDEBUG(dts_object_count--;)
 }
 
 static inline const dts_object* dts_alloc_slow(dts_environment * tenv, int size, int type) {
@@ -53,6 +54,10 @@ static inline const dts_object* dts_alloc_slow(dts_environment * tenv, int size,
 
   darray_init(&d->fields, tenv->max_field);
   dts_init_object(d);
+
+  SMDEBUG(dts_object_count++);
+  SMDEBUG(fprintf(stderr, "%d objects currently allocated\n", dts_object_count);)
+
   return d;
 }
 
@@ -70,7 +75,7 @@ void dts_free(const dts_object * d) {
 const dts_object* dts_alloc(dts_environment * tenv, int size, int type) {
   const dts_object * o;
   
-  SDEBUG(dts_object_virtual_count++);
+  SMDEBUG(dts_object_virtual_count++);
 
   if (tenv->freelist.p >= tenv->freelist.start) {
     o = *tenv->freelist.p;
@@ -88,7 +93,7 @@ const dts_object* dts_alloc(dts_environment * tenv, int size, int type) {
 
   } else {
     o = dts_alloc_slow(tenv, size, type);
-    //fprintf(stderr, "dts_alloc creating %p\n", o);
+    /* fprintf(stderr, "dts_alloc creating %p\n", o); */
   }
   return o;
 }
