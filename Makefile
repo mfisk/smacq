@@ -7,6 +7,8 @@ COPTS+=$(CFLAGS)
 auto:
 	@./misc/config-env
 	env `./misc/config-env` $(MAKE) all
+	@echo "Executables are in build/":
+	@ls -al build/*/bin/smacqq
 
 smacq.iso: #reloc.RECURSE
 	env `./misc/config-env` misc/mkiso
