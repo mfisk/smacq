@@ -185,7 +185,6 @@ static int last_init(struct smacq_init * context) {
 }
 
 static int last_shutdown(struct state * state) {
-	fprintf(stderr, "lsat shutodwn\n");
   return 0;
 }
 
