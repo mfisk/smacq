@@ -32,6 +32,7 @@ static smacq_result project_consume(struct state * state, const dts_object * dat
 		continue;
 	}
     	dts_attach_field(newo, state->fieldset.fields[i].num, newf); 
+	dts_incref(newf, 1);
   }
 
   state->product = newo;
