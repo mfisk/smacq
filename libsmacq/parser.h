@@ -3,7 +3,7 @@
 
 #ifndef YYSTYPE
 typedef union {
-  struct graph graph;
+  SmacqGraph * graph;
   struct arglist * arglist;
   struct vphrase vphrase;
   char * string;
@@ -12,6 +12,7 @@ typedef union {
   enum dts_arith_operand_type arithop;
   dts_comparison * comp;
   struct dts_operand * operand;
+  joinlist * join_list;
 } yystype;
 # define YYSTYPE yystype
 # define YYSTYPE_IS_TRIVIAL 1

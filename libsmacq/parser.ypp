@@ -46,7 +46,7 @@ void yysmacql_error(char*);
 #include <smacq-parser.h>
 #include <SmacqGraph.h>
 
-static struct graph nullgraph = { head: NULL, tail: NULL };
+static SmacqGraph * nullgraph = NULL;
 SmacqGraph * Graph;
 extern int yylex();
 %}
@@ -55,6 +55,7 @@ extern int yylex();
 %type <graph> query from0 from where action fromwhere parenquery moreparenquery
 %type <group> group
 %type <comp> having
+%type <join_list> joins
 
 /*
  * BUGS:
@@ -106,7 +107,7 @@ extern int yylex();
 %type <arithop> arithop
 
 %union {
-  struct graph graph;
+  SmacqGraph * graph;
   struct arglist * arglist;
   struct vphrase vphrase;
   char * string;
@@ -115,6 +116,7 @@ extern int yylex();
   enum dts_arith_operand_type arithop;
   dts_comparison * comp;
   struct dts_operand * operand;
+  joinlist * join_list;
 }
 %%
 
@@ -142,10 +144,12 @@ arg: argument
 	;
 
 argument : word 			{ $$ = newarg($1, WORD, NULL); } 
-	| function '(' args ')' 	                  { $$ = newarg($1, FUNCTION, $3); }
-	| '[' expression ']'	                  { $$ = newarg("expr", FUNCTION, 
-					       newarg(print_operand($2), WORD, NULL)); 
-			                  }
+	| function '(' args ')' 	{ $$ = newarg($1, FUNCTION, $3); }
+	| '[' expression ']'	        
+           { 
+		$$ = newarg("expr", FUNCTION, 
+		newarg(print_operand($2), WORD, NULL)); 
+	   }
 	;
 
 function : id 
@@ -226,9 +230,9 @@ arithop : '+'		{ $$ = ADD; }
 queryline: query YYSTOP	
 	   { 
 #ifdef DEBUG
-	   	$1.head->print(stderr, 0); 
+	   	$1->print(stderr, 0); 
 #endif
-		Graph = $1.head;
+		Graph = $1;
 		return 0;
 	   }
 	;
@@ -267,9 +271,32 @@ fromwhere:
 		$$=$1; 
 		graph_join(&($$), $2); 
 	   }
-	| FROM parenquery word ',' word where 
+	| FROM parenquery word ',' joins where 
 	   {
-		$$ = newjoin($2, $3, $5, $6);
+		struct joinlist * jl = new joinlist($3, $2);
+		jl->append($5);
+		$$ = newjoin(jl, $6);
+	   }
+	;
+
+joins:
+	word				
+	   { 
+		$$ = new joinlist($1, nullgraph);
+	   }
+	| parenquery word		
+	   { 
+		$$ = new joinlist($2, $1);
+	   }
+ 	| word ',' joins		
+	   { 
+		$$ = new joinlist($1, nullgraph);
+		$$->append($3); 
+	   }
+	| parenquery word ',' joins	
+	   { 
+		$$ = new joinlist($2, $1);
+		$$->append($4); 
 	   }
 	;
 
@@ -311,7 +338,7 @@ parenquery:
 	| function			{ $$ = newmodule($1, NULL); }
 	| '(' parenquery '+' moreparenquery ')'
 	   {
-		$2.head->add_graph($4.head);
+		$2->add_graph($4);
 		$$ = $2;
 	   }
 	;
@@ -320,7 +347,7 @@ moreparenquery:
 	parenquery
 	| parenquery '+' moreparenquery
 	   {
-		$1.head->add_graph($3.head);
+		$1->add_graph($3);
 		$$ = $1;
 	   }
 	;
