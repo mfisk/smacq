@@ -27,7 +27,7 @@ SMACQ_MODULE(groupby,
 	  
   FieldVec fieldvec;
   SmacqGraph * mastergraph;
-  SmacqGraph * children;
+  SmacqGraph * self;
 
   FieldVecHash<SmacqGraph*> outTable;
 
@@ -43,8 +43,8 @@ inline SmacqGraph * groupbyModule::get_partition() {
   partition = outTable[fieldvec];
   if (!partition) {
     partition = mastergraph->clone(NULL);
+    partition->share_children_of(self);
     partition->init(dts, sched);
-    partition->join(children);
     outTable[fieldvec] = partition;
   } 
 
@@ -56,8 +56,7 @@ inline void groupbyModule::handle_invalidate(DtsObject datum) {
   OutputsIterator i, prev;
 
   for (i=outTable.begin(); i != outTable.end();) {
-    if ( i->first.masks(fieldvec)) {
-      //fprintf(stderr, "groupby got a partial refresh\n");
+    if (i->first.masks(fieldvec)) {
       sched->shutdown(i->second);
       prev = i++;
       outTable.erase(prev);
@@ -82,7 +81,8 @@ smacq_result groupbyModule::consume(DtsObject datum, int & outchan) {
   if (datum->gettype() == refresh_type) {
     handle_invalidate(datum);
   } else {
-    sched->input(get_partition(), datum);
+    SmacqGraph * p = get_partition();
+    sched->input(p, datum);
   }
 
   return SMACQ_FREE;
@@ -99,7 +99,7 @@ groupbyModule::~groupbyModule() {
 groupbyModule::groupbyModule(struct SmacqModule::smacq_init * context) 
   : SmacqModule(context), 
     sched(context->scheduler),
-    children(context->self->children_as_heads())
+    self(context->self)
 {
   int argc;
   char ** argv;
