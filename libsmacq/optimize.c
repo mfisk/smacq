@@ -254,7 +254,7 @@ static int merge_tree(smacq_graph * a, smacq_graph * b) {
 	}
 
 	if (retval) {
-		//smacq_destroy_graph(b);
+		//smacq_destroy_graph(b);  /* Should do this, but causes errors currently */
 	}
 
 	return retval;
