@@ -9,7 +9,7 @@ DOCBOOK2MAN=docbook-to-man
 dist_man_MANS=$(DOCDSTS) $(DOCPDFS) $(DOCTXTS)
 
 publish:
-	(cd $(srcdir); rsync -e ssh -ltv *.pdf *.png *.html smacq.sourceforge.net:smacqweb/)
+	(cd $(srcdir); rsync -a -e ssh -Ltv *.pdf *.png *.html $(top_srcdir)/build/iso/smacq*.tar.gz ../smacq.iso smacq.sourceforge.net:smacqweb/)
 
 %.3.ps: %.3
 	groff -man $< > $@
