@@ -53,15 +53,6 @@ struct state {
   int cflow_type_size;
 };
 
-
-#define SWAPLONG(y) \
-((((y)&0xff)<<24) | (((y)&0xff00)<<8) | (((y)&0xff0000)>>8) | (((y)>>24)&0xff))
-#define SWAPSHORT(y) \
-        ( (((y)&0xff)<<8) | ((u_short)((y)&0xff00)>>8) )
-
-#define TCPDUMP_MAGIC 0xa1b2c3d4
-#define TCPDUMP_MAGIC_NEW 0xa1b2cd34
-
 static inline void * read_current_file(struct state * state, void * buf, int len, enum file_read_type read_type) {
     if (state->mmap) {
       void * current = state->mmap_current;
@@ -235,10 +226,9 @@ static smacq_result cflow_init(struct smacq_init * context) {
 
   state->env = context->env;
   {
-    smacq_opt output, size, list, gzip, avoid_mmap;
+    smacq_opt size, list, gzip, avoid_mmap;
 
     struct smacq_optval optvals[] = {
-      { "w", &output}, 
       { "s", &size}, 
       { "l", &list}, 
       { "z", &gzip}, 
@@ -250,7 +240,6 @@ static smacq_result cflow_init(struct smacq_init * context) {
 				 &state->argc, &state->argv,
 				 options, optvals);
     
-    state->filename = output.string_t;
     state->file_list = list.boolean_t;
     state->maxfilesize = size.uint32_t * 1024 * 1024;
     state->outputleft = 1024*1024;
