@@ -93,6 +93,7 @@
   void yyerror(char *);
   extern char * yytext;
   extern char * yystring;
+  void yyfilter_scan_string(char *);
 
   static struct list list_join(struct list list, struct list newl, int isor);
   static struct list newlist(char * field, dts_compare_operation op, char * value);
@@ -115,14 +116,14 @@
 #endif
 
 #ifndef YYSTYPE
-#line 35 "filter-parser.y"
+#line 38 "filter-parser.y"
 typedef union {
   char * string;
   struct list list;
   dts_compare_operation op;
 } yystype;
 /* Line 193 of /usr/share/bison/yacc.c.  */
-#line 126 "filter-parser.c"
+#line 127 "filter-parser.c"
 # define YYSTYPE yystype
 # define YYSTYPE_IS_TRIVIAL 1
 #endif
@@ -143,7 +144,7 @@ typedef struct yyltype
 
 
 /* Line 213 of /usr/share/bison/yacc.c.  */
-#line 147 "filter-parser.c"
+#line 148 "filter-parser.c"
 
 #if ! defined (yyoverflow) || YYERROR_VERBOSE
 
@@ -241,7 +242,7 @@ union yyalloc
 
 /* YYFINAL -- State number of the termination state. */
 #define YYFINAL  11
-#define YYLAST   22
+#define YYLAST   21
 
 /* YYNTOKENS -- Number of terminals. */
 #define YYNTOKENS  14
@@ -313,8 +314,8 @@ static const yysigned_char yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const unsigned char yyrline[] =
 {
-       0,    42,    42,    58,    59,    60,    61,    64,    65,    68,
-      69,    70,    71,    74,    75,    78,    80
+       0,    45,    45,    61,    62,    63,    64,    67,    68,    71,
+      72,    73,    74,    77,    78,    81,    83
 };
 #endif
 
@@ -371,18 +372,18 @@ static const yysigned_char yydefgoto[] =
 
 /* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
    STATE-NUM.  */
-#define YYPACT_NINF -5
+#define YYPACT_NINF -16
 static const yysigned_char yypact[] =
 {
-       0,    -5,    -5,     0,    16,    12,    -5,     1,    -5,    -5,
-      -4,    -5,    -5,     0,     0,    -5,    -5,    -5,    -5,    13,
-      -5,    -2,    -2,    -5
+       0,   -16,   -16,     0,     3,    12,   -16,     1,   -16,   -16,
+      -4,   -16,   -16,     0,     0,   -16,   -16,   -16,   -16,    13,
+     -16,   -16,   -16,   -16
 };
 
 /* YYPGOTO[NTERM-NUM].  */
 static const yysigned_char yypgoto[] =
 {
-      -5,    -5,    -3,    -5,    -5,     3,    -5,    -5
+     -16,   -16,    -3,   -16,   -16,   -15,   -16,   -16
 };
 
 /* YYTABLE[YYPACT[STATE-NUM]].  What to do in state STATE-NUM.  If
@@ -392,16 +393,16 @@ static const yysigned_char yypgoto[] =
 #define YYTABLE_NINF -1
 static const unsigned char yytable[] =
 {
-      10,    13,    14,    13,    14,    15,    20,     1,     2,     3,
-      21,    22,    16,    17,    18,    12,    11,    13,    14,     0,
-       1,     2,    23
+      10,    13,    14,    11,    23,    15,    20,     1,     2,     3,
+      21,    22,    16,    17,    18,    12,     0,    13,    14,     0,
+       1,     2
 };
 
 static const yysigned_char yycheck[] =
 {
-       3,     5,     6,     5,     6,     4,    10,     7,     8,     9,
-      13,    14,    11,    12,    13,     3,     0,     5,     6,    -1,
-       7,     8,    19
+       3,     5,     6,     0,    19,     4,    10,     7,     8,     9,
+      13,    14,    11,    12,    13,     3,    -1,     5,     6,    -1,
+       7,     8
 };
 
 /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
@@ -961,7 +962,7 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 42 "filter-parser.y"
+#line 45 "filter-parser.y"
     { 
 					if (yyvsp[-1].list.isor) {
 						Comp = calloc(1,sizeof(dts_comparison));
@@ -979,57 +980,57 @@ yyreduce:
     break;
 
   case 3:
-#line 58 "filter-parser.y"
+#line 61 "filter-parser.y"
     { yyval.list = yyvsp[-1].list; }
     break;
 
   case 4:
-#line 59 "filter-parser.y"
+#line 62 "filter-parser.y"
     { yyval.list = list_join(yyvsp[-2].list, yyvsp[0].list, 1); }
     break;
 
   case 5:
-#line 60 "filter-parser.y"
+#line 63 "filter-parser.y"
     { yyval.list = list_join(yyvsp[-2].list, yyvsp[0].list, 0); }
     break;
 
   case 7:
-#line 64 "filter-parser.y"
+#line 67 "filter-parser.y"
     { yyval.list = newlist(yyvsp[0].string, EXIST, NULL); }
     break;
 
   case 8:
-#line 65 "filter-parser.y"
+#line 68 "filter-parser.y"
     { yyval.list = newlist(yyvsp[-2].string, yyvsp[-1].op, yyvsp[0].string); }
     break;
 
   case 9:
-#line 68 "filter-parser.y"
+#line 71 "filter-parser.y"
     { yyval.op = EQUALITY; }
     break;
 
   case 10:
-#line 69 "filter-parser.y"
+#line 72 "filter-parser.y"
     { yyval.op = GT; }
     break;
 
   case 11:
-#line 70 "filter-parser.y"
+#line 73 "filter-parser.y"
     { yyval.op = LT; }
     break;
 
   case 12:
-#line 71 "filter-parser.y"
+#line 74 "filter-parser.y"
     { yyval.op = LIKE; }
     break;
 
   case 15:
-#line 78 "filter-parser.y"
+#line 81 "filter-parser.y"
     { yyval.string = yystring; }
     break;
 
   case 16:
-#line 80 "filter-parser.y"
+#line 83 "filter-parser.y"
     { yyval.string = yystring; }
     break;
 
@@ -1037,7 +1038,7 @@ yyreduce:
     }
 
 /* Line 1016 of /usr/share/bison/yacc.c.  */
-#line 1041 "filter-parser.c"
+#line 1042 "filter-parser.c"
 
   yyvsp -= yylen;
   yyssp -= yylen;
@@ -1256,7 +1257,7 @@ yyreturn:
 }
 
 
-#line 83 "filter-parser.y"
+#line 86 "filter-parser.y"
 
 
 static dts_environment * tenv;

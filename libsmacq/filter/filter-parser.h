@@ -51,7 +51,7 @@
 
 
 #ifndef YYSTYPE
-#line 35 "filter-parser.y"
+#line 38 "filter-parser.y"
 typedef union {
   char * string;
   struct list list;

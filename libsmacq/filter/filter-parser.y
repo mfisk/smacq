@@ -17,6 +17,7 @@
   void yyerror(char *);
   extern char * yytext;
   extern char * yystring;
+  void yyfilter_scan_string(char *);
 
   static struct list list_join(struct list list, struct list newl, int isor);
   static struct list newlist(char * field, dts_compare_operation op, char * value);
@@ -27,6 +28,8 @@
 
 /* %pure-parser 	/* Make reentrant */
 %token YYSTOP YYLIKE YYOR YYAND YYSTRING YYID
+
+%left YYAND YYOR
 
 %type <op> op
 %type <list> boolean booleanline test
