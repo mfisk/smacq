@@ -201,7 +201,8 @@ static void output_all(gpointer val, gpointer user_data) {
 struct srcstat * stats_lookup(struct state * state, const dts_object * datum, struct iovec ** domainv, int * swapped) {
 	struct srcstat * s;
   	*domainv = fields2vec(state->env, datum, &state->fieldset);
-	if (!*domainv) {
+	assert(*domainv);
+	if (iovec_has_undefined(*domainv, state->fieldset.num)) {
 		*swapped = -1;
 		return NULL;
 	}
