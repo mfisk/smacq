@@ -3,66 +3,68 @@
 
 CFLAGS=-g -Wall -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I../include $(COPTS)
 
-SO_LDFLAGS=-L../libsmacq -lsmacq -lpcap -lz -lglib-2.0 -lpython2.2 -lgmodule-2.0
+LDFLAGS=$(LDOPTS)
+SO_LDFLAGS=-L../libsmacq -lsmacq -lpcap -lz -lglib-2.0 -lpython2.2 -lgmodule-2.0 -L. -lsnort
 STATIC_LDFLAGS=-L../contrib -L/usr/lib/python2.2/config -lpython2.2 -lpcap -lz
 
 BUILTIN_MODULES=pcaplive pcapfile print socket uniq counter last top head intervals filter msgtest entropy derivative split encrypt warden pdf fifo delta tabularinput sync rusage groupby flowid sum fifodelay
 
-MODULES=$(BUILTIN_MODULES) reassemble python
+MODULES=$(BUILTIN_MODULES) #python #reassemble
 
-MODULES_SHOBJS=$(patsubst %,smacq_%.so,$(MODULES))
-MODULES_OBJS=$(patsubst %,%.o,$(BUILTIN_MODULES))
+MODULES_SHOBJS=$(patsubst %,smacq_%.la,$(MODULES))
+MODULES_OBJS=$(patsubst %,%.lo,$(BUILTIN_MODULES))
 
 # To separate our snort plugin code from the snort distribution
-# (eg. put "spp_export_pkt.o" in this list, and take it out of SNORT_OBJS)
+# (eg. put "spp_export_pkt.lo" in this list, and take it out of SNORT_OBJS)
 #
-LOCAL_SNORT_OBJS = spp_export_pkt.o
+LOCAL_SNORT_OBJS = spp_export_pkt.lo
 
-all: $(MODULES_OBJS) $(MODULES_SHOBJS) pcapfile-bsd.o  smacq-modules.a
+all: $(MODULES_OBJS) $(MODULES_SHOBJS) libsmacq-modules.lo
 
 SNORT_VERSION=snort-1.8.7
 SNORT_HOME=../contrib/$(SNORT_VERSION)
-SNORT_OBJS = $(SNORT_HOME)/*.o
+SNORT_OBJS = $(SNORT_HOME)/*.lo
 
 $(SNORT_HOME):
 	make -C ../contrib $(SNORT_VERSION)
 
-modules-pass1.a: $(MODULES_OBJS) pcapfile-bsd.o
-	ar -rc $@ $+ 
+libsmacq-modules.lo: $(MODULES_SHOBJS) 
+	$(LIBTOOL) $(CC) -o $@ $+ 
 
-smacq-modules.a: modules-pass1.a
-	$(LD) -static -r -E -o $@ --whole-archive modules-pass1.a --no-whole-archive $(STATIC_LDFLAGS) 
+smacq-modules.off.a: modules-pass1.la
+	#$(LD) -static -r -E -o $@ --whole-archive modules-pass1.a --no-whole-archive $(STATIC_LDFLAGS) 
+	$(LD) -static -r -E -o $@ -all_load modules-pass1.a --no-whole-archive $(STATIC_LDFLAGS) 
 
 
 clean: 
-	rm -f *.o *.so *.a 
+	rm -Rf *.o *.so *.a *.lo *.la .libs
 
-spp_export_pkt.o: spp_export_pkt.c spp_export_pkt.h $(SNORT_HOME)
-	$(CC) -DHAVE_CONFIG_H -I$(SNORT_HOME) -I. -g -O2 -Wall -ggdb -c $<
-#	$(CC) -DHAVE_CONFIG_H -I$(SNORT_HOME) -I. -g -O2 -Wall -c $<
+spp_export_pkt.lo: spp_export_pkt.c spp_export_pkt.h $(SNORT_HOME)
+	$(CC) $(CFLAGS) -DHAVE_CONFIG_H -I$(SNORT_HOME) -I. -g -O2 -Wall -ggdb -c $<
 
-reassemble-pass1.o: reassemble.c spp_export_pkt.o ../include/smacq.h ../libsmacq/libsmacq.a 
-	$(CC) -o $@ -c $(CFLAGS) -I$(SNORT_HOME) -I. $<
+reassemble.lo: reassemble.c spp_export_pkt.lo ../include/smacq.h ../libsmacq/libsmacq.a 
+	$(CC) -o $@ -c $(CFLAGS) -I$(SNORT_HOME) -I. $< 
 
-reassemble-pass2.o: reassemble-pass1.o
-	$(LD) -r -o $@ $< $(LOCAL_SNORT_OBJS) $(SNORT_OBJS)
+libsnort.la: ../contrib/snort-1.8.7/
+	#ar -r $@ $<
+	#ranlib $@
+	$(LIBTOOL) $(CC) -static -o $@ $</[a-r]*.o
+	$(LIBTOOL) $(CC) -dynamic -r -L/sw/lib -o $@ $</*.o -lpcap -lm
 
-reassemble.o: reassemble-pass2.o
-	objcopy --strip-symbol=main $< $@ 
+libsnort.old.la: ../contrib/snort-1.8.7/snort
+	#libtool -dynamic -o $@ $<
+	$(LIBTOOL) $(CC) -dynamic -o $@ $<
+	#ld -static -r -o $@ $<
 
-pcapfile.o: pcapfile.c ../include/dts_packet.h 
-pcaplive.o: pcaplive.c ../include/dts_packet.h 
-smacq_pcapfile.so: pcapfile-bsd.o
-smacq_pcaplive.so: pcapfile-bsd.o
+pcapfile.lo: pcapfile.c pcapfile.h 
+pcaplive.lo: pcaplive.c pcapfile.h 
 
-%.o: %.c ../include/smacq.h 
-	$(CC) -c $(CFLAGS) $< 
+%.lo: %.c ../include/smacq.h 
+	$(LIBTOOL) $(CC) -c $(CFLAGS) $< 
 
-python.o: python.c ../include/smacq.h 
-	$(CC) -c $(CFLAGS) -I/usr/include/python2.2 $<
+python.lo: python.c ../include/smacq.h 
+	$(LIBTOOL) $(CC) -c $(CFLAGS) -I/usr/include/python2.2 $<
 
-smacq_%.so: %.o
-	$(CC) $(LDFLAGS) -shared -o $@ $+ $(SO_LDFLAGS)
-
-
+smacq_%.la: %.lo
+	$(LIBTOOL) $(CC) -module $(LDFLAGS) -o $@ $(SO_LDFLAGS) $+
 

@@ -1,5 +1,11 @@
-#include <assert.h>
 #include <stdio.h>
+#include <assert.h>
+#include <sys/types.h>
+#ifndef linux 
+#include <netinet/in_systm.h>
+#endif
+#include <netinet/in.h>
+#include <netinet/ip.h>
 #include <string.h>
 #include <arpa/inet.h>
 #include "smacq.h"

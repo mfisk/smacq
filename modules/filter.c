@@ -1,8 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
-#include <netinet/if_ether.h>
-#include <zlib.h>
 #include <smacq.h>
 #include <string.h>
 

@@ -6,7 +6,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
-#include <netinet/if_ether.h>
+#include <sys/types.h>
+#include <net/ethernet.h>
 #include "smacq.h"
 #include "pcapfile.h"
 #include "dts_packet.h"

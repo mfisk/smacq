@@ -36,7 +36,7 @@
 
 /* Stuff stolen from tcpdump.org savefile.c (BSD license) */
 
-void swap_hdr(struct pcap_file_header *hp)
+static void swap_hdr(struct pcap_file_header *hp)
 {
         hp->version_major = SWAPSHORT(hp->version_major);
         hp->version_minor = SWAPSHORT(hp->version_minor);

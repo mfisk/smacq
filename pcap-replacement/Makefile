@@ -29,5 +29,5 @@ libpcap-preload.so: pcap-preload.o ../libsmacq/libsmacq.a ../types/dts-modules.a
 	$(CC) -c $(CFLAGS) $<
 
 clean: 
-	rm -f *.o *.a *.so
+	rm -Rf *.o *.a *.so .libs
 

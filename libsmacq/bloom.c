@@ -54,18 +54,18 @@ struct bloom_summary {
   unsigned long long prime;
   int words;
   int maxkeybytes;
-  ulong bitsset;
-  ulong uniq;
+  unsigned long bitsset;
+  unsigned long uniq;
   int type;
 
   /* Data structures for non-probabilisitic (BLOOM_PERFECT) implementation */
   GHashTableofBytes * perfectsummary, * perfectcount;
 
   /* Diagnostic values for comparing probablisitic and perfect techniques */
-  ulong falsepositives, overcount;
+  unsigned long falsepositives, overcount;
 
   /* Values for incrank (deviation) functions */
-  ulong counttotal;
+  unsigned long counttotal;
 };
 
 static void init_hash_functions(struct bloom_summary * b) {
@@ -86,11 +86,11 @@ double bloom_get_usage(struct bloom_summary * b) {
   return ((double)b->bitsset / ((double)b->words * WORDBITS));
 }
 
-ulong bloom_get_falsepositives(struct bloom_summary * b) {
+unsigned long bloom_get_falsepositives(struct bloom_summary * b) {
   return (b->falsepositives);
 }
 
-ulong bloom_get_uniq(struct bloom_summary * b) {
+unsigned long bloom_get_uniq(struct bloom_summary * b) {
   return ((double)b->uniq);
 }
 
@@ -184,7 +184,7 @@ static inline int applyfilterfunc(struct bloom_summary * b, int f, struct iovec 
 /* Return value is the value before being incremented */
 int bloom_incrementv(struct bloom_summary * b, struct iovec * key, int keys) {
   int f;
-  ulong indices[MAXFUNCS];
+  unsigned long indices[MAXFUNCS];
   int smallest = -1;
 
   assert(b->count);

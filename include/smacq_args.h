@@ -1,6 +1,7 @@
 #ifndef SMACQ_ARGS_H
 #define SMACQ_ARGS_H
 
+#include <sys/time.h>
 #include <glib.h>
 
 typedef union { 

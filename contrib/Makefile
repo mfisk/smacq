@@ -1,7 +1,7 @@
 all: snort-1.8.6 libpcap.a
 
 clean:
-	rm -Rf libpcap*
+	rm -Rf .libs libpcap*
 
 snort-1.8.6: snort-1.8.6.tar.gz
 	tar xzf $< 

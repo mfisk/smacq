@@ -16,7 +16,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
-#include <netinet/if_ether.h>
+#include <net/ethernet.h>
 #include <smacq.h>
 #include "pcapfile.h"
 
@@ -28,7 +28,7 @@ static struct smacq_options options[] = {
 };
 
 static void ProcessPacket(struct state * state, struct old_pcap_pkthdr * hdr, 
-		   struct ethhdr * ethhdr) {
+		   struct ether_header * ethhdr) {
   struct dts_pkthdr * pkt;
 
   state->datum = (dts_object*)flow_alloc(state->env, hdr->len + sizeof(struct dts_pkthdr), 0);

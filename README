@@ -9,7 +9,7 @@ and execute this package:
 		zlib1g zlib1g-dev \
 		libglib2.0 libglib2.0-dev \
 		libpcap0 libpcap-dev \
-		docbook-to-man groff python2.2-dev wget
+		libtool docbook-to-man groff python2.2-dev wget
 
 2. Run "make" to build
 
@@ -17,9 +17,9 @@ MacOS/X - Fink:
 ----------------
 1. Run the following command to install the Fink packages require to compile
 and execute this package:
-	fink install \
-		zlib glib2-dev libpcap libpcap-shlibs \
-		docbook-bundle groff python wget 
+	apt-get install \
+		dlcompat zlib glib2-dev libpcap libpcap-shlibs \
+		libtool docbook-bundle groff python wget 
 
 2. Run "gnumake" to build
 

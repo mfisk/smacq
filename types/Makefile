@@ -1,22 +1,22 @@
 CFLAGS=-g -O3 -Winline -Wall -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I../include $(COPTS)
-LDFLAGS=-lglib-2.0 -lgmodule-2.0
+LDFLAGS=-lglib-2.0 -lgmodule-2.0 $(LDOPTS)
 
 TYPES=packet int ushort ubyte timeval uint32 bytes netlong ip nushort nuint32 macaddr string double refresh empty
-TYPEMODULES=$(patsubst %,dts_%.so,$(TYPES))
-TYPEOBJS=$(patsubst %,%.o,$(TYPES))
+TYPEMODULES=$(patsubst %,dts_%.la,$(TYPES))
+TYPEOBJS=$(patsubst %,%.lo,$(TYPES))
 
-all: $(TYPEMODULES) dts-modules.a
+all: $(TYPEMODULES) libdts-modules.lo
 
 clean: 
-	rm -f *.o *.so *.a
+	rm -Rf *.o *.so *.a *.la *.lo .libs
 
-dts-modules.a: $(TYPEOBJS)
-	ar -rc $@ $+
+libdts-modules.lo: $(TYPEOBJS)
+	$(LIBTOOL) $(CC) -o $@ $+
 
 flowtype_packet.so: ../include/dts_packet.h
 
-%.o: %.c 
-	$(CC) -c $(CFLAGS) $<
+%.lo: %.c 
+	$(LIBTOOL) $(CC) -c $(CFLAGS) $<
 
-dts_%.so: %.c 
-	$(CC) -shared -o $@ $(CFLAGS) $<
+dts_%.la: %.lo 
+	$(LIBTOOL) $(CC) -module -o $@ $(LDFLAGS) -lc $<
