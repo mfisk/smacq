@@ -34,11 +34,7 @@ static smacq_graph * Graph;
  */
  
 %{
-
 #include <smacq-parser.h>
-//static struct graph nullgraph = { head: NULL, tail: NULL };
-//static smacq_graph * Graph;
-
 %}
 
 %token WHERE
@@ -55,6 +51,7 @@ static smacq_graph * Graph;
 
 %right YYNOT
 %left YYAND YYOR
+%left HAVING
 %right FROM
 
 %left '+' '-'
