@@ -13,8 +13,7 @@ static int smacqtype_ip_get_string(const dts_object * datum, dts_object * data) 
 static int parse_ip(char * buf,  const dts_object * d) {
   dts_setsize(d, sizeof(struct in_addr));
   if (inet_pton(AF_INET, buf, d->data) == 1) {
-	fprintf(stderr, "pton ok on %s\n", buf);
-	return 1;
+	return 1; /* Success */
   } else {
 	/* error, try DNS */
  	struct addrinfo * resp;
