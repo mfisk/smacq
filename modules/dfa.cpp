@@ -4,8 +4,7 @@
 #include <smacq.h>
 #include <errno.h>
 #include <SmacqScheduler.h>
-
-/* Programming constants */
+#include <DynamicArray.h>
 
 #define LINESIZE 4096
 
@@ -13,19 +12,52 @@ static struct smacq_options options[] = {
   END_SMACQ_OPTIONS
 };
 
+#include <ext/hash_map>
+namespace stdext = ::__gnu_cxx;
+
+namespace std {
+  template<>
+  struct equal_to<char*> {
+	bool operator()(const char * x, const char * y) {
+		return (!strcmp(x,y));
+	}
+  };
+}
+
+template <class T>
+class IdMap : public stdext::hash_map<T, int> {
+   public:
+  	IdMap() : ids(0) {}
+
+        int operator[](const T & x) {
+		if (find(x) == end()) {
+			// New
+                	int & i = stdext::hash_map<T,int>::operator[](strdup(x));
+			i = ids;
+			return ids++;
+		} else {
+			return (find(x)->second);
+		}
+        }
+
+   private:
+	int ids;
+};
+
 SMACQ_MODULE(dfa,
   PROTO_CTOR(dfa);
   PROTO_CONSUME();
 
-  struct darray machines;
-  struct darray states;
-  idset ids;
+  DynamicArray<struct dfa> machines;
+  DynamicArray<struct dfa_state> states;
   int start_state;
   int stop_state;
   dts_field previous_field;
 
+  IdMap<char *> ids;
+
   int parse_dfa(char * filename);
-  int try_transition(DtsObject datum, struct transition * t);
+  int try_transition(DtsObject datum, struct transition & t);
   int dfa_try(DtsObject datum, int current_state); 
 ); 
 
@@ -35,7 +67,7 @@ struct dfa {
 };
 
 struct dfa_state {
-  struct darray transitions;
+  DynamicArray<struct transition> transitions;
 };
 
 struct transition {
@@ -44,40 +76,40 @@ struct transition {
   SmacqScheduler * sched;
 };
 
-int dfaModule::try_transition(DtsObject datum, struct transition * t) {
+int dfaModule::try_transition(DtsObject datum, struct transition & t) {
   DtsObject output;
   smacq_result more;
 
-  t->sched->input(datum);
-  more = t->sched->get(output);
+  t.sched->input(datum);
+  t.graph->print(stderr, 2);
+  more = t.sched->element(output);
 
   if ((SMACQ_END|SMACQ_ERROR) & more) {
     assert(0);
   }
 
-  assert(more & SMACQ_PASS);
-
-  if (datum == output) {
-    return t->next_state;
-  } else if (output) {
-    smacq_log("dfa", ERROR, "Transition test was non-boolean");
-    return -1;
-  } else {
-    return -1;
+  if (more & SMACQ_PASS) {
+	if (datum == output) {
+		fprintf(stderr, "got a transition\n");
+    		return t.next_state;
+  	} else if (output) {
+    		smacq_log("dfa", ERROR, "Transition test was non-boolean");
+    		return -1;
+	}
   }
+
+  return -1;
 }
 
 int dfaModule::dfa_try(DtsObject datum, int current_state) {
-  int t;
-  struct dfa_state * dstate = (struct dfa_state*)darray_get(&states, current_state);
-  struct darray * transitions = &dstate->transitions;
+  struct dfa_state & dstate = states[current_state];
   
-  if (!transitions) {
+  if (dstate.transitions.empty()) {
     //smacq_log("dfa", ERROR, "state has no way out");
     fprintf(stderr, "state %d has no way out\n", current_state);
   } else {
-    for (t =0; t < darray_size(transitions); t++) {
-      int next_state = try_transition(datum, (transition*)darray_get(transitions, t));
+    for (unsigned int t = 0; t < dstate.transitions.size(); t++) {
+      int next_state = try_transition(datum, dstate.transitions[t]);
       if (next_state >= 0) {
 	return next_state;
       }
@@ -88,34 +120,31 @@ int dfaModule::dfa_try(DtsObject datum, int current_state) {
 }
 
 smacq_result dfaModule::consume(DtsObject datum, int & outchan) {
-  int i;
   int next_state;
+  DynamicArray<struct dfa>::iterator i;
 
-  for (i=0; i < darray_size(&machines); i++) {
-    struct dfa * dfa = (struct dfa*)darray_get(&machines, i);
-    if (!dfa) continue;
-
+  for (i = machines.begin(); i != machines.end(); ++i) {
+    struct dfa & dfa = *i;
     
-    datum->attach_field(previous_field, dfa->stack);
+    datum->attach_field(previous_field, dfa.stack);
 
-    next_state = dfa_try(datum, dfa->state);
+    next_state = dfa_try(datum, dfa.state);
 
     if (next_state >= 0) { 
       /* This datum caused a transition */
 
-      // fprintf(stderr, "transition from state %d to %d\n", next_state, dfa->state);
-      dfa->state = next_state;
+      // fprintf(stderr, "transition from state %d to %d\n", next_state, dfa.state);
+      dfa.state = next_state;
       
 
       /* Handle STOP states */
       if (stop_state == next_state) {
 	/* Terminate the DFA */
-	darray_set(&machines, i, NULL);
-	free(dfa);
+	machines.erase(i);
 
 	return SMACQ_PASS;
       } else {
-	dfa->stack = datum;
+	dfa.stack = datum;
 	
 	return SMACQ_FREE;
       }
@@ -129,11 +158,10 @@ smacq_result dfaModule::consume(DtsObject datum, int & outchan) {
   next_state = dfa_try(datum, start_state);
   if (next_state >= 0) {
     /* Instantiate a new machine */
-    struct dfa * ndfa = new dfa();
-    ndfa->state = next_state;
-    ndfa->stack = datum;
+    struct dfa & ndfa = machines[machines.size()];
+    ndfa.state = next_state;
+    ndfa.stack = datum;
     
-    darray_append(&machines, ndfa);
     //fprintf(stderr, "Cranking up new DFA in state %d\n", next_state);
 
     return SMACQ_FREE;
@@ -151,17 +179,12 @@ int dfaModule::parse_dfa(char * filename) {
     return 0;
   }
 
-  idset_init(&ids);
-  darray_init(&states, 2);
-  darray_init(&machines, 0);
   previous_field = dts->requirefield("previous");
 
   while (!feof(fh)) {
     char line[LINESIZE];
     char * next_state_name, * this_state_name, * test;
-    struct transition * transition = NULL;
     int this_state_num = -1;
-    struct dfa_state * this_state;
 
     if (!fgets(line, LINESIZE, fh))
       break;
@@ -185,58 +208,55 @@ int dfaModule::parse_dfa(char * filename) {
       test[0] = '\0';
       test++;
       
-      transition = g_new0(struct transition, 1);
-      this_state_num = str2id(&ids, this_state_name);
-      transition->next_state = str2id(&ids, next_state_name);
+      this_state_num = ids[this_state_name];
+      DynamicArray<struct transition> & transitions = states[this_state_num].transitions;
+      struct transition & transition = transitions[transitions.size()];
+
+      transition.next_state = ids[next_state_name];
 
       {
 	char * args[2];
 	args[0] = "where";
 	args[1] = test;
 
-	transition->graph = smacq_build_query(dts, 2, args);
+	transition.graph = smacq_build_query(dts, 2, args);
+
+	//transition.graph->print(stderr, 2);
 	
-	if (!transition->graph) {
+	if (!transition.graph) {
 	  fprintf(stderr, "error: dfa: cannot parse test %s\n", test);
-	  free(transition);
-	  break;
+	  exit(-1);
 	}
 
 	/*
 	  fprintf(stderr, "transition from %s(%d) to %s(%d)\n", 
 		this_state_name, this_state_num,
-		next_state_name, transition->next_state);
+		next_state_name, transition.next_state);
 	*/
       }
 
-      transition->sched = new SmacqScheduler(dts, transition->graph, false);
+      transition.sched = new SmacqScheduler(dts, transition.graph, false);
     }
+    assert(this_state_num > -1);
 
-    if (this_state_num > -1) {
-    	this_state = (dfa_state*)darray_get(&states, this_state_num);
-    	if (!this_state) {
-      		this_state = g_new0(struct dfa_state, 1);
-      		darray_init(&this_state->transitions, 0);
-      		darray_set(&states, this_state_num, this_state);
-    	}
-
-    	if (transition) {
-      	darray_append(&this_state->transitions, transition);
-    	}
-    }
   } 
 
-  start_state = str2id_try(&ids, "START");
-  stop_state = str2id_try(&ids, "STOP");
+  IdMap<char*>::iterator i = ids.find("START");
 
-  if (start_state < 0) {
+  if (i == ids.end()) {
     smacq_log("dfa", ERROR, "No state named START");
     return -1;
+  } else {
+    start_state = i->second;
   }
 
-  if (stop_state < 0) {
+  i = ids.find("STOP");
+
+  if (i == ids.end()) {
     smacq_log("dfa", ERROR, "No state named STOP");
     return -1;
+  } else {
+    stop_state = i->second;
   }
 
   return 0;
