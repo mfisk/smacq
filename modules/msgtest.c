@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
-#include "smacq.h"
+#include <smacq.h>
 
 struct state {
   smacq_environment * env;
@@ -18,27 +18,23 @@ static smacq_result msgtest_produce(struct state* state, const dts_object ** dat
 }
 
 static smacq_result msgtest_consume(struct state * state, const dts_object * datum, int * outchan) {
-  dts_comparison * comp = g_new0(dts_comparison, 1);
-  dts_object msgdata;
+  dts_comparison * comp = comp_new(EQ, comp_operand(FIELD, "srcip"), comp_operand(CONST, ""));
+  const dts_object * msgdata;
 
   // datum = dts_writable(state->env, datum);
   
   /* Get current time as message data */
-  smacq_getfield_copy(state->env, datum,
+  msgdata = smacq_getfield_copy(state->env, datum,
 		smacq_requirefield(state->env, "timeseries"), 
-		&msgdata);
+		NULL);
 
   /* Get current address as matching criteria (msg destination) */
-  smacq_getfield_copy(state->env, datum,
+  comp->op2->valueo = smacq_getfield_copy(state->env, datum,
 		smacq_requirefield(state->env, "srcip"), 
-		&comp->field_data);
+		NULL);
 
-  comp->op = EQ;
-  comp->field = smacq_requirefield(state->env, "srcip");
-  
   /* Send it to everybody else */
-
-  smacq_msg_send(state->env, smacq_requirefield(state->env, "prior"), &msgdata, comp);
+  smacq_msg_send(state->env, smacq_requirefield(state->env, "prior"), msgdata, comp);
 
   return SMACQ_PASS;
 }
