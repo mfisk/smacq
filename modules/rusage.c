@@ -21,6 +21,8 @@ int linux_getrusage(int who, struct rusage * usage) {
 	  char comm[256];
 	  char state;
 
+	  assert(proc);
+
 	  fscanf(proc, "%d %s %c %d %d %d %d %d %u %u %u %u %u %d %d %d %d %d %d %u %u %d %u %u %u %u %u %u %u %u %d %d %d %d %u",
 			  &pid, comm, &state, &ppid, &pgrp, &session, &tty, &tpgid,
 			  &flags, &minflt, &cminflt, &majflt, &cmajflt, &utime,
@@ -29,6 +31,7 @@ int linux_getrusage(int who, struct rusage * usage) {
 			  &endcode, &startstack, &kstkesp, &kstkeip, &signal,
 			  &blocked, &sigignore, &sigcatch, &wchan);
 	  usage->ru_maxrss = rss;
+	  fclose(proc);
   }
 
   return r;
