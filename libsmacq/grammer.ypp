@@ -48,7 +48,7 @@
 %type <arithop> arithop
 
 %union {
-  struct graph graph;
+  SmacqGraph * graph;
   struct arglist * arglist;
   struct vphrase vphrase;
   char * string;
