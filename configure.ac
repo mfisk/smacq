@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.57)
-AC_INIT(SMACQ, 2.0, mfisk@lanl.gov)
+AC_INIT(SMACQ, 2.1, mfisk@lanl.gov)
 AM_CONFIG_HEADER(config.h)
 AM_INIT_AUTOMAKE(1.7)
 AM_PROG_CC_STDC
@@ -238,7 +238,7 @@ AM_CONDITIONAL(USE_PYTHON, test x$with_python = xyes)
 ##
 ##
 
-AC_CONFIG_FILES([makefile
+AC_CONFIG_FILES([Makefile
                  include/Makefile
                  bin/Makefile
                  doc/Makefile
