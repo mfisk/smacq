@@ -67,6 +67,18 @@ void graph_join(struct graph * graph, struct graph newg) {
 	assert(graph->tail);
 
 	smacq_add_child(graph->tail, newg.head); 
+
+	if (newg.head->next_graph) {
+		/* This graph has multiple heads that should all become children */
+		smacq_graph * sg = newg.head->next_graph;
+		smacq_graph * prev = newg.head;
+
+		for( ; sg; prev=sg, sg=sg->next_graph) {
+			prev->next_graph = NULL;
+			smacq_add_child(graph->tail, sg); 
+		}
+	}
+	
 	graph->tail = newg.tail;
 }
 	
@@ -364,52 +376,48 @@ static inline struct arglist * arglist_append2(struct arglist * old, struct argl
 	return old;
 }
 
-
-smacq_graph * dts_optimize_tests(dts_environment * tenv, dts_comparison * comp) {
-  struct graph g;
-
-  switch(comp->op) {
-  case AND:
-  case OR:
-  case FUNC:
-    g  = optimize_bools(comp);
-    return g.head;
-    break;
-
-  default:
-      return NULL;
-      break;
-  }
-}
-
-struct graph optimize_bools(dts_comparison * comp) {
-  dts_comparison *c;
+struct graph optimize_bools(dts_comparison * c) {
   struct arglist * arglist = NULL;
   struct graph g;
 
   g.head = NULL; g.tail = NULL;
- 
-  for(c=comp; c; c = c->next) {
+
+  if (c) {
     if (c->op == AND) {
       dts_comparison * p;
 
       for (p=c->group; p; p=p->next) {
-	graph_join(&g, optimize_bools(c->group));
+	graph_join(&g, optimize_bools(p));
       }
     } else if (c->op == FUNC) {
       graph_join(&g, newmodule(c->func.name, c->func.arglist));
     } else if (c->op == OR) {
+      struct graph subg;
       dts_comparison * p;
+      struct graph uniq;
+
+      subg.head = NULL, subg.tail = NULL;
+
+      arglist = arglist_append2(arglist, newarg("-o", 0, NULL));
+      uniq = newmodule("uniq", arglist); 
 
       for (p=c->group; p; p=p->next) {
-	if (p->op != FUNC) {
-		arglist = arglist_append2(arglist, newarg("where", 0, NULL));
+        struct graph newg = optimize_bools(p);
+
+	if (!subg.head) {
+		subg.head = newg.head;
+	} else {
+		smacq_graph_add_graph(subg.head, newg.head);
+		//fprintf(stderr, "%p(%s) is OR sibling to %p(%s)\n", subg.head, subg.head->name, newg.head, newg.head->name);
 	}
-      	arglist = arglist_append2(arglist, newarg(print_comparison(p), 0, NULL));
-      	arglist = arglist_append2(arglist, newarg(";", 0, NULL));
+
+	graph_join(&newg, uniq);
       }
 
-      graph_join(&g, newmodule("lor", arglist)); 
+      /* Subg encompasses everything we just assembled */
+      subg.tail = uniq.tail;
+      graph_join(&g, subg);
+
     } else if (c->op == NOT) {
       arglist = arglist_append2(arglist, newarg("not", 0, NULL));
       if (c->group && c->group->op != FUNC) {
