@@ -25,6 +25,7 @@ static struct smacq_options options[] = {
   {"s", {uint32_t:0}, "Maximum output file size (MB)", SMACQ_OPT_TYPE_UINT32},
   {"l", {boolean_t:0}, "Read list of input files from STDIN", SMACQ_OPT_TYPE_BOOLEAN},
   {"z", {boolean_t:0}, "Use gzip compression", SMACQ_OPT_TYPE_BOOLEAN},
+  {"M", {boolean_t:0}, "Disable memory-mapped I/O", SMACQ_OPT_TYPE_BOOLEAN},
   {NULL, {string_t:NULL}, NULL, 0}
 };
 
@@ -41,6 +42,7 @@ struct state {
   int swapped;
   int extended;
   int hdr_size;
+  int avoid_mmap;
 
   void * mmap;
   void * mmap_current;
@@ -225,7 +227,7 @@ static inline int open_filename(struct state * state, char * filename) {
 	    state->gzfh = gzopen(filename, "rb");
     } else {
 	    state->fh = fopen(filename, "r");
-	    try_mmap = 1;
+	    try_mmap = ! state->avoid_mmap;
     }
   }
 
@@ -344,8 +346,8 @@ static smacq_result pcapfile_produce(struct state * state, const dts_object ** d
     payload = read_file(state, NULL, hdrp->caplen, MAP);
 
     if (payload != hdrp +1) {
-      fprintf(stderr, "payload at %p instead of %p\n", payload, hdrp + 1);
-      fprintf(stderr, "pcapfile: premature end of file\n");
+      //fprintf(stderr, "payload at %p instead of %p\n", payload, hdrp + 1);
+      fprintf(stderr, "pcapfile: premature end of mmapped file\n");
       return SMACQ_END;
     }
   }
@@ -472,13 +474,14 @@ static smacq_result pcapfile_init(struct smacq_init * context) {
 
   state->env = context->env;
   {
-    smacq_opt output, size, list, gzip;
+    smacq_opt output, size, list, gzip, avoid_mmap;
 
     struct smacq_optval optvals[] = {
       { "w", &output}, 
       { "s", &size}, 
       { "l", &list}, 
       { "z", &gzip}, 
+      { "M", &avoid_mmap}, 
       {NULL, NULL}
     };
     output.uint32_t = 0;
@@ -491,6 +494,7 @@ static smacq_result pcapfile_init(struct smacq_init * context) {
     state->maxfilesize = size.uint32_t * 1024 * 1024;
     state->outputleft = 1024*1024;
     state->gzip = gzip.boolean_t;
+    state->avoid_mmap = avoid_mmap.boolean_t;
   }
   
   state->snaplen_type = smacq_requiretype(state->env, "int");
