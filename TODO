@@ -1,3 +1,5 @@
+fromstring API should change (use dts_object rather than void **).
+
 Resolve:
 	Join needs where information to determine type of join
 	Pcaplive and Disarm modules could take advantage of where information
@@ -7,8 +9,6 @@ Resolve:
 	How do you specify different types of joins?  Word at end of join list?
 
 getfield:
-	Make sure all callers do dts_decref()
-
 	objects need the ability to depend on each other for payload.
 	Consider getfield(tcp.port).  tcp is intermediate field and will be freed.
 	If it owns the payload that port points to, then the returned object will point to freed
