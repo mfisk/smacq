@@ -439,10 +439,10 @@ static inline void smacq_produce_enqueue(struct smacq_outputq ** qp, const dts_o
   nq->next = NULL;
 
   if (!*qp) {
-  	  fprintf(stderr, "q %p as head\n", nq);
+  	  //fprintf(stderr, "q %p as head\n", nq);
 	  *qp = nq;
   } else {
-  	  fprintf(stderr, "q %p after %p\n", nq, (*qp)->end);
+  	  //fprintf(stderr, "q %p after %p\n", nq, (*qp)->end);
 	  (*qp)->end->next = nq;
   }
 
