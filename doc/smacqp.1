@@ -97,10 +97,10 @@ has a corresponding module that defines how it is accessed.
  
 .PP 
 SMACQ is an extensible system that the user can add modules to. 
-However the following suite of components comes with the 
+However the following suite of modules comes with the 
 software distribution: 
  
-.SH "STANDARD INPUT/OUTPUT COMPONENTS" 
+.SH "STANDARD INPUT/OUTPUT MODULES" 
 .SS "Print" 
 .PP 
 \fBprint\fP [-v]  [-B]  [-d \fIdelimiter\fP] fields \&...  
@@ -203,7 +203,7 @@ connections forever and will never exit.  Without this option,
 the server will accept a single connection, process it until 
 it closes, and then terminate. 
  
-.SH "FILTER (BOOLEAN) COMPONENTS" 
+.SH "FILTER MODULES (BOOLEAN FUNCTIONS)" 
 .SS "IP Address Mask" 
 .PP 
 \fBmask\fP\fIfield\fP [!]\fIaddr/cidr\fP  
@@ -305,7 +305,15 @@ and then end the pipeline.  Those records will be processed by
 all subsequent modules in the pipeline and the program will 
 then terminate. 
  
-.SH "STANDARD ANALYSIS COMPONENTS" 
+.SH "ANALYSIS MODULES" 
+.SS "Constant Annotation" 
+.PP 
+\fBconst\fP \fIstring\fP  [\fIfield\fP]  
+.PP 
+Annotate each object with a field containing the specified string constant. 
+If a field name is specified, it will be used.  Otherwise, the name will be the same 
+as the value string. 
+ 
 .SS "Counter" 
 .PP 
 \fBcounter\fP [-f \fIcountname\fP]  [\fIfields\fP \&...]  
@@ -421,4 +429,4 @@ a time delay which is specified with the \fB-t\fP 	option which defaults to 0 se
 .PP 
 \fBdts-types\fP(3), \fBsmacq-modules\fP(3), 
 \fBsmacq-embed\fP(3) 
-...\" created by instant / docbook-to-man, Thu 30 Jan 2003, 17:55 
+...\" created by instant / docbook-to-man, Thu 30 Jan 2003, 18:39 
