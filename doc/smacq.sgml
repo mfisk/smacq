@@ -12,7 +12,7 @@
       <firstname>Mike</firstname>
       <surname>Fisk</surname>
     </author>
-    <date>$Date: 2003/05/04 19:43:36 $</date>
+    <date>$Date: 2003/05/26 23:49:50 $</date>
   </refentryinfo>
   <refmeta>
     <refentrytitle>smacq</refentrytitle>
@@ -159,6 +159,26 @@
 	megabytes) for output files.  If specified, the output file
 	will have a two-digit suffix number appended and output will
 	be split between as many files as necessary.
+      </para>
+    </refsect2>
+
+    <refsect2>
+      <title>cflowd Raw Flow File</title>
+      <cmdsynopsis>
+	<command>cflow</command>
+	<arg choice=req rep=repeat> <replaceable>filename</replaceable></arg>
+	<arg>-l </arg>
+      </cmdsynopsis>
+
+      <para>
+	The <command>cflow</command> module reads from a raw flow file
+	as created by cflowd.  
+	One or more files must be specified.  Use
+	<literal>-</literal> for stdin.  Input files that are
+	compressed with <command>gzip</command> are supported
+	automatically.  If the <option>-l</option> option
+	is specified then files are read from STDIN instead of 
+	the arguments.
       </para>
     </refsect2>
 
