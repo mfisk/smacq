@@ -172,6 +172,7 @@ dts_comparison * dts_parse_tests(dts_environment * tenv, int argc, char ** argv)
 struct dts_operand * dts_parse_expr(dts_environment * tenv, int argc, char ** argv);
 char * dts_field_getname(dts_environment * tenv, dts_field f);
 void dts_free(const dts_object*);
+EXTERN int dts_requiretype(dts_environment *, char * name);
 
 
 #endif
