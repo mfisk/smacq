@@ -146,13 +146,13 @@ class SmacqGraph : private SmacqGraphNode {
   static bool compare_elements(SmacqGraph * a, SmacqGraph * b);
   static bool merge_tail_ends(SmacqGraph * a, SmacqGraph * b);
   static void merge_tails(struct list * alist, struct list * blist);
+  void merge_redundant_children();
   void merge_all_tails();
   void add_args(SmacqGraph * b);
-  static int merge_demuxs(SmacqGraph * a, SmacqGraph * b);
-  static int merge_vectors(SmacqGraph * a, SmacqGraph * b);
-  static int merge_fanouts(SmacqGraph * a, SmacqGraph * b);
-  static int merge_trees(SmacqGraph * a, SmacqGraph * b);
-  void optimize_tree();
+  static bool merge_demuxs(SmacqGraph * a, SmacqGraph * b);
+  static bool merge_vectors(SmacqGraph * a, SmacqGraph * b);
+  static bool merge_fanouts(SmacqGraph * a, SmacqGraph * b);
+  static bool merge_trees(SmacqGraph * a, SmacqGraph * b);
 
   /// Iff a module node:
   SmacqGraph * next_graph;

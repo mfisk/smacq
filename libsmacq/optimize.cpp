@@ -172,13 +172,15 @@ inline void SmacqGraph::add_args(SmacqGraph * b) {
   }
 }
 
-inline int SmacqGraph::merge_demuxs(SmacqGraph * a, SmacqGraph * b) {
+/// Attempt to merge demux graphs a and b.  
+/// Return true iff b is replaced by a.
+inline bool SmacqGraph::merge_demuxs(SmacqGraph * a, SmacqGraph * b) {
   int match = 1;
   unsigned int i, j;
 
-  if (!compare_elements(a,b)) return 0;
+  if (!compare_elements(a,b)) return false;
 
-  if (a->children.size() != b->children.size()) return 0;
+  if (a->children.size() != b->children.size()) return false;
 
   /*
    * For demuxs, we can only merge the nodes if 
@@ -186,7 +188,7 @@ inline int SmacqGraph::merge_demuxs(SmacqGraph * a, SmacqGraph * b) {
    */
   for (i = 0; i < b->children.size(); i++) {
     if (a->children[i].size() != b->children[i].size())
-      return 0;
+      return false;
 
     for (j = 0; j < b->children[i].size(); j++) {
       if (! compare_elements(a->children[i][j], b->children[i][j])) {
@@ -200,23 +202,23 @@ inline int SmacqGraph::merge_demuxs(SmacqGraph * a, SmacqGraph * b) {
      * So B will be completely replaced by A.
      * Therefore, we don't need to do any recursive merging 
      */
-    return 1; /* This will tell the caller to replace refs to b with a */
+    return true; /* This will tell the caller to replace refs to b with a */
   } else {
     /* Can't merge A and B */
-    return 0;
+    return false;
   }
 }
 
-inline int SmacqGraph::merge_vectors(SmacqGraph * a, SmacqGraph * b) {
+inline bool SmacqGraph::merge_vectors(SmacqGraph * a, SmacqGraph * b) {
 #ifdef SMACQ_OPT_NOVECTORS
 #warning "SMACQ_OPT_NOVECTORS set"
-  return 0;
+  return false;
 #endif 
 
   if (!a->algebra.vector || 
       !b->algebra.vector || 
       !compare_element_names(a,b))
-    return 0;
+    return false;
   
   /* Move all children (including arguments) from B to A */
   /* XXX: We could look at each arg in vector and treat as set instead of bag */
@@ -238,56 +240,37 @@ inline int SmacqGraph::merge_vectors(SmacqGraph * a, SmacqGraph * b) {
   }
   b->children.clear();
   
-  return 1;
+  return true;
 }
 
-inline int SmacqGraph::merge_fanouts(SmacqGraph * a, SmacqGraph * b) {
+inline bool SmacqGraph::merge_fanouts(SmacqGraph * a, SmacqGraph * b) {
   /*
-   * For fanout nodes, we can just make the children of A be the union of 
-   * the children of A and B.  Then get rid of B.
-   * Note that this implementation also handles the case that the two sets are identical.
+   * For fanout nodes, we can just move the children of B to A.
    */
-  unsigned int i, j;
-  
-  if (!compare_elements(a,b) || !a->algebra.stateless || !b->algebra.stateless) 
-	return 0;
+  if (!compare_elements(a,b))
+	return false;
 
   assert(a->children.size() <= 1 && b->children.size() <= 1);;
 
-  /* Move children selectively */
-  for (i = 0; i < b->children[0].size(); i++) {
-    /* If any of our twins children are twins of our children, just use that child */
-    for (j = 0; j < a->children[0].size(); j++) {
-      if (merge_trees(a->children[0][j], b->children[0][i])) {
-	//fprintf(stderr, "%p will be handled by %p\n", b->children[0][i], a->children[0][j]);
-	b->children[0][i] = NULL;
-	break;
-      }
-    }
-    
-    /* Pawn this child off on our newly found twin */
-    if (b->children[0][i]) {
-      a->add_child(b->children[0][i]);
-      /* fprintf(stderr, "%p child %p(%s) now child of %p(%s)\n", b, 
-	 b->children[0][i], b->children[0][i]->name, 
-	 a, a->name);  */
-      b->children[0][i]->remove_parent(b);
-    }
+  /* Move all children */
+  for (unsigned int i = 0; i < b->children[0].size(); i++) {
+    a->add_child(b->children[0][i]);
+    b->remove_child(0,i);
   }
-  
-  return 1;
+
+  return true;
 }
 
 /* Merge the tops of these two trees as much as possible */
 /* Return 1 iff graph b was completely merged into a */
-inline int SmacqGraph::merge_trees(SmacqGraph * a, SmacqGraph * b) {
-  int retval;
+inline bool SmacqGraph::merge_trees(SmacqGraph * a, SmacqGraph * b) {
+  bool retval;
   
   if (a==b)
-    return 0;
+    return false;
   
   if (0 && merge_demuxs(a,b)) {
-    retval = 1;
+    retval = true;
   } else if (a->algebra.vector) { 
     retval = merge_vectors(a,b);
   } else {
@@ -297,32 +280,28 @@ inline int SmacqGraph::merge_trees(SmacqGraph * a, SmacqGraph * b) {
   return retval;
 }
 
-/* Search for mergeable children anywhere in tree */
-inline void SmacqGraph::optimize_tree() {
-  unsigned int an, bn;
-  SmacqGraph * a, * b;
-  
-  if (algebra.stateless && !algebra.vector && !algebra.demux) { /* Can't rewrite children of a vector */
-    for (an = 0; an < children[0].size(); an++) {
-      a = children[0][an];
-      
-      for (bn=1; bn < children[0].size(); bn++) {
-	b = children[0][bn];
-	
-	if (merge_trees(a, b)) {
-	  //fprintf(stderr, "removed %p from %p\n", b, g);
-	  b->remove_child(0, bn);
-	  bn--; /* remove_child will reset children[0][j] to something new */
+/// Examine children and, if we are stateless, merge any that we can
+void SmacqGraph::merge_redundant_children() {
+	if (algebra.stateless) {
+		for (unsigned int k = 0; k < children.size(); k++) {
+    			for (unsigned int i = 0; i < children[k].size(); i++) {
+				/* If any of our twins children are twins of our children, just use that child */
+			   	for (unsigned int j = 0; j < children[k].size(); j++) {
+					if (i != j && merge_trees(children[k][j], children[k][i])) {
+						//fprintf(stderr, "%p will be handled by %p\n", children[k][i], children[k][j]);
+						remove_child(k,i);
+						// This invalidates iterators, so crudely start over
+						return merge_redundant_children();
+      					}
+				}
+
+				// Recurse
+				children[k][i]->merge_redundant_children();
+			}
+		}
+
+  		if (next_graph) next_graph->merge_redundant_children();
 	}
-      }
-    }
-  }
-  
-  for (an = 0; an < children[0].size(); an++) {
-    children[0][an]->optimize_tree();
-  }
-  
-  next_graph->optimize_tree();
 }
 
 void SmacqGraph::optimize() {
@@ -367,8 +346,8 @@ void SmacqGraph::optimize() {
 #endif
 
 #ifndef SMACQ_OPT_NOCHILDREN
-  /* Now look for common leading subexpressions within trees */
-  //optimize_tree();
+  /* Now look for common children of stateless modules */
+  merge_redundant_children();
 
 #ifdef SMACQ_DEBUG2
   fprintf(stderr, "--- optimized internal heads to ---\n");
