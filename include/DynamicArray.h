@@ -15,5 +15,16 @@ class DynamicArray : public std::vector<T> {
         }
 };
 
+template<>
+class DynamicArray<bool> : public std::vector<bool> {
+   public:
+        reference operator[](const unsigned int x) {
+                if (x >= size())
+                        resize(x+1);
+                return (std::vector<bool>::operator [](x));
+        }
+};
+
+
 #endif
 
