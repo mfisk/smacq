@@ -17,13 +17,14 @@ struct thread_args {
 
 static struct smacq_options options[] = {
   {"m", {boolean_t:0}, "Multiple queries on STDIN", SMACQ_OPT_TYPE_BOOLEAN},
+  {"O", {boolean_t:0}, "Optimize multiple queries", SMACQ_OPT_TYPE_BOOLEAN},
   {NULL, {string_t:NULL}, NULL, 0}
 };
 
 
 int main(int argc, char ** argv) {
   smacq_graph * graph;
-  smacq_opt multiple;
+  smacq_opt multiple, optimize;
   int qargc;
   char ** qargv;
 
@@ -35,11 +36,11 @@ int main(int argc, char ** argv) {
   {
 	  struct smacq_optval optvals[] = {
 		  {"m", &multiple},
+		  {"O", &optimize},
 		  {NULL, NULL}
 	  };
 	  smacq_getoptsbyname(argc-1, argv+1, &qargc, &qargv, options, optvals);
   }
-
 
   if (multiple.boolean_t) {
       char * queryline;
@@ -49,10 +50,20 @@ int main(int argc, char ** argv) {
 
       queryline = malloc(MAX_QUERY_SIZE);
 
+      if (qargc) {
+	      fprintf(stderr, "Cannot specify query on command line with -m option\n");
+	      return -1;
+      }
+
+
       while(fgets(queryline, MAX_QUERY_SIZE, stdin)) {
 	      smacq_graph * newgraph = smacq_build_query(1, &queryline);
 	      assert(newgraph);
-      	      graphs = smacq_merge_graphs(graphs, newgraph);
+      	      graphs = smacq_graph_add_graph(graphs, newgraph);
+      }
+
+      if (optimize.boolean_t) {
+	      graphs = smacq_merge_graphs(graphs);
       }
 
       if (0 != smacq_start(graphs, ITERATIVE, NULL)) {

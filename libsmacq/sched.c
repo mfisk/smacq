@@ -67,13 +67,31 @@ smacq_graph * smacq_graph_add_graph(smacq_graph * a, smacq_graph * b) {
 	return a;
 }
 
-smacq_graph * smacq_merge_graphs(smacq_graph * a, smacq_graph * b) {
-	smacq_graph * ap;
-	if (!a) return b;
+static int merge_tree(smacq_graph * a, smacq_graph *b) {
+	if (a==b) return 0;
 
-	for (ap = a; ap->next_graph; ap=ap->next_graph) ;
-	ap->next_graph = b;
-	return a;
+	return 0;
+}
+
+smacq_graph * smacq_merge_graphs(smacq_graph * g) {
+	smacq_graph * ap, * bp;
+
+	for (bp = g; bp->next_graph; bp=bp->next_graph) {
+		int merged = 0;
+
+		for (ap = g; ap->next_graph; ap=ap->next_graph) {
+			merged = merge_tree(ap, bp->next_graph);
+			if (merged) {
+				bp->next_graph = bp->next_graph->next_graph;
+				break;
+			}
+		}
+
+		if (!merged) 
+			ap->next_graph = bp;
+	}
+
+	return g;
 }
 
 

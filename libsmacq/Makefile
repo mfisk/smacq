@@ -6,7 +6,7 @@ DIRS=sql filter
 all: dirs libsmacq.la #libflow-static.a #libflow-engine.a libflow-engine-static.a #libflow.so libflow-engine.so
 
 dirs: 
-	@for f in $(DIRS); do $(MAKE) -C $$f; done
+	@set -e; for f in $(DIRS); do $(MAKE) -C $$f; done
 
 USEROBJS=libsmacq.lo bytehash.lo fields.lo bloom.lo args.lo pickle.lo types.lo sched-thread.lo sched-mono.lo sched-iter.lo construct.lo sched.lo msg.lo filter.lo module-thread.lo dynloader.lo sql/libsql.la filter/libfilter.la
 
