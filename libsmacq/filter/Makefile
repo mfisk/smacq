@@ -1,7 +1,10 @@
+BISON=bison
+
 include config.mk
 
 OBJS = filter-parser.lo # filter-scanner.lo
-CFLAGS += -I$(TOPSRCDIR)/sql/ -I$(TOPBINDIR)/sql/ 
+SQLSRC=$(TOPSRCDIR)/libsmacq/sql
+CFLAGS += -I$(SQLSRC) -I. 
 LIBS = -lfl
 
 all: libfilter.la $(SRCDIR)/filter-parser.c $(SRCDIR)/filter-parser.h
@@ -14,8 +17,8 @@ libfilter.la: $(OBJS)
 
 $(SRCDIR)/filter-scanner.c: $(SRCDIR)/filter-parser.h
 
-%.y: %.ym $(TOPSRCDIR)/sql/grammer.y
-	m4 -I$(TOPSRCDIR)/sql -P < $< > $@
+%.y: %.ym $(SQLSRC)/grammer.y
+	m4 -I$(SQLSRC) -P < $< > $@
 
 %.c: %.y
 	$(BISON) -v -p yyfilter -d -o $@ $<
