@@ -6,6 +6,12 @@
 #include <smacq.h>
 #include <netinet/in.h>
 
+static int smacqtype_ntime_get_double(const dts_object * o, dts_object * field) {
+  time_t t = dts_data_as(o, time_t);
+  double d = ntohl(t);
+  return dts_set(field, double, d);
+}
+
 static int smacqtype_ntime_get_time(const dts_object * o, dts_object * field) {
   time_t t = dts_data_as(o, time_t);
   return dts_set(field, time_t, ntohl(t));
@@ -42,6 +48,7 @@ struct dts_field_spec dts_type_ntime_fields[] = {
   { "string",	"string",	smacqtype_ntime_get_string },
   { "string",	"ctime",	smacqtype_ntime_get_ctime },
   { "string",	"date",		smacqtype_ntime_get_date },
+  { "double",	"double",	smacqtype_ntime_get_double },
   { END,        NULL }
 };
 
