@@ -143,6 +143,7 @@ inline size_t DtsObjectVec::hash(const int seed) const {
 		   (*i)->getsize(), result);
   }
   
+  //fprintf(stderr, "hash to %d\n", result);
   return result;
 }
 
@@ -169,7 +170,15 @@ namespace __gnu_cxx {
     }
   };
 }
- 
+
+/// We overload the default == operator for DtsObject so that it compares
+/// the objects instead of the pointers to the objects. 
+template<> 
+inline bool boost::operator==<DtsObject_,DtsObject_> (const DtsObject & x, const DtsObject & y) { 
+	//fprintf(stderr, "o %p =? %p\n", x.get(), y.get());
+	return *x == *y;
+}
+
 template <class T>
 /// A hash_map (table) for FieldVec.
 class FieldVecHash : public stdext::hash_map<DtsObjectVec, T> 
