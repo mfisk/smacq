@@ -1,5 +1,5 @@
 SUBDIRS=substr 
-INCLUDES = @GLOBAL_INCLUDES@ -I$(top_srcdir)/include
+INCLUDES = @GLOBAL_INCLUDES@ -I$(top_srcdir)/include -I/usr/include/pcap
 noinst_LTLIBRARIES = libsmacq_modules.la libtest_dynamic.la 
 EXTRA_LTLIBRARIES = libpcaplive.la libpython.la libreassemble.la libbench_field.la 
 
