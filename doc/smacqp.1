@@ -251,10 +251,14 @@ be used with records that do not have this field.
  
 .SS "Filter" 
 .PP 
-\fBfilter\fP \fIfields[[<=>]value]\fP \&...  
+\fBfilter\fP \fIfield [[<=>] value] ...\fP \&...  
 .PP 
 Filter out all objects in the stream that do not satisfy all 
-of the specified criteria.  This is the select (sigma) 
+of the specified criteria.  Expressions can be arbitrarily complex and include AND and OR  
+statements and parentheses for grouping. 
+ 
+.PP 
+This is the select (sigma) 
 operation from relational algebra ("where" in SQL). 
  
 .SS "Project" 
@@ -395,4 +399,4 @@ records that pass this filter.
 .PP 
 \fBdts-types\fP(3), \fBsmacq-modules\fP(3), 
 \fBsmacq-embed\fP(3) 
-...\" created by instant / docbook-to-man, Mon 16 Dec 2002, 21:55 
+...\" created by instant / docbook-to-man, Fri 27 Dec 2002, 21:20 

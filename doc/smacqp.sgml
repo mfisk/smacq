@@ -12,7 +12,7 @@
       <firstname>Mike</firstname>
       <surname>Fisk</surname>
     </author>
-    <date>$Date: 2002/12/17 04:25:51 $</date>
+    <date>$Date: 2002/12/17 04:57:13 $</date>
   </refentryinfo>
   <refmeta>
     <refentrytitle>smacqp</refentrytitle>
@@ -312,12 +312,17 @@
       <title>Filter</title>
       <cmdsynopsis>
 	<command>filter</command>
-	<arg choice=req rep=repeat> <replaceable>fields[[<=>]value]</replaceable></arg>
+	<arg choice=req rep=repeat> <replaceable>field [[<=>] value] ...</replaceable></arg>
       </cmdsynopsis>
 
       <para>
         Filter out all objects in the stream that do not satisfy all
-        of the specified criteria.  This is the select (sigma)
+        of the specified criteria.  Expressions can be arbitrarily complex and include AND and OR 
+	statements and parentheses for grouping.
+      </para>
+	
+      <para>
+        This is the select (sigma)
         operation from relational algebra ("where" in SQL).
       </para>
     </refsect2>
