@@ -1,38 +1,31 @@
-DIRS=libsmacq types modules bin doc
+DIRS=libsmacq types modules bin doc reloc
 CFLAGS=-O9 -Winline 			# Optimized for normal use
 CFLAGS=-ggdb -O0 -fno-inline -Winline	# For debugging
+COPTS+=$(CFLAGS)
 
 auto:
-	@./config-env
-	env `./config-env` $(MAKE) all
+	@./misc/config-env
+	env `./misc/config-env` $(MAKE) all
 
-reloc: auto bin/smacqq bin/reloc.sh
-	@LIBS=`ldd bin/smacqq | cut -d'>' -f2 | cut -d'(' -f1`; \
-	rm -Rf $@; \
-	mkdir -p $@/.bin $@/.lib; \
-	cp bin/smacqq $@/.bin/; \
-	cp bin/reloc.sh $@/.reloc.sh; \
-	(cd $@; ln -s .reloc.sh smacqq); \
-	cp $$LIBS $@/.lib/
+smacq.iso: #reloc.RECURSE
+	cp misc/smacq.ico misc/autorun.inf build/
+
+	# -hidden removes from Unix and requires /A on DOS
+	# -hide-joliet only hides from DOS
+	mkisofs -hide-joliet '.*' -hidden 'autorun.inf' -hidden '*.ico' -V SMACQ -R build > $@
+
 	
 all: dirs
-
-dirs: 
-	@set -e; for f in $(DIRS); do \
-		LIBTOOL="$(LIBTOOL)" \
-		COPTS="$(COPTS) $(CFLAGS)" \
-		$(MAKE) -C $$f; \
-	done
 
 warn: 
 	make auto >/dev/null
 
 test: warn
-	$(MAKE) -C test
+	$(MAKE) test.RECURSE
 
 clean: 
 	@for f in $(DIRS); do $(MAKE) -C $$f clean; done
-	@rm -Rf reloc
+	@rm -Rf build 
 
 reallyclean: 
 	@for f in $(DIRS); do $(MAKE) -C $$f reallyclean; done
@@ -45,4 +38,5 @@ dist: clean
 	(cd /tmp; cvs -q -d cj:/home/cvs co flow); tar -C /tmp -czlf flow-src.tgz flow
 
 	gnumake MAKE=gnumake COPTS="-I/sw/include/glib-2.0 -I/sw/lib/glib-2.0/include/ -I/sw/include" LIBTOOL=glibtool LDOPTS="-L/sw/lib" settings all
-fink:
+
+include misc/include.mk

@@ -4,7 +4,7 @@ FLEX=flex
 
 OBJS = filter-scanner.lo filter-parser.lo
 
-CFLAGS = -Wall -I$(USR)/include/glib-2.0 -I$(USR)/lib/glib-2.0/include $(INCLUDES) -I../../include $(COPTS)
+CFLAGS = -Wall -I$(SRCDIR) -I$(USR)/include/glib-2.0 -I$(USR)/lib/glib-2.0/include $(INCLUDES) -I$(SRCDIR)/../../include $(COPTS)
 
 LIBS = -lfl
 

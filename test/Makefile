@@ -1,5 +1,5 @@
 all: 
-	@set -e; for f in *.test; do \
-		(cd ..; test/$$f) > /tmp/$$f.out 2>&1; \
-		diff -U3 $$f.out /tmp/$$f.out; \
+	set -e; for f in *.test; do \
+		(cd ..; $(SRCDIR)/$$f) > $$f.out 2>&1; \
+		diff -U3 $(SRCDIR)/$$f.out $$f.out; \
 	done; echo All tests passed

@@ -1,55 +1,84 @@
 DIRS=substr
-CFLAGS=-Wall -I$(USR)/include/glib-2.0 -I$(USR)/lib/glib-2.0/include -I../include $(COPTS)
-LDFLAGS=$(LDOPTS)
+CFLAGS=-Wall -I$(SRCDIR) -I$(USR)/include/glib-2.0 -I$(USR)/lib/glib-2.0/include -I$(SRCDIR)/../include $(COPTS)
+LIBSMACQ=-L$(BINDIR)/../libsmacq -lsmacq
+LDFLAGS=$(LDOPTS) $(LIBSMACQ)
 LIBTOOL=libtool
 
-BUILTIN_MODULES=pcaplive pcapfile print socket uniq counter last top head intervals filter msgtest entropy derivative split encrypt warden pdf fifo delta tabularinput sync rusage groupby flowid sum fifodelay project rename join substr bench_field mask const ndjoin
+SHAREDONLY_MODULES=test_dynamic #python #reassemble
+BUILTIN_MODULES=print pcaplive pcapfile socket uniq counter last top head intervals filter msgtest entropy derivative split encrypt warden pdf fifo delta tabularinput sync rusage groupby flowid sum fifodelay project rename join substr bench_field mask const ndjoin
 
-MODULES=$(BUILTIN_MODULES) #python #reassemble
+LIBS_BUILTIN=$(patsubst %,lib%.la,$(BUILTIN_MODULES)) 
+LIBS_SHARED=$(patsubst %,smacq_%.la,$(SHAREDONLY_MODULES))
 
-MODULES_SHOBJS=$(patsubst %,smacq_%.la,$(MODULES))
-MODULES_OBJS=$(patsubst %,%.lo,$(BUILTIN_MODULES))
+all: dirs $(LIBS_SHARED) libsmacq-modules.la
 
-all: dirs $(MODULES_OBJS) $(MODULES_SHOBJS) libsmacq-modules.la
+include $(MAKEINCLUDES)
 
-dirs: 
-	@set -e; for f in $(DIRS); do $(MAKE) -C $$f; done
-	
 reallyclean: clean
 clean:
 	rm -Rf *.o *.so *.a *.lo *.la .libs
 	@set -e; for f in $(DIRS); do $(MAKE) -C $$f clean; done
 
-pcapfile.lo: pcapfile.c pcapfile.h 
-pcaplive.lo: pcaplive.c pcapfile.h 
-substr.lo: substr/libsubstr.la
+# 
+# Rebuild dependencies here
+# 
+pcapfile.lo: pcapfile.h 
+pcaplive.lo: pcapfile.h 
 
-substr.lo: substr-main.lo ../include/smacq.h substr/libsubstr.la
-	$(LIBTOOL) $(CC) -o $@ $(CFLAGS) $< substr/libsubstr.la 
+#
+# Per module link requirements
+# 
+libsubstr.la: substr-main.lo $(BINDIR)/substr/libsubstr.la
+	$(LIBTOOL) $(CC) -o $@ $(LDFLAGS) $+
 
-bench_field.lo: bench_field-main.lo bench_field-virtual.lo ../include/smacq.h substr/libsubstr.la
-	$(LIBTOOL) $(CC) -o $@ $(CFLAGS) $< bench_field-virtual.lo
+libbench_field.la: bench_field-main.lo bench_field-virtual.lo 
+	$(LIBTOOL) $(CC) -o $@ $(LDFLAGS) $+
 
-libsmacq-modules.la: $(MODULES_OBJS) 
-	$(LIBTOOL) $(CC) -o $@ -static $+ 
+lib%.la: %.lo
+	$(LIBTOOL) $(CC) -o $@ $(LDFLAGS) $+
 
-smacq_%.la: %.lo
-	$(LIBTOOL) $(CC) -module -rpath /usr/local/lib $(LDFLAGS) -o $@ $+
+libpcapfile.la: pcapfile.lo
+	$(LIBTOOL) $(CC) -o $@ $(LDFLAGS) $+ -lz -lpcap
 
-%.lo: %.c ../include/smacq.h 
+libpcaplive.la: pcaplive.lo
+	$(LIBTOOL) $(CC) -o $@ $(LDFLAGS) $+ -lpcap
+
+libpython.la: python.lo
+	$(LIBTOOL) $(CC) -o $@ $(LDFLAGS) $+ -L/usr/lib/python2.2/config -lpython2.2 -lpthread -lutil 
+
+libreassemble.la: reassemble.lo spp_export_pkt.lo  
+	$(CC) -o $@ -c $(CFLAGS) -I$(SNORT_HOME) -I. $+ 
+
+#
+# Per module compile info
+# 
+%.lo: %.c $(SRCDIR)/../include/smacq.h
 	$(LIBTOOL) $(CC) -c $(CFLAGS) $< 
 
-%.lo: %.C ../include/smacq.h 
+%.lo: %.C $(SRCDIR)/../include/smacq.h 
 	$(LIBTOOL) $(CXX) -c $(CFLAGS) $< 
 
-#
-# Python module stuff:
-#
-python.lo: python.c ../include/smacq.h 
-	$(LIBTOOL) $(CC) -o $@ $(CFLAGS) -I$(USR)/include/python2.2 $<
+python.lo: python.c $(SRCDIR)/../include/smacq.h 
+	$(LIBTOOL) $(CC) -c $(CFLAGS) -I$(USR)/include/python2.2 $<
+
+# What we really want is a convenience library that we can link into binaries
+# with a "--whole-archive" flag.  However, libtool doesn't do "--whole-archive"
+# on convenience libraries, so we make libtool think this is a module that
+# we can preopen
+
+libsmacq-modules.la: $(LIBS_BUILTIN) 
+	$(LIBTOOL) $(CC) -rpath /CONVIENCE -o $@ $+
 
 #
-# Snort module stuff:
+# This is how we make a dynamic library for a module
+# 
+RPATH=-rpath /usr/local/lib/smacq
+
+smacq_%.la: lib%.la
+	$(LIBTOOL) $(CC) -module $(RPATH) $(LDFLAGS) -o $@ $+
+
+#
+# Extra Snort module stuff:
 #
 SNORT_VERSION=snort-1.8.7
 SNORT_HOME=../contrib/$(SNORT_VERSION)
@@ -57,14 +86,10 @@ SNORT_HOME=../contrib/$(SNORT_VERSION)
 $(SNORT_HOME):
 	make -C ../contrib $(SNORT_VERSION)
 
-libsnort.la: ../contrib/snort-1.8.7/
+libsnort.la: $(SNORT_HOME)
 	$(LIBTOOL) $(CC) -static -o $@ $</[a-r]*.o
 	$(LIBTOOL) $(CC) -dynamic -r -L/sw/lib -o $@ $</*.o -lpcap -lm
 
 spp_export_pkt.lo: spp_export_pkt.c spp_export_pkt.h $(SNORT_HOME)
 	$(CC) $(CFLAGS) -DHAVE_CONFIG_H -I$(SNORT_HOME) -I. -g -O2 -Wall -ggdb -c $<
-
-reassemble.lo: reassemble.c spp_export_pkt.lo ../include/smacq.h ../libsmacq/libsmacq.a 
-	$(CC) -o $@ -c $(CFLAGS) -I$(SNORT_HOME) -I. $< 
-
 
