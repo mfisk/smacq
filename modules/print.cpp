@@ -17,6 +17,8 @@ SMACQ_MODULE(print,
 	     char * delimiter, * record_delimiter, * output_name;
 	     
 	     int print_field(DtsObject field, char * fname, int printed, int column);
+	     char * last_file_field;
+
 	     );
 
 static struct smacq_options options[] = {
@@ -71,12 +73,16 @@ smacq_result printModule::consume(DtsObject datum, int & outchan) {
     if (!ff) {
 	return SMACQ_PASS;
     }
-    snprintf(buf, 4095, output_name, (char*)ff->getdata());
-    if (outputfh) fclose(outputfh);  
-    outputfh = fopen(buf, "a");
-    if (!outputfh) {
-	perror("open");
-	return SMACQ_PASS;
+    char * this_file_field = (char*)ff->getdata();
+    if (!outputfh || strcmp(last_file_field, this_file_field)) {
+	last_file_field = this_file_field;
+    	snprintf(buf, 4095, output_name, (char*)ff->getdata());
+    	if (outputfh) fclose(outputfh);  
+    	outputfh = fopen(buf, "a");
+    	if (!outputfh) {
+		perror("open");
+		return SMACQ_PASS;
+    	}
     }
   }
   if (!fields.size()) {
