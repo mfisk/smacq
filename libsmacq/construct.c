@@ -3,11 +3,28 @@
 #include <string.h>
 #define RINGSIZE 4
 
+static smacq_result error_produce(struct state* state, const dts_object ** datum, int * outchan) {
+	  return SMACQ_ERROR|SMACQ_END;
+}
+
+static smacq_result error_consume(struct state * state, const dts_object * datum, int * outchan) {
+	return SMACQ_ERROR|SMACQ_END;
+}
+
+static smacq_result null_shutdown(struct state * state) {
+	return SMACQ_END;
+}
+static smacq_result null_init(struct smacq_init * context) {
+	return SMACQ_FREE;
+}
+
+#define FIRST(a,b) ((a) ? (a) : (b))
+
 static inline void read_module(smacq_graph * module, struct smacq_functions * modtable) {
-		module->ops.produce = modtable->produce;
-		module->ops.consume = modtable->consume;
-		module->ops.shutdown = modtable->shutdown;
-		module->ops.init = modtable->init;
+		module->ops.produce = FIRST(modtable->produce, error_produce);
+		module->ops.consume = FIRST(modtable->consume, error_consume);
+		module->ops.shutdown = FIRST(modtable->shutdown, null_shutdown);
+		module->ops.init = FIRST(modtable->init, null_init);
 		module->ops.thread_fn = modtable->thread;
 }
 
