@@ -12,7 +12,7 @@
       <firstname>Mike</firstname>
       <surname>Fisk</surname>
     </author>
-    <date>$Date: 2002/10/31 01:08:24 $</date>
+    <date>$Date: 2002/11/13 01:15:48 $</date>
   </refentryinfo>
   <refmeta>
     <refentrytitle>smacqp</refentrytitle>
@@ -399,13 +399,15 @@
       <cmdsynopsis>
 	<command>groupby</command>
 	<arg choice=req rep=repeat> <replaceable>fields</replaceable></arg>
-	<arg choice=req>-- 
+	<arg choice=req> -- </arg>
 	<arg choice=req rep=repeat> <replaceable>query</replaceable></arg>
       </cmdsynopsis>
 
       <para>
 	Treat the specified field(s) as a tuple and instantiate the
-	specified query for each tuple.
+	specified query for each tuple.  If a record of type "refresh"
+	is received, then the pipeline for that tuple will be gracefully
+	terminated.
       </para>
 
     </refsect2>
