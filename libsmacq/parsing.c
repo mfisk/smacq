@@ -290,9 +290,10 @@ char * print_comparison(dts_comparison * comp) {
 	  b = print_comparison(comp->group);
 	  size = strlen(b) + 10;
 	  buf = realloc(buf, size);
-	  strcpy(buf, "NOT ");
+	  strcpy(buf, "NOT ( ");
 	  strcatn(buf, size, b);
 	  free(b);
+	  strcatn(buf, size, " )");
 	  break;
 	  
   	case AND:
@@ -342,6 +343,24 @@ static inline struct arglist * arglist_append2(struct arglist * old, struct argl
 	return old;
 }
 
+
+smacq_graph * dts_optimize_tests(dts_environment * tenv, dts_comparison * comp) {
+  struct graph g;
+
+  switch(comp->op) {
+  case AND:
+  case OR:
+  case FUNC:
+    g  = optimize_bools(comp);
+    return g.head;
+    break;
+
+  default:
+      return NULL;
+      break;
+  }
+}
+
 struct graph optimize_bools(dts_comparison * comp) {
   dts_comparison *c;
   struct arglist * arglist = NULL;
@@ -367,6 +386,14 @@ struct graph optimize_bools(dts_comparison * comp) {
       }
 
       graph_join(&g, newmodule("lor", arglist)); 
+    } else if (c->op == NOT) {
+      arglist = arglist_append2(arglist, newarg("not", 0, NULL));
+      if (c->group && c->group->op != FUNC) {
+	arglist = arglist_append2(arglist, newarg("where", 0, NULL));
+      }
+      arglist = arglist_append2(arglist, newarg(print_comparison(c->group), 0, NULL));
+				
+      graph_join(&g, newmodule("lor", arglist));
     } else {
       arglist = newarg(print_comparison(c), 0, NULL);
       graph_join(&g, newmodule("filter", arglist));
