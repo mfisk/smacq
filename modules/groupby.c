@@ -198,7 +198,10 @@ static smacq_result groupby_init(struct smacq_init * context) {
     }
   }
 
-  assert(state->queryargc);
+  if (!state->queryargc) {
+	  fprintf(stderr, "Warning: groupby called with no aggregates to execute!\n");
+	  assert(0);
+  }
   argc -= (state->queryargc +1);
 
   // Consume rest of arguments as fieldnames
