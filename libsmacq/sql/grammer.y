@@ -39,11 +39,14 @@
 %left YYAND YYOR
 %right FROM
 
+%left '+' '-'
+%left '*' '/'
+
 %type <arglist> arg argument args moreargs spacedargs
 %type <string> function verb word string id number
 %type <op> op
 %type <comp> boolean test 
-%type <operand> operand expression
+%type <operand> operand expression subexpression
 %type <arithop> arithop
 
 %union {
@@ -82,8 +85,11 @@ arg: argument
 	| argument AS word		{ $$->rename = $3; }
 	;
 
-argument : word 			{ $$ = newarg($1, 0, NULL); } 
-	| function '(' args ')' 	{ $$ = newarg($1, 1, $3); }
+argument : word 			{ $$ = newarg($1, WORD, NULL); } 
+	| function '(' args ')' 	                  { $$ = newarg($1, FUNCTION, $3); }
+	| '[' expression ']'	                  { $$ = newarg("expr", FUNCTION, 
+					       newarg(print_operand($2), WORD, NULL)); 
+			                  }
 	;
 
 function : id 
@@ -119,14 +125,19 @@ operand : id			{ $$ = comp_operand(FIELD, $1); }
 	| number 		{ $$ = comp_operand(CONST, $1); }
 	;
 
-expression : '(' expression arithop expression ')' {
-				  $$ = comp_arith(parse_tenv, $3, $2, $4); 
+
+expression :   '(' expression ')' {	  $$ = $2;  } 
+                   | subexpression arithop subexpression  {
+				  $$ = comp_arith(parse_tenv, $2, $1, $3); 
 				}
-	| operand
 	;
 
+subexpression : expression
+                  | operand
+                  ;
+
 test : operand			{ $$ = comp_new(EXIST, $1, $1); }
-	| expression op expression { $$ = comp_new($2, $1, $3); }
+	| subexpression op subexpression      { $$ = comp_new($2, $1, $3); }
 	| verb '(' args ')'	{ 
 				  int argc; char ** argv;
 				  struct dts_operand op;
