@@ -1,5 +1,5 @@
 This patricia implementation is extracted from Dave Plonka's 
-Net::Patricia package (releaded under the GPL) for perl which
+Net::Patricia package (released under the GPL) for perl which
 in turn extracted it from MRT's patricia code from radix.[ch], 
 which was worked on by Masaki Hirabaru and Craig Labovitz.  
 For more info on MRT see:
