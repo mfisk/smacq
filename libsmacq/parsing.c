@@ -168,7 +168,10 @@ struct graph newmodule(char * module, struct arglist * alist) {
 }
 
 struct arglist * newarg(char * arg, int isfunc, struct arglist * func_args) {
-     struct arglist * al = calloc(1, sizeof(struct arglist));
+     struct arglist * al;
+     if (!arg) return NULL;
+     
+     al = calloc(1, sizeof(struct arglist));
      al->arg = arg;
      if (isfunc) {
      	al->func_args = func_args;
@@ -252,6 +255,8 @@ char * print_comparison(dts_comparison * comp) {
   char * b;
   char * op1, * op2;
   int i;
+
+  if (!comp) return NULL;
 
   switch(comp->op) {
 	case FUNC:
