@@ -25,19 +25,19 @@ class pcapfileModule;
 class StrucioReader : public Strucio {
  public:
   StrucioReader(pcapfileModule * o) { pcap = o; }
+  void newfile_hook();
  
  private: 
   pcapfileModule * pcap;
-  void newfile_hook();
 };
 
 class StrucioWriter : public Strucio {
  public:
   StrucioWriter(pcapfileModule * o) { pcap = o; }
+  void newfile_hook();
 
  private:
   pcapfileModule * pcap;
-  void newfile_hook();
 };
     
 SMACQ_MODULE(pcapfile, 

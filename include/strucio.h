@@ -16,13 +16,14 @@ class Strucio {
 	Strucio();
 	virtual ~Strucio();
 
-	virtual void newfile_hook();
-
 	int open();
 	inline void * read(void * buf, int len);
 	inline void * read_mmap(int len);
 	inline void * read_copy(void * buf, int len);
 	int write(void * record, int len);
+
+	/* Called when new file opened */
+	virtual void newfile_hook();
 
 	/* Use one of the following: */
 	void register_filelist_stdin();

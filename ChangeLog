@@ -1,5 +1,6 @@
 VERSION 2.2 - unreleased
 ========================
+2005-03 - ported to gcc 3.4
 2005-03 - Query Parser:
            - Attribute functions like "f( g(), h() )" now instantiated in parallel so 
              "print sum(), count()" now works as expected.

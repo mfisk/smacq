@@ -26,7 +26,7 @@ class IdMap : public stdext::hash_map<T, int> {
   	IdMap() : ids(0) {}
 
         int operator[](const T & x) {
-		if (find(x) == end()) {
+		if (find(x) == stdext::hash_map<T,int>::end()) {
 			// New
                 	int & i = stdext::hash_map<T,int>::operator[](strdup(x));
 			i = ids;

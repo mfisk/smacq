@@ -12,7 +12,7 @@
 #define DEFAULTRANGE 640000
 
 template <class T>
-  class Bloom {
+class Bloom {
  public:
   Bloom(int r) : numfilters(DEFAULTNUMFUNCS), range(r) 
   { 
@@ -33,13 +33,13 @@ template <class T>
 };
 
 template <class T>
-  class BloomSet : std::vector<bool>, Bloom<T> {
+class BloomSet : Bloom<T>, std::vector<bool> {
  public:
     
     BloomSet(int size = DEFAULTRANGE) : Bloom<T>(size) {}
     
     bool test(T n) {
-      for (int i = 0; i < numfilters; i++) {
+      for (int i = 0; i < Bloom<T>::numfilters; i++) {
 	if (! this[inrange(n, i)]) {
 	  return false;
 	}
@@ -52,7 +52,7 @@ template <class T>
 		       std::pair<T,bool> p;
 		       
 		       bool isnew = false;	     
-		       for (int i = 0; i < numfilters; i++) {
+		       for (int i = 0; i < Bloom<T>::numfilters; i++) {
 			 int x = inrange(n,i);
 			 if (! this->operator[](x)) 
 			   isnew = true;
@@ -63,17 +63,17 @@ template <class T>
 		       p.second = isnew;
 		       return p;
 		     }
-  };
+};
 
 class FieldVecBloomSet : public BloomSet<DtsObjectVec> {};
 
 template <class T, class COUNTER>
-  class BloomCounters : std::vector<COUNTER>, Bloom<T> {
+class BloomCounters : std::vector<COUNTER>, Bloom<T> {
  public:
     COUNTER get(T n) {
       COUNTER min = 0;
       
-      for (int i = 0; i < numfilters; i++) {
+      for (int i = 0; i < Bloom<T>::numfilters; i++) {
 	COUNTER x = (*this)[inrange(n, i)];
 	if (min && (x < min)) min = x;
       }
@@ -84,7 +84,7 @@ template <class T, class COUNTER>
     COUNTER increment(T n) {
       COUNTER min = get(n);
       
-      for (int i =0; i < numfilters; i++) {
+      for (int i =0; i < Bloom<T>::numfilters; i++) {
 	if (min == (*this)[inrange(n, i)]) 
 	  ++((*this)[inrange(n, i)]);
       }
@@ -95,7 +95,7 @@ template <class T, class COUNTER>
     }
     
     double deviation(int v) {
-      return (v * range / counttotal);
+      return (v * Bloom<T>::range / counttotal);
     }
     
     BloomCounters(int size=DEFAULTRANGE) 
@@ -105,9 +105,7 @@ template <class T, class COUNTER>
  private:
     unsigned long long counttotal;
     
-  };
-
-
+};
 
 class FieldVecBloomCounters : public BloomCounters<DtsObjectVec, unsigned int> {
  public:

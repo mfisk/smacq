@@ -35,7 +35,7 @@ class DtsObject_ {
 #define dts_data_as(datum,type) (*((type*)((datum)->getdata())))
 
 /// This macro casts a datum to "type" and sets it to "val"
-#define dts_set(datum,type,val) (datum)->setsize(sizeof(type)) , (*((type*)((datum)->getdata()))) = (val), 1
+#define dts_set(datum,type,val) (datum)->setsize(sizeof(type)), (*((type*)((datum)->getdata()))) = (val), true
 
   public:
 	DtsObject_(DTS * dts, int size, int type);

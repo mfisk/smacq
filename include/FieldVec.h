@@ -170,10 +170,12 @@ namespace __gnu_cxx {
 
 /// We overload the default == operator for DtsObject so that it compares
 /// the objects instead of the pointers to the objects. 
-template<> 
-inline bool boost::operator==<DtsObject_,DtsObject_> (const DtsObject & x, const DtsObject & y) { 
+namespace boost {
+  template<> 
+  inline bool operator==<DtsObject_,DtsObject_> (const DtsObject & x, const DtsObject & y) { 
 	//fprintf(stderr, "o %p =? %p\n", x.get(), y.get());
 	return *x == *y;
+  }
 }
 
 template <class T>
