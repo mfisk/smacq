@@ -17,7 +17,8 @@ static inline const dts_object * smacq_produce_peek(struct smacq_outputq ** qp) 
 }
   
 static inline void smacq_produce_enqueue(struct smacq_outputq ** qp, const dts_object * o, int outchan) {
-  struct smacq_outputq * nq = (struct smacq_outputq*)malloc(sizeof(struct smacq_outputq));
+  struct smacq_outputq * nq = new smacq_outputq;
+
   assert(nq);
   assert(qp);
 
@@ -62,7 +63,7 @@ static inline smacq_result smacq_produce_dequeue(struct smacq_outputq ** qp, con
 
   /* fprintf(stderr, "popped %p: %p\n", head, head->o); */
 
-  free(head);
+  delete head;
 
   if (*qp) {
     /* fprintf(stderr, "next is %p: %p\n", *qp, (*qp)->o); */

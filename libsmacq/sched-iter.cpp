@@ -102,7 +102,7 @@ static inline int pop_runable(struct runq * runq, smacq_graph ** f, DtsObject &d
 }
 
 static void init_runq(struct runq ** runqp) {
-	struct runq * runq = (struct runq*)malloc(sizeof(struct runq));
+	struct runq * runq = new runq;
 	*runqp = runq;
 
 	/* Make a 2 element ring to start */
@@ -156,7 +156,7 @@ void inline runable(struct runq * runq, smacq_graph * f, DtsObject &d, enum acti
 }
 
 static inline int pop_runable(struct runq * runq, smacq_graph ** f, DtsObject &d, enum action * action) {
-	struct qel * res = runq->head;
+	qel * res = runq->head;
 	
 	if (res) {
 		*f = runq->head->f;
@@ -168,7 +168,7 @@ static inline int pop_runable(struct runq * runq, smacq_graph ** f, DtsObject &d
 
 		runq->head = runq->head->next;
 
-		free(res);
+		delete res;
 		return 1;
 	} else {
 		return 0;
@@ -176,7 +176,7 @@ static inline int pop_runable(struct runq * runq, smacq_graph ** f, DtsObject &d
 }
 
 static void init_runq(struct runq ** runqp) {
-	struct runq * runq = malloc(sizeof(struct runq));
+	struct runq * runq = new runq;
 	*runqp = runq;
 
 	runq->head = NULL;

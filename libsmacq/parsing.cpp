@@ -153,6 +153,10 @@ struct graph newgroup(struct group group, struct graph vphrase) {
   return g;
 }
 
+struct graph newjoin(struct graph g, char * alias1, char * alias2, struct graph whereg) {
+	return g;
+}
+
 struct graph newmodule(char * module, struct arglist * alist) {
      struct arglist * anew;
      struct graph graph = { head: NULL, tail: NULL };
@@ -275,7 +279,7 @@ char * print_operand(struct dts_operand * op) {
 	  size = strlen(op1) + strlen(op2) + 10;
 	  buf = tmalloc(char, size);
 	  snprintf(buf, size, "(%s %s %s)", op1, "*", op2);
-	  free(op1); free(op2);
+	  delete(op1); delete(op2);
 	  return buf;
 	  break;
   }
@@ -333,7 +337,7 @@ char * print_comparison(dts_comparison * comp) {
     op1 = print_operand(comp->op1);
     buf = tmalloc(char, size);
     snprintf(buf, size, "(%s)", print_operand(comp->op1));
-    free(op1);
+    delete(op1);
     break;
     
   case NOT:
@@ -343,7 +347,7 @@ char * print_comparison(dts_comparison * comp) {
     buf = (char*)realloc(buf, size);
     strcpy(buf, "NOT ( ");
     strcatn(buf, size, b);
-    free(b);
+    delete(b);
     break;
     
   case AND:
@@ -358,7 +362,7 @@ char * print_comparison(dts_comparison * comp) {
       size += strlen(b) + 6;
       buf = (char*)realloc(buf, size);
       strcatn(buf, size, b);
-      free(b);
+      delete(b);
       
       if (c->next) {
 	if (comp->op == AND) {
@@ -378,8 +382,8 @@ char * print_comparison(dts_comparison * comp) {
     size += 20 + strlen(op1) + strlen(op2);
     buf = tmalloc(char, size);
     snprintf(buf, size, "(%s %s %s)", op1, opstr(comp), op2);
-    free(op1);
-    free(op2);
+    delete(op1);
+    delete(op2);
     break;
     
   }
@@ -481,7 +485,7 @@ static dts_comparison * comp_join_andor(dts_comparison * lh, dts_comparison * rh
       assert(!lh->next);
       assert(!rh->next);
 
-      ret = (dts_comparison*)calloc(1,sizeof(dts_comparison));
+      ret = new dts_comparison;
       ret->op = opcode;
       ret->group = lh;
       lh->next = rh;
@@ -499,7 +503,7 @@ dts_comparison * comp_join(dts_comparison * lh, dts_comparison * rh, dts_compare
   } else if (opcode == NOT) {
     assert(!rh);
     assert(lh);
-    ret = (dts_comparison*)calloc(1,sizeof(dts_comparison));
+    ret = new dts_comparison;
     ret->op = NOT;
     ret->group = lh;
     ret->next = NULL;
@@ -513,7 +517,7 @@ dts_comparison * comp_join(dts_comparison * lh, dts_comparison * rh, dts_compare
 
 
 struct dts_operand * comp_operand(enum dts_operand_type type, char * str) {
-     struct dts_operand * comp = (struct dts_operand*)calloc(1,sizeof(struct dts_operand));
+     dts_operand * comp = new dts_operand;
 
      comp->type = type;
      comp->origin.literal.str = str;
@@ -541,16 +545,15 @@ void DTS::make_fields_doubles(struct dts_operand * operand) {
      if (operand->type == FIELD) {
 	     char * old = operand->origin.literal.str;
 	     operand->origin.literal.str = dts_fieldname_append(old, "double");
-	     //free(old);
+	     //delete(old);
 
-	     dts_field_free(operand->origin.literal.field);
 	     operand->origin.literal.field = requirefield(operand->origin.literal.str);
      }
 }
 
 		
 struct dts_operand * DTS::comp_arith(enum dts_arith_operand_type op, struct dts_operand * op1, struct dts_operand * op2) {
-     struct dts_operand * comp = (struct dts_operand *)calloc(1,sizeof(struct dts_operand));
+     dts_operand * comp = new dts_operand;
    
      comp->type = ARITH;
      comp->origin.arith.type = op;
@@ -565,7 +568,7 @@ struct dts_operand * DTS::comp_arith(enum dts_arith_operand_type op, struct dts_
 }
 
 dts_comparison * comp_new(dts_compare_operation op, struct dts_operand * op1, struct dts_operand * op2) {
-     dts_comparison * comp = (dts_comparison*)calloc(1,sizeof(dts_comparison));
+     dts_comparison * comp = new dts_comparison;
 
      if (op != FUNC && op != NOT && op != EXIST && op1->type != FIELD && op2->type == FIELD) {
        comp->op2 = op1;
@@ -634,7 +637,7 @@ char * expression2fieldname(struct dts_operand * expr) {
       }
     }
 
-    free(operand);
+    delete(operand);
 
     return expr_str;
 }

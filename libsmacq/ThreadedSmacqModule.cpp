@@ -103,7 +103,7 @@ smacq_result ThreadedSmacqModule::produce(DtsObject datum, int & outchan) {
       this->product_tail = NULL;
     }
 
-    free(entry);
+    delete(entry);
     
     result = (smacq_result)(SMACQ_PASS |  (this->product ? SMACQ_PRODUCE : 0));
   }
