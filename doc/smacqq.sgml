@@ -12,7 +12,7 @@
       <firstname>Mike</firstname>
       <surname>Fisk</surname>
     </author>
-    <date>$Date: 2003/04/09 05:55:31 $</date>
+    <date>$Date: 2004/11/15 01:45:05 $</date>
   </refentryinfo>
   <refmeta>
     <refentrytitle>smacqq</refentrytitle>
@@ -26,131 +26,27 @@
     <title>DESCRIPTION</title>
 
     <para>
-      "Smacqq" is an extensible tool for performing queries on streams of data.
-       Users with a familiarity of SQL will immediately be comfortable using the
-      basic features of the system.  However, there are additional
-      object-relational and extensibility features that are described below.
-    </para>
-
-    <para>
-      The primary difference from standard databases, is that data is
-      not stored in preloaded tables, but is instead produced by data
-      source modules.  Also, the select operation does not
-      automatically print fields.  If printable output is desired, use
-      the <command>print</command> command.
-    </para>
-
-    <para>
-      The following example prints the "srcip" and "dstip" fields from
-      a stream of packets stored in a tcpdump-format file named "/tmp/dump":
-
-      <computeroutput>
-	smacqq 'print srcip, dstip from pcapfile("/tmp/dump")'
-      </computeroutput>
-
-      Nested queries are also supported.  For example:
-
-      <computeroutput>
-	print srcip, dstip from (uniq srcip, dstip from pcapfile("/tmp/dump"))
-      </computeroutput>
-      
-      "Where" clauses are supported for both boolean tests based on <,
-      <=, >, >=, =, !=, or arbitrary filtering functions.
-
-      <computeroutput>
-	print dstip from pcapfile("/tmp/dump") where srcip = 128.129.1.2
-      </computeroutput>
-
-      <computeroutput>
-	print dstip from pcapfile("/tmp/dump") where mask(srcip, 128.129.0.0/16)
-      </computeroutput>
-
-      Aliasing with "as" is supported:
-      
-      <computeroutput>
-	print dstip, totalbytes from (select dstip, sum(len) as totalbytes from pcapfile("/tmp/dump"))
-      </computeroutput>
-
-	Joins are supported as well:
-
-	<computeroutput>
-	print a.srcip, b.srcip from pcapfile("/tmp/dump") a, b where a.srcip != b.srcip	
-	</computeroutput>
-
-	When used with streams, joins require very large amounts of memory.  The "until" 
-	term can be used to define when elements can be removed from the pool of possible
-	values in a join:
-
-	<computeroutput>
-	print a.srcip, b.srcip from pcapfile("/tmp/dump") a until (new.a.ts > a.ts), b where a.srcip != b.srcip	
-	</computeroutput>
-
-      Extended relational algebra provides aggregate functions and the
-      "group by" and "having" terms.  This syntax is supported, but with slightly
-      different semantics.  For example, the following query would
-      behave as it would in SQL:
-
-      <computeroutput>
-	print dstip, sum(len) from pcapfile("/tmp/dump") group
-	by dstip
-      </computeroutput>
-
-      but is also the same as:
-
-      <computeroutput>
-	print dstip, sum from (groupby dstip, '--', sum, len from
-	pcapfile("/tmp/dump"))
-      </computeroutput>
-
-      However the use of a function (such as "sum()") as one of the
-      arguments will result in the "sum" module processing the data
-      before the "print" module.  A module called in this way is
-      expected to annotate the data object with a field of the same
-      name as the function.  Thus, the sum field will be part of the
-      object from now on.  Thus, it can also be used in subsequent
-      arguments.  In addition, however, the module can cause other
-      side-effects to the data.  Finally, functions can be used whether or
-      not "group by" is used.
-
-    </para>
-
-    <para>
-      When queries are nested deeply, the syntax described above can become
-      complex.  As a result, commas are optional between arguments, and SMACQ 
-      also supports the | symbol used in Unix shells.  The result is a syntax 
-      much more familiar to Unix shell users.  Thus the following queries are 
-      all equivalent:
-
-      <computeroutput>
-	print srcip, dstip from (uniq srcip, dstip from pcapfile("/tmp/dump"))
-      </computeroutput>
-
-      <computeroutput>
-	print srcip, dstip from uniq srcip, dstip from pcapfile "/tmp/dump"
-      </computeroutput>
-
-      <computeroutput>
-	print srcip dstip from uniq srcip dstip from pcapfile "/tmp/dump"
-      </computeroutput>
-
-      <computeroutput>
-	pcapfile "/tmp/dump" | uniq srcip dstip | print srcip dstip
-      </computeroutput>
-
-      .
-    </para>
-
-    <para>
-      SMACQ is an extensible system that the user can add modules to.
-      See the <command>smacqp</command>(1) manpage for a detailed
-      description of modules.  Many modules take flags which, like all
-      arguments, can be separated with commas or spaces:
-
-      <computeroutput>
-	print -v, srcip, dstip from pcapfile("/tmp/dump")
-      </computeroutput>&nbsp;
-    </para>
+      SMACQ is an extensible tool for performing queries on streams of data.
 
   </refsect1>
-  
+
+  <refsect1>
+     <title>USAGE</title>
+     <cmdsynopsis>
+     <command>smacqq</command>
+     <arg choice="opt">-m</arg>
+     <arg choice="opt">-O</arg>
+     <arg choice="opt">-g</arg>
+     <arg choice="opt">-t <replaceable>type</replaceable></arg>
+     <arg choice="req">query</arg>
+     </cmdsynopsis>
+<para>
+The <option>-g</option> option describes the query graph created by
+the given query or queries.  The <option>-t</option> option outputs a
+description of the given type.  The <option>-m</option> option causes
+multiple query lines to be read from STDIN instead of the command
+line.  The <option>-O</option> option causes optional query
+optimizations to be made.
+</para>
+  </refsect1>
 </refentry>
