@@ -1,0 +1,18 @@
+0x809e370:  tabularinput -f /etc/hosts ip:ip name
+        + Child 0 is 0x809e570:  substr ip.string 127
+          + Child 0 is 0x809e630:  print ip
+0x809e908:  tabularinput -f /etc/hosts ip:ip name
+        + Child 0 is 0x809ea68:  substr ip.string 10.
+          + Child 0 is 0x809eb28:  print ip name
+--- optimized to ---
+0x809e370:  tabularinput -f /etc/hosts ip:ip name
+        + Child 0 is 0x809e570:  substr ip.string 127 ; ip.string 10.
+          + Child 0 is 0x809e630:  print ip
+          + Child 1 is 0x809eb28:  print ip name
+127.0.0.1
+140.221.210.253	drs2
+10.0.0.221	idproc1 
+10.0.0.222	gong
+10.0.0.223	idproc2
+10.0.0.224	idproc3
+10.0.0.99	ids-printer

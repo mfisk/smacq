@@ -16,6 +16,9 @@ dirs:
 warn: 
 	make auto >/dev/null
 
+test: warn
+	$(MAKE) -C test
+
 clean: 
 	@for f in $(DIRS); do $(MAKE) -C $$f clean; done
 

@@ -1,0 +1,6 @@
+#!/bin/sh
+
+bin/smacqq -m -O <<EOF
+print ip from tabularinput(-f, /etc/hosts, ip:ip, name) where substr(ip.string, 127)
+print ip, name from tabularinput(-f, /etc/hosts, ip:ip, name) where substr(ip.string, 10.)
+EOF
