@@ -9,14 +9,14 @@ config() {
 	USR=${USR:-/usr}
 	LDXX=${LDXX:-g++}
 	DOCBOOK2MAN=${DOCBOOK2MAN:-docbook-to-man}
-	COPTS="-D_ISOC99_SOURCE -D_GNU_SOURCE" #To get NAN, among other things
-	COPTS="${COPTS} -DSMACQ_BUILD_DATE='\"`date --iso-8601`\"'"
+	CFLAGS="-D_ISOC99_SOURCE -D_GNU_SOURCE" #To get NAN, among other things
+	CFLAGS="${CFLAGS} -DSMACQ_BUILD_DATE='\"`date --iso-8601`\"'"
 
 	if [ `uname -s` = "Darwin" ]; then 
 		echo 'MAKE=gnumake'
 		LIBTOOL=glibtool
 		LDOPTS="${LDOPTS}-L/lib -L/usr/lib -L/sw/lib -ldl"
-		COPTS="${COPTS}-I/usr/include -I/sw/include "
+		CFLAGS="${CFLAGS}-I/usr/include -I/sw/include "
 		USR="/sw/"
 
 	elif [ `uname -s` = "FreeBSD" ]; then
@@ -54,7 +54,7 @@ config() {
 
 		# Red Hat 7.3: 
 		if [ -d /usr/include/pcap ]; then 
-			COPTS="${COPTS}-I/usr/include/pcap "
+			CFLAGS="${CFLAGS}-I/usr/include/pcap "
 		fi 
 
 		# Red Hat:
@@ -65,7 +65,7 @@ config() {
 		LDOPTS="${LDOPTS}-ldl"
 		
 	fi 
-	#export MAKE COPTS LIBTOOL LDOPTS CC CXX 
+	#export MAKE CFLAGS LIBTOOL LDOPTS CC CXX 
 
 	PWD=`pwd`
 
@@ -74,7 +74,7 @@ config() {
 	echo "LDXX=$LDXX"
 	echo "USR=$USR"
 	echo "LDOPTS=$LDOPTS"
-	echo "COPTS=$COPTS"
+	echo "CFLAGS=$CFLAGS"
 	echo "MAKEINCLUDES=$PWD/misc/include.mk"
 	echo "TOPSRCDIR=${TOPSRCDIR:-$PWD}"
 	echo "SRCDIR=$PWD"
