@@ -53,6 +53,7 @@ void joinModule::for_all_but(unsigned int is_alias, DtsObject o, unsigned int al
   if (is_alias != alias) {
 		for (unsigned int j = 0; j < Aliases[alias].objects.size(); j++) {
 			o->attach_field(Aliases[alias].field, Aliases[alias].objects[j]);
+			assert(Aliases[alias].objects[j]);
 			//fprintf(stderr, "attached %p to %p\n", Aliases[alias].objects[j].get(), o.get());
 			for_all_but(is_alias, o, alias+1);
 		}
@@ -90,7 +91,7 @@ smacq_result joinModule::consume(DtsObject datum, int & outchan) {
 		// filters, but don't now that another object has expired.
 		;
 
-  	// Test pending joins with this object
+  		// Test pending joins with this object
 		for_all_but(i, datum, 0);
 		
 		// Save this object.
@@ -105,6 +106,23 @@ smacq_result joinModule::consume(DtsObject datum, int & outchan) {
   return SMACQ_FREE;
 }
 
+joinModule::get_where(SmacqGraph * where_graph, DtsField field) {
+ SmacqGraph * more;
+ if (children.size() == 1 && children[0].size() == 1) {
+    more = children[0][0]->downstream_filter_one(callback, data);
+ } else {
+    more = NULL;
+ }
+
+ if (where_graph->algebra.stateless && where_graph->usesOtherFields(field)) {
+    return more;
+ } else {
+    SmacqGraph * result = SmacqGraph::new_child(where_graph->argc, where_graph->argv);
+    if (more) result->add_child(more);
+    return result;
+ }
+}
+
 joinModule::joinModule(SmacqModule::smacq_init * context) 
   : SmacqModule(context), 
     sched(context->scheduler)
@@ -113,12 +131,21 @@ joinModule::joinModule(SmacqModule::smacq_init * context)
 
   // Size per-alias data-structures
   Aliases.resize((context->argc-2)/2);
+  SmacqGraph * where_graph = (SmacqGraph*)strtol(context->argv[context->argc-1], NULL, 0);
+  if (!where_graph) {
+		where = NULL;
+  } else {
+		where = new SmacqScheduler(dts, where_graph, false);
+		where_graph->init(dts, where);
+  		//where_graph->print(stderr, 4);
+  }
 
   // Copy list of alias names to list of DtsFields
   for (int i = 1; i < context->argc-1; i+=2) {
 		alias & a = Aliases[(i-1)/2];
 		a.field = dts->requirefield(context->argv[i]);
 		a.newfield = dts->requirefield("new");
+		a.where = get_where(where_graph, a.field);
 		SmacqGraph * until_graph = (SmacqGraph*)strtol(context->argv[i+1], NULL, 0);
 		if (until_graph) { // can be NULL
 			a.until = new SmacqScheduler(dts, until_graph, false);
@@ -128,14 +155,6 @@ joinModule::joinModule(SmacqModule::smacq_init * context)
 		}
   }
 
-  SmacqGraph * where_graph = (SmacqGraph*)strtol(context->argv[context->argc-1], NULL, 0);
-  if (!where_graph) {
-		where = NULL;
-  } else {
-		where = new SmacqScheduler(dts, where_graph, false);
-		where_graph->init(dts, where);
-  }
-  where_graph->print(stderr, 4);
 
 }
 
