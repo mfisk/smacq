@@ -144,7 +144,7 @@ int dts_pkthdr_get_dstmac(const dts_object * datum, dts_object * data) {
 }
 
 int dts_pkthdr_get_protocol(const dts_object * datum, dts_object * data) {
-  data->len = sizeof(guint16);
+  data->len = sizeof(unsigned char);
   return getipfield(datum, data, field_offset(ip, ip_p));
 }
 			  
@@ -186,7 +186,7 @@ struct dts_field_descriptor dts_type_packet_fields[] = {
 	{ "int",	"snaplen",	NULL }, 
 
 	{ "int",	"ifindex",	NULL },
-	{ "ushort",	"protocol",	NULL },
+	{ "ushort",	"ethertype",	NULL },
 	{ "ubyte",	"pkt_type",	NULL },
 	{ "ubyte",	"padding",	NULL },
 
@@ -194,6 +194,7 @@ struct dts_field_descriptor dts_type_packet_fields[] = {
 	{ "uint32",	"caplen",	NULL },
 	{ "uint32",	"len",		NULL },
 
+	{ "ipproto",	"ipprotocol",	dts_pkthdr_get_protocol },
 	{ "bytes",	"packet",	dts_pkthdr_get_packet },
 
 	{ "macaddr",	"srcmac",	dts_pkthdr_get_srcmac },
