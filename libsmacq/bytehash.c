@@ -304,7 +304,7 @@ int bytes_hash_table_removev(struct iovec_hash * ht, struct iovec * vecs, int nv
 
   res = bytes_hash_table_getv(ht, vecs, nvecs, &s, &current);
 
-  if (!res) return 0;
+  if (res == false) return 0;
 
   assert(s);
   bytes_hash_table_remove_element(ht, s);
