@@ -330,7 +330,7 @@ smacq_graph * smacq_merge_graphs(smacq_graph * g) {
   smacq_graph * ap, * prev;
   smacq_graph * candidate;
 
-#ifdef SMACQ_DEBUG
+#if defined(SMACQ_DEBUG) && !defined(SMACQ_NO_OPT)
   smacq_graphs_print(stderr, g, 8);
 #endif
 
@@ -359,7 +359,7 @@ smacq_graph * smacq_merge_graphs(smacq_graph * g) {
   }
 
 
-#ifdef SMACQ_DEBUG
+#ifdef SMACQ_DEBUG2
   fprintf(stderr, "--- merged heads (including vectors, demux, etc.) to ---\n");
   smacq_graphs_print(stderr, g, 8);
 #endif
@@ -371,7 +371,7 @@ smacq_graph * smacq_merge_graphs(smacq_graph * g) {
   /* Now look for common leading subexpressions within trees */
   optimize_tree(g);
 
-#ifdef SMACQ_DEBUG
+#ifdef SMACQ_DEBUG2
   fprintf(stderr, "--- optimized internal heads to ---\n");
   smacq_graphs_print(stderr, g, 8);
 #endif
@@ -383,7 +383,7 @@ smacq_graph * smacq_merge_graphs(smacq_graph * g) {
   /* Do the merge again from the tails up */
   merge_all_tails(g);
 
-#ifdef SMACQ_DEBUG
+#ifdef SMACQ_DEBUG2
   fprintf(stderr, "--- optimized tails to ---\n");
   smacq_graphs_print(stderr, g, 8);
 #endif
