@@ -10,7 +10,7 @@ static inline const dts_object * smacq_datum_fieldobj(const dts_object * d, int 
 
 void msg_send(dts_environment * tenv, int fieldnum, dts_object * data, dts_comparison * comparisons) {
   dts_message * msg = g_new(dts_message, 1);
-  dts_message * mlist = g_hash_table_lookup(tenv->messages_byfield, (void*)fieldnum);
+  dts_message * mlist = darray_get(&tenv->messages_byfield, fieldnum);
   msg->field_data = *data;
   msg->criteria = comparisons;
 
@@ -18,7 +18,7 @@ void msg_send(dts_environment * tenv, int fieldnum, dts_object * data, dts_compa
 
   if (!mlist) {
     msg->next = NULL;
-    g_hash_table_insert(tenv->messages_byfield, (void*)fieldnum, msg);
+    darray_set(&tenv->messages_byfield, fieldnum, msg);
   } else {
     msg->next = mlist->next;
     mlist->next = msg;
@@ -36,7 +36,7 @@ const dts_object * msg_check(dts_environment * tenv, const dts_object * d,
     //fprintf(stderr, "Looking for possible messages\n");
  
     // Look for an unbound message that applies to this datum
-    for (m = g_hash_table_lookup(tenv->messages_byfield, (void*)field); m; m = m->next) {
+    for (m = darray_get(&tenv->messages_byfield, field); m; m = m->next) {
       if (type_match(tenv, d, m->criteria, 0)) {
 	dts_attach_field(d, field, &m->field_data);
 

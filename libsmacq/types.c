@@ -6,6 +6,8 @@
 #include <dlfcn.h>
 #include "smacq-internal.h"
 
+#define DTS_NO_DEPRECATED
+
 struct smacq_engine_field {
   int type;
   struct dts_field_descriptor desc;
@@ -13,23 +15,16 @@ struct smacq_engine_field {
 };
 
 struct dts_type {
-  GHashTable * fields;
-  GHashTable * transform_names;
-  int num_transforms;
-  struct dts_transform_descriptor ** transforms;
-  struct smacq_engine_field ** field_cache;
-  int max_field_cache;
+  struct darray fields;
   char * name;
   int num;
   GModule * module;
   struct dts_field_descriptor * description;
-  struct dts_transform_descriptor * transform_description;
   struct dts_type_info info;
 };
 
-struct dts_type * dts_type_bynum(dts_environment * tenv, int num) {
-  assert(num <= tenv->max_type);
-  return tenv->types[num];
+static inline struct dts_type * dts_type_bynum(dts_environment * tenv, int num) {
+  return darray_get(&tenv->types, num);
 }
 
 char * type_typename_bynum(dts_environment * tenv, int num) {
@@ -43,7 +38,6 @@ int type_typenum_byname(dts_environment * tenv, char * name) {
   if (!t) return -1;
   return t->num;
 }
-
 
 #define HashTemplate(keytype,valtype,fname) \
 valtype fname(GHashTable * table, keytype key) { \
@@ -70,7 +64,7 @@ int type_getfieldoffset(dts_environment * tenv, const dts_object * datum, int fn
 
   if (!t) return 0;
 
-  d = g_hash_table_lookup(t->fields, (void*)fnum);
+  d = darray_get(&t->fields, fnum);
   if (!d) return 0;
 
   *dtype = d->type;
@@ -87,24 +81,15 @@ static int field_byname(dts_environment * tenv, char * fname) {
 }
 */
 
-int type_getfield_virtual(dts_environment * tenv, const dts_object * datum, int fnum, dts_object * data) {
+static dts_field_element type_getfield_single(dts_environment * tenv, const dts_object * datum, int fnum, dts_object * data) {
   struct dts_type * t = dts_type_bynum(tenv, dts_gettype(datum));
   int offset;
   struct smacq_engine_field * d;
 
   assert(t);
 
-  if (fnum >= t->max_field_cache) {
-    t->field_cache = crealloc(t->field_cache, (fnum+1)*sizeof(void*),
-		    	(t->max_field_cache+1) * sizeof(void*));
-    t->max_field_cache = fnum;
-  }
-  d = t->field_cache[fnum];
-  if (!d) {
-    //XXX: doesn't do negative caching
-    d = g_hash_table_lookup(t->fields, (void*)fnum);
-    t->field_cache[fnum] = d;
-  }
+  d = darray_get(&t->fields, fnum);
+
   if (d) {
     data->type = d->type;
     data->len = dts_type_bynum(tenv, d->type)->info.size;
@@ -136,29 +121,41 @@ int type_getfield_virtual(dts_environment * tenv, const dts_object * datum, int 
   }
 }
 
-int dts_transform(dts_environment * tenv, char * transform) {
-  int t = (int)g_hash_table_lookup(tenv->transform_names, transform);
-  if (!t) {
-	t = ++tenv->max_transform;
-	g_hash_table_insert(tenv->transform_names, strdup(transform), (gpointer)t);
+int type_getfield_virtual(dts_environment * tenv, const dts_object * datum, dts_field fieldv, dts_object * data) {
+  int fnum;
+  dts_object tempo = *datum;
+
+  //fprintf(stderr, "Getting field ");
+
+  while (1) {
+	fnum = dts_field_first(fieldv); 
+	if (!fnum) 
+		break;
+
+	//fprintf(stderr, "%d.", fnum);
+
+	if (!type_getfield_single(tenv, &tempo, fnum, data))
+		return 0;	
+
+	tempo = *data;
+	fieldv = dts_field_next(fieldv);
   }
-  //fprintf(stderr, "transform %s is %d\n", transform, t-1);
-  return t-1;
+
+  //fprintf(stderr, "\n");
+  return 1;
 }
 
-int type_presentdata_virtual(dts_environment * tenv, dts_object * data, int transform, void ** tdata, int * tlen) {
-  struct dts_type * t = dts_type_bynum(tenv, data->type);
-  struct dts_transform_descriptor * d;
+void dts_field_printname(dts_environment * tenv, dts_field f) {
+  while (1) {
+	  dts_field_element v = dts_field_first(f);
+	  fprintf(stderr, "%d.", v);
+	  if (!v) {
+	  	fprintf(stderr, "\n");
+		return;
+	  }
 
-  assert(transform >= 0);
-
-  if (transform >= t->num_transforms) return 0;
-  d = t->transforms[transform];
-
-  assert(t->info.size < 0 || data->len == t->info.size);
-
-  assert(d->getfunc);
-  return d->getfunc(data->data, data->len, tdata, tlen);
+	  f = dts_field_next(f);
+  }
 }
 
 int type_fromstring_virtual(dts_environment * tenv, int type, char * datastr, dts_object * data) {
@@ -171,7 +168,7 @@ int type_fromstring_virtual(dts_environment * tenv, int type, char * datastr, dt
   return t->info.fromstring(datastr, &data->data, &data->len);
 }
 
-int type_requirefield(dts_environment * tenv, char * name) {
+static dts_field_element type_requirefield_single(dts_environment * tenv, char * name) {
   int t = (int)g_hash_table_lookup(tenv->fields_byname, name);
   if (t) {
     return t;
@@ -179,6 +176,46 @@ int type_requirefield(dts_environment * tenv, char * name) {
     ++tenv->max_field;
     g_hash_table_insert(tenv->fields_byname, strdup(name), (void*)tenv->max_field);
     return tenv->max_field;
+  }
+}
+
+dts_field type_requirefield(dts_environment * tenv, char * name) {
+  char * p;
+  int i = 0;
+  dts_field f = NULL;
+
+  //fprintf(stderr, "Parsing field %s\n", name);
+  while (1) {
+	f = realloc(f, (i+1) * sizeof(dts_field_element));
+
+	p = strchr(name, '.');
+	if (p) {
+		p[0] = '\0';
+	}
+
+	if (!name) {
+		//fprintf(stderr, "No more field components\n");
+		f[i] = 0;
+	} else {
+		f[i] = type_requirefield_single(tenv, name);
+		//fprintf(stderr, "component (%d) %s is %d\n", i, name, f[i]);
+	}
+
+	if (!p) {
+		/*
+		int j;
+		fprintf(stderr, "returning field ");
+		for (j=0; j<i; j++) {
+			fprintf(stderr, "%d.", f[j]);
+		}
+		fprintf(stderr, "\n");
+		*/
+		return f;
+	} else {
+		p[0] = '.';
+		name = p+1;
+	}
+	i++;
   }
 }
 
@@ -191,9 +228,8 @@ static int type_load_module(struct dts_type * t) {
 	t->info = *infop;
     }
     t->description = smacq_find_module(&gmod, "DTS_HOME", "types", "%s/dts_%s", "dts_type_%s_fields", t->name);
-    t->transform_description = smacq_find_module(&gmod, "DTS_HOME", "types", "%s/dts_%s", "dts_type_%s_transforms", t->name);
 
-    if (infop || t->description || t->transform_description) {
+    if (infop || t->description ) {
         return 1;
     } else {
    	fprintf(stderr, "Error: unable to find type %s (Need to set %s?)\n", t->name, "DTS_HOME");
@@ -209,6 +245,7 @@ int type_requiretype(dts_environment * tenv, char * name) {
   if (t)  return(t->num);
 
   t = g_new0(struct dts_type, 1);
+  darray_init(&t->fields, tenv->max_field);
   t->name=strdup(name);
   t->info.size = -1; // Variable
 
@@ -218,25 +255,23 @@ int type_requiretype(dts_environment * tenv, char * name) {
   }
 
   t->num = ++tenv->max_type;
-  t->fields=g_hash_table_new(g_direct_hash, g_direct_equal);
   
   g_hash_table_insert(tenv->types_byname, t->name, t);
   //fprintf(stderr, "added type %s as %d, up from %d\n", t->name, t->num, tenv->max_type);
-  tenv->types = crealloc(tenv->types, (t->num+1) * sizeof(void*), tenv->max_type* sizeof(void*));
-  tenv->types[t->num] = t;
+  darray_set(&tenv->types, t->num, t);
 
   if (t->description) {
     int offset = 0;
     struct dts_field_descriptor * d = t->description;
 
     for (d=t->description; (d && d->type != END); d++) {
-      int dnum = type_requirefield(tenv, d->name);
+      int dnum = type_requirefield_single(tenv, d->name);
       struct smacq_engine_field * f = g_new(struct smacq_engine_field, 1);
       // fprintf(stderr,"\tAdding %s (%s) to %s structure\n", d->name, d->type, t->name);
       f->offset = offset;
       f->type = type_requiretype(tenv, d->type);
       f->desc = *d;
-      g_hash_table_insert(t->fields, (void*)dnum, f);
+      darray_set(&t->fields, dnum, f);
       if (offset >= 0) {
 	int size = dts_type_bynum(tenv, f->type)->info.size;
 	//fprintf(stderr, "\t\tsize of %s(%s) is %d\n", d->name, d->type, size);
@@ -245,6 +280,7 @@ int type_requiretype(dts_environment * tenv, char * name) {
 	if (size >= 0) {
 	  offset += size;
 	} else { // Must be quieried dynamically 
+	  f->offset = size;
 	  offset = size;
 	}
       }
@@ -253,27 +289,11 @@ int type_requiretype(dts_environment * tenv, char * name) {
     //fprintf(stderr,"Debug: opaque data type: %s\n", name);
   }
 
-  if (t->transform_description) {
-    struct dts_transform_descriptor * d = t->transform_description;
-
-    for (d=t->transform_description; (d && d->name != END); d++) {
-      int tnum = dts_transform(tenv, d->name);
-      //fprintf(stderr,"\tAdding %s transform to %s type\n", d->name, t->name);
-      if (tnum >= t->num_transforms) {
-	      t->transforms = crealloc(t->transforms, 
-			      	(tnum+1) * sizeof(void*), 
-				t->num_transforms * sizeof(void*));
-	      t->num_transforms = tnum+1;
-      } 
-      t->transforms[tnum] = d;
-    }
-  }
-
   return t->num;
 }
 
 int type_lt_virtual(dts_environment * tenv, int type, void * p1, int len1, void * p2, int len2) {
-    struct dts_type * t = tenv->types[type];
+    struct dts_type * t = darray_get(&tenv->types, type);
     assert(t->info.lt);
     return t->info.lt(p1, len1, p2, len2);
 }
@@ -281,20 +301,18 @@ int type_lt_virtual(dts_environment * tenv, int type, void * p1, int len1, void 
 dts_environment * dts_init() {
   dts_environment * tenv = g_new0(dts_environment, 1);
 
-  tenv->types_byname = g_hash_table_new(g_str_hash, g_str_equal);
-  tenv->fields_byname = g_hash_table_new(g_str_hash, g_str_equal);
-  tenv->messages_byfield = g_hash_table_new(g_direct_hash, g_direct_equal);
-  tenv->transform_names = g_hash_table_new(g_str_hash, g_str_equal);
   tenv->max_type = 0;
   tenv->max_field = 0;
-  tenv->max_transform = 0;
+
+  tenv->types_byname = g_hash_table_new(g_str_hash, g_str_equal);
+  tenv->fields_byname = g_hash_table_new(g_str_hash, g_str_equal);
+  darray_init(&tenv->messages_byfield, tenv->max_field);
 
   tenv->typenum_byname = type_typenum_byname;
   tenv->typename_bynum = type_typename_bynum;
   tenv->requiretype = type_requiretype;
   tenv->requirefield = type_requirefield;
   tenv->getfield = type_getfield_virtual;
-  tenv->presentdata = type_presentdata_virtual;
   tenv->fromstring = type_fromstring_virtual;
   tenv->lt = type_lt_virtual;
 

@@ -16,6 +16,40 @@ static inline void * memdup(void * buf, int size) {
   return copy;
 }
 
+static inline void * crealloc(void * ptr, int newsize, int oldsize) {
+  void * newp = realloc(ptr, newsize);
+  if (!newp) return NULL;
+  memset((void *)((int)newp+oldsize), 0, newsize-oldsize);
+  return newp;
+}
+
+static inline void * darray_get(struct darray * darray, int element) {
+  if (element > darray->max) {
+	darray->array = crealloc(darray->array, 
+				 (element+1) * sizeof(void*), 
+				 (darray->max+1) * sizeof(void*));
+	darray->max = element;
+	return 0;
+  }
+  return (void*)darray->array[element];
+}
+
+static inline void darray_set(struct darray * darray, unsigned int element, void * value) {
+  if (element > darray->max) {
+	darray->array = crealloc(darray->array, 
+				 (element+1) * sizeof(void*), 
+				 (darray->max+1) * sizeof(void*));
+	darray->max = element;
+  }
+  darray->array[element] = (unsigned long)value;
+}
+
+static inline void darray_init(struct darray * darray, int max) {
+	assert(sizeof(unsigned long) == sizeof(void *));
+	darray->array = NULL;
+	darray_get(darray, max);
+}
+
 static inline void dts_incref(const dts_object * d_const, int i) {
   dts_object * d = (dts_object*)d_const;
   pthread_mutex_lock(&d->mutex);
@@ -57,23 +91,21 @@ static inline dts_object * smacq_dts_construct(smacq_environment * env, int type
   return dts_construct(env->types, type, data);
 }
 
-static inline void * crealloc(void * ptr, int newsize, int oldsize) {
-  void * newp = realloc(ptr, newsize);
-  if (!newp) return NULL;
-  memset((void *)((int)newp+oldsize), 0, newsize-oldsize);
-  return newp;
+#define dts_field_first(x) (x[0])
+
+static inline void dts_field_free(dts_field field) {
+  return free(field);
+}
+
+static inline dts_field dts_field_next(dts_field field) {
+  if (field[0])
+  	return field+1;
+  else
+	return NULL;
 }
 
 static inline void dts_attach_field(const dts_object * d, int field, const dts_object * field_data) {
-  dts_object * wd = (dts_object *)d;
-  if (field >= d->numfields) {
-    wd->fields = (const dts_object **)crealloc(d->fields, (field+1)*sizeof(void*), d->numfields*sizeof(void*));
-    assert(wd->fields);
-    wd->numfields = field+1;
-  }
-
-  //dts_incref(d, 1); Probably should
-  d->fields[field] = field_data;
+  darray_set( (struct darray *)&d->fields, field, (dts_object*)field_data);
 }
 
 /* Syscalls */
@@ -130,11 +162,11 @@ static inline int smacq_requiretype(smacq_environment * env, char * tname) {
   return(env->types->requiretype(env->types, tname));
 }
 
-static inline int smacq_requirefield(smacq_environment * env, char * tname) {
+static inline dts_field smacq_requirefield(smacq_environment * env, char * tname) {
   return(env->types->requirefield(env->types, tname));
 }
 
-static inline int dts_requirefield(dts_environment * env, char * tname) {
+static inline dts_field dts_requirefield(dts_environment * env, char * tname) {
   return(env->requirefield(env, tname));
 }
 
@@ -147,38 +179,25 @@ static inline int dts_lt(dts_environment * env, int type, void * v1, int l1, voi
   return(env->lt(env, type, v1, l1, v2, l2));
 }
 
-/* Transform typed data to a representation (such as "string") */
-static inline int smacq_presentdata(smacq_environment * env, dts_object * data, int transform, void ** resultstr, int * reslen) {
-  return(env->types->presentdata(env->types, data, transform, resultstr, reslen));
-}
-
-int dts_transform(dts_environment * env, char * name);
-
-static inline int smacq_transform(smacq_environment * env, char * name) {
-  return(dts_transform(env->types, name));
-}
-
-static inline int dts_presentdata(dts_environment * env, dts_object * data, int transform, void ** resultstr, int * reslen) {
-  return(env->presentdata(env, data, transform, resultstr, reslen));
-}
-
 /* Get the named field from a datum */
-static inline int smacq_getfield(smacq_environment * env, const dts_object * datum, int field, dts_object * data) {
+static inline int smacq_getfield(smacq_environment * env, const dts_object * datum, dts_field field, dts_object * data) {
   return(env->types->getfield(env->types, datum, field, data));
 }
 
 /* Get the named field from a datum */
-static inline int dts_getfield(dts_environment * env, const dts_object * datum, int field, dts_object * data) {
+static inline int dts_getfield(dts_environment * env, const dts_object * datum, dts_field field, dts_object * data) {
   return(env->getfield(env, datum, field, data));
 }
 
 /* Same as above, but return a new copy of the data */
-static inline int smacq_getfield_copy(smacq_environment * env, const dts_object * datum, int field, dts_object * field_data) {
+static inline int smacq_getfield_copy(smacq_environment * env, const dts_object * datum, dts_field field, dts_object * field_data) {
 	int retval = smacq_getfield(env, datum, field, field_data);
 	if (retval) 
 		field_data->data = memdup(field_data->data, field_data->len);
 	return retval;
 }
+
+#define dts_data_as(datum,type) (*((type*)((datum)->data)))
 	
 /* Convert a type number to a type name */
 static inline char * dts_typename_bynum(smacq_environment * env, int num) {

@@ -2,7 +2,7 @@
 
 struct field {
   char * name;
-  int num;
+  dts_field num;
 };
 
 struct fieldset {

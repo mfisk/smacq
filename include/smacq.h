@@ -24,6 +24,8 @@ typedef int smacq_result;
 #define SMACQ_MULTITHREAD 65536
 
 typedef struct _dts_object dts_object;
+typedef unsigned short dts_field_element;
+typedef dts_field_element * dts_field;
 
 struct _dts_object {
   /* private to engine */
@@ -48,35 +50,30 @@ struct dts_field_descriptor {
   field_getfunc_fn * getfunc;
 };
 
-typedef int transform_getfunc_fn(void * data, int len, void ** tdata, int * tlen);
-
-struct dts_transform_descriptor {
-  char * name;
-  transform_getfunc_fn * getfunc;
-};
-
 //typedef dts_environment struct _type_env;
 //struct _type_env;
 struct dts_type;
 
+struct darray {
+  unsigned long * array;
+  int max;
+};
+
 typedef struct _type_env {
   GHashTable * types_byname;
   GHashTable * fields_byname;
-  GHashTable * messages_byfield;
-  GHashTable * transform_names;
-  int max_field;
   int max_type;
-  int max_transform;
-  
-  struct dts_type ** types;
+  int max_field;
+ 
+  struct darray messages_byfield;
+  struct darray types; /* struct dts_type * */
 
   int (* lt)(struct _type_env *, int, void *, int, void *, int);
   int (* fromstring)(struct _type_env *, int, char *, dts_object *);
-  int (* getfield)(struct _type_env *, const dts_object * datum, int fnum, dts_object *);
-  int (* presentdata)(struct _type_env *, dts_object *, int, void **, int*);
+  int (* getfield)(struct _type_env *, const dts_object * datum, dts_field fnum, dts_object *);
   int (* typenum_byname)(struct _type_env *, char *);
   int (* requiretype)(struct _type_env *, char *);
-  int (* requirefield)(struct _type_env *, char *);
+  dts_field (* requirefield)(struct _type_env *, char *);
   char * (* typename_bynum)(struct _type_env *, int);
 } dts_environment;
 
@@ -112,7 +109,7 @@ typedef enum _dts_comp_op dts_compare_operation;
 
 typedef struct _dts_comparison {
   dts_compare_operation op;
-  int field;
+  dts_field field;
   dts_object field_data;
 
   char * valstr;
@@ -202,6 +199,7 @@ struct filter * smacq_clone_child(struct filter * parent, int child);
 struct filter * smacq_clone_tree(struct filter * donorParent, struct filter * newParent, int child);
 
 dts_comparison * dts_parse_tests(dts_environment * tenv, int argc, char ** argv);
+void dts_field_printname(dts_environment * tenv, dts_field f);
 
 void dts_init_object(dts_object * d);
 
