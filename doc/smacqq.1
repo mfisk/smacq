@@ -75,35 +75,52 @@ The following example prints the "srcip" and "dstip" fields from
 a stream of packets stored in a tcpdump-format file named "/tmp/dump": 
  
 \f(CW	smacqq 'print srcip, dstip from pcapfile("/tmp/dump")' 
-\fP        
- 
-.PP 
+\fP  
 Nested queries are also supported.  For example: 
  
-\f(CW	smacqq 'print srcip, dstip from (uniq srcip, dstip from pcapfile("/tmp/dump"))' 
+\f(CW	print srcip, dstip from (uniq srcip, dstip from pcapfile("/tmp/dump")) 
 \fP        
- 
-.PP 
 "Where" clauses are supported: 
  
-\f(CW	smacqq 'print dstip from pcapfile("/tmp/dump") where srcip = 128.129.1.2' 
-\fP      
-.PP 
+\f(CW	print dstip from pcapfile("/tmp/dump") where srcip = 128.129.1.2 
+\fP  
 Extended relational algebra provides aggregate functions and the 
-"group by" term.  This syntax is supported, but with slightly 
+"group by" and "having" terms.  This syntax is supported, but with slightly 
 different semantics.  For example, the following query would 
 behave as it would in SQL: 
  
-\f(CW	smacqq 'print dstip, sum(len) from pcapfile("/tmp/dump") group 
-by dstip' 
-\fP      
+\f(CW	print dstip, sum(len) from pcapfile("/tmp/dump") group 
+by dstip 
+\fP  
+but is also the same as: 
+ 
+\f(CW	print dstip, sum from (groupby dstip, '--', sum, len from 
+pcapfile("/tmp/dump")) 
+\fP  
+However the use of a function (such as "sum()") as one of the 
+arguments will result in the "sum" module processing the data 
+before the "print" module.  A module called in this way is 
+expected to annotate the data object with a field of the same 
+name as the function.  Thus, the sum field will be part of the 
+object from now on.  Thus, it can also be used in subsequent 
+arguments.  In addition, however, the module can cause other 
+side-effects to the data.  Finally, functions can be used whether or 
+not "group by" is used. 
+ 
+ 
 .PP 
 SMACQ is an extensible system that the user can add modules to. 
-See the \fBsmacqp\fP(1) manpage for a detail 
-description of modules. 
+See the \fBsmacqp\fP(1) manpage for a detailed 
+description of modules.  Many modules take flags which can be 
+specified in quotes: 
+ 
+\f(CW	print "-v", srcip, dstip from pcapfile("/tmp/dump") 
+\fP\  
  
 .SH "BUGS" 
 .PP 
-Joins are not yet supported. 
+Joins are not yet supported.  They will be supported in multiple 
+forms:  joins within a buffer window, joins between 
+nondecreasing streams, etc. 
  
-...\" created by instant / docbook-to-man, Sat 28 Dec 2002, 10:54 
+...\" created by instant / docbook-to-man, Sat 28 Dec 2002, 19:30 

@@ -12,7 +12,7 @@
       <firstname>Mike</firstname>
       <surname>Fisk</surname>
     </author>
-    <date>$Date: 2002/12/28 04:21:11 $</date>
+    <date>$Date: 2002/12/28 17:54:52 $</date>
   </refentryinfo>
   <refmeta>
     <refentrytitle>smacqq</refentrytitle>
@@ -47,42 +47,57 @@
       <computeroutput>
 	smacqq 'print srcip, dstip from pcapfile("/tmp/dump")'
       </computeroutput>
-      
-    </para>
 
-    <para>
       Nested queries are also supported.  For example:
 
       <computeroutput>
-	smacqq 'print srcip, dstip from (uniq srcip, dstip from pcapfile("/tmp/dump"))'
+	print srcip, dstip from (uniq srcip, dstip from pcapfile("/tmp/dump"))
       </computeroutput>
       
-    </para>
-
-    <para>
       "Where" clauses are supported:
 
       <computeroutput>
-	smacqq 'print dstip from pcapfile("/tmp/dump") where srcip = 128.129.1.2'
+	print dstip from pcapfile("/tmp/dump") where srcip = 128.129.1.2
       </computeroutput>
-    </para>
 
-    <para>
       Extended relational algebra provides aggregate functions and the
-      "group by" term.  This syntax is supported, but with slightly
+      "group by" and "having" terms.  This syntax is supported, but with slightly
       different semantics.  For example, the following query would
       behave as it would in SQL:
 
       <computeroutput>
-	smacqq 'print dstip, sum(len) from pcapfile("/tmp/dump") group
-	by dstip'
+	print dstip, sum(len) from pcapfile("/tmp/dump") group
+	by dstip
       </computeroutput>
+
+      but is also the same as:
+
+      <computeroutput>
+	print dstip, sum from (groupby dstip, '--', sum, len from
+	pcapfile("/tmp/dump"))
+      </computeroutput>
+
+      However the use of a function (such as "sum()") as one of the
+      arguments will result in the "sum" module processing the data
+      before the "print" module.  A module called in this way is
+      expected to annotate the data object with a field of the same
+      name as the function.  Thus, the sum field will be part of the
+      object from now on.  Thus, it can also be used in subsequent
+      arguments.  In addition, however, the module can cause other
+      side-effects to the data.  Finally, functions can be used whether or
+      not "group by" is used.
+
     </para>
 
     <para>
       SMACQ is an extensible system that the user can add modules to.
-      See the <command>smacqp</command>(1) manpage for a detail
-      description of modules.
+      See the <command>smacqp</command>(1) manpage for a detailed
+      description of modules.  Many modules take flags which can be
+      specified in quotes:
+
+      <computeroutput>
+	print "-v", srcip, dstip from pcapfile("/tmp/dump")
+      </computeroutput>&nbsp;
     </para>
 
   </refsect1>
@@ -90,7 +105,9 @@
     <title>BUGS</title>
 
     <para>
-      Joins are not yet supported.
+      Joins are not yet supported.  They will be supported in multiple
+      forms:  joins within a buffer window, joins between
+      nondecreasing streams, etc.
     </para>
   </refsect1>
   
