@@ -64,7 +64,7 @@ static int dfa_try(struct state * state, const dts_object * datum, int current_s
   struct darray * transitions = &dstate->transitions;
   
   if (!transitions) {
-    smacq_log("dfa", ERROR, "state has no way out");
+    //smacq_log("dfa", ERROR, "state has no way out");
     fprintf(stderr, "state %d has no way out\n", current_state);
   } else {
     for (t =0; t < darray_size(transitions); t++) {
@@ -178,8 +178,8 @@ static int parse_dfa(struct state * state, char * filename) {
       test++;
       
       transition = g_new0(struct transition, 1);
-      transition->next_state = str2id(&state->ids, next_state_name);
       this_state_num = str2id(&state->ids, this_state_name);
+      transition->next_state = str2id(&state->ids, next_state_name);
 
       {
 	char * args[2];
@@ -214,7 +214,9 @@ static int parse_dfa(struct state * state, char * filename) {
       darray_set(&state->states, this_state_num, this_state);
     }
 
-    if (transition) darray_append(&this_state->transitions, transition);
+    if (transition) {
+      darray_append(&this_state->transitions, transition);
+    }
   } 
 
   state->start_state = str2id_try(&state->ids, "START");
