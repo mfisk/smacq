@@ -18,7 +18,7 @@ space		[[:space:]]+
 arithop		[\-\+\*\/]
 sign		[\-\+]?
 digits		[0-9e\.]
-toksymbols	[\|\,\=\<\>\(\)]|{arithop}
+toksymbols	[\|\,\=\<\>\(\)\[\]]|{arithop}
 number		{sign}{digits}+
 id		[^\!\'\"\,\=\<\>\(\)[:space:]\|]+
 
