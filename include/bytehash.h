@@ -15,6 +15,7 @@ int bytes_hash_table_incrementv(GHashTableofBytes * ht, struct iovec *, int coun
 int bytes_hash_table_insertv(GHashTableofBytes * ht, struct iovec *, int count,  gpointer value);
 gpointer bytes_hash_table_replacev(GHashTableofBytes * ht, struct iovec * keys, int count, gpointer value);
 gpointer bytes_hash_table_lookupv(GHashTableofBytes * ht, struct iovec *, int);
+void bytes_hash_table_removev(GHashTableofBytes * ht, struct iovec *, int);
 gint bytes_hash_table_lookup_extendedv(GHashTableofBytes * ht, struct iovec * key, int keys, gpointer current);
 void bytes_init_hash(guint32** randoms, int num, unsigned long prime);
 // gint bytes_hash_table_lookup_extended(GHashTableofBytes * ht, int keysize, guint16 * key, gpointer current);

@@ -253,3 +253,10 @@ void bytes_hash_table_foreach_remove(GHashTableofBytes * ht, GHRFunc func, gpoin
   g_hash_table_foreach_remove(ht->ht, func, user_data);
 }
 
+void bytes_hash_table_removev(GHashTableofBytes * ht, struct iovec * vecs, int nvecs) {
+  struct bytedata * s = make_bytesv(ht, vecs, nvecs);
+
+  g_hash_table_remove(ht->ht, s);
+  free(s);
+}
+
