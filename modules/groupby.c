@@ -236,7 +236,7 @@ static smacq_result groupby_init(struct smacq_init * context) {
 }
 
 static smacq_result groupby_produce(struct state * state, const dts_object ** datump, int * outchan) {
-  int status;
+  int status = 0;
   int lastcall = 1;
   *datump = NULL;
 
