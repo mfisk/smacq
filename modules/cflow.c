@@ -203,9 +203,9 @@ static int open_file(struct state * state) {
 }
 
 static smacq_result cflow_produce(struct state * state, const dts_object ** datump, int * outchan) {
-  const dts_object * datum;
+  dts_object * datum;
 
-  datum = smacq_alloc(state->env, state->cflow_type_size, state->cflow_type);
+  datum = (dts_object*)smacq_alloc(state->env, state->cflow_type_size, state->cflow_type);
   datum->data = read_file(state, dts_getdata(datum), state->cflow_type_size, EITHER);
 
   if (!datum->data) {
