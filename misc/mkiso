@@ -1,6 +1,7 @@
-#!/bin/sh 
+#!/bin/sh  -e
 
 DSTDIR="$TOPSRCDIR/build/iso/"
+REPOSITORY=:pserver:anonymous@cvs.sourceforge.net:/cvsroot/smacq
 
 rm -Rf "$DSTDIR"
 mkdir -p "$DSTDIR/doc/"
@@ -17,8 +18,9 @@ cd $TOPSRCDIR
 		cp "build/$p/bin/smacqq" "$DSTDIR/.bin/$p/"
 	done	
 
-	(cd "$DSTDIR"; cvs -d :pserver:cvs.sourceforge.net:/cvsroot/smacq co -P smacq; mv smacq src)
-
+	echo "$REPOSITORY A" > /tmp/cvs.$$
+	(cd "$DSTDIR"; CVS_PASSFILE=/tmp/cvs.$$ cvs -q -d $REPOSITORY co -P smacq; mv smacq src)
+	rm /tmp/cvs.$$
 	cp misc/reloc "$DSTDIR/.bin"
 	(cd "$DSTDIR"; ln -f .bin/reloc smacqq)
 

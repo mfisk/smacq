@@ -22,28 +22,25 @@ clean:
 libdts-modules.la: $(LIBS_BUILTIN)
 	$(LIBTOOL) $(CC) -static -rpath /CONVENIENCE -o $@ $+
 
-lib%.la: %.lo
+lib%.al lib%.la: %.lo
 	$(LIBTOOL) $(CC) -o $@ $(LDFLAGS) $<
 
 lib%.a: %.lo
 	$(LIBTOOL) $(CC) -o $@ $(LDFLAGS) $<
 
-packet.o: ../include/dts_packet.h
+packet.lo packet.o: ../include/dts_packet.h
 packet.o: packet.c
 	$(CC) -c $(CFLAGS) $< 
 
-packet-ethereal.o: packet.o libpacket-ethereal.a  #$(TOPSRCDIR)/contrib/libethereal.a
-	$(LD) -r -o $@ $< -L$(TOPBINDIR)/contrib -L. -lpacket-ethereal
+libpacket-ethereal.la: packet-ethereal.lo
+	$(LIBTOOL) $(CC) -o $@ $<
 
-#%-weak.o: %.o
-#	objcopy --weaken $< $@
-
-#libpacket.la: packet-ethereal-weak.o 
-#	$(LIBTOOL) $(CC) -static -o $@ $< -lpcap
-
-libpacket.la: packet-ethereal.o 
-	$(LIBTOOL) $(CC) -static -o $@ $< #-L. -L$(TOPSRCDIR)/contrib -lpacket-ethereal
-	#$(LIBTOOL) $(CC) -static -o $@ $< libpacket-ethereal.a
+libpacket.la: packet.lo libpacket-ethereal.la 
+	#$(LIBTOOL) $(CC) -rpath /CONVENIENCE -L$(TOPBINDIR)/contrib -L.  -lpacket-ethereal -o $@ $< 
+	@set -x; if [ "$$WITH" = "ethereal" ]; then \
+		PREFIX="$(TOPBINDIR)/contrib/"; \
+	fi; \
+	$(LIBTOOL) $(CC) -o $@ $${PREFIX}libpacket-ethereal.la -o $@ $< 
 
 %.o: %.c
 	$(CC) -c $(CFLAGS) $<

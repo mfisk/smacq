@@ -5,11 +5,11 @@ ARCAT=$(TOPSRCDIR)/misc/arcat
 
 all: $(WITH)
 
-ethereal: libpacket-ethereal.a
+ethereal: libpacket-ethereal.la
 
 reallyclean: clean
 clean:
-	rm -Rf .libs libpcap*
+	rm -Rf *.la *.lo *.o *.a .libs libpcap*
 
 snort-%: snort-%.tar.gz
 	tar xzf $< 
@@ -30,22 +30,17 @@ libpcap-current.tar.gz:
 $(SRCDIR)/ethereal-%.tar.gz:
 	cd $(SRCDIR); wget -N http://www.ethereal.com/distribution/`basename $@`
 
-libethereal.a: $(ETHEREAL)
-	$(ARCAT) $@ $</*.o $</reassemble.o $</tap.o $</register.o `find $< -name \*.a -print`
+libethereal.la: $(ETHEREAL)
+	$(LIBTOOL) $(CC) `find $< \( -name plugins -prune \) , \( -name \*.lo -print \)` -o $@
 
-packet-ethereal.o: packet-ethereal.c $(ETHEREAL)
-	$(CC) -c $< $(CFLAGS) -I$(ETHEREAL)
+packet-ethereal.lo: packet-ethereal.c $(ETHEREAL)
+	$(LIBTOOL) $(CC) $(CFLAGS) -I$(ETHEREAL) -c $<
 	
-packet-ethereal-bundle-strong.o: packet-ethereal.o libethereal.a
-	$(LD) -r -o $@ $< -L. -lethereal -L$(USR)//lib -lglib -lpcap
-
-lib%.a: %-bundle-weak.o
-	$(AR) r $@ $<
-
-%-weak.o: %-strong.o
-	objcopy --weaken $< $@
+libpacket-ethereal.la: packet-ethereal.lo libethereal.la
+	$(LIBTOOL) $(CC) $< -L. libethereal.la -L$(USR)/lib -lglib -lpcap -o $@
 
 ethereal-%: $(SRCDIR)/ethereal-%.tar.gz
 	tar xzf $<
-	cd $@; ./configure --disable-editcap --disable-mergecap --disable-text2pcap --disable-ethereal --disable-idl2eth && $(MAKE)
+	cd $@; ./configure --disable-editcap --disable-mergecap --disable-text2pcap --disable-ethereal --disable-idl2eth && $(MAKE) OBJEXT=lo
+
 
