@@ -7,11 +7,16 @@
 
 struct state {
   smacq_environment * env;
-  dts_field field;
-  struct ruleset * set;
   int demux;
-  char * fieldname;
   struct smacq_outputq * outputq;
+  struct batch * batch;
+  int num_batches;
+};
+
+struct batch {
+  struct ruleset * set;
+  dts_field field;
+  char * fieldname;
 };
 
 static struct smacq_options options[] = {
@@ -67,6 +72,7 @@ static int cdecode(unsigned char * needle) {
 }
 
 static void add_entry(struct state * state, char * field, char * needle, int output) {
+  struct batch * batch;
   int nlen;
   if (!field && !needle) return;
 
@@ -76,12 +82,25 @@ static void add_entry(struct state * state, char * field, char * needle, int out
   }
 
   if (field) {
-	if (!state->fieldname) {
-    		state->field = smacq_requirefield(state->env, field);
-		state->fieldname = field;
-	} else if (strcmp(state->fieldname, field)) {
-		/* XXX: Uh-oh, we don't know how to search multiple fields */
-		assert(!"Cannot mix field names");
+	int i;
+	int found = 0;
+	dts_field f = smacq_requirefield(state->env, field);
+
+	for (i = 0; i < state->num_batches; i++) {
+		if (dts_comparefields(f, state->batch[i].field)) {
+			batch = &state->batch[i];
+			found = 1;
+		}
+	}
+
+	if (!found) {
+		state->num_batches++;
+		state->batch = realloc(state->batch, state->num_batches * sizeof(struct batch));
+		batch = &state->batch[state->num_batches-1];
+
+    		batch->field = smacq_requirefield(state->env, field);
+		batch->fieldname = field;
+  		batch->set = substr_new(SUBSTR_FAST);
 	}
   }
 
@@ -94,7 +113,7 @@ static void add_entry(struct state * state, char * field, char * needle, int out
   nlen = cdecode(needle);
   //fprintf(stderr, "%s(%d)\n", needle, nlen);
 
-  substr_add(state->set, nlen, needle, 0, (void*)output, 0, 0);
+  substr_add(batch->set, nlen, needle, 0, (void*)output, 0, 0);
 }
 
 static smacq_result substr_produce(struct state* state, const dts_object ** datum, int * outchan) {
@@ -106,20 +125,23 @@ static smacq_result substr_consume(struct state * state, const dts_object * datu
   const dts_object * field;
   int matched = 0;
   int chan;
+  int i;
 
   assert(datum);
 
-  if (state->field) {
-  	field = smacq_getfield(state->env, datum, state->field, NULL);
+  for (i=0; i < state->num_batches; i++) {
+     struct batch * batch = &state->batch[i];
+     if (batch->field) {
+  	field = smacq_getfield(state->env, datum, batch->field, NULL);
   	if (!field) return SMACQ_FREE;
-  } else {
+     } else {
         field = datum;
-  }
+     }
   
-  memset(&res, 0, sizeof(res));
+     memset(&res, 0, sizeof(res));
 
-  while(1) {
-	  if (! substr_search(state->set, field->data, field->len, &res)) 
+     while(1) {
+	  if (! substr_search(batch->set, field->data, field->len, &res)) 
 		  break;
 
 	  chan = (int)res.p->handle;
@@ -134,11 +156,13 @@ static smacq_result substr_consume(struct state * state, const dts_object * datu
 	  } else {
 	  	matched = 1;
 		*outchan = chan;
-	  }
-  }
+	  } 
+      }
 
-  if (state->field) 
+      if (batch->field) 
 	  dts_decref(field);
+
+  }
 
   if (matched) return SMACQ_PASS;
 
@@ -149,18 +173,20 @@ static smacq_result substr_init(struct smacq_init * context) {
   struct state * state;
   int i, argc;
   char ** argv;
-  smacq_opt field, demux;
-  char * a = NULL;
-  char * b = NULL;
+  smacq_opt field_opt, demux;
+  char * field = NULL;
+  char * hay = NULL;
   int output = 0;
 
   context->state = state = (struct state*) calloc(sizeof(struct state),1);
   assert(state);
 
+  state->batch = malloc(sizeof(struct batch));
+
   state->env = context->env;
   {
     struct smacq_optval optvals[] = {
-      {"f", &field},
+      {"f", &field_opt},
       {"m", &demux},
       {NULL, NULL}
     };
@@ -168,30 +194,31 @@ static smacq_result substr_init(struct smacq_init * context) {
 				 &argc, &argv,
 				 options, optvals);
 
-    state->field = smacq_requirefield(state->env, field.string_t);
     state->demux = demux.boolean_t;
   }
 
-  state->set = substr_new(SUBSTR_FAST);
-
   for (i = 0; i < argc; i++) {
 	  if (!strcmp(argv[i], ";")) {
-		add_entry(state, a, b, output++);
-		a = NULL;
-		b = NULL;
-	  } else if (!a) {
-		a = argv[i];
+		if (!field) field = field_opt.string_t; 
+		add_entry(state, field, hay, output++);
+		field = NULL;
+		hay = NULL;
+	  } else if (!field) {
+		field = argv[i];
 	  } else {
-		b = argv[i];
+		hay = argv[i];
 	  }
   }
-  add_entry(state, a, b, output++);
+  if (!field) field = field_opt.string_t; 
+  add_entry(state, field, hay, output++);
 
   if (output>1) {
 	  state->demux = 1;
   }
 
-  substr_compile(state->set);
+  for (i=0; i < state->num_batches; i++) {
+  	substr_compile(state->batch[i].set);
+  }
   return 0;
 }
 
