@@ -159,10 +159,10 @@ class SmacqModule {
   }
 
  protected:
-  class UsesArray : public std::vector<bool> {
+  class UsesArray : public DynamicArray<bool> {
 	public: 
 	bool otherEntry(unsigned int f) const {
-		std::vector<bool>::const_iterator i;
+		DynamicArray<bool>::const_iterator i;
 		for (i = begin(); i != end(); i++) {
 			if (*i != f) return true;
 		}
@@ -174,13 +174,13 @@ class SmacqModule {
 
   void comp_uses(dts_comparison * c);
 
+  /// Return a newly constructed dts_comparison datastructure from the given arguments
   dts_comparison * SmacqModule::parse_tests(int argc, char ** argv);
 
   /// This method wraps DTS::usesfield() but keeps track of what 
   /// this module uses.
   virtual DtsField usesfield(char * name) {
 	DtsField res = dts->requirefield(name);	
-	usesFields.resize(res[0]);
 	usesFields[res[0]] = true;
 	return res;	
   }
