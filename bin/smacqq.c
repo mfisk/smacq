@@ -18,16 +18,18 @@ struct thread_args {
 static struct smacq_options options[] = {
   {"m", {boolean_t:0}, "Multiple queries on STDIN", SMACQ_OPT_TYPE_BOOLEAN},
   {"O", {boolean_t:0}, "Optimize multiple queries", SMACQ_OPT_TYPE_BOOLEAN},
+  {"f", {string_t:"-"}, "File to read queries from", SMACQ_OPT_TYPE_STRING},
   {NULL, {string_t:NULL}, NULL, 0}
 };
 
 
 int main(int argc, char ** argv) {
   smacq_graph * graph;
-  smacq_opt multiple, optimize;
+  smacq_opt multiple, optimize, qfile;
   int qargc;
   char ** qargv;
   dts_environment * tenv = dts_init();
+  FILE * fh;
 
   if (argc <= 1) {
 	  fprintf(stderr, "Usage: %s [-m] query\n", argv[0]);
@@ -37,6 +39,7 @@ int main(int argc, char ** argv) {
   {
 	  struct smacq_optval optvals[] = {
 		  {"m", &multiple},
+		  {"f", &qfile},
 		  {"O", &optimize},
 		  {NULL, NULL}
 	  };
@@ -57,7 +60,13 @@ int main(int argc, char ** argv) {
 	      return -1;
       }
 
-      while(fgets(queryline, MAX_QUERY_SIZE, stdin)) {
+      if (!strcmp(qfile.string_t, "-")) {
+	      fh = stdin;
+      } else {
+	      fh = fopen(qfile.string_t, "r");
+      }
+
+      while(fgets(queryline, MAX_QUERY_SIZE, fh)) {
 	      smacq_graph * newgraph;
 
 	      /* Chomp newline */
