@@ -1,6 +1,6 @@
 #!/bin/sh
 
-DB=`pwd`/test/sqlitedb
+DB=`pwd`/sqlitedb
 
 rm -f $DB
 
