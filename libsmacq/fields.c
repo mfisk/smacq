@@ -13,6 +13,19 @@ int iovec_has_undefined(struct iovec * iov, int nvecs) {
   return 0;
 }
 
+void fieldset_destroy(struct fieldset * fieldset) {
+  int i;
+  for (i=0; i < fieldset->num; i++) {
+  	dts_field_free(fieldset->fields[i].num);
+	if (fieldset->currentdata[i]) {
+		dts_decref(fieldset->currentdata[i]);
+	}
+  }
+  free(fieldset->fields);
+  free(fieldset->currentdata);
+  /* Doesn't free self */
+}
+
 void fields_init(smacq_environment * env, struct fieldset * fieldset, int argc, char ** argv) {
   fieldset->fields = g_new(struct field, argc);
 

@@ -27,3 +27,4 @@ static inline int smacq_nextfielddata(struct fieldset * fieldset, const dts_obje
 extern struct iovec * fields2vec(smacq_environment * env, const dts_object * datum, struct fieldset * fieldset);
 void fields_init(smacq_environment * env, struct fieldset * fieldset, int argc, char ** argv);
 int iovec_has_undefined(struct iovec *, int nvecs);
+void fieldset_destroy(struct fieldset * fieldset);
