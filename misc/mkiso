@@ -27,9 +27,9 @@ MacApp() {
 	cp doc/*.txt doc/*.pdf "$DSTDIR/doc/"
 	platforms=`cd build; echo *-*`
 
-	set -x
 	for p in $platforms; do
-		cp "build/$p/reloc/*" $DEPS "$DSTDIR/.bin/$p/"
+		mkdir -p "$DSTDIR/.bin/$p/"
+		cp "build/$p/reloc/"* "build/$p/bin/smacqq" "$DSTDIR/.bin/$p/"
 	done	
 	
 	cp misc/reloc "$DSTDIR/.bin"
@@ -38,7 +38,10 @@ MacApp() {
 	Get_CVS
 	MacApp
 
+	if [ `uname -s` != Darwin ]; then
+		ISO_OPTIONS="--osx-double"
+	fi
+
 	# -hidden removes from Unix and requires /A on DOS, but shows on MacOS
 	# -hide-joliet only hides from DOS/MacOSX
-	mkisofs -hfs -hide-joliet '.*' -hide-hfs autorun.inf -hidden 'autorun.inf' -hide-hfs '*.ico'  -hide-joliet SMACQ.app -hide SMACQ.app -hidden '*.ico' -V SMACQ -hfs-volid "SMACQ for Mac" -R "$DSTDIR" > smacq.iso
-	# --osx-double
+	mkisofs -hfs -hide-joliet '.*' -hide-hfs autorun.inf -hidden 'autorun.inf' -hide-hfs '*.ico'  -hide-joliet SMACQ.app -hide SMACQ.app -hidden '*.ico' -V SMACQ -hfs-volid "SMACQ for Mac" $ISO_OPTIONS -R "$DSTDIR" > smacq.iso
