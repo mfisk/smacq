@@ -1,8 +1,7 @@
-<?xml version="1.0"?>
-
-<!DOCTYPE refentry
-  PUBLIC "-//OASIS//DTD DocBook XML V4.2//EN"
-         "http://www.oasis-open.org/docbook/xml/4.2/docbookx.dtd">
+<!doctype refentry PUBLIC "-//OASIS//DTD DocBook V4.1//EN" [
+  <!ENTITY docbook "<productname>DocBook</productname>">
+  <!ENTITY sgml    "<abbrev>SGML</abbrev>">
+]>
 
 <refentry>
   <refentryinfo>
@@ -13,7 +12,7 @@
       <firstname>Mike</firstname>
       <surname>Fisk</surname>
     </author>
-    <date>$Date: 2004/11/15 01:36:39 $</date>
+    <date>$Date: 2004/12/12 20:41:02 $</date>
   </refentryinfo>
   <refmeta>
     <refentrytitle>smacq</refentrytitle>
