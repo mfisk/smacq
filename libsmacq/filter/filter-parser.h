@@ -71,7 +71,7 @@
 
 
 #ifndef YYSTYPE
-#line 59 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 56 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
 typedef union {
   struct graph graph;
   struct arglist * arglist;

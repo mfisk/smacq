@@ -18,7 +18,7 @@ booleanline: boolean YYSTOP 	{
 %%
 
 static dts_environment * tenv;
-extern void yyfilter_scan_string(char *);
+extern void yy_scan_string(char *);
 
 static void print_comp(dts_environment * tenv, dts_comparison * c) {
 	char * op;

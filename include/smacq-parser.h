@@ -1,3 +1,6 @@
+#ifndef SMACQ_PARSER_H
+#define SMACQ_PARSER_H
+
 #include <smacq.h>
 #include <pthread.h>
   
@@ -50,4 +53,4 @@ struct group {
   extern dts_comparison * comp_new(char * field, dts_compare_operation op, char **, int);
 
   extern dts_environment * parse_tenv;
-
+#endif
