@@ -8,6 +8,14 @@ struct smacq_outputq {
 	struct smacq_outputq * end;
 };
 
+static inline const dts_object * smacq_produce_peek(struct smacq_outputq ** qp) {
+  if (*qp) {
+  	return((*qp)->o);
+  } else { 
+	return NULL;
+  }
+}
+  
 static inline void smacq_produce_enqueue(struct smacq_outputq ** qp, const dts_object * o, int outchan) {
   struct smacq_outputq * nq = malloc(sizeof(struct smacq_outputq));
   assert(qp);
