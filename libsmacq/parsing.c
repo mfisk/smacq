@@ -1,4 +1,5 @@
 #include <smacq-parser.h>
+#include <smacq-internal.h>
 
 dts_environment * parse_tenv;
 
@@ -299,74 +300,74 @@ char * print_comparison(dts_comparison * comp) {
   if (!comp) return NULL;
 
   switch(comp->op) {
-	case FUNC:
-	  	for (i=0; i<comp->func.argc; i++)
-    			size += 2*strlen(comp->func.argv[i])+4;
-  		buf = malloc(size);
-    		snprintf(buf, size, "%s(", comp->func.name);
-    		for (i=0; i<comp->func.argc; i++) {
-			if (i) strcatn(buf, size, ",");
-			strcatn(buf, size, "\"");
-    			qstrcatn(buf, size, comp->func.argv[i]);
-			strcatn(buf, size, "\"");
-    		}
-    		strcatn(buf, size, ")");
-		break;
-
-	case EXIST:
-		size += strlen(comp->op1->origin.literal.str);
-		op1 = print_operand(comp->op1);
-  		buf = malloc(size);
-    		snprintf(buf, size, "(%s)", print_operand(comp->op1));
-		free(op1);
-		break;
-
-  	case NOT:
-	  assert(comp->group);
-	  b = print_comparison(comp->group);
-	  size = strlen(b) + 10;
-	  buf = realloc(buf, size);
-	  strcpy(buf, "NOT ( ");
-	  strcatn(buf, size, b);
-	  free(b);
-	  break;
-	  
-  	case AND:
-        case OR:
-          buf = malloc(100);
-	  buf[0] = '\0';
-
-	  strcatn(buf, size, "( ");
-    			for (c = comp->group; c; c=c->next) {
-      			assert(c);
-      			b = print_comparison(c);
-      			size += strlen(b) + 6;
-      			buf = realloc(buf, size);
-      			strcatn(buf, size, b);
-      			free(b);
-			
-      			if (c->next) {
-				if (comp->op == AND) {
-					strcatn(buf, size, " AND ");
-				} else {
-					strcatn(buf, size, " OR ");
-				}
-      			}
-    		}
-		strcatn(buf, size, " )");
-		break;
-
-	default:
-	  	op1 = print_operand(comp->op1);
-		op2 = print_operand(comp->op2);
-		assert(op1); assert(op2);
-	  	size += 20 + strlen(op1) + strlen(op2);
-  		buf = malloc(size);
-    		snprintf(buf, size, "(%s %s %s)", op1, opstr(comp), op2);
-		free(op1);
-		free(op2);
-		break;
-
+  case FUNC:
+    for (i=0; i<comp->func.argc; i++)
+      size += 2*strlen(comp->func.argv[i])+4;
+    buf = malloc(size);
+    snprintf(buf, size, "%s(", comp->func.name);
+    for (i=0; i<comp->func.argc; i++) {
+      if (i) strcatn(buf, size, ",");
+      strcatn(buf, size, "\"");
+      qstrcatn(buf, size, comp->func.argv[i]);
+      strcatn(buf, size, "\"");
+    }
+    strcatn(buf, size, ")");
+    break;
+    
+  case EXIST:
+    size += strlen(comp->op1->origin.literal.str);
+    op1 = print_operand(comp->op1);
+    buf = malloc(size);
+    snprintf(buf, size, "(%s)", print_operand(comp->op1));
+    free(op1);
+    break;
+    
+  case NOT:
+    assert(comp->group);
+    b = print_comparison(comp->group);
+    size = strlen(b) + 10;
+    buf = realloc(buf, size);
+    strcpy(buf, "NOT ( ");
+    strcatn(buf, size, b);
+    free(b);
+    break;
+    
+  case AND:
+  case OR:
+    buf = malloc(100);
+    buf[0] = '\0';
+    
+    strcatn(buf, size, "( ");
+    for (c = comp->group; c; c=c->next) {
+      assert(c);
+      b = print_comparison(c);
+      size += strlen(b) + 6;
+      buf = realloc(buf, size);
+      strcatn(buf, size, b);
+      free(b);
+      
+      if (c->next) {
+	if (comp->op == AND) {
+	  strcatn(buf, size, " AND ");
+	} else {
+	  strcatn(buf, size, " OR ");
+	}
+      }
+    }
+    strcatn(buf, size, " )");
+    break;
+    
+  default:
+    op1 = print_operand(comp->op1);
+    op2 = print_operand(comp->op2);
+    assert(op1); assert(op2);
+    size += 20 + strlen(op1) + strlen(op2);
+    buf = malloc(size);
+    snprintf(buf, size, "(%s %s %s)", op1, opstr(comp), op2);
+    free(op1);
+    free(op2);
+    break;
+    
   }
 
 
@@ -430,6 +431,13 @@ struct graph optimize_bools(dts_comparison * c) {
       arglist = arglist_append2(arglist, newarg(print_comparison(c->group), 0, NULL));
 				
       graph_join(&g, newmodule("lor", arglist));
+
+    } else if (c->op == EQ && c->op1->type == FIELD && c->op2->type == CONST) {
+
+      arglist = newarg(c->op1->origin.literal.str, 0, NULL);
+      arglist = arglist_append2(arglist, newarg(c->op2->origin.literal.str, 0, NULL));
+      graph_join(&g, newmodule("equals", arglist));
+
     } else {
       arglist = newarg(print_comparison(c), 0, NULL);
       graph_join(&g, newmodule("filter", arglist));
@@ -504,11 +512,15 @@ struct dts_operand * comp_operand(enum dts_operand_type type, char * str) {
 
      switch (type) {
 	case FIELD:
-       		comp->origin.literal.field = parse_tenv->requirefield(parse_tenv, str);
-		break;
+	  comp->origin.literal.field = parse_tenv->requirefield(parse_tenv, str);
+	  break;
 
 	case CONST:
-	       	break;
+	  break;
+
+                   case ARITH:
+		     assert(0);
+		     break;
      }
 
      return comp;
@@ -551,9 +563,40 @@ struct dts_operand * comp_arith(dts_environment * tenv, enum dts_arith_operand_t
 dts_comparison * comp_new(dts_compare_operation op, struct dts_operand * op1, struct dts_operand * op2) {
      dts_comparison * comp = calloc(1,sizeof(dts_comparison));
 
-     comp->op = op;
-     comp->op1 = op1;
-     comp->op2 = op2;
+     if (op != FUNC && op != NOT && op != EXIST && op1->type != FIELD && op2->type == FIELD) {
+       comp->op2 = op1;
+       comp->op1 = op2;
+       switch (op) {
+       case EQ:
+       case NEQ:
+       case AND:
+       case OR:
+       case LIKE:
+	 comp->op = op;
+	 break;
+       case GT:
+	 comp->op = LEQ;
+	 break;
+       case GEQ:
+	 comp->op = LT;
+	 break;
+       case LT:
+	 comp->op = GEQ;
+	 break;
+       case LEQ:
+	 comp->op = GT;
+	 break;
+       case NOT:
+       case FUNC:
+       case EXIST:
+	 assert(0);
+	 break;
+       }
+     } else {
+       comp->op = op;
+       comp->op1 = op1;
+       comp->op2 = op2;
+     }
 
      return comp;
 }
