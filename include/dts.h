@@ -94,21 +94,31 @@ struct dts_type {
 enum _dts_comp_op { EXIST, EQ, LEQ, GEQ, NEQ, LT, GT, LIKE, AND, OR, FUNC };
 typedef enum _dts_comp_op dts_compare_operation;
 
-typedef struct _dts_comparison {
-  dts_compare_operation op;
+enum dts_operand_type { CONST, FIELD };
+
+struct dts_operand {
+  enum dts_operand_type type;
+
+  char * str;
   dts_field field;
-  dts_object field_data;
+  const dts_object * valueo;
+};
 
-  char * fieldname;
-  char * valstr;
+struct dts_comp_func {
+  char * name;
   struct arglist * arglist;
-  int size;
-  struct _dts_comparison * next;
-
   int argc;
   char ** argv;
+};
 
+typedef struct _dts_comparison {
+  dts_compare_operation op;
+
+  struct dts_operand * op1, * op2;
+
+  struct _dts_comparison * next;
   struct _dts_comparison * group;
+  struct dts_comp_func func;
 } dts_comparison;
 
 typedef struct _dts_msg {
@@ -117,7 +127,7 @@ typedef struct _dts_msg {
   struct _dts_msg * next;
 } dts_message;
 
-void msg_send(dts_environment *, dts_field_element, dts_object *, dts_comparison *);
+void msg_send(dts_environment *, dts_field_element, const dts_object *, dts_comparison *);
 dts_object * dts_construct(dts_environment * tenv, int type, void * data);
 static void dts_decref(const dts_object * d_const);
 
@@ -134,7 +144,7 @@ const dts_object* dts_alloc(dts_environment * tenv, int size, int type);
  */
 int dts_parsetest(dts_environment * tenv, dts_comparison * comp, char * test);
 int type_match(dts_environment * tenv, const dts_object * datum, 
-	       dts_comparison * comps, int same_types);
+	       dts_comparison * comps);
 
 dts_comparison * dts_parse_tests(dts_environment * tenv, int argc, char ** argv);
 char * dts_field_getname(dts_environment * tenv, dts_field f);
