@@ -9,6 +9,7 @@ struct state {
   dts_field field;
   struct ruleset * set;
   int demux;
+  char * fieldname;
 };
 
 static struct smacq_options options[] = {
@@ -16,6 +17,30 @@ static struct smacq_options options[] = {
   {"m", {boolean_t:0}, "OR multiple fields and demux to individual outputs", SMACQ_OPT_TYPE_BOOLEAN},
   {NULL, {NULL}, NULL, 0}
 };
+
+static void add_entry(struct state * state, char * field, char * needle, int output) {
+  if (!field && !needle) return;
+
+  if (!needle) {
+  	needle = field;
+	field = NULL;
+  }
+
+  if (field) {
+	if (!state->fieldname) {
+    		state->field = smacq_requirefield(state->env, field);
+		state->fieldname = field;
+	} else if (strcmp(state->fieldname, field)) {
+		/* XXX: Uh-oh, we don't know how to search multiple fields */
+		assert(!"Cannot mix field names");
+	}
+  }
+
+#ifdef DEBUG
+  fprintf(stderr, "searching for '%s'\n", needle);
+#endif
+  substr_add(state->set, strlen(needle), needle, 0, (void*)output, 0, 0);
+}
 
 static smacq_result substr_produce(struct state* state, const dts_object ** datum, int * outchan) {
   return SMACQ_ERROR;
@@ -26,7 +51,7 @@ static smacq_result substr_consume(struct state * state, const dts_object * datu
   const dts_object * field;
   int found;
 
-  int free_it = 1;
+  int matched = 0;
   assert(datum);
 
   if (state->field) {
@@ -42,34 +67,40 @@ static smacq_result substr_consume(struct state * state, const dts_object * datu
 	  found = substr_search(state->set, field->data, field->len, &res);
 	  if (!found) break;
 
+#ifdef DEBUG
+	  fprintf(stderr, "pattern match '%.*s' at offset %d\n", res.p->len, res.p->pattern, res.shift);
+#endif
+
 	  if (state->demux) {
-	  	assert(free_it); /* Not ready to handle multiple discreet output channels */
+	  	assert(!matched); /* Not ready to handle multiple discreet output channels */
 
 	  	*outchan = (int)res.p->handle;
 	  }
 
-	  free_it = 0;
+	  matched = 1;
   }
   if (state->field) 
-	  //dts_decref(field);
+	  dts_decref(field);
 
-  if (free_it) return SMACQ_FREE;
+  if (matched) return SMACQ_PASS;
 
-  return SMACQ_PASS;
+  return SMACQ_FREE;
 }
 
 static int substr_init(struct smacq_init * context) {
   struct state * state;
   int i, argc;
   char ** argv;
+  smacq_opt field, demux;
+  char * a = NULL;
+  char * b = NULL;
+  int output = 0;
 
   context->state = state = (struct state*) calloc(sizeof(struct state),1);
   assert(state);
 
   state->env = context->env;
   {
-    smacq_opt field, demux;
-
     struct smacq_optval optvals[] = {
       {"f", &field},
       {"m", &demux},
@@ -84,9 +115,24 @@ static int substr_init(struct smacq_init * context) {
   }
 
   state->set = substr_new(SUBSTR_FAST);
+
   for (i = 0; i < argc; i++) {
-	  substr_add(state->set, strlen(argv[i]), argv[i], 0, (void*)i, 0, 0);
+	  if (!strcmp(argv[i], ";")) {
+		add_entry(state, a, b, output++);
+		a = NULL;
+		b = NULL;
+	  } else if (!a) {
+		a = argv[i];
+	  } else {
+		b = argv[i];
+	  }
   }
+  add_entry(state, a, b, output++);
+
+  if (output>1) {
+	  state->demux = 1;
+  }
+
   substr_compile(state->set);
   return 0;
 }
