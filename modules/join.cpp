@@ -13,6 +13,7 @@ struct alias {
   DtsField field;
   DtsField newfield;
   SmacqScheduler * until;
+  SmacqScheduler * where;
   std::vector<DtsObject> objects;
 };
 
@@ -29,6 +30,7 @@ SMACQ_MODULE(join,
   std::vector<struct alias> Aliases;
 
   void for_all_but(unsigned int is_alias, DtsObject o, unsigned int alias);
+  void get_where(SmacqGraph * where_graph, DtsField field);
 ); 
 
 // Cross-product.  This is about the least efficient way to implement this, but
@@ -106,23 +108,6 @@ smacq_result joinModule::consume(DtsObject datum, int & outchan) {
   return SMACQ_FREE;
 }
 
-joinModule::get_where(SmacqGraph * where_graph, DtsField field) {
- SmacqGraph * more;
- if (children.size() == 1 && children[0].size() == 1) {
-    more = children[0][0]->downstream_filter_one(callback, data);
- } else {
-    more = NULL;
- }
-
- if (where_graph->algebra.stateless && where_graph->usesOtherFields(field)) {
-    return more;
- } else {
-    SmacqGraph * result = SmacqGraph::new_child(where_graph->argc, where_graph->argv);
-    if (more) result->add_child(more);
-    return result;
- }
-}
-
 joinModule::joinModule(SmacqModule::smacq_init * context) 
   : SmacqModule(context), 
     sched(context->scheduler)
@@ -145,7 +130,11 @@ joinModule::joinModule(SmacqModule::smacq_init * context)
 		alias & a = Aliases[(i-1)/2];
 		a.field = dts->requirefield(context->argv[i]);
 		a.newfield = dts->requirefield("new");
-		a.where = get_where(where_graph, a.field);
+
+	    SmacqGraph * invariants = where_graph->get_invariants_over_field(a.field);
+		a.where = new SmacqScheduler(dts, invariants, false);
+		invariants->init(dts, a.where);
+
 		SmacqGraph * until_graph = (SmacqGraph*)strtol(context->argv[i+1], NULL, 0);
 		if (until_graph) { // can be NULL
 			a.until = new SmacqScheduler(dts, until_graph, false);
