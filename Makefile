@@ -18,14 +18,20 @@ smacq.iso: #reloc.RECURSE
 all: dirs
 
 warn: 
-	make auto >/dev/null
+	$(MAKE) auto >/dev/null
 
-test: warn
-	$(MAKE) test.RECURSE
+#
+# Let the user build any top-level directory automatically
+#
+$(DIRS) test : .ALWAYS
+	env `./misc/config-env` $(MAKE) $@.RECURSE
+
+.ALWAYS:
+	@true
 
 clean: 
 	@for f in $(DIRS); do $(MAKE) -C $$f clean; done
-	@rm -Rf build 
+	@rm -Rf build smacq.iso
 
 reallyclean: 
 	@for f in $(DIRS); do $(MAKE) -C $$f reallyclean; done
