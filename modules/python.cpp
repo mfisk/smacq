@@ -1,6 +1,10 @@
 #include <Python.h>
+#include <netinet/in.h>
 #include "smacq.h"
 #include "dts.h"
+
+#define DEBUG
+#include "dump.h"
 
 static int init_count = 0;
 
@@ -30,7 +34,7 @@ pythonModule::pythonModule(struct smacq_init *context)
   if (context->argc < 2) {
     fprintf(stderr, "No module name provided");
     /* XXX: there's got to be a better way to raise an error... */
-    assert(false);
+    assert(0);
   }
 
   /* First check to see if Python is already running.  If so, don't
@@ -126,7 +130,7 @@ pythonModule::pythonModule(struct smacq_init *context)
 
   if (! passed) {
     Py_XDECREF(this->pConsume);
-    assert(passed);
+    assert(0);
   }
 }
 
@@ -221,6 +225,10 @@ static int PyDts_length(PyObject *p)
   return 0;
 }
 
+/** Retrieve a DTS field by name
+ *
+ * Pretty standard stuff here.
+ */
 static PyObject *PyDts_subscript(PyObject *p, PyObject *pName)
 {
   PyDtsObject *self   = (PyDtsObject *)p;
@@ -237,7 +245,7 @@ static PyObject *PyDts_subscript(PyObject *p, PyObject *pName)
 
     d = self->d->getfield(self->dts->requirefield(name));
     if (! d) {
-      PyErr_SetString(PyExc_AttributeError, "General Failure");
+      PyErr_Format(PyExc_KeyError, "No such field: %s", name);
       break;
     }
 
@@ -267,7 +275,116 @@ static int PyDts_ass_sub(PyObject *p,
 static PyMappingMethods PyDts_as_mapping = {
   PyDts_length,                 /* mp_length            */
   PyDts_subscript,              /* mp_subscript         */
+#if 0
   PyDts_ass_sub,                /* mp_ass_subscript     */
+#else
+  NULL,                         /* mp_ass_subscript     */
+#endif
+};
+
+enum datatype {
+  STRING,
+  UINT32,
+};
+
+/** Return DtsObject data as a string
+ */
+static PyObject *PyDts_getdata(PyObject *p, void *closure)
+{
+  PyDtsObject *self = (PyDtsObject *)p;
+
+  return Py_BuildValue("s#",
+                       self->d->getdata(), self->d->getsize());
+}
+
+/** Return DtsObject data as a signed int
+ *
+ * This does some special butt-magic by checking the length of the data
+ * against known integer types, and doing the right typecast.  If the
+ * length is something weird (like 6), you get an AttributeError.
+ */
+static PyObject *PyDts_getint(PyObject *p, void *closure)
+{
+  PyDtsObject   *self = (PyDtsObject *)p;
+  PyObject      *pRet = NULL;
+  unsigned char *val;
+
+  val = self->d->getdata();
+  switch (self->d->getsize()) {
+    case sizeof(char):
+      pRet = PyInt_FromLong((long)*(char *)val);
+      break;
+    case sizeof(short):
+      pRet = PyInt_FromLong((long)*(short *)val);
+      break;
+    case sizeof(int):
+      pRet = PyInt_FromLong((long)*(int *)val);
+      break;
+#ifdef HAVE_LONG_LONG
+#ifdef NEALE_FIGURED_OUT_HOW_TO_CHECK_IN_CPP_WHETHER_INT_IS_THE_SAME_AS_LONG_INT
+    case sizeof(long):
+      pRet = PyLong_FromLong(*(long *)val);
+      break;
+#endif
+    case sizeof(long long):
+      pRet = PyLong_FromLongLong(*(long long *)val);
+      break;
+#endif
+    default:
+      PyErr_Format(PyExc_ValueError,
+                   "No integer type for data of length %d",
+                   self->d->getsize());
+      break;
+  }
+  return pRet;
+}
+
+/** Return DtsObject data as an unsigned int
+ *
+ * Same thing as PyDts_getint, but with unsigned ints this time.
+ */
+static PyObject *PyDts_getuint(PyObject *p, void *closure)
+{
+  PyDtsObject   *self = (PyDtsObject *)p;
+  PyObject      *pRet = NULL;
+  unsigned char *val;
+
+  val = self->d->getdata();
+  DUMP_d(self->d->getsize());
+  switch (self->d->getsize()) {
+    case sizeof(unsigned char):
+      pRet = PyInt_FromLong((long)*(unsigned char *)val);
+      break;
+    case sizeof(unsigned short):
+      pRet = PyInt_FromLong((long)*(unsigned short *)val);
+      break;
+    case sizeof(unsigned int):
+      pRet = PyLong_FromUnsignedLong((unsigned long)*(unsigned int *)val);
+      break;
+#ifdef HAVE_LONG_LONG
+#ifdef NEALE_FIGURED_OUT_HOW_TO_CHECK_IN_CPP_WHETHER_INT_IS_THE_SAME_AS_LONG_INT
+    case sizeof(unsigned long):
+      pRet = PyLong_FromUnsignedLong(*(unsigned long *)val);
+      break;
+#endif
+    case sizeof(unsigned long long):
+      pRet = PyLong_FromUnsignedLongLong(*(unsigned long long *)val);
+      break;
+#endif
+    default:
+      PyErr_Format(PyExc_ValueError,
+                   "No unsigned integer type for data of length %d",
+                   self->d->getsize());
+      break;
+  }
+  return pRet;
+}
+
+static PyGetSetDef PyDts_getset[] = {
+  {"data", PyDts_getdata, NULL, "data as a string"},
+  {"int",  PyDts_getint,  NULL, "data as a signed int"},
+  {"uint", PyDts_getuint, NULL, "data as an unsigned int"},
+  {NULL}                        /* Sentinel */
 };
 
 static PyTypeObject PyDtsType = {
@@ -288,13 +405,28 @@ static PyTypeObject PyDtsType = {
   0,                            /* tp_hash		*/
   0,                            /* tp_call		*/
   0,                            /* tp_str		*/
-  0,                            /* tp_getattro          */
+  PyObject_GenericGetAttr,      /* tp_getattro          */
   0,                            /* tp_setattro          */
   0,                            /* tp_as_buffer         */
   Py_TPFLAGS_DEFAULT,           /* tp_flags             */
   PyDts_doc,                    /* tp_doc               */
+  0,                            /* tp_traverse */
+  0,                            /* tp_clear */
+  0,                            /* tp_richcompare */
+  0,                            /* tp_weaklistoffset */
+  0,                            /* tp_iter */
+  0,                            /* tp_iternext */
+  0,                            /* tp_methods */
+  0,                            /* tp_members */
+  PyDts_getset,                 /* tp_getset */
+  0,                            /* tp_base */
+  0,                            /* tp_dict */
+  0,                            /* tp_descr_get */
+  0,                            /* tp_descr_set */
 };
 
+/** Create a new DtsObject from C
+ */
 static PyObject *pydts_create(DtsObject datum, DTS *dts)
 {
   PyDtsObject *pObj   = NULL;
