@@ -15,6 +15,7 @@ struct thread_args {
 };
 
 static struct smacq_options options[] = {
+  {"t", {string_t:NULL}, "Describe the specified type", SMACQ_OPT_TYPE_STRING},
   {"m", {boolean_t:0}, "Multiple queries on STDIN", SMACQ_OPT_TYPE_BOOLEAN},
   {"O", {boolean_t:0}, "Optimize multiple queries", SMACQ_OPT_TYPE_BOOLEAN},
   {"f", {string_t:"-"}, "File to read queries from", SMACQ_OPT_TYPE_STRING},
@@ -24,7 +25,7 @@ static struct smacq_options options[] = {
 
 
 int main(int argc, char ** argv) {
-  smacq_opt multiple, optimize, qfile, showgraph;
+  smacq_opt multiple, optimize, qfile, showgraph, showtype;
   int qargc;
   char ** qargv;
   DTS dts;
@@ -41,6 +42,7 @@ int main(int argc, char ** argv) {
 
   {
 	  struct smacq_optval optvals[] = {
+		  {"t", &showtype},
 		  {"m", &multiple},
 		  {"f", &qfile},
 		  {"O", &optimize},
@@ -48,6 +50,21 @@ int main(int argc, char ** argv) {
 		  {NULL, NULL}
 	  };
 	  smacq_getoptsbyname(argc-1, argv+1, &qargc, &qargv, options, optvals);
+  }
+
+  if (showtype.string_t) {
+	dts_typeid tid = dts.requiretype(showtype.string_t);
+   	assert(tid);
+   	dts_type * t = dts.type_bynum(tid);
+   	std::vector<struct dts_field_info*>::iterator i;
+
+   	printf("Type \"%s\" defines the following fields:\n", showtype.string_t);
+   	for (i=t->fields.begin(); i != t->fields.end(); ++i) {
+		if (*i) {
+       		printf("%30s: type %s\n", (*i)->desc.name, (*i)->desc.type);
+		}
+   	}
+   	exit(0);
   }
 
   if (multiple.boolean_t) {
