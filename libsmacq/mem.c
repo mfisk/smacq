@@ -78,10 +78,13 @@ const dts_object* dts_alloc(dts_environment * tenv, int size, int type) {
 
 void dts_free(const dts_object * d) {
   if (d->tenv->freelist.p < d->tenv->freelist.end) {
-  	d->tenv->freelist.p++;
+	if (*d->tenv->freelist.p != NULL)
+  		d->tenv->freelist.p++;
   	*d->tenv->freelist.p = d;
   } else {
+  	darray_free((struct darray *)(&d->fields));
 	free((void*)d);
+	//fprintf(stderr,"freeing empty o %p\n", d);
 	SDEBUG(dts_object_count--);
   }
 }
