@@ -21,7 +21,7 @@ SMACQ_MODULE(tabularinput,
   char  delimiter;
   FILE * fh;
 
-  struct darray field_name;
+  DynamicArray<dts_field_element*> field_name;
   int * field_type;
   int fields;
 
@@ -100,12 +100,12 @@ smacq_result tabularinputModule::produce(DtsObject & datump, int & outchan) {
 
     assert(msgdata);
 
-    field = (dts_field_element*)darray_get(&field_name, i);
+    field = field_name[i];
     if (! field) {
       char buf[1024];
       sprintf(buf, "%d", i+1);
       field = dts->requirefield(buf);
-      darray_set(&field_name, i, field);
+      field_name[i] = field;
     }
     datum->attach_field(field, msgdata); 
     //fprintf(stderr, "Attached field %d (type %d) to %p\n", field[0], msgdata->type, datum);
@@ -144,7 +144,6 @@ tabularinputModule::tabularinputModule(struct smacq_init * context) : SmacqModul
   }
 
   fields = argc;
-  darray_init(&field_name, argc);
   field_type = (int*)calloc(argc, sizeof(int));
   
   for (i = 0; i < argc; i++) {
@@ -158,7 +157,7 @@ tabularinputModule::tabularinputModule(struct smacq_init * context) : SmacqModul
       type[0] = '\0';
       field_type[i] = dts->requiretype(type+1);
     }
-    darray_set(&field_name, i, dts->requirefield(name));
+    field_name[i] = dts->requirefield(name);
     free(name);
   }
   
