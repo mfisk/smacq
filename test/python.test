@@ -2,7 +2,6 @@
 
 TESTFILE=$TEST/0325@1112-snort.pcap
 PYTHONPATH=$TEST; export PYTHONPATH
-echo $PYTHONPATH
 
 ${BINDIR}smacqq -m <<EOF 
 pcapfile $TESTFILE | python("mymodule")

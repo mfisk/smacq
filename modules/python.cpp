@@ -1,5 +1,3 @@
-#define DUMP_ENABLE
-
 #include <Python.h>
 #include <netinet/in.h>
 #include "smacq.h"
