@@ -55,7 +55,7 @@ barequery : verbphrase from where group
 	   	$$ = $1;
 		graph_join(&($$), $2);
 	   }
-	| verbphrase 	{ $$ = newmodule($1.verb, $1.args) }
+	| verbphrase 	{ $$ = newmodule($1.verb, $1.args); }
 	| where 
 	;
 
