@@ -105,7 +105,6 @@ class SmacqGraph : private SmacqGraphNode {
   int print_one(FILE * fh, int indent);
   void add_parent(SmacqGraph * parent);
   void foreach_tail(SmacqGraphCallback & cb);
-  void join_tail(SmacqGraph * newg);
   friend void joincallback::callback(SmacqGraph *g);
 
   friend SmacqGraph * smacq_graph_add_graph(SmacqGraph * a, SmacqGraph *b) {
@@ -196,7 +195,9 @@ inline void joincallback::callback(SmacqGraph * g) {
 
 inline void SmacqGraph::join(SmacqGraph * newg) {
   joincallback j(newg);
-  foreach_tail(j);
+  for(SmacqGraph *g = this; g; g=g->next_graph) {
+  	g->foreach_tail(j);
+  }
 }
 
 

@@ -16,6 +16,15 @@ extern int yyexprparse();
 extern int yysmacql_parse();
 extern struct yy_buffer_state * yysmacql_scan_string(const char *);
 
+void graph_join(SmacqGraph ** oldg, SmacqGraph * newg) {
+	assert(oldg);
+	if (*oldg) {
+		(*oldg)->join(newg);
+	} else {
+		*oldg = newg;
+	}
+}
+
 struct vphrase newvphrase(char * verb, struct arglist * args) {
   	struct vphrase vphrase;
 	vphrase.verb = verb;
@@ -73,33 +82,6 @@ char * arglist2str(struct arglist * alist) {
 	return argstr;
 }
 
-void graph_join(struct graph * graph, struct graph newg) {
-  if (!newg.head) 
-    return; /* Do nothing */
-  
-  assert(graph);
-  
-  if (!graph->head) {
-    graph->head = newg.head;
-    graph->tail = newg.tail;
-    return;
-  }
-  
-  graph->head->join(newg.head);
-
-  graph->tail = newg.tail;
-}
-
-void graph_append(struct graph * graph, SmacqGraph * newmod) {
-  if (graph->tail) 
-    graph->tail->add_child(newmod); 
-
-  graph->tail = newmod;
-
-  if (! graph->head) 
-    graph->head = newmod;
-}
-
 struct arglist * arglist_append(struct arglist * tail, struct arglist * addition) {
 	struct arglist * start;
 
@@ -121,12 +103,12 @@ struct arglist * arglist_append(struct arglist * tail, struct arglist * addition
 	return start;
 }
 
-struct graph newgroup(struct group group, struct graph vphrase) {
+SmacqGraph * newgroup(struct group group, SmacqGraph * vphrase) {
   /*
    * This function violates some abstractions by knowing the 
    * calling syntax for "groupby" and constructing arguments for it.
    */
-  struct graph g = { NULL, NULL};
+  SmacqGraph * g = NULL;
   char gp[32];
   struct arglist * arglist;
   
@@ -136,13 +118,13 @@ struct graph newgroup(struct group group, struct graph vphrase) {
   }
   
   if (group.having) { 
-    struct graph having = optimize_bools(group.having);
+    SmacqGraph * having = optimize_bools(group.having);
     graph_join(&having, vphrase);
     vphrase = having;
   }
 
-  sprintf(gp, "%lu", (unsigned long)vphrase.head);
-  /* smacq_graph_print(stderr, vphrase.head, 0); */
+  sprintf(gp, "%lu", (unsigned long)vphrase);
+  /* smacq_graph_print(stderr, vphrase, 0); */
 
   arglist = newarg("-p", (argtype)0, NULL);
   arglist_append(arglist, newarg(strdup(gp), (argtype)0, NULL));
@@ -153,13 +135,9 @@ struct graph newgroup(struct group group, struct graph vphrase) {
   return g;
 }
 
-struct graph newjoin(struct graph g, char * alias1, char * alias2, struct graph whereg) {
-	return g;
-}
-
-struct graph newmodule(char * module, struct arglist * alist) {
+SmacqGraph * newmodule(char * module, struct arglist * alist) {
      struct arglist * anew;
-     struct graph graph = { head: NULL, tail: NULL };
+     SmacqGraph * graph = NULL;
 
      int argc;
      char ** argv;
@@ -190,11 +168,11 @@ struct graph newmodule(char * module, struct arglist * alist) {
      if (rename_argc > 1) {
         /* We need to splice in a rename module before this module */
      	rename_argv[0] = "rename";
-        graph_append(&graph, new SmacqGraph(rename_argc, rename_argv));
+        graph_join(&graph, new SmacqGraph(rename_argc, rename_argv));
      }
 
      arglist2argv(anew, &argc, &argv);
-     graph_append(&graph, new SmacqGraph(argc, argv));
+     graph_join(&graph, new SmacqGraph(argc, argv));
 
      return graph;
 }
@@ -393,11 +371,9 @@ char * print_comparison(dts_comparison * comp) {
   return(buf);
 }
 
-struct graph optimize_bools(dts_comparison * c) {
+SmacqGraph * optimize_bools(dts_comparison * c) {
   struct arglist * arglist = NULL;
-  struct graph g;
-
-  g.head = NULL; g.tail = NULL;
+  SmacqGraph * g = NULL;
 
   if (c) {
     if (c->op == AND) {
@@ -409,30 +385,27 @@ struct graph optimize_bools(dts_comparison * c) {
     } else if (c->op == FUNC) {
       graph_join(&g, newmodule(c->func.name, c->func.arglist));
     } else if (c->op == OR) {
-      struct graph subg;
+      SmacqGraph * subg = NULL;
       dts_comparison * p;
-      struct graph uniq;
-
-      subg.head = NULL, subg.tail = NULL;
+      SmacqGraph * uniq;
 
       arglist = arglist_append(arglist, newarg("-o", (argtype)0, NULL));
       uniq = newmodule("uniq", arglist); 
 
       for (p=c->group; p; p=p->next) {
-        struct graph newg = optimize_bools(p);
+        SmacqGraph * newg = optimize_bools(p);
 
-	if (!subg.head) {
-		subg.head = newg.head;
+	if (!subg) {
+		subg = newg;
 	} else {
-		smacq_graph_add_graph(subg.head, newg.head);
-		//fprintf(stderr, "%p(%s) is OR sibling to %p(%s)\n", subg.head, subg.head->name, newg.head, newg.head->name);
+		smacq_graph_add_graph(subg, newg);
+		//fprintf(stderr, "%p(%s) is OR sibling to %p(%s)\n", subg, subg->name, newg, newg->name);
 	}
 
 	graph_join(&newg, uniq);
       }
 
       /* Subg encompasses everything we just assembled */
-      subg.tail = uniq.tail;
       graph_join(&g, subg);
 
     } else if (c->op == NOT) {
@@ -813,3 +786,54 @@ SmacqGraph * SmacqGraph::newQuery(DTS * tenv, int argc, char ** argv) {
 
   return graph;
 }
+
+SmacqGraph * newjoin(joinlist * joinlist, SmacqGraph * where) {
+  /*
+   * This function violates some abstractions by knowing the 
+   * calling syntax for "join" and constructing arguments for it.
+   */
+  SmacqGraph * g = NULL;
+  char gp[32];
+  struct arglist * arglist = NULL;
+  SmacqGraph * aliases = NULL;
+  SmacqGraph * thisgraph = NULL;
+
+  while (joinlist) {
+	if (joinlist->graph) thisgraph = joinlist->graph;
+
+  	SmacqGraph * newalias = newmodule("streamalias", 
+			           newarg(joinlist->name, (argtype)0, NULL));
+	
+	if (aliases) {
+		aliases->add_graph(newalias);
+	} else {
+		aliases = newalias;
+	}
+
+	if (!joinlist->next || joinlist->next->graph) {
+		// Last alias for this graph
+
+		assert(thisgraph);
+		thisgraph->join(aliases);
+		aliases = NULL;
+
+		if (g) {
+        		g->add_graph(thisgraph);
+		} else {
+			g = thisgraph;
+		}
+	}
+
+	arglist = arglist_append(arglist, newarg(joinlist->name, (argtype)0, NULL));
+	joinlist = joinlist->next;
+  }
+
+  sprintf(gp, "%p", where);
+  arglist = arglist_append(arglist, newarg(strdup(gp), (argtype)0, NULL));
+ 
+  SmacqGraph * jg = newmodule("join", arglist);
+  g->join(jg);
+ 
+  return g;
+}
+

@@ -46,7 +46,7 @@ void yysmacql_error(char*);
 #include <smacq-parser.h>
 #include <SmacqGraph.h>
 
-static struct graph nullgraph = { head: NULL, tail: NULL };
+static SmacqGraph nullgraph = { head: NULL, tail: NULL };
 SmacqGraph * Graph;
 extern int yylex();
 %}

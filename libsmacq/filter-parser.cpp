@@ -78,7 +78,7 @@ void yyerror(char * msg);
 #line 102 "filter-parser.ypp"
 #ifndef YYSTYPE
 typedef union {
-  struct graph graph;
+  SmacqGraph * graph;
   struct arglist * arglist;
   struct vphrase vphrase;
   char * string;
@@ -1403,9 +1403,9 @@ yyreturn:
 
 #ifndef SMACQ_OPT_NOPTHREADS
 #ifdef PTHREAD_MUTEX_INITIALIZER
-  static smacq_pthread_mutex_t local_lock = PTHREAD_MUTEX_INITIALIZER;
+  static pthread_mutex_t local_lock = PTHREAD_MUTEX_INITIALIZER;
 #else
-  static smacq_pthread_mutex_t local_lock;
+  static pthread_mutex_t local_lock;
   #warning "No PTHREAD_MUTEX_INITIALIZER"
 #endif
 #endif

@@ -1,105 +1,108 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
 #include <assert.h>
+
 #include <smacq.h>
 #include <FieldVec.h>
-
-static struct smacq_options options[] = {
-  END_SMACQ_OPTIONS
-};
-
-struct join {
-  SmacqGraph * graph;
-  DtsField field;
-  struct runq * runq;
-};
+#include <SmacqGraph.h>
+#include <SmacqScheduler.h>
+#include <vector>
+#include <map>
 
 SMACQ_MODULE(join,
   PROTO_CTOR(join);
   PROTO_CONSUME();
-  PROTO_PRODUCE();
 
-  int numjoins;
-  int whereargc;
-  char ** whereargv;
-  DtsObject product;
-  dts_comparison * comp;
+  SmacqScheduler * sched;
+  SmacqGraph * where;
 
-  struct join * joins;
-  static void find_join(dts_comparison * comp);
+  std::vector<DtsField> Aliases;
+  std::vector<std::vector<DtsObject> > Objects;
+  std::vector<SmacqGraph*> Expirations;
+  std::map<std::vector<bool>, SmacqGraph* > Filters;
+
+ private:
+  void for_all_but(unsigned int is_alias, DtsObject o, unsigned int alias);
 ); 
 
-smacq_result joinModule::consume(DtsObject datum, int & outchan) {
-  smacq_result more;
-  int i;
-
-  for (i=0; i<numjoins; i++) {
-	struct join * j = &joins[i];
-  	DtsObject product;
-
-  	more = smacq_sched_iterative(j->graph, NULL, &product, &j->runq, 1);
-	datum->attach_field(j->field, product);
-	//fprintf(stderr, "attaching %p to %p field %d\n", product, datum, j->field);
-  }
-  
-  return SMACQ_PASS;
-}
-
-void joinModule::find_join(dts_comparison * comp) {
-	if (!comp) return;
-
-	/* Look for equality between fields in different joins */
-
-}
-
-joinModule::joinModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
-  int i, j;
-  int argc = context->argc-1;
-  char ** argv = context->argv+1;
-
-  whereargc = 0;
-  for (i=0; i<argc; i++) {
-    if (!strcmp(argv[i], "--")) {
-      whereargc = argc - i - 1;
-      whereargv = argv+(i+1);
-      break;
-    }
+// Cross-product.  This is about the least efficient way to implement this, but
+// it works for a first version.  We construct all the possible cross-products
+// of the aliases and then test each combination against the entire where clause.
+//
+// XXX:  We need only evaluate expressions that we haven't already evaluated for
+// the new object.
+//
+// XXX:  It's inefficient to make a zillion sched->input() calls before letting
+// the scheduler run any of them.
+//
+void joinModule::for_all_but(unsigned int is_alias, DtsObject o, unsigned int alias) {
+  if (alias == Aliases.size()) {
+	// Okay, test this join.
+	// Dup the object, because we're about to assign new alias values.
+	sched->input(where, o->dup());	
+	return;
   }
 
-  argc -= (whereargc);
-
-  // comp = dts_parse_tests(dts, whereargc, whereargv);
-  
-  // Consume rest of arguments as joins
-  assert(argc > 0);
-  assert((argc % 2) == 0);
-
-  joins = (join*)calloc(argc, sizeof(struct join));
-  numjoins = argc/2; 
-
-  for (i=0, j=0; i<argc; i+=2, j++) {
-	  //char fstr[256];
-	  //snprintf(fstr, 256, "j%d", argv[i]);
-	  joins[j].field = dts->requirefield(argv[i+1]);
-	  joins[j].graph = SmacqGraph::newQuery(dts, 1, &argv[i]);
-	  assert(joins[j].graph);
-	  smacq_start(joins[j].graph, ITERATIVE, dts);
-  }
-
-  find_join(comp);
-}
-
-smacq_result joinModule::produce(DtsObject & datump, int & outchan) {
-  smacq_result status;
-
-  if (product) {
-    datump = product;
-    status = SMACQ_PASS;
+  if (is_alias != alias) {
+	for (unsigned int j = 0; j < Objects[alias].size(); j++) {
+		o->attach_field(Aliases[alias], Objects[alias][j]);
+		for_all_but(is_alias, o, alias+1);
+	}
   } else {
-    status = SMACQ_FREE;
+	for_all_but(is_alias, o, alias+1);
+  }
+}
+  
+smacq_result joinModule::consume(DtsObject datum, int & outchan) {
+  // Find which alias we just got a new input for
+  for (unsigned int i=0; i<Aliases.size(); i++) {
+	DtsObject o = datum->getfield(Aliases[i]);
+	if (!o) continue;
+
+  	// XXX. Remove any stored objects that pass Expiration filters.
+  	;
+
+  	// XXX. Then need to remove objects that used to pass relational 
+  	// filters, but don't now that another object has expired.
+  	;
+
+  	// Test pending joins with this object
+       	for_all_but(i, datum, 0);
+		
+	// Save this object.
+	// XXX.  Should save only if it passes the appropriate non-relational filters.
+	Objects[i].push_back(o);
+
+	break;
   }
 
-  return (smacq_result)(status | (product ? SMACQ_PRODUCE : 0));
+  return SMACQ_FREE;
 }
+
+joinModule::joinModule(struct SmacqModule::smacq_init * context) 
+  : SmacqModule(context), 
+    sched(context->scheduler)
+{
+  // Size per-alias data-structures
+  Objects.resize(context->argc-2);
+  Aliases.resize(context->argc-2);
+
+  // Copy list of alias names to list of DtsFields
+  for (int i = 1; i < context->argc-1; i++) {
+	Aliases[i-1] = dts->requirefield(context->argv[i]);
+  }
+
+  where = NULL;
+  where = (SmacqGraph*)strtol(context->argv[context->argc-1], NULL, 0);
+  if (!where) {
+	// where is null, so just send everything to our children.
+	where = context->self->children_as_heads();
+  } else {
+	// run where tests first, then pass results to our children
+  	where->join(context->self->children_as_heads());
+  }
+  where->init(dts, context->scheduler);
+
+}
+
 
