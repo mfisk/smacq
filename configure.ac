@@ -1,6 +1,6 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
-
+CFLAGS=  #Don't use default CFLAGS
 
 AC_PREREQ(2.57)
 AC_INIT(SMACQ, , mfisk@lanl.gov)
@@ -88,10 +88,6 @@ AC_SUBST(OBJECTS_MODULES_BUILTIN)
 LIBS_MODULES_SHARED=`for f in $SHAREDONLY_MODULES; do echo -n " smacq_$f.la "; done`
 AC_SUBST(LIBS_MODULES_SHARED)
 
-if test -n "$GCC"; then
-	CFLAGS="$CFLAGS -Wall -O9"
-fi
-
 AC_ARG_ENABLE(profile,
 	AC_HELP_STRING([--enable-profile],[enable gprof profiling]),
 		CFLAGS="$CFLAGS -pg"
@@ -101,15 +97,27 @@ AC_ARG_ENABLE(profile,
 AC_ARG_ENABLE(debug,
 	AC_HELP_STRING([--enable-debug],[enable debugging options]),
 	[if test -n "$GCC"; then
-		CFLAGS="$CFLAGS -O0 -ggdb"
+		CO="-O0"
+		CFLAGS="$CFLAGS -ggdb"
 	else
-		CFLAGS="$CFLAGS -O0 -g"
+		CO="-O0"
+		CFLAGS="$CFLAGS -g"
 	fi],)
 
 AC_ARG_WITH([ethereal], 
 	AC_HELP_STRING([--with-ethereal],[Include Ethereal packet decoding]),
 	[with_ethereal="$withval"],
 	[with_ethereal=no])
+
+if test -n "$GCC"; then
+	CFLAGS="$CFLAGS -Wall"
+fi
+
+if test -z "$CO"; then
+ 	CO="-O9"
+fi
+
+CFLAGS="$CFLAGS $CO"
 
 if test "$with_ethereal" = "no"; then
 	ETHEREAL_LIBRARY=
