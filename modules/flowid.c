@@ -162,7 +162,8 @@ static int expired(struct state * state, struct iovec * domainv, struct srcstat 
     // Cleanup
     free(s->fields);
 
-    bytes_hash_table_remove(state->stats, s);
+    if (domainv)
+    	bytes_hash_table_removev(state->stats, domainv, state->fieldset.num);
 
     return 1;
   }
@@ -181,9 +182,7 @@ static inline int test_expired(gpointer key, gpointer val, gpointer user_data) {
   struct srcstat * s = val;
   struct state * state = user_data;
   
-  expired(state, NULL, s);
-
-  return 0;
+  return expired(state, NULL, s);
 }
 
 /*
