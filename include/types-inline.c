@@ -7,7 +7,7 @@
 #include <string.h>
 #include <stdio.h>
 
-void msg_send(dts_environment *, int, dts_object *, dts_comparison *);
+void msg_send(dts_environment *, dts_field_element, dts_object *, dts_comparison *);
 dts_object * dts_construct(dts_environment * tenv, int type, void * data);
 
 static inline void * memdup(void * buf, int size) {
@@ -18,6 +18,7 @@ static inline void * memdup(void * buf, int size) {
 
 static inline void * crealloc(void * ptr, int newsize, int oldsize) {
   void * newp = realloc(ptr, newsize);
+  //fprintf(stderr, "crealloc of %p from %d to %d\n", ptr, oldsize, newsize);
   if (!newp) return NULL;
   memset((void *)((int)newp+oldsize), 0, newsize-oldsize);
   return newp;
@@ -25,29 +26,31 @@ static inline void * crealloc(void * ptr, int newsize, int oldsize) {
 
 static inline void * darray_get(struct darray * darray, int element) {
   if (element > darray->max) {
-	darray->array = crealloc(darray->array, 
-				 (element+1) * sizeof(void*), 
-				 (darray->max+1) * sizeof(void*));
-	darray->max = element;
-	return 0;
+	return NULL;
   }
   return (void*)darray->array[element];
 }
 
-static inline void darray_set(struct darray * darray, unsigned int element, void * value) {
+static void darray_set(struct darray * darray, unsigned int element, void * value) {
   if (element > darray->max) {
 	darray->array = crealloc(darray->array, 
-				 (element+1) * sizeof(void*), 
-				 (darray->max+1) * sizeof(void*));
+				 (element+1) * sizeof(unsigned long), 
+				 (darray->max+1) * sizeof(unsigned long));
 	darray->max = element;
   }
   darray->array[element] = (unsigned long)value;
 }
 
+static inline void darray_free(struct darray * darray) {
+  free(darray->array);
+  darray->array = NULL;
+  darray->max = -1;
+}
+
 static inline void darray_init(struct darray * darray, int max) {
-	assert(sizeof(unsigned long) == sizeof(void *));
-	darray->array = NULL;
-	darray_get(darray, max);
+  assert(sizeof(unsigned long) == sizeof(void *));
+  darray->array = calloc(max+1, sizeof(unsigned long));
+  darray->max = max;
 }
 
 static inline void dts_incref(const dts_object * d_const, int i) {
@@ -71,16 +74,16 @@ static void dts_decref(const dts_object * d_const) {
     pthread_mutex_unlock(&d->mutex);
 
     // Deref children too then
-    for (i=0; i<d->numfields; i++) {
-      if (d->fields[i]) {
-	//fprintf(stderr, "child: %p... ", d->fields[i]);
-	dts_decref(d->fields[i]);
+    for (i=0; i<=d->fields.max; i++) {
+      if (d->fields.array[i]) {
+	//fprintf(stderr, "child: %p... ", d->fields.array[i]);
+	dts_decref(darray_get(&d->fields, i));
       }
     }
 
     //fprintf(stderr, "freeing %p\n", d);
 
-    free(d->fields);
+    darray_free(&d->fields);
     free(d);
   } else {
     pthread_mutex_unlock(&d->mutex);
@@ -104,8 +107,16 @@ static inline dts_field dts_field_next(dts_field field) {
 	return NULL;
 }
 
-static inline void dts_attach_field(const dts_object * d, int field, const dts_object * field_data) {
+static inline void dts_attach_field_single(const dts_object * d, dts_field_element field, const dts_object * field_data) {
   darray_set( (struct darray *)&d->fields, field, (dts_object*)field_data);
+}
+
+static inline void dts_attach_field(const dts_object * d, dts_field field, const dts_object * field_data) {
+  int fnum = dts_field_first(field);
+
+  dts_attach_field_single(d, fnum, field_data);
+
+  assert(!dts_field_first(dts_field_next(field)));
 }
 
 /* Syscalls */
@@ -116,7 +127,7 @@ static inline int smacq_asktype(const dts_object * d, int type) {
 }
 */
 
-static inline int smacq_datum_size(const dts_object * d) {
+static inline int dts_getsize(const dts_object * d) {
  return(d->len);
 }
 
@@ -128,8 +139,9 @@ static inline int dts_gettype(const dts_object * d) {
  return(d->type);
 }
 
-static inline void smacq_msg_send(smacq_environment * env, int field, dts_object * d, dts_comparison * comps) {
-  return(msg_send(env->types, field, d, comps));
+static inline void smacq_msg_send(smacq_environment * env, dts_field field, dts_object * d, dts_comparison * comps) {
+  assert(!dts_field_first(dts_field_next(field)));
+  return(msg_send(env->types, dts_field_first(field), d, comps));
 }
 
 /* Make datum have specified type */

@@ -27,14 +27,18 @@ typedef struct _dts_object dts_object;
 typedef unsigned short dts_field_element;
 typedef dts_field_element * dts_field;
 
+struct darray {
+  unsigned long * array;
+  int max;
+};
+
 struct _dts_object {
   /* private to engine */
   pthread_mutex_t mutex;
   int refcount;
 
   /* Cache of received messages */
-  int numfields;
-  const dts_object ** fields;
+  struct darray fields; /* const dts_object * */
 
   /* data description */
   int type;
@@ -53,11 +57,6 @@ struct dts_field_descriptor {
 //typedef dts_environment struct _type_env;
 //struct _type_env;
 struct dts_type;
-
-struct darray {
-  unsigned long * array;
-  int max;
-};
 
 typedef struct _type_env {
   GHashTable * types_byname;

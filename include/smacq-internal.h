@@ -72,7 +72,7 @@ void * smacq_find_module(GModule ** gmodulep, char * envvar, char * envdefault, 
 /*
  * Interfaces to msg system
  */
-const dts_object * msg_check(dts_environment * tenv, const dts_object * d, int field, dts_object *);
+const dts_object * msg_check(dts_environment * tenv, const dts_object * d, dts_field_element field, dts_object *);
 
 /*
  * Scheduler intefaces 
