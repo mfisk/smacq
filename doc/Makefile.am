@@ -6,7 +6,7 @@ DOCPDFS=$(patsubst %,$(srcdir)/%.pdf,$(DOCS))
 
 DOCBOOK2MAN=docbook-to-man
 
-man_MANS=$(DOCDSTS) $(DOCPDFS) $(DOCTXTS)
+dist_man_MANS=$(DOCDSTS) $(DOCPDFS) $(DOCTXTS)
 
 publish:
 	(cd $(srcdir); rsync -e ssh -ltv *.pdf *.png *.html smacq.sourceforge.net:smacqweb/)
