@@ -33,7 +33,7 @@
 %token YYSTRING YYID YYNUMBER
 %token YYNEQ YYLEQ YYGEQ
 
-%token YYSTOP YYLIKE YYOR YYAND YYNOT
+%token YYSTOP YYOR YYAND YYNOT
 
 %left YYAND YYOR
 %right YYNOT
@@ -157,7 +157,6 @@ op : '=' 		{ $$ = EQ; }
 	| YYGEQ		{ $$ = GEQ; }
 	| YYLEQ		{ $$ = LEQ; }
 	| YYNEQ		{ $$ = NEQ; }
-	| YYLIKE 	{ $$ = LIKE; }		 
 	;
 
 arithop : '+'		{ $$ = ADD; }

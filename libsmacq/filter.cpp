@@ -61,7 +61,6 @@ int DtsObject_::match_one(dts_comparison * c) {
   case OR:
   case AND:
   case FUNC:
-  case LIKE:
     break;
 
   }
@@ -106,10 +105,7 @@ int DtsObject_::match_one(dts_comparison * c) {
 	break;
 
       case FUNC:
-	fprintf(stderr, "Error: function tests are unsupported\n");
-	break;
-      case LIKE:
-	fprintf(stderr, "Error: like tests are unsupported\n");
+	assert(0);
 	break;
   }
 
