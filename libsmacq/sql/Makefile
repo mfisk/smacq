@@ -17,7 +17,7 @@ CFLAGS = -ggdb -Wall -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include $(INCLU
 
 LIBS = -lgmodule-2.0 -lglib-2.0 -lz -lcrypt -lresolv -lnsl -ldl -lm
 
-all: gram.c scan.c libsql.o
+all: libsql.o
 
 gram.c:	gram.y scan.l
 	-bison -t -y -d $< -o $@
@@ -26,7 +26,7 @@ gram.o:	gram.c
 #	gcc -o $@ -c -DYYDEBUG $(CFLAGS) $<
 	gcc -o $@ -c $(CFLAGS) $<
 
-scan.c: scan.l gram.y
+scan.c: scan.l gram.c 
 #	flex -d -i -o$@ $<
 	flex -i -o$@ $<
 
