@@ -28,15 +28,16 @@ static smacq_result print_produce(struct state* state, const dts_object ** datum
 static smacq_result print_consume(struct state * state, const dts_object * datum, int * outchan) {
   int slen;
   char * str;
-  int i;
+  int i,j;
   int printed = 0;
   dts_object field_data;
   assert(datum);
   assert(state->argv[0]);
 
   for (i = 0; i < state->argc; i++) {
-    if (i>0)
-      printf(state->delimiter);
+    if (printed) {
+      	printf(state->delimiter);
+    }
     if (smacq_getfield(state->env, datum, state->fields[i], &field_data)) {
       int r = smacq_presentdata(state->env, &field_data, state->string_transform, (void*)&str, &slen);
       if (r == -1) {
@@ -44,6 +45,10 @@ static smacq_result print_consume(struct state * state, const dts_object * datum
       } else if (r == 0) {
 	fprintf(stderr, "Unable to transform to string\n");
       } else {
+        if (!printed) {
+    	   for (j=0; j<i; j++) 
+    		printf(state->delimiter);
+        }
         printed++;
 	if (state->verbose) {
 		printf("%.20s = %s", state->argv[i], str);
@@ -57,7 +62,9 @@ static smacq_result print_consume(struct state * state, const dts_object * datum
       fprintf(stderr, "Warning: print: no field %s\n", state->argv[i]);
     }
   }
-  if (printed) printf("\n");
+  if (printed) {
+ 	printf("\n");
+  }
   if (state->flush) fflush(stdout); 
   return SMACQ_PASS;
 }
