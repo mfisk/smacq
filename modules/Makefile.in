@@ -66,6 +66,7 @@ EGREP = @EGREP@
 ETHEREAL_DIR = @ETHEREAL_DIR@
 ETHEREAL_LIBRARY = @ETHEREAL_LIBRARY@
 EXEEXT = @EXEEXT@
+EXTRA_STATIC_MODULES = @EXTRA_STATIC_MODULES@
 GDA_CFLAGS = @GDA_CFLAGS@
 GDA_LIBS = @GDA_LIBS@
 GLIB_CFLAGS = @GLIB_CFLAGS@
@@ -105,16 +106,12 @@ PATH_SEPARATOR = @PATH_SEPARATOR@
 PKG_CONFIG = @PKG_CONFIG@
 POW_LIB = @POW_LIB@
 PYTHON = @PYTHON@
-PYTHON_DEPENDENCIES = @PYTHON_DEPENDENCIES@
 PYTHON_LIBADD = @PYTHON_LIBADD@
-PYTHON_TESTS = @PYTHON_TESTS@
 RANLIB = @RANLIB@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 SOURCES_MODULES_BUILTIN = @SOURCES_MODULES_BUILTIN@
 SOURCES_TYPES_BUILTIN = @SOURCES_TYPES_BUILTIN@
-SQLINSERT_DEPENDENCIES = @SQLINSERT_DEPENDENCIES@
-SQLINSERT_LIBADD = @SQLINSERT_LIBADD@
 STDBOOL_H = @STDBOOL_H@
 STRIP = @STRIP@
 USE_PYTHON_FALSE = @USE_PYTHON_FALSE@
@@ -161,18 +158,13 @@ sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 SUBDIRS = substr patricia
 noinst_LTLIBRARIES = libsmacq_modules.la libtest_dynamic.la 
-EXTRA_LTLIBRARIES = #libpcaplive.la libreassemble.la libbench_field.la 
-#BUILT_SOURCES = count.cpp
+EXTRA_LTLIBRARIES = libpython.la libsqlinsert.la libpcaplive.la
 SUFFIXES = .sc
 
-libsmacq_modules_la_SOURCES = print.cpp pcaplive.cpp pcapfile.cpp socket.cpp uniq.cpp count.cpp last.cpp top.cpp head.cpp filter.cpp msgtest.cpp entropy.cpp derivative.cpp encrypt.cpp pdf.cpp fifo.cpp delta.cpp tabularinput.cpp rusage.cpp groupby.cpp flowid.cpp sum.cpp fifodelay.cpp project.cpp rename.cpp mask.cpp const.cpp ndjoin.cpp lor.cpp counter_loop.cpp dfa.cpp expr.cpp equals.cpp cflow.cpp clock.cpp disarm.cpp substr-main.cpp iplookup.cpp streamalias.cpp join.cpp changes.cpp histogram.cpp
+libsmacq_modules_la_SOURCES = print.cpp pcapfile.cpp socket.cpp uniq.cpp count.cpp last.cpp top.cpp head.cpp filter.cpp msgtest.cpp entropy.cpp derivative.cpp encrypt.cpp pdf.cpp fifo.cpp delta.cpp tabularinput.cpp rusage.cpp groupby.cpp flowid.cpp sum.cpp fifodelay.cpp project.cpp rename.cpp mask.cpp const.cpp ndjoin.cpp lor.cpp counter_loop.cpp dfa.cpp expr.cpp equals.cpp cflow.cpp clock.cpp disarm.cpp substr-main.cpp iplookup.cpp streamalias.cpp join.cpp changes.cpp histogram.cpp now.cpp
 
-EXTRA_libsmacq_modules_la_SOURCES = sqlinsert.cpp python.cpp
-sqlinsert_lo_LIBS = @GDA_LIBS@
-INCLUDES = @GDA_CFLAGS@ #-I/usr/include/libxml2 #just for sqlinsert
-
-libsmacq_modules_la_LIBADD = -lpcap substr/libsubstr.la patricia/libpatricia.la @SQLINSERT_LIBADD@ @PYTHON_LIBADD@
-libsmacq_modules_la_DEPENDENCIES = substr/libsubstr.la patricia/libpatricia.la @SQLINSERT_DEPENDENCIES@ @PYTHON_DEPENDENCIES@
+libsmacq_modules_la_DEPENDENCIES = substr/libsubstr.la patricia/libpatricia.la libpcaplive.la @EXTRA_STATIC_MODULES@
+libsmacq_modules_la_LIBADD = $(libsmacq_modules_la_DEPENDENCIES)
 
 libtest_dynamic_la_SOURCES = noop.cpp
 
@@ -185,13 +177,16 @@ libsmacq_modules_la_LDFLAGS = -rpath /bogus
 #
 # Per module link requirements
 # 
-#libbench_field_la_SOURCES = bench_field-main.c bench_field-virtual.C 
+libpython_la_SOURCES = python.cpp
+libpython_la_LIBS = @PYTHON_LIBADD@
+libpython_la_CPPFLAGS = @CFLAGS_PYTHON@ 
 
-#libpcaplive_la_SOURCES = pcaplive.c
-#libpcaplive_la_LDFLAGS = -lpcap
+libsqlinsert_la_SOURCES = sqlinsert.cpp
+libsqlinsert_la_LIBADD = @GDA_LIBS@
+libsqlinsert_la_CPPFLAGS = @GDA_CFLAGS@
 
-#libreassemble_la_LIBADD = reassemble.lo spp_export_pkt.lo  
-reassemble_lo_CFLAGS = -I$(SNORT_HOME)
+libpcaplive_la_SOURCES = pcaplive.cpp
+libpcaplive_la_LIBS = -lpcap
 
 #
 # This is how we make a dynamic library for a module
@@ -210,15 +205,27 @@ CONFIG_HEADER = $(top_builddir)/include/config.h
 CONFIG_CLEAN_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
 
-am_libsmacq_modules_la_OBJECTS = print.lo pcaplive.lo pcapfile.lo \
-	socket.lo uniq.lo count.lo last.lo top.lo head.lo filter.lo \
-	msgtest.lo entropy.lo derivative.lo encrypt.lo pdf.lo fifo.lo \
-	delta.lo tabularinput.lo rusage.lo groupby.lo flowid.lo sum.lo \
+libpcaplive_la_LDFLAGS =
+libpcaplive_la_LIBADD =
+am_libpcaplive_la_OBJECTS = pcaplive.lo
+libpcaplive_la_OBJECTS = $(am_libpcaplive_la_OBJECTS)
+libpython_la_LDFLAGS =
+libpython_la_LIBADD =
+am_libpython_la_OBJECTS = libpython_la-python.lo
+libpython_la_OBJECTS = $(am_libpython_la_OBJECTS)
+am_libsmacq_modules_la_OBJECTS = print.lo pcapfile.lo socket.lo uniq.lo \
+	count.lo last.lo top.lo head.lo filter.lo msgtest.lo entropy.lo \
+	derivative.lo encrypt.lo pdf.lo fifo.lo delta.lo \
+	tabularinput.lo rusage.lo groupby.lo flowid.lo sum.lo \
 	fifodelay.lo project.lo rename.lo mask.lo const.lo ndjoin.lo \
 	lor.lo counter_loop.lo dfa.lo expr.lo equals.lo cflow.lo \
 	clock.lo disarm.lo substr-main.lo iplookup.lo streamalias.lo \
-	join.lo changes.lo histogram.lo
+	join.lo changes.lo histogram.lo now.lo
 libsmacq_modules_la_OBJECTS = $(am_libsmacq_modules_la_OBJECTS)
+libsqlinsert_la_LDFLAGS =
+libsqlinsert_la_DEPENDENCIES =
+am_libsqlinsert_la_OBJECTS = libsqlinsert_la-sqlinsert.lo
+libsqlinsert_la_OBJECTS = $(am_libsqlinsert_la_OBJECTS)
 libtest_dynamic_la_LDFLAGS =
 libtest_dynamic_la_LIBADD =
 am_libtest_dynamic_la_OBJECTS = noop.lo
@@ -239,14 +246,15 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@	./$(DEPDIR)/groupby.Plo ./$(DEPDIR)/head.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/histogram.Plo ./$(DEPDIR)/iplookup.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/join.Plo ./$(DEPDIR)/last.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/libpython_la-python.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/libsqlinsert_la-sqlinsert.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/lor.Plo ./$(DEPDIR)/mask.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/msgtest.Plo ./$(DEPDIR)/ndjoin.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/noop.Plo ./$(DEPDIR)/pcapfile.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/pcaplive.Plo ./$(DEPDIR)/pdf.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/print.Plo ./$(DEPDIR)/project.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/python.Plo ./$(DEPDIR)/rename.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/noop.Plo ./$(DEPDIR)/now.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/pcapfile.Plo ./$(DEPDIR)/pcaplive.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/pdf.Plo ./$(DEPDIR)/print.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/project.Plo ./$(DEPDIR)/rename.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/rusage.Plo ./$(DEPDIR)/socket.Plo \
-@AMDEP_TRUE@	./$(DEPDIR)/sqlinsert.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/streamalias.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/substr-main.Plo ./$(DEPDIR)/sum.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/tabularinput.Plo ./$(DEPDIR)/top.Plo \
@@ -259,8 +267,8 @@ LTCXXCOMPILE = $(LIBTOOL) --mode=compile $(CXX) $(DEFS) \
 CXXLD = $(CXX)
 CXXLINK = $(LIBTOOL) --mode=link $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) \
 	$(AM_LDFLAGS) $(LDFLAGS) -o $@
-DIST_SOURCES = $(libsmacq_modules_la_SOURCES) \
-	$(EXTRA_libsmacq_modules_la_SOURCES) \
+DIST_SOURCES = $(libpcaplive_la_SOURCES) $(libpython_la_SOURCES) \
+	$(libsmacq_modules_la_SOURCES) $(libsqlinsert_la_SOURCES) \
 	$(libtest_dynamic_la_SOURCES)
 
 RECURSIVE_TARGETS = info-recursive dvi-recursive pdf-recursive \
@@ -270,7 +278,7 @@ RECURSIVE_TARGETS = info-recursive dvi-recursive pdf-recursive \
 	check-recursive installcheck-recursive
 DIST_COMMON = $(srcdir)/Makefile.in Makefile.am
 DIST_SUBDIRS = $(SUBDIRS)
-SOURCES = $(libsmacq_modules_la_SOURCES) $(EXTRA_libsmacq_modules_la_SOURCES) $(libtest_dynamic_la_SOURCES)
+SOURCES = $(libpcaplive_la_SOURCES) $(libpython_la_SOURCES) $(libsmacq_modules_la_SOURCES) $(libsqlinsert_la_SOURCES) $(libtest_dynamic_la_SOURCES)
 
 all: all-recursive
 
@@ -290,8 +298,14 @@ clean-noinstLTLIBRARIES:
 	  echo "rm -f \"$${dir}/so_locations\""; \
 	  rm -f "$${dir}/so_locations"; \
 	done
+libpcaplive.la: $(libpcaplive_la_OBJECTS) $(libpcaplive_la_DEPENDENCIES) 
+	$(CXXLINK)  $(libpcaplive_la_LDFLAGS) $(libpcaplive_la_OBJECTS) $(libpcaplive_la_LIBADD) $(LIBS)
+libpython.la: $(libpython_la_OBJECTS) $(libpython_la_DEPENDENCIES) 
+	$(CXXLINK)  $(libpython_la_LDFLAGS) $(libpython_la_OBJECTS) $(libpython_la_LIBADD) $(LIBS)
 libsmacq_modules.la: $(libsmacq_modules_la_OBJECTS) $(libsmacq_modules_la_DEPENDENCIES) 
 	$(CXXLINK)  $(libsmacq_modules_la_LDFLAGS) $(libsmacq_modules_la_OBJECTS) $(libsmacq_modules_la_LIBADD) $(LIBS)
+libsqlinsert.la: $(libsqlinsert_la_OBJECTS) $(libsqlinsert_la_DEPENDENCIES) 
+	$(CXXLINK)  $(libsqlinsert_la_LDFLAGS) $(libsqlinsert_la_OBJECTS) $(libsqlinsert_la_LIBADD) $(LIBS)
 libtest_dynamic.la: $(libtest_dynamic_la_OBJECTS) $(libtest_dynamic_la_DEPENDENCIES) 
 	$(CXXLINK)  $(libtest_dynamic_la_LDFLAGS) $(libtest_dynamic_la_OBJECTS) $(libtest_dynamic_la_LIBADD) $(LIBS)
 
@@ -325,21 +339,22 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/iplookup.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/join.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/last.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libpython_la-python.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/libsqlinsert_la-sqlinsert.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lor.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mask.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/msgtest.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ndjoin.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/noop.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/now.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pcapfile.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pcaplive.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/pdf.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/print.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/project.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/python.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rename.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rusage.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/socket.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sqlinsert.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/streamalias.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/substr-main.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sum.Plo@am__quote@
@@ -379,6 +394,72 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	depfile='$(DEPDIR)/$*.Plo' tmpdepfile='$(DEPDIR)/$*.TPlo' @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(LTCXXCOMPILE) -c -o $@ `test -f '$<' || echo '$(srcdir)/'`$<
+
+libpython_la-python.o: python.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libpython_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libpython_la-python.o -MD -MP -MF "$(DEPDIR)/libpython_la-python.Tpo" \
+@am__fastdepCXX_TRUE@	  -c -o libpython_la-python.o `test -f 'python.cpp' || echo '$(srcdir)/'`python.cpp; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libpython_la-python.Tpo" "$(DEPDIR)/libpython_la-python.Po"; \
+@am__fastdepCXX_TRUE@	else rm -f "$(DEPDIR)/libpython_la-python.Tpo"; exit 1; \
+@am__fastdepCXX_TRUE@	fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='python.cpp' object='libpython_la-python.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	depfile='$(DEPDIR)/libpython_la-python.Po' tmpdepfile='$(DEPDIR)/libpython_la-python.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libpython_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libpython_la-python.o `test -f 'python.cpp' || echo '$(srcdir)/'`python.cpp
+
+libpython_la-python.obj: python.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libpython_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libpython_la-python.obj -MD -MP -MF "$(DEPDIR)/libpython_la-python.Tpo" \
+@am__fastdepCXX_TRUE@	  -c -o libpython_la-python.obj `if test -f 'python.cpp'; then $(CYGPATH_W) 'python.cpp'; else $(CYGPATH_W) '$(srcdir)/python.cpp'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libpython_la-python.Tpo" "$(DEPDIR)/libpython_la-python.Po"; \
+@am__fastdepCXX_TRUE@	else rm -f "$(DEPDIR)/libpython_la-python.Tpo"; exit 1; \
+@am__fastdepCXX_TRUE@	fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='python.cpp' object='libpython_la-python.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	depfile='$(DEPDIR)/libpython_la-python.Po' tmpdepfile='$(DEPDIR)/libpython_la-python.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libpython_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libpython_la-python.obj `if test -f 'python.cpp'; then $(CYGPATH_W) 'python.cpp'; else $(CYGPATH_W) '$(srcdir)/python.cpp'; fi`
+
+libpython_la-python.lo: python.cpp
+@am__fastdepCXX_TRUE@	if $(LIBTOOL) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libpython_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libpython_la-python.lo -MD -MP -MF "$(DEPDIR)/libpython_la-python.Tpo" \
+@am__fastdepCXX_TRUE@	  -c -o libpython_la-python.lo `test -f 'python.cpp' || echo '$(srcdir)/'`python.cpp; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libpython_la-python.Tpo" "$(DEPDIR)/libpython_la-python.Plo"; \
+@am__fastdepCXX_TRUE@	else rm -f "$(DEPDIR)/libpython_la-python.Tpo"; exit 1; \
+@am__fastdepCXX_TRUE@	fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='python.cpp' object='libpython_la-python.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	depfile='$(DEPDIR)/libpython_la-python.Plo' tmpdepfile='$(DEPDIR)/libpython_la-python.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libpython_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libpython_la-python.lo `test -f 'python.cpp' || echo '$(srcdir)/'`python.cpp
+
+libsqlinsert_la-sqlinsert.o: sqlinsert.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsqlinsert_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libsqlinsert_la-sqlinsert.o -MD -MP -MF "$(DEPDIR)/libsqlinsert_la-sqlinsert.Tpo" \
+@am__fastdepCXX_TRUE@	  -c -o libsqlinsert_la-sqlinsert.o `test -f 'sqlinsert.cpp' || echo '$(srcdir)/'`sqlinsert.cpp; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libsqlinsert_la-sqlinsert.Tpo" "$(DEPDIR)/libsqlinsert_la-sqlinsert.Po"; \
+@am__fastdepCXX_TRUE@	else rm -f "$(DEPDIR)/libsqlinsert_la-sqlinsert.Tpo"; exit 1; \
+@am__fastdepCXX_TRUE@	fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='sqlinsert.cpp' object='libsqlinsert_la-sqlinsert.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	depfile='$(DEPDIR)/libsqlinsert_la-sqlinsert.Po' tmpdepfile='$(DEPDIR)/libsqlinsert_la-sqlinsert.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsqlinsert_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libsqlinsert_la-sqlinsert.o `test -f 'sqlinsert.cpp' || echo '$(srcdir)/'`sqlinsert.cpp
+
+libsqlinsert_la-sqlinsert.obj: sqlinsert.cpp
+@am__fastdepCXX_TRUE@	if $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsqlinsert_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libsqlinsert_la-sqlinsert.obj -MD -MP -MF "$(DEPDIR)/libsqlinsert_la-sqlinsert.Tpo" \
+@am__fastdepCXX_TRUE@	  -c -o libsqlinsert_la-sqlinsert.obj `if test -f 'sqlinsert.cpp'; then $(CYGPATH_W) 'sqlinsert.cpp'; else $(CYGPATH_W) '$(srcdir)/sqlinsert.cpp'; fi`; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libsqlinsert_la-sqlinsert.Tpo" "$(DEPDIR)/libsqlinsert_la-sqlinsert.Po"; \
+@am__fastdepCXX_TRUE@	else rm -f "$(DEPDIR)/libsqlinsert_la-sqlinsert.Tpo"; exit 1; \
+@am__fastdepCXX_TRUE@	fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='sqlinsert.cpp' object='libsqlinsert_la-sqlinsert.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	depfile='$(DEPDIR)/libsqlinsert_la-sqlinsert.Po' tmpdepfile='$(DEPDIR)/libsqlinsert_la-sqlinsert.TPo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsqlinsert_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libsqlinsert_la-sqlinsert.obj `if test -f 'sqlinsert.cpp'; then $(CYGPATH_W) 'sqlinsert.cpp'; else $(CYGPATH_W) '$(srcdir)/sqlinsert.cpp'; fi`
+
+libsqlinsert_la-sqlinsert.lo: sqlinsert.cpp
+@am__fastdepCXX_TRUE@	if $(LIBTOOL) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsqlinsert_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -MT libsqlinsert_la-sqlinsert.lo -MD -MP -MF "$(DEPDIR)/libsqlinsert_la-sqlinsert.Tpo" \
+@am__fastdepCXX_TRUE@	  -c -o libsqlinsert_la-sqlinsert.lo `test -f 'sqlinsert.cpp' || echo '$(srcdir)/'`sqlinsert.cpp; \
+@am__fastdepCXX_TRUE@	then mv -f "$(DEPDIR)/libsqlinsert_la-sqlinsert.Tpo" "$(DEPDIR)/libsqlinsert_la-sqlinsert.Plo"; \
+@am__fastdepCXX_TRUE@	else rm -f "$(DEPDIR)/libsqlinsert_la-sqlinsert.Tpo"; exit 1; \
+@am__fastdepCXX_TRUE@	fi
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	source='sqlinsert.cpp' object='libsqlinsert_la-sqlinsert.lo' libtool=yes @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	depfile='$(DEPDIR)/libsqlinsert_la-sqlinsert.Plo' tmpdepfile='$(DEPDIR)/libsqlinsert_la-sqlinsert.TPlo' @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(LIBTOOL) --mode=compile $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(libsqlinsert_la_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS) -c -o libsqlinsert_la-sqlinsert.lo `test -f 'sqlinsert.cpp' || echo '$(srcdir)/'`sqlinsert.cpp
 
 mostlyclean-libtool:
 	-rm -f *.lo
@@ -658,11 +739,13 @@ uninstall-info: uninstall-info-recursive
 	uninstall-info-recursive uninstall-recursive
 
 
-python.lo: python.cpp
-	$(LTCXXCOMPILE) @CFLAGS_PYTHON@ -c $<
-
 .sc.c: 
 	$(top_srcdir)/misc/sc2c $< > $@
+
+#libbench_field_la_SOURCES = bench_field-main.c bench_field-virtual.C 
+
+#libreassemble_la_LIBADD = reassemble.lo spp_export_pkt.lo  
+#reassemble_lo_CFLAGS = -I$(SNORT_HOME)
 
 libepan_filter.o: epan_filter.o 
 	$(LD) -r -o $@ $< -L$(TOPBINDIR)/contrib -L. -lpacket-ethereal
