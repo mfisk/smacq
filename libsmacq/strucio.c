@@ -308,7 +308,7 @@ int strucio_open(struct strucio * rdr) {
   } else if (rdr->nextfilename_fn) {
     filename = rdr->nextfilename_fn(rdr, rdr->nextfilename_data);
   } else {
-    return -1;
+    return 0;
   }
 
   if (!filename) return 0;
