@@ -13,13 +13,15 @@ class SmacqGraphNode{
   void init(struct SmacqModule::smacq_init &);
 
  protected:
-  char * name;
-  char ** argv;
-  int argc;
-  struct SmacqModule::algebra algebra;
+  char * name; // set by set()
+  char ** argv;  // set by set()
+  int argc; // set by set()
+  struct SmacqModule::algebra algebra; // set by load_module()
 
-  /// Used by schedulers.
-  smacq_result status;
+  // For IterativeScheduler
+  bool shutdown;
+  bool shutdown_pending;
+
   SmacqModule * instance;
 
  private:
@@ -27,8 +29,7 @@ class SmacqGraphNode{
 
   // Ring buffer mgmt
   std::vector<DtsObject> q;
-  int ring_produce;
-  int ring_consume;
+
 #ifndef SMACQ_OPT_NOPTHREADS
   pthread_mutex_t qlock;
   pthread_cond_t ring_notfull;
@@ -37,16 +38,16 @@ class SmacqGraphNode{
   pthread_t thread;
 #endif
 
-  struct SmacqModule::ops ops;
+  SmacqModule::constructor_fn * constructor;
 
   GModule * module;
 
-  struct smacq_options * options;
-  struct smacq_optval * optvals;
+  //struct smacq_options * options;
+  //struct smacq_optval * optvals;
 };
 
 inline SmacqGraphNode::SmacqGraphNode()
-  : q(RINGSIZE) 
+  : shutdown(false), shutdown_pending(false), instance(NULL), q(RINGSIZE) 
 {}
 
 inline SmacqGraphNode::~SmacqGraphNode() {
@@ -81,34 +82,38 @@ inline bool SmacqGraphNode::set(int argc, char ** argv) {
 inline bool SmacqGraphNode::load_module() {
   struct smacq_functions * modtable;
   
-  modtable = (struct smacq_functions*)smacq_find_module(&module, "SMACQ_HOME", "modules", "%s/smacq_%s", "smacq_%s_table", name);
+  modtable = (struct smacq_functions*)smacq_find_module(&module, "SMACQ_HOME", "modules", "%s/smacq_%s", "smacq_%s_table", argv[0]);
 
   if (modtable) {
-    ops.constructor = modtable->constructor;
+    constructor = modtable->constructor;
     algebra = modtable->algebra;
 
     return true;
-  }
-  
-  fprintf(stderr, "Error: unable to find module %s (Need to set %s?)\n", name, "SMACQ_HOME");
+  } else {
+    constructor = NULL;
+    
+    fprintf(stderr, "Error: unable to find module %s (Need to set %s?)\n", argv[0], "SMACQ_HOME");
 
-  return false;
+    return false;
+  }
 }
 
 
-/// Initialize a graph node.  It must have already been set().
+/// Initialize a graph node.  set() must be called first
 inline void SmacqGraphNode::init(struct SmacqModule::smacq_init & context) {
   if (instance) return;
+  assert(argc && constructor);
+
   /* fprintf(stderr, "init_modules on graph node %p %s\n", f, f->argv[0]); */
 
   context.argc = argc;
   context.argv = argv;
 
-  assert(ops.constructor);
-  instance = ops.constructor(&context);
+  assert(constructor);
+  instance = constructor(&context);
 
   if (! instance) {
-     	fprintf(stderr, "Error initializing module %s\n", name);	 	
+     	fprintf(stderr, "Error initializing module %s\n", argv[0]);	 	
 	exit(-1);
   }
 }
