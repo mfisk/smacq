@@ -23,10 +23,12 @@ struct state {
   GHashTableofBytes *drset;
   struct bloom_summary *summary;
   double prob; // Use probabilistic algebraorithms?
+  int use_obj_id;
 };
 
 static struct smacq_options options[] = {
   {"m", {double_t:0}, "Max amount of memory (MB) (forces probabilistic mode)", SMACQ_OPT_TYPE_DOUBLE},
+  {"o", {boolean_t:0}, "Use object ID instead of fields", SMACQ_OPT_TYPE_BOOLEAN},
   {NULL, {string_t:NULL}, NULL, 0}
 };
 
@@ -34,7 +36,19 @@ static struct smacq_options options[] = {
  * Check presense in set.
  */
 static smacq_result uniq_consume(struct state * state, const dts_object * datum, int * outchan) {
-  struct iovec * domainv = fields2vec(state->env, datum, &state->fieldset);
+  struct iovec obj_domainv[2];
+  struct iovec * domainv;
+  
+  if (state->use_obj_id) {
+	  domainv = obj_domainv;
+	  obj_domainv[0].iov_base = (void*)&datum->id;
+	  obj_domainv[0].iov_len = 4;
+	  obj_domainv[1].iov_base = (void*)datum;
+	  obj_domainv[1].iov_len = 4;
+	  state->fieldset.num = 2;
+  } else {
+	  domainv = fields2vec(state->env, datum, &state->fieldset);
+  }
 
   if (!domainv) {
     //fprintf(stderr, "Skipping datum\n");
@@ -60,10 +74,11 @@ static smacq_result uniq_init(struct smacq_init * context) {
   state->env = context->env;
 
   {
-	smacq_opt prob;
+	smacq_opt prob, obj;
 
   	struct smacq_optval optvals[] = {
     		{ "m", &prob}, 
+    		{ "o", &obj}, 
     		{NULL, NULL}
   	};
   	smacq_getoptsbyname(context->argc-1, context->argv+1,
@@ -71,6 +86,7 @@ static smacq_result uniq_init(struct smacq_init * context) {
 			       options, optvals);
 
 	state->prob = prob.double_t;
+	state->use_obj_id = obj.boolean_t;
   }
 
   // Consume rest of arguments as fieldnames
@@ -86,18 +102,13 @@ static smacq_result uniq_init(struct smacq_init * context) {
   return 0;
 }
 
-static smacq_result uniq_shutdown(struct state * state) {
-  return 0;
-}
-
 static smacq_result uniq_produce(struct state * state, const dts_object ** datum, int * outchan) {
   return SMACQ_ERROR;
 }
 
 /* Right now this serves mainly for type checking at compile time: */
 struct smacq_functions smacq_uniq_table = {
-  &uniq_produce, 
-  &uniq_consume,
-  &uniq_init,
-  &uniq_shutdown
+	produce: &uniq_produce, 
+	consume: &uniq_consume,
+	init: &uniq_init,
 };
