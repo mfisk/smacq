@@ -14,8 +14,10 @@ struct thread_args {
 };
 
 int main(int argc, char ** argv) {
+  struct filter * graph;
   dts_init();
-  smacq_execute_query(argc-1, argv+1);
-  return 0;
+  graph = smacq_build_query(argc-1, argv+1);
+  assert(graph);
+  return smacq_start(graph, RECURSIVE, NULL);
 }
 
