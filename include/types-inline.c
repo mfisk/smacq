@@ -22,7 +22,7 @@ static inline void dts_incref(const dts_object * d_const, int i) {
 }
 
 static inline void dts_fieldcache_flush(const dts_object * datum, dts_field_element fnum) {
-  dts_object * cached = darray_get((struct darray*)&datum->fields, fnum);
+  dts_object * cached = (dts_object*)darray_get((struct darray*)&datum->fields, fnum);
   dts_decref(cached); //Can't inline this (recursive)
   darray_set((struct darray*)&datum->fields, fnum, NULL);
   /*
@@ -89,7 +89,7 @@ static inline dts_field dts_field_next(dts_field field) {
 }
 
 static inline void dts_attach_field_single(const dts_object * d, dts_field_element field, const dts_object * field_data) {
-  const dts_object * old = darray_get( (struct darray *)&d->fields, field);
+  const dts_object * old = (const dts_object*)darray_get( (struct darray *)&d->fields, field);
   //fprintf(stderr, "Attaching %p to %p field %d\n", field_data, d, field);
   darray_set( (struct darray *)&d->fields, field, (dts_object*)field_data);
   if (old) dts_decref(old);
@@ -196,9 +196,9 @@ static inline int smacq_typenum_byname(smacq_environment * env, char * name) {
   return(env->types->typenum_byname(env->types, name));
 }
 
-static inline char * dts_fieldname_append(const char * old, const char * new) {
-  char * ret = malloc(strlen(old) + strlen(new) + 2);
-  sprintf(ret, "%s.%s", old, new);
+static inline char * dts_fieldname_append(const char * old, const char * newf) {
+  char * ret = (char*)malloc(strlen(old) + strlen(newf) + 2);
+  sprintf(ret, "%s.%s", old, newf);
   return ret;
 }
 
@@ -209,7 +209,7 @@ static inline int smacq_match(smacq_environment * env,
 }
 
 static inline struct dts_type * dts_type_bynum(dts_environment * tenv, int num) {
-  return darray_get(&tenv->types, num);
+  return (struct dts_type*)darray_get(&tenv->types, num);
 }
 
 static inline int dts_type_size(dts_environment * tenv, int type) {
@@ -221,7 +221,7 @@ static inline int dts_type_size(dts_environment * tenv, int type) {
 static inline const dts_object * dts_construct_fromstring(dts_environment * tenv, int type, void * data) {
   const dts_object * o = dts_alloc(tenv, 0, type);
   //dts_incref(o, 1);
-  if (tenv->fromstring(tenv, type, data, (dts_object*)o)) {
+  if (tenv->fromstring(tenv, type, (char*)data, (dts_object*)o)) {
     return o;
   } else {
     dts_decref(o);
