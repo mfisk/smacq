@@ -249,9 +249,25 @@ time stored in the record in the
 "\fBtimeval\fP".  The \fB-t\fP cannot 
 be used with records that do not have this field. 
  
+.SS "Filter" 
+.PP 
+\fBfilter\fP \fIfields[[<=>]value]\fP \&...  
+.PP 
+Filter out all objects in the stream that do not satisfy all 
+of the specified criteria.  This is the select (sigma) 
+operation from relational algebra. 
+ 
+.SS "Project" 
+.PP 
+\fBproject\fP \fIfields\fP \&...  
+.PP 
+Replace all objects in the input stream with new objects 
+containing only the specified fields.  This is the project (Pi) 
+operation from relational algebra. 
+ 
 .SS "Delta" 
 .PP 
-\fBdelta\fP\fIxfield\fP  
+\fBdelta\fP \fIxfield\fP  
 .PP 
 For each data object seen, compute the delta from the previous x field to this current xfield. 
 The data object is annotate with a "\fBdelta\fP" 
@@ -259,7 +275,7 @@ field of type "\fBdouble\fP" containing the result.  The x field must be convert
  
 .SS "Derivative" 
 .PP 
-\fBderivative\fP\fIyfield\fP \fIxfield\fP  
+\fBderivative\fP \fIyfield\fP \fIxfield\fP  
 .PP 
 For each data object seen, compute the derivative of the y field with respect to the x field 
 between this point and the last object seen.  The data object is annotate with a "\fBderivative\fP" 
@@ -371,4 +387,4 @@ records that pass this filter.
 .PP 
 \fBdts-types\fP(3), \fBsmacq-modules\fP(3), 
 \fBsmacq-embed\fP(3) 
-...\" created by instant / docbook-to-man, Sat 30 Nov 2002, 20:32 
+...\" created by instant / docbook-to-man, Mon 16 Dec 2002, 21:24 

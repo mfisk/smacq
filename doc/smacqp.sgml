@@ -12,7 +12,7 @@
       <firstname>Mike</firstname>
       <surname>Fisk</surname>
     </author>
-    <date>$Date: 2002/11/13 04:35:23 $</date>
+    <date>$Date: 2002/11/21 23:13:30 $</date>
   </refentryinfo>
   <refmeta>
     <refentrytitle>smacqp</refentrytitle>
@@ -309,10 +309,38 @@
     </refsect2>
 
     <refsect2>
+      <title>Filter</title>
+      <cmdsynopsis>
+	<command>filter</command>
+	<arg choice=req rep=repeat> <replaceable>fields[[<=>]value]</replaceable></arg>
+      </cmdsynopsis>
+
+      <para>
+        Filter out all objects in the stream that do not satisfy all
+        of the specified criteria.  This is the select (sigma)
+        operation from relational algebra.
+      </para>
+    </refsect2>
+
+    <refsect2>
+      <title>Project</title>
+      <cmdsynopsis>
+	<command>project</command>
+	<arg choice=req rep=repeat> <replaceable>fields</replaceable></arg>
+      </cmdsynopsis>
+
+      <para>
+        Replace all objects in the input stream with new objects
+        containing only the specified fields.  This is the project (Pi)
+        operation from relational algebra.
+      </para>
+    </refsect2>
+
+    <refsect2>
       <title>Delta</title>
       <cmdsynopsis>
 	<command>delta</command>
-	<arg choice=req><replaceable>xfield</replaceable></arg>
+	<arg choice=req> <replaceable>xfield</replaceable></arg>
       </cmdsynopsis>
 
       <para>
@@ -326,7 +354,7 @@
       <title>Derivative</title>
       <cmdsynopsis>
 	<command>derivative</command>
-	<arg choice=req><replaceable>yfield</replaceable></arg>
+	<arg choice=req> <replaceable>yfield</replaceable></arg>
 	<arg choice=req><replaceable>xfield</replaceable></arg>
       </cmdsynopsis>
 
