@@ -144,16 +144,11 @@ class SmacqModule {
   /// SMACQ_FREE if it is.  In addition, the return code can be OR'd
   /// with the following flags: SMACQ_ERROR specifies that there was a
   /// fatel error in the module.  SMACQ_END signifies that the module
-  /// wishes to never be called again.  SMACQ_PRODUCE signals that the
-  /// object's produce() method should be called to return new data.
-  /// SMACQ_CANPRODUCE signals that the produce() may be called to
-  /// return new data.  
+  /// wishes to never be called again.  
   virtual smacq_result consume(DtsObject datum, int & outchan);
   
   /// The produce() method is called when SMACQ expects an object to
-  /// produce new data.  If a subclass does not implement a produce()
-  /// method, the default implementation will return any objects that
-  /// have been registered for output with enqueue().
+  /// produce new data. 
   virtual smacq_result produce(DtsObject & datump, int & outchan);
   
  protected:
