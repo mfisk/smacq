@@ -30,7 +30,10 @@ static smacq_result tabularinput_produce(struct state* state, const dts_object *
   char * startp, * stopp, * endp, * badp, line[MAX_STR];
   const dts_object * msgdata;
   char * result;
-  const dts_object * datum = smacq_alloc(state->env, 0, state->empty_type);
+  const dts_object * datum;
+  assert(state);
+  
+  datum = smacq_alloc(state->env, 0, state->empty_type);
   dts_incref(datum, 1);
 
   result = fgets(line, MAX_STR, state->fh);
@@ -134,7 +137,7 @@ static int tabularinput_init(struct smacq_init * context) {
   }
 
   state->fields = argc;
-  state->field_name = calloc(argc, sizeof(int));
+  state->field_name = calloc(argc, sizeof(dts_field));
   state->field_type = calloc(argc, sizeof(int));
   
   for (i = 0; i < argc; i++) {
@@ -169,9 +172,9 @@ static int tabularinput_init(struct smacq_init * context) {
 
 /* Right now this serves mainly for type checking at compile time: */
 struct smacq_functions smacq_tabularinput_table = {
-  &tabularinput_produce, 
-  &tabularinput_consume,
-  &tabularinput_init,
-  &tabularinput_shutdown
+	produce: &tabularinput_produce, 
+	consume: &tabularinput_consume,
+	init: &tabularinput_init,
+	shutdown: &tabularinput_shutdown
 };
 
