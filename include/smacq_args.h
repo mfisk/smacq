@@ -5,17 +5,19 @@
 #include <glib.h>
 #include "smacq.h"
 
-typedef union { 
+union _smacq_opt { 
   char * string_t;
   int int_t;
   double double_t;
   unsigned int uint_t;
-  uint32_t uint32_t;
+  unsigned long uint32_t;
   unsigned short ushort_t;
   unsigned short ubyte_t;
   struct timeval timeval_t;
   char boolean_t;
-} smacq_opt;
+};
+
+typedef union _smacq_opt smacq_opt;
 
 struct smacq_optval {
   char * name;
@@ -35,10 +37,13 @@ struct smacq_options {
   int flags;
 };
 
-EXTERN int smacq_getoptsbyname(int argc, char ** argv, 
+BEGIN_C_DECLS
+
+int smacq_getoptsbyname(int argc, char ** argv, 
 			      int * , char***, 
 			      struct smacq_options *, 
 			      struct smacq_optval *);
 
+END_C_DECLS
 
 #endif
