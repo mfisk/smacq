@@ -299,7 +299,7 @@ void * bytes_hash_table_setv_get(struct iovec_hash * ht, struct iovec * keys, in
 /* Return previous value, or NULL on failure */
 void * bytes_hash_table_setv(struct iovec_hash * ht, struct iovec * keys, int count, void * value) {
 	struct element * ignore;
-	return bytes_hash_table_setv(ht, keys, count, value, &ignore);
+	return bytes_hash_table_setv_get(ht, keys, count, value, &ignore);
 }
 
 int bytes_hash_table_incrementv(struct iovec_hash * ht, struct iovec * keys, int count) {

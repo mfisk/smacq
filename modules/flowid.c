@@ -41,7 +41,7 @@ struct srcstat {
   const dts_object ** fields;
   struct timeval wheel_key;
 
-  struct entry * hash_entry;
+  struct element * hash_entry;
 };
 
 struct wheel {
@@ -161,13 +161,9 @@ static inline int output(struct state * state, struct srcstat * s) {
 }
 
 static inline int expired(struct state * state, struct iovec * domainv, struct srcstat * s) {
-  int i;
-
   if (!state->hasinterval) return 0;
 
   if (!timeval_past(s->lasttime, state->edge)) {
-    int do_free = 0;
-
     output(state, s);
 
     if (domainv) {
@@ -178,9 +174,7 @@ static inline int expired(struct state * state, struct iovec * domainv, struct s
     /* Don't have to decref fields, since their refcount will be picked up from being attached in the output routine */
     free(s->fields);
 
-    if (!bytes_hash_table_remove_element(state->stats, state->hash_entry)) {
- 		// assert(0);
-    }
+    bytes_hash_table_remove_element(state->stats, s->hash_entry);
 
     return 1;
   }
