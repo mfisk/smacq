@@ -24,7 +24,7 @@ else in that chain.
 #define FOREACH_CHILD(x, y)						\
   for (unsigned int i = 0; i < (x)->children.size(); i ++)		\
     for (unsigned int j = 0; j < (x)->children[i].size(); j ++) {	\
-      SmacqGraph *& child = (x)->children[i][j];			\
+      SmacqGraph * child = (x)->children[i][j];			\
       y;								\
     }
 
@@ -477,7 +477,7 @@ inline void SmacqGraph::replace(SmacqGraph * g) {
 inline SmacqGraph * SmacqGraph::get_invariants_over_field(DTS * dts, SmacqScheduler * sched, DtsField & field) {
   SmacqGraph * more;
   if (!algebra.stateless) {
-    fprintf(stderr, "%s is not stateless, so stopping invariant search\n", argv[0]);
+    //fprintf(stderr, "%s is not stateless, so stopping invariant search\n", argv[0]);
     return NULL;
   }
 
@@ -495,7 +495,7 @@ inline SmacqGraph * SmacqGraph::get_invariants_over_field(DTS * dts, SmacqSchedu
     if (more) result->add_child(more);
     return result;
   } else {
-    fprintf(stderr, "%s uses other field, can't optimize\n", argv[0]);
+    //fprintf(stderr, "%s uses other field, can't optimize\n", argv[0]);
     return more;
   }
 }
