@@ -11,7 +11,7 @@ struct qel {
   smacq_graph * f;
   const dts_object * d;
   struct qel * next;
-#ifndef SMACQ_OPT_RUNRING
+#ifdef SMACQ_OPT_RUNRING
   struct qel * prev;
 #endif
 };
