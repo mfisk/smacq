@@ -6,7 +6,7 @@
 
 #define MINSIZE 100
 
-#ifdef SMACQ_DEBUG
+#ifdef SMACQ_DEBUG_MEM
 #define SDEBUG(x) x
 #else
 #define SDEBUG(x)

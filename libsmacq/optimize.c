@@ -1,7 +1,5 @@
 #include <smacq.h>
 
-#define SMACQ_DEBUG
-
 struct list {
   smacq_graph * g;
   smacq_graph * parent;
