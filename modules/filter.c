@@ -33,6 +33,8 @@ static smacq_result filter_consume(struct state * state, const dts_object * datu
     same_types = 1;
   }
 
+  state->type = dts_gettype(datum);
+
   if (smacq_match(state->env, datum, state->comp, same_types)) 
     return SMACQ_PASS;
   else
