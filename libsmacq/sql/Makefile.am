@@ -1,7 +1,7 @@
 FLEXFLAGS = -Pyysmacql_
 noinst_LTLIBRARIES = libsql.la
 INCLUDES = @GLOBAL_INCLUDES@ -I$(top_srcdir)/include
-BUILT_SOURCES = 	scanner.c parser.c
+BUILT_SOURCES = 	scanner.c parser.c parser.y
 libsql_la_SOURCES =	scanner.l parser.y
 
 SUFFIXES = .y .ym
