@@ -8,7 +8,7 @@
 #include <string.h>
 #include <smacq-internal.h>
 
-char ** parse_stmt(int, char **, int *);
+struct filter * parse_stmt(int, char **);
 
 struct thread_args {
   struct filter * f;
@@ -17,14 +17,11 @@ struct thread_args {
 
 int main(int argc, char ** argv) {
   struct filter * objs;
-  int new_argc;
-  char ** new_argv;
 
   assert(argc > 1);
 
   if (strcmp(argv[1], "-s") == 0) {
-    new_argv = parse_stmt(argc-1, argv+1, &new_argc);
-    objs = smacq_build_pipeline(new_argc, new_argv);
+    objs = parse_stmt(argc-1, argv+1);
   }
   else {
     objs = smacq_build_pipeline(argc-1, argv+1);
