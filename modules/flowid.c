@@ -147,10 +147,14 @@ int expired(struct state * state, struct iovec * domainv, struct srcstat * s) {
 
       for (i = 0; i<state->fieldset.num; i++) {
 	dts_attach_field(refresh, state->fieldset.fields[i].num, s->fields[i]);
+	dts_incref(s->fields[i], 1);
       }
 
       msgdata = flow_dts_construct(state->env, state->timeval_type, &s->lasttime);
       dts_attach_field(refresh, state->finish_field, msgdata);
+
+      dts_attach_field(refresh, state->ts_field, msgdata);
+      dts_incref(msgdata, 1);
   
       attach_stats(state, s, refresh);
     }
