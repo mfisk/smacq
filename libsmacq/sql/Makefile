@@ -13,14 +13,15 @@ INCLUDES = -I. -I../../include \
 OBJS = scan.lo gram.lo transform.lo\
   keywords.lo scansup.lo list.lo nodes.lo equalfuncs.lo datum.lo copyfuncs.lo
 
-CFLAGS = -ggdb -Wall -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include $(INCLUDES) -DFRONTEND
+CFLAGS = -ggdb -Wall -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include $(INCLUDES) -DFRONTEND # -DSM_DEBUG
 
 LIBS = -lgmodule-2.0 -lglib-2.0 -lz -lcrypt -lresolv -lnsl -ldl -lm
 
 all: libsql.la
 
 gram.c:	gram.y scan.l
-	-bison -t -y -d $< -o $@
+#	-bison -t -y -d $< -o $@
+	-bison -y -d $< -o $@
 
 gram.lo: gram.c
 	$(LIBTOOL) $(CC) -c $(CFLAGS) $<

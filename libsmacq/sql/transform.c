@@ -29,13 +29,12 @@ void scanner_init();
 char * parseString;
 List * parsetree;
 
+#ifdef SM_DEBUG
 int yydebug = 1;
+#endif
 
 struct filter * transformStmt(List *);
 int transformSelectStmt(SelectStmt *);
-
-//#undef DEBUG
-
 
 char * cmd_array[30]; // TBD
 int curr_idx;
@@ -97,13 +96,13 @@ bool is_annotation_function(char * fn, int * idx)
   int i;
   char * name;
 
-#ifdef DEBUG
+#ifdef SM_DEBUG
   fprintf(stderr, "is_annotation_function(): looking for func '%s'\n", fn);
 #endif
   for (i=0; name != NULL; i++) {
     name = annot_funcs[i].name;
 	if (strcmp(fn, name) == 0) {
-#ifdef DEBUG
+#ifdef SM_DEBUG
       fprintf(stderr, "is_annotation_function(): found func '%s'\n", fn);
 #endif
       *idx = i;
@@ -121,7 +120,7 @@ char * create_annotation_variable(int i)
   annot_funcs[i].var_names[ivar] = malloc(strlen(annot_funcs[i].name) + 2);
   sprintf(annot_funcs[i].var_names[ivar], "%s%i", annot_funcs[i].name, ivar+1);
   annot_funcs[i].num++;
-#ifdef DEBUG
+#ifdef SM_DEBUG
   fprintf(stderr, "create_annotation_variable(): annot_funcs[%i].var_names[%i] = %s\n", i, ivar, annot_funcs[i].var_names[ivar]);
 #endif
   return annot_funcs[i].var_names[ivar];
@@ -132,7 +131,7 @@ list * make_list(char * name)
   list * l = malloc(sizeof(list));
   l->list_name = malloc(strlen(name));
   sprintf(l->list_name, name);
-#ifdef DEBUG
+#ifdef SM_DEBUG
   fprintf(stderr, "make_list: Creating new list '%s' at %p\n", l->list_name, l);
 #endif
   l->num_items = 0;
@@ -146,7 +145,7 @@ list_list * make_list_list(char * name)
   list_list * l = malloc(sizeof(list_list));
   l->list_name = malloc(strlen(name));
   sprintf(l->list_name, name);
-#ifdef DEBUG
+#ifdef SM_DEBUG
   fprintf(stderr, "make_list_list: Creating new list_list '%s' at %p\n", l->list_name, l);
 #endif
   l->num_items = 0;
@@ -166,7 +165,7 @@ list_item * make_list_item(char * name)
 
 void d2_list_enqueue(list * l, list_item * new) 
 {
-#ifdef DEBUG
+#ifdef SM_DEBUG
   fprintf(stderr, "ENQUEING '%s' w/ addr %p, onto list '%s' w/ addr %p, w/ %d items beforehand.\n", new->str_name, new, l->list_name, l, l->num_items);
 #endif
 
@@ -185,7 +184,7 @@ void d2_list_enqueue(list * l, list_item * new)
 
 void d2_list_list_enqueue(list_list * l, list * new) 
 {
-#ifdef DEBUG
+#ifdef SM_DEBUG
   fprintf(stderr, "ENQUEING '%s' w/ addr %p, onto list_list '%s' w/ addr %p, w/ %d items beforehand.\n", new->list_name, new, l->list_name, l, l->num_items);
 #endif
 
@@ -216,7 +215,7 @@ list_item * d2_list_dequeue(list * l, int end)
       curr = l->head;
       l->head = l->head->next;
       l->num_items--;
-#ifdef DEBUG
+#ifdef SM_DEBUG
       fprintf(stderr, "DEQUEING HEAD '%s' w/ addr %p from list '%s' w/ addr %p, w/ num_items after = %d\n", curr->str_name, curr, l->list_name, l, l->num_items);
 #endif
       return(curr);
@@ -229,7 +228,7 @@ list_item * d2_list_dequeue(list * l, int end)
 	  curr = l->tail;
 	  l->tail = l->tail->prev;
       l->num_items--;
-#ifdef DEBUG
+#ifdef SM_DEBUG
       fprintf(stderr, "DEQUEING TAIL '%s' w/ addr %p from list '%s' w/ addr %p, w/ num_items after = %d\n", curr->str_name, curr, l->list_name, l, l->num_items);
 #endif
       return(curr);
@@ -249,7 +248,7 @@ list * d2_list_list_dequeue(list_list * l, int end)
       curr = l->head;
       l->head = l->head->next;
       l->num_items--;
-#ifdef DEBUG
+#ifdef SM_DEBUG
       fprintf(stderr, "DEQUEING HEAD '%s' w/ addr %p from list_list '%s' w/ addr %p, w/ num_items after = %d\n", curr->list_name, curr, l->list_name, l, l->num_items);
 #endif
       return(curr);
@@ -262,7 +261,7 @@ list * d2_list_list_dequeue(list_list * l, int end)
 	  curr = l->tail;
 	  l->tail = l->tail->prev;
       l->num_items--;
-#ifdef DEBUG
+#ifdef SM_DEBUG
       fprintf(stderr, "DEQUEING TAIL '%s' w/ addr %p from list_list '%s' w/ addr %p, w/ num_items after = %d\n", curr->list_name, curr, l->list_name, l, l->num_items);
 #endif
       return(curr);
@@ -275,7 +274,7 @@ list * d2_list_list_dequeue(list_list * l, int end)
 
 void dump_array()
 {
-#ifdef DEBUG
+#ifdef SM_DEBUG
   int i;
 
   fprintf(stderr, "dump_array:\n");
@@ -287,7 +286,7 @@ void dump_array()
 
 void dump_final_array()
 {
-#ifdef DEBUG
+#ifdef SM_DEBUG
   int i;
 
   fprintf(stderr, "dump_final_array:\n");
@@ -301,7 +300,7 @@ void append_array(char * s)
 {
   cmd_array[curr_idx] = malloc(1 + strlen(s));
   strcpy(cmd_array[curr_idx], s);
-#ifdef DEBUG
+#ifdef SM_DEBUG
   fprintf(stderr, "append_array: array[%d] = '%s'\n", curr_idx, cmd_array[curr_idx]);
 #endif
   curr_idx++;
@@ -311,7 +310,7 @@ void append_from_array(char * s)
 {
   from_array[curr_from_idx] = malloc(1 + strlen(s));
   strcpy(from_array[curr_from_idx], s);
-#ifdef DEBUG
+#ifdef SM_DEBUG
   fprintf(stderr, "append_from_array: array[%d] = '%s'\n", curr_from_idx, from_array[curr_from_idx]);
 #endif
   curr_from_idx++;
@@ -321,7 +320,7 @@ void append_print_array(char * s)
 {
   print_array[curr_print_idx] = malloc(1 + strlen(s));
   strcpy(print_array[curr_print_idx], s);
-#ifdef DEBUG
+#ifdef SM_DEBUG
   fprintf(stderr, "append_print_array: array[%d] = '%s'\n", curr_print_idx, print_array[curr_print_idx]);
 #endif
   curr_print_idx++;
@@ -331,7 +330,7 @@ void append_non_annot_array(char * s)
 {
   non_annot_array[curr_non_annot_idx] = malloc(1 + strlen(s));
   strcpy(non_annot_array[curr_non_annot_idx], s);
-#ifdef DEBUG
+#ifdef SM_DEBUG
   fprintf(stderr, "append_non_annot_array: array[%d] = '%s'\n", curr_non_annot_idx, non_annot_array[curr_non_annot_idx]);
 #endif
   curr_non_annot_idx++;
@@ -341,7 +340,7 @@ void append_final_array(char * s)
 {
   final_array[curr_final_idx] = malloc(1 + strlen(s));
   strcpy(final_array[curr_final_idx], s);
-#ifdef DEBUG
+#ifdef SM_DEBUG
   fprintf(stderr, "append_final_array: array[%d] = '%s'\n", curr_final_idx, final_array[curr_final_idx]);
 #endif
   curr_final_idx++;
@@ -376,12 +375,12 @@ Node * transformExpr(Node *expr, list * func_list, int clause_type)
   if (expr == NULL)
     return NULL;
 
-#ifdef DEBUG
+#ifdef SM_DEBUG
   fprintf(stderr, "NodeTag in transformExpr = %d\n", nodeTag(expr));
 #endif
   switch (nodeTag(expr)) {
     case T_Attr: {
-#ifdef DEBUG
+#ifdef SM_DEBUG
       fprintf(stderr, "Found Attr in Expr: \n");
 #endif
       break;
@@ -389,7 +388,7 @@ Node * transformExpr(Node *expr, list * func_list, int clause_type)
     case T_A_Const: {
       A_Const * c = (A_Const *) expr;
       char * str = c->val.val.str; // eg. '128.165.13.27'
-#ifdef DEBUG
+#ifdef SM_DEBUG
       fprintf(stderr, "Found A_Const in Expr: %s\n", str);
 #endif
 
@@ -400,13 +399,13 @@ Node * transformExpr(Node *expr, list * func_list, int clause_type)
     case T_A_Expr: {
       A_Expr * a = (A_Expr *) expr;
 	  Node * lexpr, * rexpr;
-#ifdef DEBUG
+#ifdef SM_DEBUG
       fprintf(stderr, "a->oper in transformExpr =   %d\n", a->oper);
       fprintf(stderr, "a->opname in transformExpr = %s \n", a->opname);
 #endif
       switch (a->oper) {
         case OP: {
-#ifdef DEBUG
+#ifdef SM_DEBUG
           fprintf(stderr, "Found A_Expr, OP in Expr: %s \n", a->opname);
 #endif
 		  lexpr = transformExpr(a->lexpr, func_list, clause_type);
@@ -418,7 +417,7 @@ Node * transformExpr(Node *expr, list * func_list, int clause_type)
 		  break;
         }
 		case T_Ident: {
-#ifdef DEBUG
+#ifdef SM_DEBUG
           Ident * id = (Ident *) expr;
           fprintf(stderr, "Found Ident in A_Expr: %s\n", id->name);
 #endif
@@ -438,7 +437,7 @@ Node * transformExpr(Node *expr, list * func_list, int clause_type)
 	  list_item * ali; // for printf, remove later
 	  list * arg_list;
 
-#ifdef DEBUG
+#ifdef SM_DEBUG
       fprintf(stderr,"Found FuncCall in Expr: %s\n", funcname);
 #endif
 
@@ -458,7 +457,7 @@ Node * transformExpr(Node *expr, list * func_list, int clause_type)
 
       foreach(al, fc->args) {
         Node * arg = lfirst(al);
-#ifdef DEBUG
+#ifdef SM_DEBUG
 		fprintf(stderr, "Found node type %d in FuncCall in transformExpr\n", arg->type);
 #endif
         if (IsA(arg, Ident)) {
@@ -466,7 +465,7 @@ Node * transformExpr(Node *expr, list * func_list, int clause_type)
 		  char * name = id->name;
 		  list_item * ali = make_list_item(name);
 
-#ifdef DEBUG
+#ifdef SM_DEBUG
           fprintf(stderr, "Found Ident arg in FuncCall: %s\n", name);
 #endif
 
@@ -477,14 +476,14 @@ Node * transformExpr(Node *expr, list * func_list, int clause_type)
 		  char * str = s->val.val.str;
 		  list_item * ali = make_list_item(str);
 
-#ifdef DEBUG
+#ifdef SM_DEBUG
           fprintf(stderr, "Found A_Const arg in FuncCall: %s\n", str);
 #endif
 
 		  d2_list_enqueue(arg_list, ali);
 		}
 		else if (IsA(arg, FuncCall)) {
-#ifdef DEBUG
+#ifdef SM_DEBUG
           fprintf(stderr, "Found FuncCall arg in FuncCall:\n");
           fprintf(stderr,"  Calling transformExpr...\n");
 #endif
@@ -492,7 +491,7 @@ Node * transformExpr(Node *expr, list * func_list, int clause_type)
 		  transformExpr(arg, func_list, clause_type);
 		}
 		else {
-#ifdef DEBUG
+#ifdef SM_DEBUG
           fprintf(stderr, "Found UNKNOWN arg type in FuncCall in transformExpr:\n");
 #endif
 		  //break; //TBD
@@ -507,12 +506,12 @@ Node * transformExpr(Node *expr, list * func_list, int clause_type)
 	  list * tail_list = (list *)(tail_item->arg_list);
 	  list_item * head_item = tail_list->head;
 
-#ifdef DEBUG
+#ifdef SM_DEBUG
 	  fprintf(stderr, "INNER ARG = %s\n", head_item->str_name);
 #endif
 
       for (ali = func_list->head; ali != func_list->tail; ali = ali->next) {
-#ifdef DEBUG
+#ifdef SM_DEBUG
 	    fprintf(stderr, "ARG FOR %s = '%s'\n", li->str_name, ali->str_name);
 	    fprintf(stderr, "LI = %p, func_list->tail = %p\n", li, func_list->tail);
 #endif
@@ -524,7 +523,7 @@ Node * transformExpr(Node *expr, list * func_list, int clause_type)
     }
     case T_Ident: {
       Ident * id = (Ident *) expr;
-#ifdef DEBUG
+#ifdef SM_DEBUG
       fprintf(stderr, "Found Ident in Expr: %s\n", id->name);
 #endif
 
@@ -554,7 +553,7 @@ int transformTargetList(SelectStmt * stmt, list * func_list)
   bool isSelect = strcmp(stmt->functionname, "select") == 0;
   char * fn = stmt->functionname;
 
-#ifdef DEBUG
+#ifdef SM_DEBUG
   fprintf(stderr, "Found Target List: stmt->functionname = %s\n", fn);
 #endif
 
@@ -572,12 +571,12 @@ int transformTargetList(SelectStmt * stmt, list * func_list)
     if (IsA(res->val, FuncCall)) {
       FuncCall * fc = (FuncCall *)res->val;
 
-#ifdef DEBUG
+#ifdef SM_DEBUG
   fprintf(stderr, "CALLING append_array('|') from transformTargetList()\n");
 #endif
       if (curr_idx > 0) append_array("|");
 
-#ifdef DEBUG
+#ifdef SM_DEBUG
       fprintf(stderr,"Found FuncCall in target list: %s\n", fc->funcname);
       fprintf(stderr,"  Calling transformExpr...\n");
 #endif
@@ -586,19 +585,19 @@ int transformTargetList(SelectStmt * stmt, list * func_list)
 
       // now unwind the stack, adding 'arg' to each module call
 	  //
-#ifdef DEBUG
+#ifdef SM_DEBUG
       fprintf(stderr,"TargetList DEQUEUE LOOP...func_list->num_items = %i\n", func_list->num_items);
 #endif
 
       while ((li = d2_list_dequeue(func_list, FROM_TAIL)) != NULL) {
-#ifdef DEBUG
+#ifdef SM_DEBUG
         fprintf(stderr,"TargetList DEQUEUE LOOP...\n");
 #endif
         // eg. 'counter'
         append_array(li->str_name);
 		arg_list = (list *)li->arg_list;
 
-#ifdef DEBUG
+#ifdef SM_DEBUG
 	    fprintf(stderr, "*** TargetList arg_list for li %p = %p\n", li, arg_list);
 #endif
 		// eg. 'dstip' or '-f cnt dstip'
@@ -609,14 +608,14 @@ int transformTargetList(SelectStmt * stmt, list * func_list)
           while ((ali = d2_list_dequeue(arg_list, FROM_HEAD)) != NULL) {
 			int func_idx;
 			char * annot_var;
-#ifdef DEBUG
+#ifdef SM_DEBUG
 		    fprintf(stderr, "arg for %s = '%s'\n", li->str_name, ali->str_name);
 #endif
 			// build 'print' list (eg. 'print srcip dstport cnt dstip counter')
 			//
 			if (is_annotation_function(li->str_name, &func_idx)) {
               if (isPrint) {
-                append_print_array(ali->str_name); // ??
+                append_print_array(ali->str_name);
 			    pli = make_list_item(annot_funcs[func_idx].name);
 			    d2_list_enqueue(print_list, pli);
 			  }
@@ -643,9 +642,8 @@ int transformTargetList(SelectStmt * stmt, list * func_list)
                   append_non_annot_array(annot_var);
                 }
 				else {
-                  append_non_annot_array(li->str_name); // ??
+                  append_non_annot_array(li->str_name);
 				}
-                //append_non_annot_array(ali->str_name);
 			  }
 			}
 			else {
@@ -654,7 +652,7 @@ int transformTargetList(SelectStmt * stmt, list * func_list)
 		  }
 
           if (func_list->num_items > 0) {
-#ifdef DEBUG
+#ifdef SM_DEBUG
             fprintf(stderr, "CALLING append_array('|') from transformTargetList()\n");
 #endif
             append_array("|");
@@ -665,7 +663,7 @@ int transformTargetList(SelectStmt * stmt, list * func_list)
     else if (IsA(res->val, Ident)) {
 	  list_item * pli;
       Ident * id = (Ident *) res->val;
-#ifdef DEBUG
+#ifdef SM_DEBUG
       fprintf(stderr, "Found Ident in target list: %s\n", id->name);
 #endif
 
@@ -690,7 +688,7 @@ int transformTargetList(SelectStmt * stmt, list * func_list)
 	append_array("|");
   }
 
-#ifdef DEBUG
+#ifdef SM_DEBUG
   // need this?
   if (isPrint) {
     fprintf(stderr, "PRINT LIST = ");
@@ -711,26 +709,26 @@ int transformFromClause(List * from_list, list * func_list)
   list_item * li;
   list * arg_list;
 
-#ifdef DEBUG
+#ifdef SM_DEBUG
   fprintf(stderr, "Found FROM clause: \n");
 #endif
 
   foreach(fl, from_list) {
     Node * n = lfirst(fl);
-#ifdef DEBUG
+#ifdef SM_DEBUG
 	fprintf(stderr, "Found node type %d in FROM\n", nodeTag(n));
 #endif
     if (IsA(n, RangeVar)) { // TBD - I don't think this will really happen!
       RangeVar * r = (RangeVar *)n;
       char * rel_name = r->relname; // "eg. tcpdumpfile"
-#ifdef DEBUG
+#ifdef SM_DEBUG
       fprintf(stderr, "Found RangeVar in FROM: %s\n", rel_name);
 #endif
       append_from_array(rel_name);
     }
 	else if (IsA(n, SubLink)) {
       SelectStmt * stmt = (SelectStmt *) (((SubLink *)n)->subselect);
-#ifdef DEBUG
+#ifdef SM_DEBUG
       fprintf(stderr, "***** Found SubLink in FROM: \n");
       fprintf(stderr,"  Calling transformSelectStmt w/ sub-select...\n");
 #endif
@@ -738,7 +736,7 @@ int transformFromClause(List * from_list, list * func_list)
 	}
 	else if (IsA(n, FuncCall)) {
 	  FuncCall * fc = (FuncCall *)n; // eg. pcapfile()
-#ifdef DEBUG
+#ifdef SM_DEBUG
       fprintf(stderr, "***** Found FuncCall in FROM: %s\n", fc->funcname);
       fprintf(stderr,"  Calling transformExpr...\n");
 #endif
@@ -748,19 +746,19 @@ int transformFromClause(List * from_list, list * func_list)
       // now unwind the stack, adding 'arg' to module calls
 	  //
       while ((li = d2_list_dequeue(func_list, FROM_TAIL)) != NULL) {
-#ifdef DEBUG
+#ifdef SM_DEBUG
         fprintf(stderr,"FromClause DEQUEUE LOOP: li = %s\n", li->str_name);
 #endif
         append_from_array(li->str_name);
 
 		arg_list = (list *)li->arg_list;
-#ifdef DEBUG
+#ifdef SM_DEBUG
 	    fprintf(stderr, "*** FromClause arg_list for li %p = %p\n", li, arg_list);
 #endif
 		if (arg_list) {
 		  list_item * ali;
           while ((ali = d2_list_dequeue(arg_list, FROM_HEAD)) != NULL) {
-#ifdef DEBUG
+#ifdef SM_DEBUG
 		    fprintf(stderr, "arg for %s = '%s'\n", li->str_name, ali->str_name);
 #endif
             append_from_array(ali->str_name);
@@ -782,7 +780,7 @@ int transformWhereClause(Node *where_clause, list * func_list)
   int rc = 0;
   Node * qual;
 
-#ifdef DEBUG
+#ifdef SM_DEBUG
   fprintf(stderr, "Found WHERE clause: \n");
 #endif
 
@@ -790,7 +788,7 @@ int transformWhereClause(Node *where_clause, list * func_list)
 
   qual = transformExpr(where_clause, func_list, WHERE_CLAUSE);
 
-#ifdef DEBUG
+#ifdef SM_DEBUG
   fprintf(stderr, "CALLING append_array('|') from transformWhereClause()\n");
 #endif
   append_array("|");
@@ -802,7 +800,7 @@ int transformGroupClause(List *group_list)
 {
   List * gl;
 
-#ifdef DEBUG
+#ifdef SM_DEBUG
   fprintf(stderr, "Found GROUP BY clause: \n");
 #endif
 
@@ -810,13 +808,13 @@ int transformGroupClause(List *group_list)
 
   foreach(gl, group_list) {
     Node * n = lfirst(gl);
-#ifdef DEBUG
+#ifdef SM_DEBUG
     fprintf(stderr, "Found GROUP BY: type = %d\n",nodeTag(n));
 #endif
     switch (nodeTag(n)) {
       case T_Ident: {
         Ident * id = (Ident *) n;
-#ifdef DEBUG
+#ifdef SM_DEBUG
         fprintf(stderr, "Found Expr in GROUP BY: %s\n", id->name);
 #endif
         append_array(id->name);
@@ -829,7 +827,7 @@ int transformGroupClause(List *group_list)
       }
     }
   }
-#ifdef DEBUG
+#ifdef SM_DEBUG
   fprintf(stderr, "CALLING append_array('|') from transformGroupClause()\n");
 #endif
   append_array("|");
@@ -842,7 +840,7 @@ int transformSelectStmt(SelectStmt * stmt)
   list * func_list;
   char * lname = malloc(sizeof("func_list") + 2);
 
-#ifdef DEBUG
+#ifdef SM_DEBUG
   fprintf(stderr, "Found Select Statement: stmt->functionname = %s\n", stmt->functionname);
 #endif
 
@@ -853,7 +851,7 @@ int transformSelectStmt(SelectStmt * stmt)
     fprintf(stderr, "NULL targetList!\n");
     return -1;
   }
-#ifdef DEBUG
+#ifdef SM_DEBUG
   fprintf(stderr, "Calling transformTargetList...\n");
 #endif
   rc = transformTargetList(stmt, func_list);
@@ -866,7 +864,7 @@ int transformSelectStmt(SelectStmt * stmt)
     fprintf(stderr, "NULL fromClause!\n");
     return -1;
   }
-#ifdef DEBUG
+#ifdef SM_DEBUG
   fprintf(stderr, "Calling transformFromClause...\n");
 #endif
   rc = transformFromClause(stmt->fromClause, func_list);
@@ -876,12 +874,12 @@ int transformSelectStmt(SelectStmt * stmt)
   }
 
   if (stmt->groupClause == NULL) {
-#ifdef DEBUG
+#ifdef SM_DEBUG
     fprintf(stderr, "NULL groupClause!\n");
 #endif
   } 
   else {
-#ifdef DEBUG
+#ifdef SM_DEBUG
     fprintf(stderr, "Calling transformGroupClause...\n");
 #endif
     rc = transformGroupClause(stmt->groupClause);
@@ -892,12 +890,12 @@ int transformSelectStmt(SelectStmt * stmt)
   }
 
   if (stmt->whereClause == NULL) {
-#ifdef DEBUG
+#ifdef SM_DEBUG
     fprintf(stderr, "NULL whereClause!\n");
 #endif
   }
   else {
-#ifdef DEBUG
+#ifdef SM_DEBUG
     fprintf(stderr, "Calling transformWhereClause...\n");
 #endif
     rc = transformWhereClause(stmt->whereClause, func_list);
@@ -944,32 +942,31 @@ struct filter * transformStmt(List * ptree)
   int i;
   int j;
   int na;
-  int k;
   char ** arrayp = cmd_array;
 
   for (i = 0; i < curr_from_idx; i++) {
-#ifdef DEBUG
+#ifdef SM_DEBUG
 	fprintf(stderr, "from_array: i = %d, val = %s\n", i, from_array[i]);
 #endif
 	append_final_array(from_array[i]);
   }
 
   for (i = 0; i < curr_idx; i++) {
-#ifdef DEBUG
+#ifdef SM_DEBUG
 	fprintf(stderr, "cmd_array: i = %d, val = %s\n", i, cmd_array[i]);
 #endif
 	append_final_array(cmd_array[i]);
   }
 
   for (i = 0; i < curr_non_annot_idx; i++) {
-#ifdef DEBUG
+#ifdef SM_DEBUG
 	fprintf(stderr, "non_annot_array: i = %d, val = %s\n", i, non_annot_array[i]);
 #endif
 	append_final_array(non_annot_array[i]);
   }
 
   for (i = 0; i < curr_print_idx; i++) {
-#ifdef DEBUG
+#ifdef SM_DEBUG
 	fprintf(stderr, "print_array: i = %d, val = %s\n", i, print_array[i]);
 #endif
 	append_final_array(print_array[i]);
@@ -978,7 +975,7 @@ struct filter * transformStmt(List * ptree)
   dump_array();
   dump_final_array();
 
-#ifdef DEBUG
+#ifdef SM_DEBUG
   fprintf(stderr, "-- adding child %s with %d args\n", from_array[0], curr_from_idx);
 #endif
 
@@ -988,11 +985,12 @@ struct filter * transformStmt(List * ptree)
   j = 0; na = 0;
   for (i = 0; i < curr_idx; i++) {
 	j++; na++;
-#ifdef DEBUG
+#ifdef SM_DEBUG
     fprintf(stderr, "i = %i, j = %i, na = %i, cmd_array[j-1] = %s\n", i, j, na, cmd_array[j-1]);
 #endif
 	if (strcmp(cmd_array[j-1], "|") == 0) {
-#ifdef DEBUG
+#ifdef SM_DEBUG
+      int k;
       fprintf(stderr, "-- adding child %s with %d args\n", *arrayp, na-1);
 	  for (k=0; k<na-1; k++) {
 		fprintf(stderr, "-- arrayp[%i] = %s\n", k, arrayp[k]);
@@ -1004,7 +1002,7 @@ struct filter * transformStmt(List * ptree)
 	  na = 0;
 	}
   }
-#ifdef DEBUG
+#ifdef SM_DEBUG
   fprintf(stderr, "-- adding child %s with %d args\n", print_array[0], curr_print_idx);
 #endif
 
@@ -1034,7 +1032,9 @@ struct filter * parse_stmt(int argc, char ** argv)
   struct filter * last = NULL;
 
   while (argc > 0) {
+#ifdef SM_DEBUG
 	fprintf(stderr, "ARGV = %s\n", *argv);
+#endif
     sprintf(sqlcmd, "%s ", *argv);
 	argc--, argv++;
   }
@@ -1049,8 +1049,10 @@ struct filter * parse_stmt(int argc, char ** argv)
   //
   yyresult = yyparse();
 
+#ifdef SM_DEBUG
   fprintf(stderr, "\nyyresult = %d\n", yyresult);
   fprintf(stderr, "parsetree = %p\n", parsetree);
+#endif
 
   last = transformStmt(parsetree);
 

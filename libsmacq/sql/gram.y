@@ -1,6 +1,8 @@
 %{
 
+#ifdef SM_DEBUG
 #define YYDEBUG 1
+#endif
 /*-------------------------------------------------------------------------
  *
  * gram.y
@@ -11,7 +13,7 @@
  *
  *
  * IDENTIFICATION
- *	  $Header: /home/cvs/flow/libsmacq/sql/gram.y,v 1.1 2002/10/30 17:39:26 wbarber Exp $
+ *	  $Header: /cvsroot/smacq/smacq/libsmacq/sql/gram.y,v 1.2 2002/12/10 22:34:47 wbarber Exp $
  *
  * HISTORY
  *	  AUTHOR			DATE			MAJOR EVENT
@@ -237,7 +239,7 @@ static Node *makeSetOp(SetOperation op, bool all, Node *larg, Node *rarg);
 stmtblock:  stmtmulti
 				{ 
 				  parsetree = $1;
-				  fprintf(stderr, "stmtblock: parsetree = %p\n", parsetree);
+				  //fprintf(stderr, "stmtblock: parsetree = %p\n", parsetree); // wbarber
 				}
 		;
 
@@ -476,7 +478,7 @@ data_func:
 					FuncCall *n = makeNode(FuncCall);
 					List * al;
 					A_Const * c = (A_Const *)makeStringConst($3, NULL);
-					fprintf(stderr, "table_ref: func_name '(' SCONST ')'\n");
+					//fprintf(stderr, "table_ref: func_name '(' SCONST ')'\n"); // wbarber
 					al = makeList1(c);
 					n->funcname = $1;
 					n->args = al;

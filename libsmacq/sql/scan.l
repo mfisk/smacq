@@ -9,7 +9,7 @@
  *
  *
  * IDENTIFICATION
- *	  $Header: /home/cvs/flow/libsmacq/sql/scan.l,v 1.1 2002/10/30 17:39:26 wbarber Exp $
+ *	  $Header: /cvsroot/smacq/smacq/libsmacq/sql/scan.l,v 1.1.1.1 2002/10/31 01:01:00 mfisk Exp $
  *
  *-------------------------------------------------------------------------
  */
@@ -350,7 +350,7 @@ other			.
 					startlit();
 				}
 <xq>{xqstop}	{
-                    fprintf(stderr, "{xqstop}: = %s\n", yytext); //wbarber
+                    //fprintf(stderr, "{xqstop}: = %s\n", yytext); //wbarber
 					BEGIN(INITIAL);
 					yylval.str = scanstr(literalbuf);
 					return SCONST;
@@ -358,7 +358,7 @@ other			.
 <xq>{xqdouble}	|
 <xq>{xqinside}	|
 <xq>{xqliteral} {
-                    fprintf(stderr, "<xq>{xqliteral}:  = %s\n", yytext); //wbarber
+                    //fprintf(stderr, "<xq>{xqliteral}:  = %s\n", yytext); //wbarber
 					addlit(yytext, yyleng);
 				}
 <xq>{xqcat}		{
@@ -372,8 +372,8 @@ other			.
 					startlit();
 				}
 <xd>{xdstop}	{
-                    fprintf(stderr, "<xd>{xdstop}: = %s\n", yytext); //wbarber
-                    fprintf(stderr, "<xd>{xdstop}: = %s\n", yytext +2); //wbarber
+                    //fprintf(stderr, "<xd>{xdstop}: = %s\n", yytext); //wbarber
+                    //fprintf(stderr, "<xd>{xdstop}: = %s\n", yytext +2); //wbarber
 					BEGIN(INITIAL);
 					if (strlen(literalbuf) == 0)
 						fprintf(stderr, "zero-length delimited identifier");
@@ -417,7 +417,7 @@ other			.
 					char   *slashstar = strstr((char*)yytext, "/*");
 					char   *dashdash = strstr((char*)yytext, "--");
 
-                    fprintf(stderr, "{operator}: = %s\n", yytext); //wbarber
+                    //fprintf(stderr, "{operator}: = %s\n", yytext); //wbarber
 					if (slashstar && dashdash)
 					{
 						/* if both appear, take the first one */
@@ -516,11 +516,11 @@ other			.
 					ScanKeyword	   *keyword;
 					int				i;
 
-                    fprintf(stderr, "{identifier}: = %s\n", yytext); //wbarber
+                    //fprintf(stderr, "{identifier}: = %s\n", yytext); //wbarber
 					/* Is it a keyword? */
 					keyword = ScanKeywordLookup((char*) yytext);
 					if (keyword != NULL) { //wbarber
-                        fprintf(stderr, "{identifier}: keyword->name = %s, ->value = %d\n", keyword->name, keyword->value); //wbarber
+                        //fprintf(stderr, "{identifier}: keyword->name = %s, ->value = %d\n", keyword->name, keyword->value); //wbarber
 						return keyword->value;
                     }
 
@@ -552,12 +552,12 @@ other			.
 #endif
                     }
 					yylval.str = strdup((char*) yytext);
-                    fprintf(stderr, "{identifier}: yylval.str = %s\n", yylval.str); //wbarber
+                    //fprintf(stderr, "{identifier}: yylval.str = %s\n", yylval.str); //wbarber
 					return IDENT;
 				}
 
 {other}			{ 
-                    fprintf(stderr, "{other}: = %s\n", yytext); //wbarber
+                    //fprintf(stderr, "{other}: = %s\n", yytext); //wbarber
 					return yytext[0]; 
 				}
 
@@ -603,7 +603,7 @@ scanner_init(void)
 static void
 addlit(char *ytext, int yleng)
 {
-    fprintf(stderr, "addlit(): ytext = %s\n", ytext); //wbarber
+    //fprintf(stderr, "addlit(): ytext = %s\n", ytext); //wbarber
 	/* enlarge buffer if needed */
 	if ((literallen+yleng) >= literalalloc)
 	{
@@ -625,7 +625,7 @@ addlit(char *ytext, int yleng)
 int
 input()
 {
-    fprintf(stderr, "input(): %c\n", parseCh); // wbarber
+    //fprintf(stderr, "input(): %c\n", parseCh); // wbarber
 	if (parseCh == NULL)
 		parseCh = parseString;
 	if (*parseCh == '\0')
@@ -638,7 +638,7 @@ input()
 void
 unput(char c)
 {
-    fprintf(stderr, "unput(): = %c\n", c); //wbarber
+    //fprintf(stderr, "unput(): = %c\n", c); //wbarber
 	if (parseCh == NULL)
 		fprintf(stderr, "Unput() failed.\n");
 	else if (c != 0)
@@ -658,7 +658,7 @@ myinput(char* buf, int max)
 	if (parseCh == NULL)
 		parseCh = parseString;
 	len = strlen(parseCh);		/* remaining data available */
-    fprintf(stderr, "myinput(): len = %d, max = %d\n", len, max); // wbarber
+    //fprintf(stderr, "myinput(): len = %d, max = %d\n", len, max); // wbarber
 	/* Note: this code used to think that flex wants a null-terminated
 	 * string.  It does NOT, and returning 1 less character than it asks
 	 * for will cause failure under the right boundary conditions.  So
@@ -669,8 +669,8 @@ myinput(char* buf, int max)
 	if (len > 0)
 		memcpy(buf, parseCh, len);
 	parseCh += len;
-    fprintf(stderr, "myinput(): buf = %s\n", buf); // wbarber
-    fprintf(stderr, "myinput(): parseCh = %s\n", parseCh); // wbarber
+    //fprintf(stderr, "myinput(): buf = %s\n", buf); // wbarber
+    //fprintf(stderr, "myinput(): parseCh = %s\n", parseCh); // wbarber
 	return len;
 }
 
