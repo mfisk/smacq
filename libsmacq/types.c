@@ -185,7 +185,9 @@ const dts_object* type_getfield_virtual(dts_environment * tenv, const dts_object
 char * dts_field_getname(dts_environment * tenv, dts_field f) {
   char buf[1024];
   char * name;
-  dts_field_element v = dts_field_first(f);
+  dts_field_element v;
+  assert(f);
+  v = dts_field_first(f);
   buf[0] = '\0';
 
   while (1) {
