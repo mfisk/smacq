@@ -17,15 +17,13 @@ static smacq_result rename_consume(struct state * state, const dts_object * datu
   int i;
 
   for (i = 0; i < state->fieldset.num; i+=2) {
-	dts_object * newf = (dts_object*)smacq_alloc(state->env, 0, 0);
-  	if (!smacq_getfield(state->env, datum, state->fieldset.fields[i].num, newf)) {
-		dts_decref(newf);
+	const dts_object * newf;
+  	if (!(newf = smacq_getfield(state->env, datum, state->fieldset.fields[i].num, NULL))) {
 		fprintf(stderr, "rename: no %s field\n", 
 				state->fieldset.fields[i].name);
 	}
 
     	dts_attach_field(datum, state->fieldset.fields[i+1].num, newf); 
-	dts_incref(newf, 1);
   }
 
   return SMACQ_PASS;

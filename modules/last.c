@@ -113,13 +113,13 @@ static smacq_result last_consume(struct state * state, const dts_object * datum,
   int condproduce = 0;
 
   if (state->hasinterval) {
-    dts_object field_data;
+    const dts_object * field_data;
 
-    if (!smacq_getfield(state->env, datum, state->timeseries, &field_data)) {
+    if (!(field_data = smacq_getfield(state->env, datum, state->timeseries, NULL))) {
       fprintf(stderr, "error: timeseries not available\n");
     } else {
-      struct timeval * tv = (struct timeval *)field_data.data;
-      assert(field_data.len == sizeof(struct timeval));
+      struct timeval * tv = (struct timeval *)dts_getdata(field_data);
+      assert(dts_getsize(field_data) == sizeof(struct timeval));
       
       if (!state->istarted) {
 	state->istarted = 1;

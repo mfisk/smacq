@@ -40,7 +40,7 @@ static smacq_result entropy_consume(struct state * state, const dts_object * dat
 	
 		return SMACQ_PASS;
 	} else {
-		dts_object probo;
+		const dts_object * probo;
 		double prob;
 
 		// Keep last datum around so we can use it to spit out data when we're ready
@@ -50,11 +50,12 @@ static smacq_result entropy_consume(struct state * state, const dts_object * dat
 		state->lasto = datum;
 		dts_incref(datum, 1);
 
-		if (!smacq_getfield(state->env, datum, state->probfield, &probo)) {
+		if (!(probo = smacq_getfield(state->env, datum, state->probfield, NULL))) {
 			fprintf(stderr, "No probability field\n");
 			return SMACQ_PASS;
 		}
-		prob = *(double*)probo.data;
+		prob = dts_data_as(probo, double);
+		dts_decref(probo);
 		state->total -= prob * log(prob);
   		
 		return SMACQ_FREE;
@@ -78,7 +79,7 @@ static int entropy_init(struct smacq_init * context) {
   }
 
   state->refreshtype = smacq_requiretype(state->env, "refresh");
-  state->probfield = smacq_requirefield(state->env, "probability");
+  state->probfield = smacq_requirefield(state->env, dts_fieldname_append("probability", "double"));
   state->probtype = smacq_requiretype(state->env, "double");
   state->entropyfield = smacq_requirefield(state->env, "entropy");
 

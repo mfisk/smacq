@@ -91,16 +91,16 @@ static smacq_result active_consume(struct state * state, const dts_object * datu
   struct iovec * domainv = NULL;
   struct srcstat * s;
 
-  dts_object field;
+  const dts_object * field;
   dts_object * activefielddata;
   struct timeval * value;
 
   // Get current time
-  if (!smacq_getfield(state->env, datum, state->timeseries, &field)) {
+  if (!(field = smacq_getfield(state->env, datum, state->timeseries, &NULL))) {
     fprintf(stderr, "error: timeseries not available\n");
     return SMACQ_PASS;
   } else {
-    value = (struct timeval*)field.data;
+    value = (struct timeval*)dts_getdata(field);
     assert(field.len == sizeof(struct timeval));
   }
 

@@ -32,14 +32,15 @@ static inline int min(int a, int b) {
 }
 
 static smacq_result encrypt_consume(struct state * state, const dts_object * datum, int * outchan) {
-  dts_object field;
+  const dts_object * field;
   struct iovec * keyv;
   unsigned long hval;
 
-  if (! smacq_getfield(state->env, datum, state->changefield, &field)) {
+  if (!(field = smacq_getfield(state->env, datum, state->changefield, NULL))) {
     fprintf(stderr, "Skipping packet without field\n");
     return SMACQ_PASS;
   }
+  dts_decref(field);
 
   keyv = fields2vec(state->env, datum, &state->fieldset);
   if (!keyv) {
@@ -47,9 +48,9 @@ static smacq_result encrypt_consume(struct state * state, const dts_object * dat
     return SMACQ_PASS;
   }
   
- state->datum = dts_writable(state->env, datum);
+  state->datum = dts_writable(state->env, datum);
 
-  if (! smacq_getfield(state->env, state->datum, state->changefield, &field)) {
+  if (!(field = smacq_getfield(state->env, state->datum, state->changefield, NULL))) {
     fprintf(stderr, "Skipping packet without field\n");
     return SMACQ_PASS;
   }
@@ -57,16 +58,17 @@ static smacq_result encrypt_consume(struct state * state, const dts_object * dat
   hval = bytes_hash_valuev(state->hashtable, state->fieldset.num, keyv);
 
   if (!state->add) {
-    memcpy(field.data, &hval, min(field.len, sizeof(unsigned long)));
+    memcpy(dts_getdata(field), &hval, min(dts_getsize(field), sizeof(unsigned long)));
   } else {
-    if (field.len == sizeof(unsigned long)) {
-      *(unsigned long*)field.data += hval;
+    if (dts_getsize(field) == sizeof(unsigned long)) {
+      *(unsigned long*)dts_getdata(field) += hval;
     } else {
-      fprintf(stderr, "Don't know how to use -add with %d byte fields\n", field.len);
+      fprintf(stderr, "Don't know how to use -add with %d byte fields\n", dts_getsize(field));
       assert(0);
     }
   }
-      
+     
+  dts_decref(field);
   return SMACQ_FREE|SMACQ_PRODUCE;
 }
 

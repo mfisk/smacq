@@ -23,16 +23,14 @@ static smacq_result project_consume(struct state * state, const dts_object * dat
   assert(newo);
 
   for (i = 0; i < state->fieldset.num; i++) {
-	dts_object * newf = (dts_object*)smacq_alloc(state->env, 0, 0);
+	const dts_object * newf;
 
-  	if (!smacq_getfield(state->env, datum, state->fieldset.fields[i].num, newf)) {
+  	if (!(newf = smacq_getfield(state->env, datum, state->fieldset.fields[i].num, NULL))) {
 		fprintf(stderr, "project: no %s field\n", 
 				state->fieldset.fields[i].name);
-		dts_decref(newf);
 		continue;
 	}
     	dts_attach_field(newo, state->fieldset.fields[i].num, newf); 
-	dts_incref(newf, 1);
   }
 
   state->product = newo;
