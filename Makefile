@@ -1,6 +1,7 @@
 DIRS=libsmacq types modules bin doc #reloc
 CFLAGS=-O9 -Winline 			# Optimized for normal use
 CFLAGS=-ggdb -O0 -fno-inline -Winline	# For debugging
+CFLAGS=-O0 -fno-inline -Winline		# MacOS/X doesn't like -ggdb 
 COPTS+=$(CFLAGS)
 
 auto:
