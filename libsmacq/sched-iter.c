@@ -84,9 +84,10 @@ void do_shutdown(struct runq ** runqp, smacq_graph *f) {
   }
 
   if (f->ops.shutdown) {
+    //fprintf(stderr, "shutting down %p %s\n", f, f->name);
     f->ops.shutdown(f->state);
   }
-  f->state = NULL;  /* Just in case */
+  f->state = NULL;  /* Just in case somebody tries to use it */
 
   // fprintf(stderr, "module %p %s ended\n", f, f->name);
   f->status = SMACQ_END|SMACQ_FREE;
@@ -164,7 +165,7 @@ int smacq_sched_iterative(smacq_graph * startf, const dts_object * din, const dt
   
   while (1) {
     if (!(*runqp)) {
-      if (produce_first) {
+      if (produce_first && !(startf->status & SMACQ_FREE)) {
 
         /* Force first guy to produce */
         int outchan = -1;
