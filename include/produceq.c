@@ -55,18 +55,20 @@ static inline smacq_result smacq_produce_dequeue(struct smacq_outputq ** qp, con
   *outchan = head->outchan;
   *qp = head->next;
 
+  /* Update both ends of queue */
   if (head->next) {
-  	  (*qp)->end = head->end;
-  }
+	head->next->end = head->end;
+  } 
+
+  /* fprintf(stderr, "popped %p: %p\n", head, head->o); */
 
   free(head);
 
-  //fprintf(stderr, "popped %p leaving %p\n", head, *qp);
-
   if (*qp) {
-	  return SMACQ_PASS|SMACQ_PRODUCE;
+    /* fprintf(stderr, "next is %p: %p\n", *qp, (*qp)->o); */
+	return SMACQ_PASS|SMACQ_PRODUCE;
   } else {
-	  return SMACQ_PASS;
+	return SMACQ_PASS;
   }
 }
 
