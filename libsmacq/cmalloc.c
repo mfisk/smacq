@@ -64,6 +64,7 @@ void * cmalloc(struct cmalloc * m, int size) {
 }
 
 void cmfree(struct cmalloc * m, void * base) {
+	assert(base != 0);
 	if (m->stackp == m->fullp) {
 		free(base - sizeof(struct cmalloc_element));
 	} else {
