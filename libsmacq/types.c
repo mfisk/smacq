@@ -132,10 +132,8 @@ int dts_comparefields(dts_field a, dts_field b) {
 		if (!a && !b) return 1;
 		if (!a || !b) return 0;
 		if (dts_field_first(a) != dts_field_first(b)) return 0;
-		//if (!dts_field_first(a) && !dts_field_first(b)) return 1;
-		//if (!dts_field_first(a) || !dts_field_first(b)) return 0;
 		a = dts_field_next(a);
-		b = dts_field_next(a);
+		b = dts_field_next(b);
 	}
 }
 
