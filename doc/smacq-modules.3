@@ -1,4 +1,4 @@
-.TH smacq-modules 3 "$Date: 2003/10/21 00:16:56 $" "LANL"
+.TH smacq-modules 3 "$Date: 2003/10/23 23:02:05 $" "LANL"
 .SH NAME
 smacq-modules - pipeline module programming guide
 .SH SYNOPSIS
@@ -176,39 +176,8 @@ queue is a struct smacq_outputq * and is initialized to NULL.
 .SH "HASH TABLES"
 
 .TP
-.BI "enum chaining_boolean { CHAIN, NOCHAIN };"
-.TP
-.BI "enum free_boolean { FREE, NOFREE };"
 
-.TP
-.BI "struct iovec_hash * bytes_hash_table_new(int maxkeybytes, int flags)"
-
-Flags can include CHAIN, NOCHAIN, FREE, NOFREE.  The default is CHAIN|NOFREE.
-
-.TP
-.BI "int bytes_hash_table_incrementv(struct iovec_hash * ht, struct iovec *, int count)"
-.TP
-.BI "int bytes_hash_table_setv(struct iovec_hash * ht, struct iovec *, int count,  gpointer value)"
-.TP
-.BI "gpointer bytes_hash_table_setv(struct iovec_hash * ht, struct iovec * keys, int count, gpointer value)"
-.TP
-.BI "gpointer bytes_hash_table_lookupv(struct iovec_hash * ht, struct iovec *, int)"
-.TP
-.BI "int bytes_hash_table_removev(struct iovec_hash * ht, struct iovec *, int)"
-.TP
-.BI "void bytes_hash_table_destroy(struct iovec_hash * ht)"
-.TP
-.BI "gint bytes_hash_table_getv(struct iovec_hash * ht, struct iovec * key, int keys, gpointer *oldkey, gpointer *current)"
-.TP
-.BI "void bytes_init_hash(guint32** randoms, int num, unsigned long prime)"
-
-.TP
-.BI "guint32 bytes_hashv(struct iovec *, int nvecs)"
-.TP
-.BI "void bytes_hash_table_foreach(struct iovec_hash * ht, GHFunc func, gpointer user_data)"
-.TP
-.BI "void bytes_hash_table_foreach_remove(struct iovec_hash * ht, GHRFunc func, gpointer user_data)"
-
+It is convenient to use iovec hash tables in DTS modules.  See the bytehash(3) manpage for more information.
 
 .SH "THREAD SHIM"
 
@@ -263,4 +232,4 @@ Free all data associated with the array.
 .SH "SEE ALSO"
 .BR smacq(1),
 .BR dts(3)
-
+.BR bytehash(3)
