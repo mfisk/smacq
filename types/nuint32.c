@@ -21,6 +21,16 @@ static int parse_nuint32(char * buf,  const dts_object * d) {
   return dts_set(d, unsigned long, ntohl(atol(buf)));
 }
 
+static int nuint32_lt(void * num1, int size1, void * num2, int size2) {
+  unsigned long * a = num1;
+  unsigned long * b = num2;
+                                                                                                                                                        
+  assert(size1 == sizeof(unsigned long));
+  assert(size2 == sizeof(unsigned long));
+                                                                                                                                                        
+  return(ntohl(*a) < ntohl(*b));
+}
+                                                                                                                                                        
 struct dts_field_spec dts_type_nuint32_fields[] = {
   { "string",   "string",	smacqtype_nuint32_get_string },
   { "double",   "double",	smacqtype_nuint32_get_double },
@@ -29,6 +39,7 @@ struct dts_field_spec dts_type_nuint32_fields[] = {
 
 struct dts_type_info dts_type_nuint32_table = {
   size: sizeof(unsigned int),
-  fromstring:parse_nuint32
+  fromstring:parse_nuint32,
+  lt: nuint32_lt
 };
 
