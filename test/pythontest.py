@@ -7,6 +7,6 @@ class Censor:
     def __call__(self, dts):
         for i in 'srcip', 'dstip', 'ipprotocol', 'len':
             v = dts[i].value
-            print (dts[i].type, type(v), v)
+            print (i, dts[i].type, type(v), v)
 
 init = Censor
