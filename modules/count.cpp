@@ -58,10 +58,6 @@ smacq_result countModule::consume(DtsObject datum, int & outchan) {
   }
 
   if (!all) {
-    if (lastin) {
-	    
-    }
-    
     lastin = datum;
 
     return SMACQ_FREE;
