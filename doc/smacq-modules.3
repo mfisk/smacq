@@ -1,38 +1,55 @@
-.TH smacq-modules 3 "$Date: 2003/01/10 06:50:33 $" "LANL"
+.TH smacq-modules 3 "$Date: 2003/01/23 01:47:35 $" "LANL"
 .SH NAME
 smacq-modules - pipeline module programming guide
 .SH SYNOPSIS
 .nf
 .B #include <smacq.h>
-.sp 
-Each module must provide the following functions and global variables:
-.sp
-.BI "static smacq_result smacq_init(struct smacq_init * context);"
-.sp
-.BI "static smacq_result smacq_consume(void * state, const dts_object *, int * outchan);"
-.sp
-.BI "static smacq_result smacq_produce(void * state, const dts_object **, int * outchan);"
-.sp
-.BI "static smacq_result smacq_shutdown(void * state);"
-.sp
-.BI "static struct smacq_options smacq_options[];"
+.fi
+
+Each module must provide a statically defined structure of type struct smacq_functions named smacq_\fImodule\fP_table such as the following:
 .sp
 .BI "struct smacq_functions smacq_\fImodule\fP_table ="
 .nf
 .ne 7
 .ta 8n 16n 32n
 {
-	produce: &smacq_produce,
-	consume: &smacq_consume,
-	init: &smacq_init,
-	shutdown: &smacq_shutdown
+	produce: &smacq_\fImodule\fP_produce,
+	consume: &smacq_\fImodule\fP_consume,
+	init: &smacq_\fImodule\fP_init,
+	shutdown: &smacq_\fImodule\fP_shutdown,
+	algebra: {vector:1, boolean: 1, demux: 1}
 };
 .ta
 .fi
+
+.sp
+By convention, the referenced functions also include the name of the module.  The API for each function is as follows:
+.sp
+.BI "static smacq_result smacq_\fImodule\fP_init(struct smacq_init * context);"
+.sp
+.BI "static smacq_result smacq_\fImodule\fP_consume(void * state, const dts_object *, int * outchan);"
+.sp
+.BI "static smacq_result smacq_\fImodule\fP_produce(void * state, const dts_object **, int * outchan);"
+.sp
+.BI "static smacq_result smacq_\fImodule\fP_shutdown(void * state);"
+.sp
+
+The algebra element is optional and is used only by the dataflow
+optimizer.  The following elements of the algebra structure are as
+follows:  Vector specifies that the module can be used with a single
+input and a single output, or can be used with a vector of sets of
+arguments separated by semicolons and a corresponding vector of output
+channels.  Boolean specifies that the module merely filters out some
+data and can be reordered in the dataflow by an optimizer.  Demux
+specifies that the module demultiplexes output data among multiple
+output chanels.  If a demux module fails to set the demux bit, then
+the optimizer may produce disfunctional output.
+
+.BI "static struct smacq_options smacq_options[];"
 .fi
 .SH DESCRIPTION
 
-"Flow" is an extensible component system for analyzing streams of
+SMACQ(1) is an extensible component system for analyzing streams of
 structured data.  This manpage describes the programming API for
 creating pipeline modules.  Type modules are documented separately in
 dts-types(3).
@@ -47,7 +64,7 @@ deprecated for most cases.
 Each module must declare a \fBsmacq_\fP\fImodule\fP\fB_table\fP structure of type
 \fBstruct smacq_functions\fP referring to static functions described below:
 .sp
-The \fBsmacq_init()\fP function is called to initialize a new instantiate
+The \fBinit\fP function is called to initialize a new instantiate
 of a module.  The return value is a module exit code, with 0 indicating no error.
 All parameters are passed in a single structure:  
 .sp
@@ -69,16 +86,16 @@ struct smacq_init {
 .RE
 .sp
 If any per-instantiation storage is required, it should
-be allocated in \fBsmacq_init()\fP and returned in the state parameter.  
+be allocated in \fBinit\fP and returned in the state parameter.  
 The \fBenv\fP element should be saved and passed to any library functions
 that require an argument of type \fBsmacq_environment\fP.
 Arguments to the module are passed in standard argv, argc form.
-This structure will be reused after smacq_init() returns, so anything you
+This structure will be reused after \fBinit\fP returns, so anything you
 wish to save out of it must be copied.
 .sp
 The \fBsmacq_produce()\fP function is called to output data from the
 module.  It is passed the instantiation's state variable and a pointer
-in which to store a pointer to a new datum.  The return code should be
+in which to store a pointer to a new data object.  The return code should be
 SMACQ_PASS for success, SMACQ_END if there is no more data to be
 produced (ever), or SMACQ_ERROR in case of error.  If there is more 
 data to be produced, the result should be SMACQ_PASS|SMACQ_PRODUCE.
@@ -90,7 +107,7 @@ SMACQ_CANPRODUCE may or may not trigger an immediate call to smacq_produce().
 .sp
 The \fBsmacq_consume()\fP function is called when there is new data for
 a module to process.  The return value signals what should be done
-with the data.  The SMACQ_FREE value says that the datum is no longer
+with the data.  The SMACQ_FREE value says that the data object no longer
 needed.  SMACQ_PASS specifies that the structure should also be passed
 to the next module (if there is one) in the pipeline.  SMACQ_ERROR
 specifies that there was a fatal error consuming the packet.
@@ -111,121 +128,7 @@ module.  The return value is an exit code, with 0 indicating no error.
 
 .SH LIBRARY 
 
-.fa
-The following routines provide access to datum records:
-
-.TP
-.BI "const dts_object * smacq_dts_construct(smacq_environment * env, int type, void * data)"
-Return a new data object with contents copied from data.  This call only
-works for fixed-size objects.
-
-.TP
-.BI "const dts_object * smacq_alloc(smacq_environment * env, int datasize, int type)"
-Return a new, empty data object large enough to hold \fIdatasize\fP bytes.  
-Use \fIsmacq_requiretype()\fP to get a
-type number.
-
-.TP
-.BI "const dts_object * dts_writable(smacq_environment * env, dts_object * obj)"
-	Return a pointer to a writable version of the specified object.
-	This operation invalidates the original object so it should not
-	be used any further and should not be passed on to other modules.
-
-.TP
-.BI "int smacq_datum_size(const dts_object * datum)"
-	Return the size of the data
-
-.TP
-.BI "void * dts_getdata(const dts_object * datum)"
-	Return a pointer to the data
-
-.TP
-.BI "int dts_gettype(const dts_object * datum)"
-	Return the type of the data
-
-.TP
-.BI "int dts_decref(const dts_object * datum)"
-	Decrement the reference counter of the object and free it
-	if there are no more references.
-
-.TP
-.BI "int dts_incref(const dts_object * datum, int num)"
-	Increment the reference counter of the object by \fInum\fP.
-
-.RE
-Data records are composed of named fields that can be accessed with the following functions:
-
-.TP
-.BI "const dts_object * smacq_getfield(smacq_environment * env, const dts_object * datum, dts_field field, dts_object * scratch)"
-.TP
-.BI "const dts_object * dts_getfield(dts_environment * env, const dts_object * datum, dts_field field, dts_object * scratch)"
-	Initialize the "data" object to point to the specified field of the datum.  The data object
-	is only valid for the life of this datum.  dts_decref() must be used to free the object.  NULL is returned on failure.
-	The scratch argument should be NULL.
-
-.TP
-.BI "const dts_object * smacq_getfield_copy(smacq_environment * env, const dts_object * datum, dts_field * scratch)
-	Same as above, but return persistant data that will outlive the datum.  dts_decref() must be used
-	to free the object.  NULL is returned on failure.
-	The scratch argument should be NULL.
-
-.TP
-.BI "dts_field smacq_requirefield(smacq_environment * env, char * tname)"
-.TP
-.BI "dts_field dts_requirefield(dts_environment * env, char * tname)"
-	Return the dynamically assigned identifier for the given field name.  This dts_field must be 
-	freed with dts_field_free().
-
-.TP
-.BI "char * dts_fieldname_append(const char * base, const char * addition)"
-	Return a newly allocated string containing the addition string appended to the 
-	base string and separated by a period.
-
-.TP
-.BI "void dts_field_free(dts_field field)"
-	Free the given dts_field data structure.
-
-.RE
-Data records and fields are dynamically typed objects (\fIdts_object\fP).  The following routines interface with the type system:
-
-.TP
-.BI "int smacq_fromstring(smacq_environment * env, int type, char * value, dts_object * data)"
-	Convert the string-form value into a typed data object of the specified type. 
-
-.TP
-.BI "int smacq_requiretype(smacq_environment * env, char * type_name)"
-.TP
-.BI "int dts_requiretype(dts_environment * env, char * type_name)"
-	Types are dynamically loaded classes.  Load the specified type module
-	(if it is not already loaded) and return the dynamically assigned numeric
-	identifier for that type.
-
-.TP
-.BI "int smacq_opt_typenum_byname(smacq_environment * env, char * name)"
-	Return the dynamically assigned numeric type identifier for the 
-	specified type name.  Returns -1 if the type is not loaded.
-	This number will be consistent for the duration of this instantiation.  It is recommended
-	for performance that modules call smacq_opt_type() sparingly and cache results.
-	All datum structures are typed with these values.
-
-.TP
-.BI "char * dts_typename_bynum(smacq_environment * env, int num)"
-	Returns the string name of the specified numeric type identifier.
-
-.RE
-The system knows how to compare typed objects using the following routines.
-The basic data structure for this is dts_comparison.  This structure has an
-operation type that may be one of EQUALITY, INEQUALITY, LIKE, GT, LT, AND, and OR.  In the case of AND and OR, the "group" element points to a dts_comparison list of subterms.  Otherwise, the value string is in the "valstr" element.
-
-.TP
-.BI "int smacq_match(smacq_environment * env, const dts_object * datum, dts_comparison * comps, int same_types)"
-	Compares the specified datum with the specified list of comparisions.
-	Returns non-zero iff all of the comparisons are true.
-
-.TP
-.BI "dts_comparison * dts_parse_tests(dts_environment * tenv, int argc, char ** argv)"
-	Return the comparison(s) resulting from the given argument vector.
-	Comparisons can include AND and OR statements, parentheses for grouping, and equality and inequality operators.
+See the \fBdts(3)\fP documentation for information on using dts_object objects.
 	
 .TP
 .BI "int smacq_getoptsbyname(int argc, char ** argv, int * argc_left, char *** argv_left, struct smacq_options * options, struct smacq_optval * optvals)"
@@ -253,23 +156,113 @@ struct smacq_optval {
 .ta
 .fi
 .sp
-Valid types are: \fI SMACQ_TYPE_STRING, SMACQ_TYPE_INT, SMACQ_TYPE_DOUBLE, SMACQ_TYPE_BOOLEAN \fP
+Valid types are: \fISMACQ_OPT_TYPE_INT, SMACQ_OPT_TYPE_USHORT, SMACQ_OPT_TYPE_TIMEVAL, SMACQ_OPT_TYPE_UINT32, SMACQ_OPT_TYPE_BYTES, SMACQ_OPT_TYPE_STRING, SMACQ_OPT_TYPE_UBYTE, SMACQ_OPT_TYPE_DOUBLE, SMACQ_OPT_TYPE_BOOLEAN \fP
 .fi
 
-.RE
-Fields can also be sent to other data records:
+.SH "OUTPUT QUEUES"
+
+It is often necessary for modules to queue data objects for output.  The following routines enqueue and dequeue objects.  The
+queue is a struct smacq_outputq * and is initialized to NULL.
 
 .TP
-.BI "void smacq_msg_send(smacq_environment * env, dts_field field, dts_object * data, dts_comparison * comparisonList)"
-	Send a specified field with value specified by data to any data records described
-	by the criteria in the comparison list.
+.BI "void smacq_produce_enqueue(struct smacq_outputq ** qp, const dts_object * o, int outchan)"
 
 .TP
-.BI "void dts_attach_field(const dts_object * current_object, dts_field field, const dts_object * field_data)"
-	Attach the field_data object as a field of the current object.
+.BI "smacq_result smacq_produce_dequeue(struct smacq_outputq ** qp, const dts_object ** o, int * outchan)"
 
-.RE
+.SH "HASH TABLES"
+
+.TP
+.BI "enum chaining_boolean { CHAIN, NOCHAIN };"
+.TP
+.BI "enum free_boolean { FREE, NOFREE };"
+
+.TP
+.BI "GHashTableofBytes * bytes_hash_table_new(int maxkeybytes, enum chaining_boolean, enum free_boolean)"
+.TP
+.BI "int bytes_hash_table_incrementv(GHashTableofBytes * ht, struct iovec *, int count)"
+.TP
+.BI "int bytes_hash_table_insertv(GHashTableofBytes * ht, struct iovec *, int count,  gpointer value)"
+.TP
+.BI "gpointer bytes_hash_table_replacev(GHashTableofBytes * ht, struct iovec * keys, int count, gpointer value)"
+.TP
+.BI "gpointer bytes_hash_table_lookupv(GHashTableofBytes * ht, struct iovec *, int)"
+.TP
+.BI "int bytes_hash_table_removev(GHashTableofBytes * ht, struct iovec *, int)"
+.TP
+.BI "void bytes_hash_table_destroy(GHashTableofBytes * ht)"
+.TP
+.BI "gint bytes_hash_table_lookup_extendedv(GHashTableofBytes * ht, struct iovec * key, int keys, gpointer *oldkey, gpointer *current)"
+.TP
+.BI "void bytes_init_hash(guint32** randoms, int num, unsigned long prime)"
+
+.TP
+.BI "guint32 bytes_hash_valuev(GHashTableofBytes * ht, int nvecs, struct iovec *)"
+.TP
+.BI "void bytes_hash_table_foreach(GHashTableofBytes * ht, GHFunc func, gpointer user_data)"
+.TP
+.BI "void bytes_hash_table_foreach_remove(GHashTableofBytes * ht, GHRFunc func, gpointer user_data)"
+
+
+.SH "THREAD SHIM"
+
+The native module API described above is based on event-driven
+callbacks.  However, modules can instead have their own threads to
+instead use a read/write API from a wihle loop.  To use threads, the
+module function table should be initialized as follows:
+
+.sp
+.BI "struct smacq_functions smacq_\fImodule\fP_table ="
+.nf
+.ne 7
+.ta 8n 16n 32n
+{
+	produce: &smacq_thread_produce,
+	consume: &smacq_thread_consume,
+	init: &smacq_thread_init,
+	shutdown: &smacq_thread_shutdown,
+	thread: &smacq_\fImodule\fP_loop
+};
+.ta
+.fi
+
+The smacq_\fImodule\fP_loop function can use the following functions:
+
+.TP
+.BI "const dts_object * smacq_read(struct smacq_init * context)"
+
+.TP
+.BI "void smacq_write(struct state * state, dts_object * datum, int outchan)"
+
+.TP
+.BI "void smacq_decision(struct smacq_init * context, const dts_object * datum, smacq_result result)"
+
+.TP
+.BI "void  smacq_flush(struct smacq_init * context)"
+
+.SH "DYNAMIC ARRAYS"
+
+.TP
+.BI "void darray_init(struct darray * darray, int max_hint)"
+
+Initialize the dynamic array based on the hint specifying the maximum number of elements expected.
+
+.TP
+.BI "void * darray_get(struct darray * darray, int element)"
+
+Return the specified elment of the array.
+
+.TP
+.BI "void darray_set(struct darray * darray, unsigned int element, void * value)"
+
+Set the specified element of the array to the given value.
+
+.TP
+.BI "void darray_free(struct darray * darray)"
+
+Free all data associated with the array.
 
 .SH "SEE ALSO"
-.BR smacqp(1),
-.BR dts-types(3)
+.BR smacq(1),
+.BR dts(3)
+

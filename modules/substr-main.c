@@ -204,6 +204,6 @@ struct smacq_functions smacq_substr_table = {
 	consume: &substr_consume,
 	init: &substr_init,
 	shutdown: &substr_shutdown,
-	alg: {vector: 1, boolean: 1}
+	algebra: {vector: 1, boolean: 1}
 };
 

@@ -160,7 +160,7 @@ int reassemble_init(struct smacq_init * context) {
   fprintf(stderr, "*** reassemble.c::reassemble_init(): timeout = %d\n", state->timeout);
 #endif
 
-  state->dts_pkthdr_type = smacq_opt_typenum_byname(context->env, "packet");
+  state->dts_pkthdr_type = smacq_requiretype(context->env, "packet");
   assert(state->dts_pkthdr_type);
 
 #ifdef DEBUG

@@ -23,7 +23,7 @@ struct state {
   struct fieldset fieldset;
   GHashTableofBytes *drset;
   struct bloom_summary *summary;
-  double prob; // Use probabilistic algorithms?
+  double prob; // Use probabilistic algebraorithms?
 };
 
 static struct smacq_options options[] = {

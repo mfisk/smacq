@@ -177,7 +177,7 @@ typedef smacq_result smacq_shutdown_fn(struct state *);
 /*
  * Interrogation structures
  */
-struct smacq_module_alg {
+struct smacq_module_algebra {
   unsigned int vector:1;
   unsigned int boolean:1;
   unsigned int demux:1;
@@ -189,7 +189,7 @@ struct smacq_functions {
   smacq_init_fn * init;
   smacq_shutdown_fn * shutdown;
   smacq_thread_fn * thread;
-  struct smacq_module_alg alg;
+  struct smacq_module_algebra algebra;
 };
 
 typedef int smacqtype_lt_fn(void *, int, void *, int);

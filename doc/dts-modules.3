@@ -53,9 +53,9 @@
 .ds f4\"
 '\" t 
 .ta 8n 16n 24n 32n 40n 48n 56n 64n 72n  
-.TH "dts-types" "3" 
+.TH "dts-modules" "3" 
 .SH "NAME" 
-dts-types \(em type module programming guide 
+dts-modules \(em type module programming guide 
 .SH "SYNOPSIS" 
 .PP 
 .nf 
@@ -65,20 +65,20 @@ dts-types \(em type module programming guide
 .fi 
 .SH "DESCRIPTION" 
 .PP 
-"Flow" is an extensible component system for analyzing streams of 
-structured data.  This manpage describes the API used by type 
-modules in this system. 
+SMACQ(1) is an extensible component system for analyzing streams 
+of structured data.  This manpage describes how type modules are 
+added to the system. 
  
 .PP 
 By convention, types are compiled to an ELF shared library with 
 a name like \fBsmacqtype_x.so\fP, where 
-\fBx\fP is the type name.  Types modules are not 
-containers for data, but merely interfaces for accessing data of 
-that type.  Thus there is no private storage associated with a 
-type. 
+\fBx\fP is the type name.  Types modules are 
+not containers for data, but merely interfaces for accessing 
+data of that type.  Thus there is no private storage associated 
+with a type. 
  
 .PP 
-Many flow \fIcompute modules\fR are polymorphic 
+Many SMACQ \fIcompute modules\fR are polymorphic 
 and have no knowledge of the internal representation of typed 
 data.  They access the data through field and transform 
 functions described below.  However, a type-specific compute 
@@ -90,7 +90,7 @@ file.
  
 .SS "dts_type_\fItypename\fP_table" 
 .PP 
-Each types module must declare a structure named 
+Each type module must declare a structure named 
 \fBdts_type_\fP\fItypename\fP\fB_table\fP of type \fBstruct 
 dts_type_info\fR, which is defined as follows: 
  
@@ -98,14 +98,28 @@ dts_type_info\fR, which is defined as follows:
 .nf 
 .ta 8n 16n 24n 32n 40n 48n 56n 64n 72n 
 \f(CW	struct \fBdts_type_info\fR { 
-\fB	    int size; 
-\fR 	}; 
-\fR 
+\fB	  int size; 
+\fR\fB	  smacqtype_lt_fn * lt; 
+\fR\fB	  smacqtype_fromstring_fn * fromstring; 
+\fR 	};\fR 
 .fi 
 .PP 
 .PP 
 The size is the constant size, in bytes, of the data type (e.g. 1 for a char), or -1 if the data has variable size. 
+The less-than and fromstring functions are optional and have the following prototypes: 
  
+.PP 
+.nf 
+.ta 8n 16n 24n 32n 40n 48n 56n 64n 72n 
+\f(CW	typedef int smacqtype_lt_fn(void *, int, void *, int);\fR 
+.fi 
+.PP 
+.PP 
+.nf 
+.ta 8n 16n 24n 32n 40n 48n 56n 64n 72n 
+\f(CW	typedef int smacqtype_fromstring_fn(char *, const dts_object *);\fR 
+.fi 
+.PP 
 .SS "dts_type_\fItypename\fP_fields" 
 .PP 
 Each type module may declare a list named 
@@ -119,10 +133,13 @@ dts_field_descriptor\fR elements, which are defined as follows:
 \fB	  char * type; 
 \fR\fB	  char * name; 
 \fR\fB	  field_getfunc_fn * getfunc; 
-\fR 	}; 
- 
-typedef int \fBfield_getfunc_fn\fP(const dts_object*, dts_object *); 
-\fR 
+\fR 	}; \fR 
+.fi 
+.PP 
+.PP 
+.nf 
+.ta 8n 16n 24n 32n 40n 48n 56n 64n 72n 
+\f(CW	typedef int \fBfield_getfunc_fn\fP(const dts_object*, dts_object *);\fR 
 .fi 
 .PP 
 .PP 
@@ -175,9 +192,7 @@ dts_transform_descriptor\fR elements, which are defined as follows:
 \fR\fB	  transform_getfunc_fn * getfunc; 
 \fR 	}; 
  
-typedef int \fBtransform_getfunc_fn\fP(void * data, int len, void ** tdata, int * tlen); 
- 
-\fR 
+typedef int \fBtransform_getfunc_fn\fP(void * data, int len, void ** tdata, int * tlen);\fR 
 .fi 
 .PP 
 .PP 
@@ -211,4 +226,4 @@ field is not present in this datum.
 .SH "SEE ALSO" 
 .PP 
 smacqp(1), smacq-modules(3) 
-...\" created by instant / docbook-to-man, Thu 09 Jan 2003, 23:46 
+...\" created by instant / docbook-to-man, Tue 18 Mar 2003, 20:02 

@@ -1,0 +1,580 @@
+<!doctype refentry PUBLIC "-//OASIS//DTD DocBook V4.1//EN" [
+  <!ENTITY docbook "<productname>DocBook</productname>">
+  <!ENTITY sgml    "<abbrev>SGML</abbrev>">
+]>
+
+<refentry>
+  <refentryinfo>
+    <address>
+      <email>mfisk@lanl.gov</email>
+    </address>
+    <author>
+      <firstname>Mike</firstname>
+      <surname>Fisk</surname>
+    </author>
+    <date>$Date: 2003/01/31 01:39:05 $</date>
+  </refentryinfo>
+  <refmeta>
+    <refentrytitle>smacq</refentrytitle>
+    <manvolnum>1</manvolnum>
+  </refmeta>
+  <refnamediv>
+    <refname>smacq</refname>
+    <refpurpose>System for Modular Analysis and Continuous Queries</refpurpose>
+  </refnamediv>
+  <refsect1>
+    <title>DESCRIPTION</title>
+
+    <para>
+      The System for Modular Analysis and Continuous Queries
+      (SMACQ) is an extensible component system for analyzing streams
+      of structured data.  This manpage describes the modules
+      included with the system by default. 
+    </para>
+
+    <para>
+      These modules are used by SMACQ's command-line utilities
+      <command>smacqp(1)</command>  and <command>smacqp(1)</command>
+      as well as a C API described in <command>smacq-embed(3)</command>.
+    </para>
+  </refsect1>
+  <refsect1>
+    <title>STANDARD INPUT/OUTPUT MODULES</title>
+
+    <refsect2>
+      <title>Print</title>
+      <cmdsynopsis>
+	<command>print</command>
+	<arg choice=opt>-v</arg>
+	<arg choice=opt>-B</arg>
+	<arg choice=opt>-d <replaceable>delimiter</replaceable></arg>
+	<arg choice=req rep=repeat>fields</arg>
+      </cmdsynopsis>
+
+      <para>
+	Print the specified fields for every record that has them If
+	the <option>-v</option> option is given, then warnings are
+	printed when fields aren't present, and field values are
+	preceded by the field name.  If the <option>-B</option> option
+	is specified, then output is not buffered (output is flushed
+	after each record).  Fields are separated by a delimiter
+	string which can be specified by <option>-d</option> and
+	defaults to TAB.
+      </para>
+    </refsect2>
+
+    <refsect2>
+      <title>Tabular Input</title>
+      <cmdsynopsis>
+	<command>tabularinput</command>
+	<arg choice=opt>-d <replaceable>delimiter</replaceable></arg>
+	<arg choice=opt>-f <replaceable>filename</replaceable></arg>
+	<arg choice=opt rep=repeat>field<arg choice=opt>:type</arg></arg>
+      </cmdsynopsis>
+
+      <para>
+	Read records from STDIN by default, or a filename specified with
+	the <option>-f</option> option, one per line, with fields delimited
+	by TAB or an alterate delimiter specified by
+	<option>-d</option>.  If field names are specified, data
+	columns are assigned those names sequentially.  If no field
+	names are specified, or there are more columns that field
+	names, unnamed fields are named numericaly starting at 1. 
+      </para>
+
+      <para>
+	Field types can be specified by appending a colon and the type name to the end of the field name.
+	If no type is sepecified for a field, it is treated as a double if possible, or a string otherwise.
+      </para>
+    </refsect2>
+
+    <refsect2>
+      <title>Packet Capture</title>
+      <cmdsynopsis>
+	<command>pcaplive</command>
+	<arg>-i <replaceable>interface</replaceable></arg>
+	<arg>-s <replaceable>snaplen</replaceable></arg>
+	<arg>-p</arg>
+	<arg rep=repeat><replaceable>filter</replaceable></arg>
+      </cmdsynopsis>
+
+      <para>
+	The <command>pcaplive</command> module reads packets from a
+	network interfaces using libpcap.  It can only be used at the
+	beginning of a pipeline.  Root privileges are typically
+	required to run this module.
+      </para>
+
+      <para>
+	The <option>-i</option> option specifies an interface to
+	listen on (default is <literal>any</literal>).  The
+	<option>-s</option> option specifies the maximum number of
+	bytes per packet to capture (default is 68).  The
+	<option>-p</option> specifies that the interface should NOT be
+	placed in promiscuous mode.
+      </para>
+
+      <para>
+	An optional filter string is a BPF filter string (see
+	<command>tcpdump</command>(1)).
+      </para>
+    </refsect2>
+
+    <refsect2>
+      <title>Packet Trace File</title>
+      <cmdsynopsis>
+	<command>pcapfile</command>
+	<arg choice=req rep=repeat> <replaceable>filename</replaceable></arg>
+      </cmdsynopsis>
+      <cmdsynopsis>
+	<command>pcapfile</command>
+	<arg choice=req> -o <replaceable>filename</replaceable></arg>
+	<arg>-s <replaceable>megabytes</replaceable></arg>
+      </cmdsynopsis>
+
+      <para>
+	The <command>pcapfile</command> module either reads from or
+	writes to a tcpdump-style, libpcap packet trace file.  If the
+	module is at the beginning of a pipeline, it reads from a
+	file.  Otherwise it writes data to a file.
+      </para>
+
+      <para>
+	When reading, one or more files must be specified.  Use
+	<literal>-</literal> for stdin.  Input files that are
+	compressed with <command>gzip</command> are supported
+	automatically.
+      </para>
+
+      <para>
+	When writing, a single output file must be specified with
+	<option>-o</option>.
+      </para>
+
+      <para>
+	The <option>-s</option> option specifies the maximum file size (in
+	megabytes) for output files.  If specified, the output file
+	will have a two-digit suffix number appended and output will
+	be split between as many files as necessary.
+      </para>
+    </refsect2>
+
+
+    <refsect2>
+      <title>Socket</title>
+      <cmdsynopsis>
+	<command>socket</command>
+	<arg>-p <replaceable>port</replaceable></arg>
+	<arg>-h <replaceable>host</replaceable></arg>
+	<arg>-d</arg>
+      </cmdsynopsis>
+
+      <para>
+	The <command>socket</command> module is used to send records
+	across the network to another instantiation of the
+	<command>socket</command> module.  It can be used in two
+	different ways: as a producer who receives data from the
+	network, or as a consumer that writes data to a network.  If
+	the module is at the beginning of a pipeline, it is assumed to
+	be a server.  Otherwise it is a consumer that writes data to
+	the network.
+      </para>
+
+      <para>
+	The <option>-h</option> and <option>-p</option> options
+	specify a host and port, respectively.  The host option is required
+	for a consumer.  The default port is 3000.
+      </para>
+
+      <para>
+	The <option>-d</option> option is only valid in the server context.
+	If specified, the module will continue to accept new
+	connections forever and will never exit.  Without this option,
+	the server will accept a single connection, process it until
+	it closes, and then terminate.
+      </para>
+    </refsect2>
+
+
+  </refsect1>
+  <refsect1>
+    <title>FILTER MODULES (BOOLEAN FUNCTIONS)</title>
+
+    <refsect2>
+      <title>IP Address Mask</title>
+      <cmdsynopsis>
+	<command>mask</command>
+	<arg choice=req><replaceable>field</replaceable></arg>
+	<arg choice=req>[!]<replaceable>addr/cidr</replaceable></arg>
+      </cmdsynopsis>
+
+      <para>
+	The "addr/cidr" argument is a CIDR netmask.  If the mask size
+	is not specified, 32 is assumed.  An object is filtered out if
+	and only if the specified field does not exist or does not
+	match the given netmask.  If the address begins with a '!',
+	then the logic is reversed and the object is filtered out if
+	the field does match the netmask.
+      </para>
+    </refsect2>
+
+
+    <refsect2>
+      <title>Substring</title>
+      <cmdsynopsis>
+	<command>substr</command>
+	<arg><replaceable>field</replaceable></arg>
+	<arg choice=req><replaceable>string</replaceable></arg>
+	<arg rep=repeat> ; <replaceable>string</replaceable></arg>
+      </cmdsynopsis>
+
+      <para>
+        Search for each byte string in the specified field, or in the
+        whole data object if no field is given.  If multiple strings
+        are given, then each string corresponds to an output channel,
+        and the object will be output only on the channel(s) that
+        match.
+      </para>
+    </refsect2>
+
+    <refsect2>
+      <title>Last</title>
+      <cmdsynopsis>
+	<command>last</command>
+	<arg>-t <replaceable>time</replaceable></arg>
+	<arg rep=repeat><replaceable>fields</replaceable></arg>
+      </cmdsynopsis>
+
+      <para>
+        If any fields are specified, treat those fields as a tuple and keep track of the last object seen 
+	with that tuple value.  After there is no more data, output the objet for each tuple value.
+      </para>
+
+      <para>
+	The <option>-t</option> option specifies, as a real number,
+	the number of seconds between periodic updates.  After the specified
+        amount of time, the last object seen for each tuple value will be emitted 
+	(just as is done at the end of the data stream).  At the end of the update, an
+        object of type "<literal>refresh</literal>" will be sent with a 
+	"<literal>timeseries</literal>" field of type "<literal>timeval</literal>"
+	containing the time.
+	Note: Time is not the wall-clock time, but is instead the
+	time stored in the record in the
+	"<literal>timeseries</literal>" field of type
+	"<literal>timeval</literal>".  The <option>-t</option> cannot
+	be used with records that do not have this field.
+      </para>
+      
+    </refsect2>
+
+    <refsect2>
+      <title>Filter</title>
+      <cmdsynopsis>
+	<command>filter</command>
+	<arg choice=req rep=repeat> <replaceable>field [[<=>] value] ...</replaceable></arg>
+      </cmdsynopsis>
+
+      <para>
+        Filter out all objects in the stream that do not satisfy all
+        of the specified criteria.  Expressions can be arbitrarily complex and include AND and OR 
+	statements and parentheses for grouping.
+      </para>
+	
+      <para>
+        This is the select (sigma)
+        operation from relational algebra ("where" in SQL).
+      </para>
+    </refsect2>
+
+    <refsect2>
+      <title>Unique Filter</title>
+      <cmdsynopsis>
+	<command>uniq</command>
+	<arg>-m <replaceable>megabytes</replaceable></arg>
+	<arg choice=req rep=repeat> <replaceable>fields</replaceable></arg>
+      </cmdsynopsis>
+
+      <para>
+	Treat the specified field(s) as a tuple and filter out all
+	occurrences of duplicate values of that tuple.
+      </para>
+
+      <para>
+	The <option>-m</option> option specifies that a probabilistic
+	algorithm using a fixed amount of memory (specified in
+	megabytes) should be employed.  Some records may be mistakenly
+	filtered, but some large datasets cannot be processed with a
+	perfect algorithm.
+      </para>
+      
+    </refsect2>
+
+
+    <refsect2>
+      <title>Top</title>
+      <cmdsynopsis>
+	<command>top</command>
+	<arg>-m <replaceable>megabytes</replaceable></arg>
+	<arg>-r <replaceable>deviation</replaceable></arg>
+	<arg choice=req rep=repeat> <replaceable>fields</replaceable></arg>
+      </cmdsynopsis>
+
+      <para>
+	Treat the specified field(s) as a tuple and count the number
+	of occurrences of each values of that tuple.  Filter out all
+	records except those whose occurrence deviates from the
+	average by more than a factor of
+	<parameter>deviation</parameter>.  If no
+	<option>-r</option> option is specified, the default
+	deviation threshold is 1.
+      </para>
+
+      <para>
+	If <option>-m</option> is specified, then probabilistic
+	counters are used, consuming a max of
+	<parameter>megabytes</parameter> memory, at the expense of
+	some records not being filtered even though they're value is
+	rare.
+      </para>
+
+      <para>
+	It is often useful to follow this module with
+	<command>uniq</command> in order to get exact counts for all
+	records that pass this filter.
+      </para>
+    </refsect2>
+
+
+    <refsect2>
+      <title>Head</title>
+      <cmdsynopsis>
+	<command>head</command>
+	<arg choice=req> <replaceable>number</replaceable></arg>
+      </cmdsynopsis>
+
+      <para>
+	Pass the first <parameter>number</parameter> records through
+	and then end the pipeline.  Those records will be processed by
+	all subsequent modules in the pipeline and the program will
+	then terminate.
+      </para>
+    </refsect2>
+  </refsect1>
+
+  <refsect1>
+    <title>ANALYSIS MODULES</title>
+    
+    <refsect2>
+      <title>Constant Annotation</title>
+      <cmdsynopsis>
+	<command>const</command> 
+	<arg choice=req> <replaceable>string</replaceable></arg>
+	<arg><replaceable>field</replaceable></arg>
+      </cmdsynopsis>
+
+      <para>
+	Annotate each object with a field containing the specified string constant.
+	If a field name is specified, it will be used.  Otherwise, the name will be the same
+	as the value string.
+      </para>
+    </refsect2>
+
+    <refsect2>
+      <title>Counter</title>
+      <cmdsynopsis>
+	<command>counter</command>
+	<arg>-f <replaceable>countname</replaceable></arg>
+	<arg rep=repeat><replaceable>fields</replaceable></arg>
+      </cmdsynopsis>
+
+      <para>
+	If no fields are specified, simply count the number of records
+	seen.  If one or more fields are specified, treat those fields
+	as a tuple and count the number of occurrences of each value
+	for that tuple.  
+      </para>
+   
+      <para>
+        The count value is added to the record as an annotation of type int and name "counter"
+	unless the "-f" is used to specify an alternate name for the field.
+      </para>
+    </refsect2>
+
+    <refsect2>
+      <title>Discrete Probability Density Function</title>
+      <cmdsynopsis>
+	<command>pdf</command>
+      </cmdsynopsis>
+
+      <para>
+        Assemble a stream of input records with "count" fields.
+	When a "refresh" record is received or the data flow ends, then 
+	use the "count" fields to calculate the fraction of the total 
+	that each record is responsible.  Attach this value as a "probability"
+	field of type "double".
+	calculate then use the 
+      </para>
+    </refsect2>
+
+    <refsect2>
+      <title>Project</title>
+      <cmdsynopsis>
+	<command>project</command>
+	<arg choice=req rep=repeat> <replaceable>fields</replaceable></arg>
+      </cmdsynopsis>
+
+      <para>
+        Replace all objects in the input stream with new objects
+        containing only the specified fields.  This is the project (Pi)
+        operation from relational algebra ("select &lt;fields&gt;" in SQL).
+      </para>
+    </refsect2>
+
+
+    <refsect2>
+      <title>Rename</title>
+      <cmdsynopsis>
+	<command>rename</command>
+	<arg choice=req rep=repeat> <replaceable>oldfield newfield</replaceable></arg>
+      </cmdsynopsis>
+
+      <para>
+        Given a list of alternating old and new field names, make a copy of the old field with the new name.
+        Combined with the Project module, this can implement the rename (rho)
+        operation from relational algebra ("as" in SQL).
+      </para>
+    </refsect2>
+
+    <refsect2>
+      <title>Delta</title>
+      <cmdsynopsis>
+	<command>delta</command>
+	<arg choice=req> <replaceable>xfield</replaceable></arg>
+      </cmdsynopsis>
+
+      <para>
+	For each data object seen, compute the delta from the previous x field to this current xfield.
+	The data object is annotate with a "<literal>delta</literal>"
+	field of type "<literal>double</literal>" containing the result.  The x field must be convertable to doubles as well.
+      </para>
+    </refsect2>
+
+    <refsect2>
+      <title>Derivative</title>
+      <cmdsynopsis>
+	<command>derivative</command>
+	<arg choice=req> <replaceable>yfield</replaceable></arg>
+	<arg choice=req><replaceable>xfield</replaceable></arg>
+      </cmdsynopsis>
+
+      <para>
+	For each data object seen, compute the derivative of the y field with respect to the x field
+	between this point and the last object seen.  The data object is annotate with a "<literal>derivative</literal>"
+	field of type "<literal>double</literal>" containing the result.  The x and y fields must be convertable
+	to doubles as well.
+      </para>
+    </refsect2>
+
+    <refsect2>
+      <title>Entropy</title>
+      <cmdsynopsis>
+	<command>entropy</command>
+      </cmdsynopsis>
+
+      <para>
+        This module expects a series of data objects with "<literal>probability</literal>" fields
+	and computes the Shannon entropy for that series.  
+	When the data stream ends or a "<literal>refresh</literal>" object is seen, it is assumed
+	that every ocurring value has been seen and the entropy for the series is calculated
+	and added as an annotation of type <literal>double</literal> to a refresh object.  
+	See the "<literal>last</literal>" module for more information on <literal>refresh</literal> objects.
+      </para>
+    </refsect2>
+
+    <refsect2>
+      <title>Flow ID</title>
+      <cmdsynopsis>
+	<command>flowid</command>
+	<arg>-t <replaceable>time</replaceable></arg>
+	<arg>-r </arg>
+	<arg choice=req rep=repeat> <replaceable>fields</replaceable></arg>
+      </cmdsynopsis>
+
+      <para>
+	Treat the specified field(s) as a tuple and assign a unique
+	flow id number to each object based on the typle value.  The
+	annotated field is called "flowid".  All but the first packet
+	will be filtered out.
+      </para>
+
+      <para>
+	The <option>-r</option> option specifies that the same flow id
+	should be assigned to packets in the reverse direction.
+	Separate flow statistics will be kept for each direction.
+      </para>
+
+      <para>
+	The <option>-t</option> option specifies a number of seconds
+	idle time before a flow is timed out.  When it times out a
+	REFRESH record with the flows identifying fields (as specified
+	in the arguments), the current time (timeseries) and the
+	packet and byte counters ("packets", "packetsback", "bytes",
+	"bytesout") and the "start" and "finish" times.
+      </para>
+      
+    </refsect2>
+
+    <refsect2>
+      <title>Group-By</title>
+      <cmdsynopsis>
+	<command>groupby</command>
+	<arg choice=req rep=repeat> <replaceable>fields</replaceable></arg>
+	<arg choice=req> -- </arg>
+	<arg choice=req rep=repeat> <replaceable>query</replaceable></arg>
+      </cmdsynopsis>
+
+      <para>
+	Treat the specified field(s) as a tuple and instantiate the
+	specified query for each tuple.  If a record of type "refresh"
+	is received, then the pipeline for that tuple will be gracefully
+	terminated.
+      </para>
+
+    </refsect2>
+    <refsect2>
+      <title>Time Sort</title>
+      <cmdsynopsis>
+	<command>fifodelay</command>
+	<arg>-t <replaceable>time</replaceable></arg>
+	<arg>-i <replaceable>input-time-field</replaceable></arg>
+	<arg>-o <replaceable>output-time-field</replaceable></arg>
+      </cmdsynopsis>
+
+      <para>
+	Sort a series of input records and output them sorted by an
+	output time field that is specified with the
+	<option>-o</option> option and defaults to "timeseries".  All records
+	that are past the edge time are immediately updated.  The edge
+	time is determined by the input time field (specified with the
+	<option>-i</option> option and defaullting to "timseries") and
+	a time delay which is specified with the <option>-t</option>
+	option which defaults to 0 seconds.
+      </para>
+    </refsect2>
+
+  </refsect1>
+  <refsect1>
+    <title>SEE ALSO</title>
+
+    <para>
+      <command>smacqq</command>(1), 
+      <command>smacqp</command>(1), 
+      <command>dts</command>(3), 
+      <command>dts-modules</command>(3), 
+      <command>smacq-modules</command>(3),
+      <command>smacq-embed</command>(3)
+    </para>
+
+  </refsect1>
+  
+</refentry>

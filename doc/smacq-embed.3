@@ -53,14 +53,14 @@
 .ds f4\"
 '\" t 
 .ta 8n 16n 24n 32n 40n 48n 56n 64n 72n  
-.TH "libsmacq-embed" "3" 
+.TH "smacq-embed" "3" 
 .SH "NAME" 
-libsmacq-embed \(em Embedding libsmacq in applications 
+smacq-embed \(em Embedding libsmacq in applications 
 .SH "SYNOPSIS" 
 .PP 
 .nf 
 .ta 8n 16n 24n 32n 40n 48n 56n 64n 72n 
-#include <smacq-internal.h> 
+#include <smacq.h> 
  
 .fi 
 .SH "DESCRIPTION" 
@@ -79,8 +79,23 @@ data.  This manpage describes the API used by applications that wish to use this
 .fi 
 .PP 
 Given an argument vector in the typical format, parse those 
-arguments and create and return a data-flow pipeline.  An 
+arguments and create and return a data-flow graph.  An 
 argument of "|" is used to delimit modules in the pipeline. 
+ 
+.PP 
+.nf 
+.ta 8n 16n 24n 32n 40n 48n 56n 64n 72n 
+.sp 1 
+\fBsmacq_graph * \fBsmacq_build_query\fP\fR( 
+\fB       dts_environment *\fR, 
+\fB       int argc\fR, 
+\fB       char ** argv\fR); 
+.fi 
+.PP 
+Given an argument vector in the typical format, parse those 
+arguments according to the SMACQ query language described in 
+\fBsmacq\fP(1) as a single string and create and 
+return a data-flow graph.   
  
 .PP 
 .nf 
@@ -139,4 +154,4 @@ void * initialized to NULL.
 .SH "SEE ALSO" 
 .PP 
 smacqp(1), smacq-modules(3) 
-...\" created by instant / docbook-to-man, Wed 08 Jan 2003, 18:36 
+...\" created by instant / docbook-to-man, Tue 18 Mar 2003, 20:07 

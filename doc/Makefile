@@ -1,4 +1,4 @@
-DOCS=smacqq.1 smacqp.1 smacq-modules.3 dts-types.3 smacq-embed.3
+DOCS=smacq.1 smacqq.1 smacqp.1 smacq-modules.3 dts.3 dts-modules.3 smacq-embed.3
 DOCTXTS=$(patsubst %,%.txt,$(DOCS))
 DOCPDFS=$(patsubst %,%.pdf,$(DOCS))
 

@@ -183,7 +183,7 @@ static int merge_vectors(smacq_graph * a, smacq_graph * b) {
 	return 0;
 #endif 
 
-	if (!a->alg.vector || !b->alg.vector || !compare_element_names(a,b))
+	if (!a->algebra.vector || !b->algebra.vector || !compare_element_names(a,b))
 		return 0;
 
 	/* Move all children (including arguments) from B to A */
@@ -247,7 +247,7 @@ static int merge_trees(smacq_graph * a, smacq_graph * b) {
 
 	if (0 && merge_demuxs(a,b)) {
 		retval = 1;
-        } else if (a->alg.vector) { 
+        } else if (a->algebra.vector) { 
 		retval = merge_vectors(a,b);
 	} else {
 		retval = merge_fanouts(a, b);
@@ -266,7 +266,7 @@ static void optimize_tree(smacq_graph * g) {
 
 	if (!g) return;
 
-	if (!g->alg.vector && !g->alg.demux) { /* Can't rewrite children of a vector */
+	if (!g->algebra.vector && !g->algebra.demux) { /* Can't rewrite children of a vector */
 	  for (an = 0; an < g->numchildren; an++) {
 		a = g->child[an];
 

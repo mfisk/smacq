@@ -34,7 +34,7 @@ struct _smacq_module {
   int argc;
 
   struct smacq_module_ops ops;
-  struct smacq_module_alg alg;
+  struct smacq_module_algebra algebra;
 
   GModule * module;
   void * state;

@@ -26,7 +26,7 @@ static inline void read_module(smacq_graph * graph, struct smacq_functions * mod
 		graph->ops.shutdown = FIRST(modtable->shutdown, null_shutdown);
 		graph->ops.init = FIRST(modtable->init, null_init);
 		graph->ops.thread_fn = modtable->thread;
-		graph->alg = modtable->alg;
+		graph->algebra = modtable->algebra;
 }
 
 int smacq_graph_print(FILE * fh, smacq_graph * f, int indent) {
@@ -280,7 +280,7 @@ void smacq_replace_child(smacq_graph * parent, int num, smacq_graph * newchild) 
 
 void smacq_remove_child(smacq_graph * a, int num) {
   assert(num < a->numchildren);
-  assert(!a->alg.demux && !a->alg.vector);
+  assert(!a->algebra.demux && !a->algebra.vector);
 
   smacq_remove_parent(a->child[num], a);
 

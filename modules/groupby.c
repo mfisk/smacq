@@ -179,5 +179,5 @@ struct smacq_functions smacq_groupby_table = {
 	consume: &groupby_consume,
 	init: &groupby_init,
 	shutdown: NULL,
-	alg: { demux: 1 }
+	algebra: { demux: 1 }
 };

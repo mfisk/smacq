@@ -80,9 +80,12 @@ Nested queries are also supported.  For example:
  
 \f(CW	print srcip, dstip from (uniq srcip, dstip from pcapfile("/tmp/dump")) 
 \fP        
-"Where" clauses are supported: 
+"Where" clauses are supported for both boolean tests based on <, 
+<=, >, >=, =, !=, or arbitrary filtering functions. 
  
 \f(CW	print dstip from pcapfile("/tmp/dump") where srcip = 128.129.1.2 
+\fP  
+\f(CW	print dstip from pcapfile("/tmp/dump") where mask(srcip, 128.129.0.0/16) 
 \fP  
 Aliasing with "as" is supported: 
  
@@ -115,10 +118,10 @@ not "group by" is used.
 .PP 
 SMACQ is an extensible system that the user can add modules to. 
 See the \fBsmacqp\fP(1) manpage for a detailed 
-description of modules.  Many modules take flags which can be 
-specified in quotes: 
+description of modules.  Many modules take flags which, like all 
+arguments, must be separated with commas: 
  
-\f(CW	print "-v", srcip, dstip from pcapfile("/tmp/dump") 
+\f(CW	print -v, srcip, dstip from pcapfile("/tmp/dump") 
 \fP\  
  
 .SH "BUGS" 
@@ -127,4 +130,4 @@ Joins are not yet supported.  They will be supported in multiple
 forms:  joins within a buffer window, joins between 
 nondecreasing streams, etc. 
  
-...\" created by instant / docbook-to-man, Wed 08 Jan 2003, 18:36 
+...\" created by instant / docbook-to-man, Tue 18 Mar 2003, 17:47 

@@ -12,7 +12,7 @@
       <firstname>Mike</firstname>
       <surname>Fisk</surname>
     </author>
-    <date>$Date: 2002/12/29 02:32:01 $</date>
+    <date>$Date: 2002/12/29 22:55:50 $</date>
   </refentryinfo>
   <refmeta>
     <refentrytitle>smacqq</refentrytitle>
@@ -54,10 +54,15 @@
 	print srcip, dstip from (uniq srcip, dstip from pcapfile("/tmp/dump"))
       </computeroutput>
       
-      "Where" clauses are supported:
+      "Where" clauses are supported for both boolean tests based on <,
+      <=, >, >=, =, !=, or arbitrary filtering functions.
 
       <computeroutput>
 	print dstip from pcapfile("/tmp/dump") where srcip = 128.129.1.2
+      </computeroutput>
+
+      <computeroutput>
+	print dstip from pcapfile("/tmp/dump") where mask(srcip, 128.129.0.0/16)
       </computeroutput>
 
       Aliasing with "as" is supported:
@@ -98,11 +103,11 @@
     <para>
       SMACQ is an extensible system that the user can add modules to.
       See the <command>smacqp</command>(1) manpage for a detailed
-      description of modules.  Many modules take flags which can be
-      specified in quotes:
+      description of modules.  Many modules take flags which, like all
+      arguments, must be separated with commas:
 
       <computeroutput>
-	print "-v", srcip, dstip from pcapfile("/tmp/dump")
+	print -v, srcip, dstip from pcapfile("/tmp/dump")
       </computeroutput>&nbsp;
     </para>
 

@@ -1,0 +1,186 @@
+.TH dts 3 "$Date: 2003/01/23 01:47:35 $" "LANL"
+.SH NAME
+dts  \- Dynamic Type System API
+.SH SYNOPSIS
+.nf
+.B #include <smacq.h>
+.fi
+
+SMACQ(1) is built around a Dynamic Type System (DTS) runtime.  The library routines used to interface with the DTS are described herein.
+
+.SH DESCRIPTION
+
+SMACQ(1) is an extensible component system for analyzing streams of
+structured data.  This manpage describes the programming API for
+creating pipeline modules.  Type modules are documented separately in
+dts-modules(3).
+
+The following routines provide access to data objects:
+
+.SH "OBJECT CONSTRUCTION AND MODIFICATION"
+
+.TP
+.BI "const dts_object * smacq_dts_construct(smacq_environment * env, int type, void * data)"
+Return a new data object with contents copied from data.  This call only
+works for fixed-size objects.
+
+.TP
+.BI "const dts_object * smacq_alloc(smacq_environment * env, int datasize, int type)"
+Return a new, empty data object large enough to hold \fIdatasize\fP bytes.  
+Use \fIsmacq_requiretype()\fP to get a
+type number.
+
+.TP
+.BI "int smacq_fromstring(smacq_environment * env, int type, char * value, dts_object * data)"
+Convert the string-form value into a typed data object of the specified type. 
+
+.TP
+.BI "void dts_attach_field(const dts_object * current_object, dts_field field, const dts_object * field_data)"
+Attach the field_data object as a field of the current object.
+
+.TP
+.BI "void smacq_msg_send(smacq_environment * env, dts_field field, dts_object * data, dts_comparison * comparisonList)"
+Send a specified field with value specified by data to any data records described
+by the criteria in the comparison list.
+
+.TP
+.BI "const dts_object * dts_writable(smacq_environment * env, dts_object * obj)"
+Return a pointer to a writable version of the specified object.
+This operation invalidates the original object so it should not
+be used any further and should not be passed on to other modules.
+
+.SH "OBJECT USE"
+
+.TP
+.BI "int smacq_datum_size(const dts_object * datum)"
+.TP
+.BI "int dts_getsize(const dts_object * d)"
+Return the size of the data
+
+.TP
+.BI "int dts_setsize(const dts_object * cd, int size)"
+
+
+.TP
+.BI "void * dts_getdata(const dts_object * datum)"
+Return a pointer to the data
+
+.TP
+.BI "TYPE dts_data_as(const dts_object * datum, TYPE)"
+This is a macro that casts the data portion of the datum to the specified type.  The result can be used either as r-value or an l-value.
+
+.TP
+.BI "void dts_set(const dts_object *,  TYPE, VAL)"
+This is a macro that ensures that the object is large enough for the
+size of the specified type and then sets the object contents equal to
+the specified value.
+
+.TP
+.BI "int dts_gettype(const dts_object * datum)"
+Return the type of the data
+
+.TP
+.BI "int smacq_datum_settype(const dts_object * d, int type)"
+Set the type of the data
+
+.TP
+.BI "int dts_incref(const dts_object * datum, int num)"
+Increment the reference counter of the object by \fInum\fP.
+
+.TP
+.BI "int dts_decref(const dts_object * datum)"
+Decrement the reference counter of the object and free it
+if there are no more references.
+
+.SH "OBJECT FIELD ACCESS"
+
+.PP
+Data records are composed of named fields that can be accessed with the following functions:
+
+.TP
+.BI "const dts_object * smacq_getfield(smacq_environment * env, const dts_object * datum, dts_field field, dts_object * scratch)"
+
+.TP
+.BI "const dts_object * dts_getfield(dts_environment * env, const dts_object * datum, dts_field field, dts_object * scratch)"
+Return a data object for the specified field of the specified object.  The field object 
+is only valid for the lifetime of the original object.  dts_decref() must be used to free the object.  NULL is returned on failure.
+The scratch argument should always be NULL.
+
+.TP
+.BI "const dts_object * smacq_getfield_copy(smacq_environment * env, const dts_object * datum, dts_field * scratch)
+Same as above, but return persistant data that will outlive the datum.  dts_decref() must be used
+to free the object.  NULL is returned on failure.
+The scratch argument should be NULL.
+
+.PP
+There are also functions that provide access to groups of fields:
+
+.TP
+.BI "struct iovec * fields2vec(smacq_environment * env, const dts_object * datum, struct fieldset * fieldset)"
+
+.TP
+.BI "void fields_init(smacq_environment * env, struct fieldset * fieldset, int argc, char ** argv)"
+
+.SH "RUNTIME ACCESS"
+
+.TP
+.BI "dts_field smacq_requirefield(smacq_environment * env, char * tname)"
+.TP
+.BI "dts_field dts_requirefield(dts_environment * env, char * tname)"
+Return the dynamically assigned identifier for the given field name.  This dts_field must be 
+freed with dts_field_free().
+
+.TP
+.BI "void dts_field_free(dts_field field)"
+Free the given dts_field data structure.
+
+.TP
+.BI "char * dts_fieldname_append(const char * base, const char * addition)"
+Return a newly allocated string containing the addition string appended to the 
+base string and separated by a period.
+
+.TP
+.BI "int smacq_requiretype(smacq_environment * env, char * type_name)"
+.TP
+.BI "int dts_requiretype(dts_environment * env, char * type_name)"
+Types are dynamically loaded classes.  Load the specified type module
+(if it is not already loaded) and return the dynamically assigned numeric
+identifier for that type.
+This number will be consistent for the duration of this instantiation.  It is recommended
+for performance that modules convert type names to integers sparingly and cache results.
+All datum structures are typed with these values.
+
+.TP
+.BI "int smacq_typenum_byname(smacq_environment * env, char * name)"
+If the specified type module is already loaded, this result is the same as requiretype().
+Unlike requiretype(), if the type is not loaded, -1 is returned.
+
+.TP
+.BI "char * dts_typename_bynum(smacq_environment * env, int num)"
+Returns the string name of the specified numeric type identifier.
+
+.SH "OBJECT COMPARISON"
+
+.PP
+The system knows how to compare typed objects using the following routines.
+The basic data structure for this is dts_comparison.  This structure has an
+operation type that may be one of EQUALITY, INEQUALITY, LIKE, GT, LT, AND, and OR.  In the case of AND and OR, the "group" element points to a dts_comparison list of subterms.  Otherwise, the value string is in the "valstr" element.
+
+.TP
+.BI "int smacq_match(smacq_environment * env, const dts_object * datum, dts_comparison * comps, int same_types)"
+Compares the specified datum with the specified list of comparisions.
+Returns non-zero iff all of the comparisons are true.
+
+.TP
+.BI "dts_comparison * dts_parse_tests(dts_environment * tenv, int argc, char ** argv)"
+Return the comparison(s) resulting from the given argument vector.
+Comparisons can include AND and OR statements, parentheses for grouping, and equality and inequality operators.
+
+.PP
+
+.SH "SEE ALSO"
+.BR smacq(1),
+.BR smacqq(1),
+.BR smacqp(1),
+.BR dts-modules(3)
+.BR smacq-modules(3)

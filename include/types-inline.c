@@ -257,7 +257,7 @@ static inline char * dts_typename_bynum(smacq_environment * env, int num) {
 }
 
 /* Convert a type name to a type number */
-static inline int smacq_opt_typenum_byname(smacq_environment * env, char * name) {
+static inline int smacq_typenum_byname(smacq_environment * env, char * name) {
   return(env->types->typenum_byname(env->types, name));
 }
 

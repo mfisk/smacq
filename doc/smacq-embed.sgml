@@ -12,21 +12,21 @@
       <firstname>Mike</firstname>
       <surname>Fisk</surname>
     </author>
-    <date>$Date: 2002/12/01 03:32:54 $</date>
+    <date>$Date: 2003/01/05 04:44:33 $</date>
   </refentryinfo>
   <refmeta>
-    <refentrytitle>libsmacq-embed</refentrytitle>
+    <refentrytitle>smacq-embed</refentrytitle>
     <manvolnum>3</manvolnum>
   </refmeta>
   <refnamediv>
-    <refname>libsmacq-embed</refname>
+    <refname>smacq-embed</refname>
     <refpurpose>Embedding libsmacq in applications</refpurpose>
   </refnamediv>
   
   <refsynopsisdiv>
     <funcsynopsis>
       <funcsynopsisinfo>
-	#include &lt;smacq-internal.h&gt;
+	#include &lt;smacq.h&gt;
       </funcsynopsisinfo>
     </funcsynopsis>
   </refsynopsisdiv>
@@ -50,8 +50,24 @@
 
       <para>
 	Given an argument vector in the typical format, parse those
-	arguments and create and return a data-flow pipeline.  An
+	arguments and create and return a data-flow graph.  An
 	argument of "|" is used to delimit modules in the pipeline.
+      </para>
+
+    <funcsynopsis>
+      <funcprototype>
+	<funcdef>smacq_graph * <function>smacq_build_query</function></funcdef>
+	<paramdef>       dts_environment *</paramdef>
+	<paramdef>       int argc</paramdef>
+	<paramdef>       char ** argv</paramdef>
+      </funcprototype>
+    </funcsynopsis>
+
+      <para>
+	Given an argument vector in the typical format, parse those
+	arguments according to the SMACQ query language described in
+	<command>smacq</command>(1) as a single string and create and
+	return a data-flow graph.  
       </para>
 
     <funcsynopsis>

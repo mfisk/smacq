@@ -171,7 +171,7 @@ static int pcaplive_init(struct smacq_init * context) {
   }
 
   smacq_requiretype(context->env, "packet");
-  state->dts_pkthdr_type = smacq_opt_typenum_byname(state->env, "packet");
+  state->dts_pkthdr_type = smacq_requiretype(state->env, "packet");
 
   return 0;
 }

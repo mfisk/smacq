@@ -12,14 +12,14 @@
       <firstname>Mike</firstname>
       <surname>Fisk</surname>
     </author>
-    <date>$Date: 2002/12/01 03:34:31 $</date>
+    <date>$Date: 2003/01/10 06:50:33 $</date>
   </refentryinfo>
   <refmeta>
-    <refentrytitle>dts-types</refentrytitle>
+    <refentrytitle>dts-modules</refentrytitle>
     <manvolnum>3</manvolnum>
   </refmeta>
   <refnamediv>
-    <refname>dts-types</refname>
+    <refname>dts-modules</refname>
     <refpurpose>type module programming guide</refpurpose>
   </refnamediv>
   
@@ -35,22 +35,22 @@
     <title>DESCRIPTION</title>
 
     <para>
-      "Flow" is an extensible component system for analyzing streams of
-      structured data.  This manpage describes the API used by type
-      modules in this system.
+      SMACQ(1) is an extensible component system for analyzing streams
+      of structured data.  This manpage describes how type modules are
+      added to the system.
     </para>
 
     <para>
       By convention, types are compiled to an ELF shared library with
       a name like <filename>smacqtype_x.so</filename>, where
-      <classname>x</classname> is the type name.  Types modules are not
-      containers for data, but merely interfaces for accessing data of
-      that type.  Thus there is no private storage associated with a
-      type.
+      <classname>x</classname> is the type name.  Types modules are
+      not containers for data, but merely interfaces for accessing
+      data of that type.  Thus there is no private storage associated
+      with a type.
     </para>
 
     <para>
-      Many flow <firstterm>compute modules</firstterm> are polymorphic
+      Many SMACQ <firstterm>compute modules</firstterm> are polymorphic
       and have no knowledge of the internal representation of typed
       data.  They access the data through field and transform
       functions described below.  However, a type-specific compute
@@ -65,7 +65,7 @@
       <title>dts_type_<replaceable>typename</replaceable>_table</title>
 
       <para>
-	Each types module must declare a structure named
+	Each type module must declare a structure named
 	<function>dts_type_</function><replaceable>typename</replaceable><function>_table</function> of type <structname>struct
 	  dts_type_info</structname>, which is defined as follows:
       </para>
@@ -73,14 +73,23 @@
       <programlisting>
 	struct <structname>dts_type_info</structname> {
 	  <structfield>
-	    int size;
-	  </structfield>
-	};
-    </programlisting>
+	  int size;
+	</structfield><structfield>
+	  smacqtype_lt_fn * lt;
+	</structfield><structfield>
+	  smacqtype_fromstring_fn * fromstring;
+	</structfield>
+	};</programlisting>
 
       <para>
 	The size is the constant size, in bytes, of the data type (e.g. 1 for a char), or -1 if the data has variable size.
+	The less-than and fromstring functions are optional and have the following prototypes:
       </para> 
+
+      <programlisting>
+	typedef int smacqtype_lt_fn(void *, int, void *, int);</programlisting>
+      <programlisting>
+	typedef int smacqtype_fromstring_fn(char *, const dts_object *);</programlisting>
     </refsect2>
 
     <refsect2>
@@ -101,10 +110,10 @@
 	</structfield><structfield>
 	  field_getfunc_fn * getfunc;
 	</structfield>
-	};
+	}; </programlisting>
 
-	typedef int <function>field_getfunc_fn</function>(const dts_object*, dts_object *);
-      </programlisting>
+      <programlisting>
+	typedef int <function>field_getfunc_fn</function>(const dts_object*, dts_object *);</programlisting>
 
       <para>
 	Each entry in this list describes a named field in a list of
@@ -166,9 +175,7 @@
 	</structfield>
 	};
 
-	typedef int <function>transform_getfunc_fn</function>(void * data, int len, void ** tdata, int * tlen);
-
-      </programlisting>
+	typedef int <function>transform_getfunc_fn</function>(void * data, int len, void ** tdata, int * tlen);</programlisting>
 
       <para>
 	Each entry in this list describes a named transformation that
