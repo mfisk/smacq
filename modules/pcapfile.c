@@ -240,7 +240,7 @@ static smacq_result pcapfile_init(struct smacq_init * context) {
     open_file(state);
     state->produce = 1;
   } else if (context->islast) {
-    fprintf(stderr, "Writing pcapfile %s\n", state->opts.output);
+    fprintf(stderr, "Output will be placed in pcapfile %s\n", state->opts.output);
   } else {
     fprintf(stderr, "pcapfile module must be at beginning or end of dataflow\n");
     exit(-1);
