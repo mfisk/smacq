@@ -5,8 +5,8 @@ if [ "$targets" = "" ]; then
         targets="all test"
 fi
 
-#platform=`uname -sm| sed 's/  */-/g'`
-platform=`config/config.guess`
+platform=`uname -sm| sed 's/  */-/g'`
+#platform=`config/config.guess`
 srcdir=`pwd`
 
 if [ "$BUILDNAME" = "" ]; then

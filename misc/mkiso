@@ -36,6 +36,7 @@ MacApp() {
 	done	
 	
 	cp misc/reloc "$DSTDIR/.bin"
+	#cp config/config.guess "$DSTDIR/.bin"
 	(cd "$DSTDIR"; ln -f .bin/reloc smacqq)
 
 	#Get_CVS
