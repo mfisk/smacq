@@ -1,7 +1,8 @@
 #ifndef SMACQ_UTIL_C
 #define SMACQ_UTIL_C
 
-#include <malloc.h>
+
+#include <stdlib.h>
 #include <string.h>
 
 static inline void * memdup(void * buf, int size) {
