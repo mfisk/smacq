@@ -22,7 +22,7 @@ static struct smacq_options options[] = {
 
 struct state {
   DTS * env;
-  dts_field field;
+  DtsField field;
 }; 
 
 int get42(int x) {
@@ -66,7 +66,7 @@ static smacq_result bench_field_consume DtsObject datum, int & outchan) {
   gettimeofday(&tvstart, NULL);
  
   for (i=0; i<LOOPSIZE; i++) { 
-    dts_fieldcache_flush(datum, dts_field_first(field));
+    datum->fieldcache_flush(field);
     x = datum->getfield(field);
     val = dts_data_as(x, double);
     
