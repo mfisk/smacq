@@ -46,13 +46,9 @@ MacApp() {
 
 	set -x
 	for p in $platforms; do
+		DEPS=`deps "build/$p/bin/smacqq" | sort | uniq || true` 
 		mkdir "$DSTDIR/.bin/$p"
-		cp "build/$p/bin/smacqq" "$DSTDIR/.bin/$p/"
-
-		DEPS=`deps "build/$p/bin/smacqq" | sort | uniq | egrep -v '^(/usr/lib/|/lib)' || true` 
-		if [ "$DEPS" != "" ]; then
-			cp $DEPS "$DSTDIR/.bin/$p/"
-		fi
+		cp "build/$p/bin/smacqq" $DEPS "$DSTDIR/.bin/$p/"
 	done	
 	
 	cp misc/reloc "$DSTDIR/.bin"
