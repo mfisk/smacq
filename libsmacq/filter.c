@@ -4,72 +4,102 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#define __USE_ISOC99 1
+#include <math.h>
+
 static inline int type_match_andor(dts_environment * tenv, const dts_object * datum, 
 	   dts_comparison * comps, int op);
-
-#if 0
-int dts_parsetest (dts_environment * tenv, dts_comparison * comp, 
-		    char * test) {
-    int offset = strcspn(test,  "=<>!");
-    comp->valstr = test+offset+1;
-
-    if (offset == strlen(test)) {
-      comp->op = EXIST;
-
-    } else if (test[offset] == '=') {
-      comp->op = EQ;
-
-    } else if (!strncmp(test+offset, "!=", 2)) {
-      comp->op = NEQ;
-      comp->valstr++;
-    } else if (test[offset] == '<') {
-      comp->op = LT;
-    } else if (test[offset] == '>') {
-      comp->op = GT;
-    }
-
-    test[offset] = '\0';
-    comp->field = tenv->requirefield(tenv, test);
-    //fprintf(stderr, "Field %s is number %d\n", test, comp->field);
-
-    return 1;
-}
-#endif
 
 static inline int compat(const dts_comparison * c) {
 	return (c->op1->valueo && c->op2->valueo && (c->op1->valueo->type == c->op2->valueo->type));
 }
 
 static inline int eq(dts_environment * tenv, const dts_comparison * c) {
-	return (compat(c) && 
+	return 
 	    (c->op1->valueo->len == c->op2->valueo->len) && 
-	    (!memcmp(c->op1->valueo->data, c->op2->valueo->data, c->op1->valueo->len)));
+	    (!memcmp(c->op1->valueo->data, c->op2->valueo->data, c->op1->valueo->len));
 }
 
 static inline int lt(dts_environment * tenv, const dts_comparison * c) {
-	// fprintf(stderr, "%d <? %d: %d\n", *(ushort*)test_data.data, *(ushort*)c->field_data->data, match);
+	//fprintf(stderr, "%g <? %g\n", dts_data_as(c->op1->valueo, double), dts_data_as(c->op2->valueo, double));
+	
 	return (compat(c) && 
 	    (dts_lt(tenv, c->op1->valueo->type, c->op1->valueo->data, c->op1->valueo->len, c->op2->valueo->data, c->op2->valueo->len)));
 }
 
 static inline fetch_operand(dts_environment * tenv, const dts_object * datum, 
+	   struct dts_operand * op, int const_type);
+
+static double eval_arith_operand(const dts_object * datum, struct dts_operand * op) {
+  double val1, val2;
+
+  switch (op->type) {
+	  case FIELD:
+  	  	 fetch_operand(datum->tenv, datum, op, -1);
+		 if (op->valueo) {
+		 	 assert(op->valueo->type == datum->tenv->double_type);
+			 return dts_data_as(op->valueo, double);
+		 } else {
+			 fprintf(stderr, "Warning: no field %s to eval, using NaN for value\n", op->origin.literal.str);
+			 return NAN;
+		 };
+		 break;
+
+	  case CONST:
+  	  	 fetch_operand(datum->tenv, datum, op, datum->tenv->double_type);
+		 if (op->valueo) {
+			 return dts_data_as(op->valueo, double);
+		 } else {
+			 return NAN;
+		 };
+		 break;
+
+	  case ARITH:
+  		val1 = eval_arith_operand(datum, op->origin.arith.op1);
+  		val2 = eval_arith_operand(datum, op->origin.arith.op2);
+  		switch (op->type) {
+	  		case ADD:
+		  		return val1 + val2;
+		  		break;
+	  		case SUB:
+		  		return val1 - val2;
+		  		break;
+	  		case DIVIDE:
+		  		return val1 / val2;
+		  		break;
+	  		case MULT:
+	  	  		return val1 * val2;
+		  		break;
+  		}
+		break;
+  }
+}
+
+static inline fetch_operand(dts_environment * tenv, const dts_object * datum, 
 	   struct dts_operand * op, int const_type) {
+  double val;
 
   if (op->type == CONST && op->valueo && op->valueo->type == const_type) {
 	  return; 
   }
 
-  if (op->valueo) dts_decref(op->valueo);
+  if (op->type != ARITH && op->valueo) dts_decref(op->valueo);
 
   switch(op->type) {
 	case FIELD: 
-	  op->valueo = dts_getfield(tenv, datum, op->field);
-	  //if (!op->valueo) fprintf(stderr, "Field %s not found in obj %p\n", op->str, datum);
+	  op->valueo = dts_getfield(tenv, datum, op->origin.literal.field);
+	  //if (!op->valueo) fprintf(stderr, "Field %s not found in obj %p\n", op->origin.literal.str, datum);
 	  break;
 
 	case CONST: 
-	  op->valueo = dts_construct_fromstring(tenv, const_type, op->str); 
-	  if (!op->valueo) fprintf(stderr, "Could not parse %s\n", op->str);
+	  op->valueo = dts_construct_fromstring(tenv, const_type, op->origin.literal.str); 
+	  if (!op->valueo) fprintf(stderr, "Could not parse %s\n", op->origin.literal.str);
+	  break;
+
+	case ARITH:
+	  assert(op->valueo);
+	  dts_data_as(op->valueo, double) = eval_arith_operand(datum, op);
+  	  //fprintf(stderr, "eval arithmetic operand to %g\n", dts_data_as(op->valueo, double));
 	  break;
   }
 }
@@ -114,15 +144,15 @@ static inline int type_match_one(dts_environment * tenv, const dts_object * datu
 
   switch (c->op) {
       case EQ:
-	retval = eq(tenv, c);
+	retval = compat(c) && eq(tenv, c);
 	break;
 
       case NEQ:
-	retval = !eq(tenv, c);
+	retval = compat(c) && !eq(tenv, c);
 	break;
 
       case LT:
-	retval = lt(tenv, c);
+	retval = compat(c) && lt(tenv, c);
 	break;
 
       case GEQ:
@@ -130,11 +160,11 @@ static inline int type_match_one(dts_environment * tenv, const dts_object * datu
 	break;
 
       case GT:
-	retval = (!lt(tenv, c) && !eq(tenv, c));
+	retval = (compat(c) && !lt(tenv, c) && !eq(tenv, c));
 	break;
 
       case LEQ:
-	retval = (eq(tenv, c) || lt(tenv, c));
+	retval = compat(c) && (eq(tenv, c) || lt(tenv, c));
 	break;
 
       case EXIST:

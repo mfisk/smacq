@@ -32,6 +32,9 @@ typedef struct _type_env {
   int (* requiretype)(struct _type_env *, char *);
   dts_field (* requirefield)(struct _type_env *, char *);
   char * (* typename_bynum)(struct _type_env *, int);
+
+  dts_field double_field;
+  int double_type;
 } dts_environment;
 
 struct _dts_object {
@@ -94,14 +97,31 @@ struct dts_type {
 enum _dts_comp_op { EXIST, EQ, LEQ, GEQ, NEQ, LT, GT, LIKE, AND, OR, FUNC };
 typedef enum _dts_comp_op dts_compare_operation;
 
-enum dts_operand_type { CONST, FIELD };
+enum dts_operand_type { CONST, FIELD, ARITH };
+enum dts_arith_operand_type { ADD, SUB, MULT, DIVIDE };
+
+struct dts_operand;
+
+struct dts_arith_operand {
+  enum dts_arith_operand_type type;
+  struct dts_operand * op1;
+  struct dts_operand * op2;
+};
+
+struct dts_literal_operand{
+  char * str;
+  dts_field field;
+};
 
 struct dts_operand {
   enum dts_operand_type type;
-
-  char * str;
-  dts_field field;
   const dts_object * valueo;
+
+  union { 
+    struct dts_arith_operand arith;
+    struct dts_literal_operand literal;
+  } origin;
+
 };
 
 struct dts_comp_func {

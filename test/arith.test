@@ -1,0 +1,5 @@
+#!/bin/sh
+
+bin/smacqq -O -m <<EOF 2>/dev/null
+print -v, seq, ipid, seq.double, ipid.uint32 from pcapfile($TEST/0325@1112-snort.pcap) where seq.double > ( ipid.uint32 * 10000000 )
+EOF
