@@ -70,31 +70,33 @@ smacq_result printModule::consume(DtsObject datum, int & outchan) {
       int num;
 
       for (num=0, j=v.begin(); j != v.end(); ++j, ++num) {
-	if (*j) {
-		f[0] = num;
-		printed = print_field(*j, dts->field_getname(f), printed, column);
-		column++;
-	}
+				if (*j) {
+					f[0] = num;
+					printed = print_field(*j, dts->field_getname(f), printed, column);
+					column++;
+				}
       }
 
     } else {
-	field = datum->getfield(fields[i]);
-	printed = print_field(field, argv[i], printed, column);
+			field = datum->getfield(fields[i]);
+			printed = print_field(field, argv[i], printed, column);
 
-        if (!field && verbose) {
-		if (tagged) {
-			printf("no field %s.string", argv[i]);
-		} else {
-        		fprintf(stderr, "Warning: print: no field %s.string\n", argv[i]);
+			if (!field && verbose) {
+				if (tagged) {
+					printf("no field %s.string", argv[i]);
+				} else {
+       		fprintf(stderr, "Warning: print: no field %s.string\n", argv[i]);
+				}
+			}
 		}
-	}
-    }
     column++;
   }
   if (printed) {
- 	printf("\n");
+ 		printf("\n");
   }
-  if (flush) fflush(stdout); 
+  if (flush) {
+		fflush(stdout); 
+	}
   return SMACQ_PASS;
 }
 
