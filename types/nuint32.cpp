@@ -17,6 +17,12 @@ static int smacqtype_nuint32_get_double(DtsObject o, DtsObject field) {
   return 1;
 }
 
+static int smacqtype_nuint32_get_uint32(DtsObject o, DtsObject field) {
+  uint32_t d = ntohl(dts_data_as(o, uint32_t));
+  dts_data_as(field, uint32_t) = d;
+  return 1;
+}
+
 static int parse_nuint32(char * buf,  DtsObject d) {
   return dts_set(d, unsigned long, ntohl(atol(buf)));
 }
@@ -34,6 +40,7 @@ static int nuint32_lt(void * num1, int size1, void * num2, int size2) {
 struct dts_field_spec dts_type_nuint32_fields[] = {
   { "string",   "string",	smacqtype_nuint32_get_string },
   { "double",   "double",	smacqtype_nuint32_get_double },
+  { "uint32",   "uint32",	smacqtype_nuint32_get_uint32 },
   { NULL,        NULL }
 };
 
