@@ -135,14 +135,13 @@ static int pcaplive_init(struct flow_init * context) {
   }
 
   if (context->isfirst) {
-	fprintf(stderr, "Reading pcapfile from - (no predecessor)\n");
 	if (context->islast) {
 		fprintf(stderr, "Error: nobody to produce for!\n");
 		exit(-1);
 	}
 	state->pcap = pcap_open_live(interfaceo.string_t, snapleno.int_t, promisco.boolean_t, 0, ebuf);
 	if (! state->pcap) {
-	    pcap_perror(state->pcap, "pcap_open");
+	    fprintf(stderr, "pcaplive: error: %s\n", ebuf);
 	    exit(-1);
 	}
 
