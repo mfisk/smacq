@@ -8,7 +8,9 @@ DOCHTML=index.html gotsmacq.png icon.png
 DOXYGEN=doxygen
 DOCBOOK2MAN=docbook-to-man
 
-dist_man_MANS=$(DOCDSTS) $(DOCPDFS) $(DOCCATS) api/refman.pdf api/man3 api/html $(DOCHTML)
+EXTRA_DIST=api/refman.pdf api/man3 api/html
+
+dist_man_MANS=$(DOCDSTS) $(DOCPDFS) $(DOCCATS) $(DOCHTML)
 
 api: .ALWAYS
 	(cd $(srcdir); doxygen)
