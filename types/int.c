@@ -28,7 +28,7 @@ static int parse_string(char * buf, void ** resp, int * reslen) {
 	char * left = NULL;
 	*val = strtol(buf, &left, 10);
  	if (left == buf) {
-		free(*resp);
+		free(val);
 		return(0);
 	}
 	*resp = val;
