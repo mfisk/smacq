@@ -9,7 +9,15 @@ EXTERN const dts_object* _smacq_alloc(int size, int type);
 
 #define RING_EOF ((void*)-1)
 
-struct filter {
+struct smacq_module_ops {
+  smacq_init_fn * init;
+  smacq_shutdown_fn * shutdown;
+  smacq_consume_fn * consume;
+  smacq_produce_fn * produce;
+  smacq_thread_fn * thread_fn;
+};
+
+struct _smacq_module {
   // Ring buffer mgmt
   dts_object ** q;
   int ringsize;
@@ -25,26 +33,24 @@ struct filter {
   char ** argv;
   int argc;
 
+  struct smacq_module_ops ops;
+
   GModule * module;
   void * state;
   int status;
 
-  smacq_init_fn * init;
-  smacq_shutdown_fn * shutdown;
-  smacq_consume_fn * consume;
-  smacq_produce_fn * produce;
-  smacq_thread_fn * thread_fn;
   struct smacq_options * options;
 
-  struct filter * previous;
+  smacq_graph * previous;
 
-  struct filter ** next;
-  struct filter ** parent;
+  smacq_graph ** child;
+  smacq_graph ** parent;
   int numchildren, numparents;
 
   struct smacq_optval * optvals;
-};
 
+  smacq_graph * next_graph;
+};
 
 /* 
  * Method entry points 
@@ -77,12 +83,12 @@ const dts_object * msg_check(dts_environment * tenv, const dts_object * d, dts_f
 /*
  * Scheduler intefaces 
  */
-void sched_mono(struct filter *);
-EXTERN int smacq_sched_iterative(struct filter * startf, const dts_object * din, const dts_object ** dout , void ** state, int produce_first);
-EXTERN void smacq_sched_iterative_shutdown(struct filter * startf, void ** state);
+void sched_mono(smacq_graph *);
+EXTERN int smacq_sched_iterative(smacq_graph * startf, const dts_object * din, const dts_object ** dout , void ** state, int produce_first);
+EXTERN void smacq_sched_iterative_shutdown(smacq_graph * startf, void ** state);
 
 
-void smacq_start_threads(struct filter *);
+void smacq_start_threads(smacq_graph *);
 
 /*
  * Interace to buffer system 

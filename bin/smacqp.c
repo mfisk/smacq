@@ -9,12 +9,12 @@
 #include <smacq-internal.h>
 
 struct thread_args {
-  struct filter * f;
+  smacq_graph * f;
   struct smacq_init * context;
 };
 
 int main(int argc, char ** argv) {
-  struct filter * objs;
+  smacq_graph * objs;
 
   assert(argc > 1);
   objs = smacq_build_pipeline(argc-1, argv+1);

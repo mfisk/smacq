@@ -1,8 +1,10 @@
 #include <smacq-internal.h>
 #include <stdio.h>
 
-int smacq_start(struct filter * objs, enum smacq_scheduler scheduler, dts_environment * tenv) {
+static int smacq_start_single(smacq_graph * objs, enum smacq_scheduler scheduler, dts_environment * tenv) {
   smacq_environment * env = g_new0(smacq_environment, 1);
+  const dts_object * record;
+  void * runq = NULL;
 
   if (!tenv) {
     tenv = dts_init();
@@ -18,22 +20,60 @@ int smacq_start(struct filter * objs, enum smacq_scheduler scheduler, dts_enviro
     exit(-1);
   }
 
-  if (scheduler == RECURSIVE) {
-    sched_mono(objs);
-  } else if (scheduler == ITERATIVE) {
-    /* Caller must call sched_iterative() manually */
-  } else if (scheduler == LOOP) {
-    const dts_object * record;
-    void * runq = NULL;
-    while (smacq_sched_iterative(objs, NULL, &record, &runq, 1)) ;
-  } else {
-    smacq_start_threads(objs);
-    pthread_exit(0);
+  switch (scheduler) {
+
+    case RECURSIVE:
+    	sched_mono(objs);
+    	break;
+
+    case ITERATIVE:
+    	/* Caller must call sched_iterative() manually */
+    	break;
+
+    case LOOP:
+    	while (smacq_sched_iterative(objs, NULL, &record, &runq, 1)) ;
+    	break;
+
+    case THREADED:
+    	smacq_start_threads(objs);
+    	pthread_exit(0);
+    	break;
   }
 
   return 0;
+}
 
-  exit(-99); /* Should never get here */
+int smacq_start(smacq_graph * g, enum smacq_scheduler scheduler, dts_environment * tenv) {
+  while (g) {
+	if (g->next_graph && (scheduler != ITERATIVE) && (scheduler != THREADED)) {
+		fprintf(stderr, "Cannot start multiple graphs with this scheduler\n");
+		return -1;
+	}
+  	if (0 != smacq_start_single(g, scheduler, tenv))
+		return -1;
+
+	g = g->next_graph;
+  }
+
+  return 0;
+}
+
+smacq_graph * smacq_graph_add_graph(smacq_graph * a, smacq_graph * b) {
+	smacq_graph * ap;
+	if (!a) return b;
+
+	for (ap = a; ap->next_graph; ap=ap->next_graph) ;
+	ap->next_graph = b;
+	return a;
+}
+
+smacq_graph * smacq_merge_graphs(smacq_graph * a, smacq_graph * b) {
+	smacq_graph * ap;
+	if (!a) return b;
+
+	for (ap = a; ap->next_graph; ap=ap->next_graph) ;
+	ap->next_graph = b;
+	return a;
 }
 
 

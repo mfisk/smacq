@@ -3,15 +3,15 @@
 #include <string.h>
 #define RINGSIZE 4
 
-static inline void read_module(struct filter * module, struct smacq_functions * modtable) {
-		module->produce = modtable->produce;
-		module->consume = modtable->consume;
-		module->shutdown = modtable->shutdown;
-		module->init = modtable->init;
-		module->thread_fn = modtable->thread;
+static inline void read_module(smacq_graph * module, struct smacq_functions * modtable) {
+		module->ops.produce = modtable->produce;
+		module->ops.consume = modtable->consume;
+		module->ops.shutdown = modtable->shutdown;
+		module->ops.init = modtable->init;
+		module->ops.thread_fn = modtable->thread;
 }
 
-int smacq_load_module(struct filter * module) {
+int smacq_load_module(smacq_graph * module) {
     struct smacq_functions * modtable;
 
     assert(module);
@@ -25,19 +25,19 @@ int smacq_load_module(struct filter * module) {
     return 0;
 }
 
-static inline void add_parent(struct filter * newo, struct filter * parent) {
+static inline void add_parent(smacq_graph * newo, smacq_graph * parent) {
   newo->numparents++;
-  newo->parent = g_realloc(newo->parent, newo->numparents * sizeof(struct filter *));
+  newo->parent = g_realloc(newo->parent, newo->numparents * sizeof(smacq_graph *));
   newo->parent[newo->numparents - 1] = parent;
 }		
 
-void smacq_destroy_graph(struct filter *f) {
+void smacq_destroy_graph(smacq_graph *f) {
   int i;
 
   /* XXX: Need to handle cycles without double freeing */
   for (i=0; i<f->numchildren; i++) {
-    if (f->next[i]) {
-      smacq_destroy_graph(f->next[i]);
+    if (f->child[i]) {
+      smacq_destroy_graph(f->child[i]);
     }
   }
   smacq_free_module(f);
@@ -48,10 +48,10 @@ void smacq_destroy_graph(struct filter *f) {
  * Add the module specified by argv[0] as a child of parent.
  * Pass argv,argc to the new module
  */
-struct filter * smacq_new_module(int argc, char ** argv){
-  struct filter * newo;
+smacq_graph * smacq_new_module(int argc, char ** argv){
+  smacq_graph * newo;
 
-  newo = g_new0(struct filter, 1);
+  newo = g_new0(smacq_graph, 1);
   newo->name = *argv;
   newo->argv = argv;
   newo->argc = argc;
@@ -70,25 +70,25 @@ struct filter * smacq_new_module(int argc, char ** argv){
   return newo;
 }
 
-void smacq_free_module(struct filter * f) {
+void smacq_free_module(smacq_graph * f) {
   pthread_mutex_destroy(&f->qlock);
   pthread_cond_destroy(&f->ring_notfull);
   pthread_cond_destroy(&f->ring_notempty);
 
   free(f->q);
   free(f->parent);
-  free(f->next);
+  free(f->child);
   free(f);
 }
 
-int smacq_add_child_only(struct filter * parent, struct filter * newo) {
+int smacq_add_child_only(smacq_graph * parent, smacq_graph * newo) {
     /* Add to dataflow */
 
     if (parent) {
       newo->previous = parent;
-      parent->next = g_realloc(parent->next, (parent->numchildren+2)*sizeof(struct filter *));
-      parent->next[parent->numchildren++] = newo;
-      parent->next[parent->numchildren] = NULL;
+      parent->child = g_realloc(parent->child, (parent->numchildren+2)*sizeof(smacq_graph *));
+      parent->child[parent->numchildren++] = newo;
+      parent->child[parent->numchildren] = NULL;
       // fprintf(stderr, "Added %s(%p) as child of %s\n", newo->name, newo, parent->name);
       
       add_parent(newo, parent);
@@ -99,7 +99,7 @@ int smacq_add_child_only(struct filter * parent, struct filter * newo) {
     return 0;
 }
 
-int smacq_add_child(struct filter * parent, struct filter * child) {
+int smacq_add_child(smacq_graph * parent, smacq_graph * child) {
 	int res;
 	res = smacq_add_child_only(parent, child);
 	add_parent(child, parent);
@@ -107,37 +107,37 @@ int smacq_add_child(struct filter * parent, struct filter * child) {
 	return res;
 }
 
-struct filter * smacq_add_new_child(struct filter * parent, int argc, char ** argv){
-  struct filter * newo = smacq_new_module(argc, argv);
+smacq_graph * smacq_add_new_child(smacq_graph * parent, int argc, char ** argv){
+  smacq_graph * newo = smacq_new_module(argc, argv);
   smacq_add_child_only(parent, newo);
   return newo;
 }
 
-struct filter * smacq_clone_child(struct filter * parent, int child) {
+smacq_graph * smacq_clone_child(smacq_graph * parent, int child) {
 	int i;
 
-	struct filter * donor = parent->next[child];
-	struct filter * new = smacq_add_new_child(parent, donor->argc, donor->argv);
+	smacq_graph * donor = parent->child[child];
+	smacq_graph * new = smacq_add_new_child(parent, donor->argc, donor->argv);
 
 	// Rejoin
-	new->next = g_new(struct filter *, donor->numchildren);
+	new->child = g_new(smacq_graph *, donor->numchildren);
 	for (i=0; i < donor->numchildren; i++) {
-		new->next[i] = donor->next[i];
-		add_parent(new->next[i], new);
+		new->child[i] = donor->child[i];
+		add_parent(new->child[i], new);
 	}
 
 	return new;
 }
 
-struct filter * smacq_clone_tree(struct filter * donorParent, struct filter * newParent, int child) {
+smacq_graph * smacq_clone_tree(smacq_graph * donorParent, smacq_graph * newParent, int child) {
 	int i;
 
-	struct filter * donor = donorParent->next[child];
-	struct filter * new = smacq_add_new_child(newParent, donor->argc, donor->argv);
+	smacq_graph * donor = donorParent->child[child];
+	smacq_graph * new = smacq_add_new_child(newParent, donor->argc, donor->argv);
 
-	new->next = g_new(struct filter *, donor->numchildren);
+	new->child = g_new(smacq_graph *, donor->numchildren);
 	for (i=0; i < donor->numchildren; i++) {
-		new->next[i] = smacq_clone_tree(donor, new, i);
+		new->child[i] = smacq_clone_tree(donor, new, i);
 	}
 
 	return new;
@@ -148,9 +148,9 @@ struct filter * smacq_clone_tree(struct filter * donorParent, struct filter * ne
  * dataflow pipeline.  
  * Returns a pointer to the beginning of the dataflow.
  */
-struct filter * smacq_build_pipeline(int argc, char ** argv) {
-  struct filter * objs = NULL;
-  struct filter * last = NULL;
+smacq_graph * smacq_build_pipeline(int argc, char ** argv) {
+  smacq_graph * objs = NULL;
+  smacq_graph * last = NULL;
 
   while(argc > 0) {
     int o_argc = 0;
@@ -174,9 +174,9 @@ struct filter * smacq_build_pipeline(int argc, char ** argv) {
   return(objs);
 }
 
-struct filter * smacq_old_build_query(int argc, char ** argv) {
-  struct filter * objs = NULL;
-  struct filter * last = NULL;
+smacq_graph * smacq_old_build_query(int argc, char ** argv) {
+  smacq_graph * objs = NULL;
+  smacq_graph * last = NULL;
 
   assert(0 && "Not implemented!");
 
@@ -252,27 +252,27 @@ struct filter * smacq_old_build_query(int argc, char ** argv) {
 }
 
 
-void smacq_init_modules(struct filter * f, smacq_environment * env) {
+void smacq_init_modules(smacq_graph * f, smacq_environment * env) {
   struct smacq_init * context = g_new0(struct smacq_init, 1);
   int i;
 
   if (!f) return;
 
-  context->islast = !f->next;
+  context->islast = !f->child;
   context->isfirst = !f->previous;
   context->state = NULL;
   context->env = env;
   context->argc = f->argc;
   context->argv = f->argv;
   context->self = f;
-  context->thread_fn = f->thread_fn;
+  context->thread_fn = f->ops.thread_fn;
   
-  f->init(context);
+  f->ops.init(context);
   f->state = context->state;
   free(context);
 
   for (i = 0; i < f->numchildren; i++ ) 
-    smacq_init_modules(f->next[i], env);
+    smacq_init_modules(f->child[i], env);
   return;
 }
 

@@ -26,6 +26,8 @@ typedef int smacq_result;
 typedef struct _dts_object dts_object;
 typedef unsigned short dts_field_element;
 typedef dts_field_element * dts_field;
+struct _smacq_module;
+typedef struct _smacq_module smacq_graph;
 
 struct darray {
   unsigned long * array;
@@ -95,7 +97,7 @@ struct smacq_init {
   int argc;
   smacq_environment * env;
   void * state;
-  struct filter * self;
+  smacq_graph * self;
   smacq_thread_fn * thread_fn;
 };
 
@@ -180,22 +182,24 @@ extern void  smacq_flush(struct smacq_init * context);
 /*
  * User Interface to main system
  */
-struct filter;
 
 enum smacq_scheduler { ITERATIVE, RECURSIVE, THREADED, LOOP };
-EXTERN int smacq_start(struct filter *, enum smacq_scheduler, dts_environment *);
-void smacq_init_modules(struct filter *, smacq_environment *);
-EXTERN struct filter * smacq_build_pipeline(int argc, char ** argv);
-struct filter * smacq_build_query(int argc, char ** argv);
+EXTERN int smacq_start(smacq_graph *, enum smacq_scheduler, dts_environment *);
+void smacq_init_modules(smacq_graph *, smacq_environment *);
+EXTERN smacq_graph * smacq_build_pipeline(int argc, char ** argv);
+smacq_graph * smacq_build_query(int argc, char ** argv);
 int smacq_execute_query(int argc, char ** argv);
-struct filter * smacq_add_new_child(struct filter * parent, int argc, char ** argv);
-int smacq_add_child(struct filter * parent, struct filter * newo);
+smacq_graph * smacq_add_new_child(smacq_graph * parent, int argc, char ** argv);
+int smacq_add_child(smacq_graph * parent, smacq_graph * newo);
+smacq_graph * smacq_merge_graphs(smacq_graph * a, smacq_graph * b);
+smacq_graph * smacq_graph_add_graph(smacq_graph * a, smacq_graph * b);
+int smacq_start_multiple(smacq_graph * g, dts_environment * tenv);
 
-struct filter * smacq_new_module(int argc, char ** argv);
-EXTERN void smacq_free_module(struct filter * f);
-EXTERN void smacq_destroy_graph(struct filter * f);
-struct filter * smacq_clone_child(struct filter * parent, int child);
-struct filter * smacq_clone_tree(struct filter * donorParent, struct filter * newParent, int child);
+smacq_graph * smacq_new_module(int argc, char ** argv);
+EXTERN void smacq_free_module(smacq_graph * f);
+EXTERN void smacq_destroy_graph(smacq_graph * f);
+smacq_graph * smacq_clone_child(smacq_graph * parent, int child);
+smacq_graph * smacq_clone_tree(smacq_graph * donorParent, smacq_graph * newParent, int child);
 
 dts_comparison * dts_parse_tests(dts_environment * tenv, int argc, char ** argv);
 void dts_field_printname(dts_environment * tenv, dts_field f);

@@ -9,7 +9,7 @@
 #include <smacq-internal.h>
 
 struct thread_args {
-  struct filter * f;
+  smacq_graph * f;
   struct smacq_init * context;
 };
 
@@ -19,7 +19,7 @@ int main(int argc, char ** argv) {
   void * runq = NULL;
   void * printq = NULL;
   const dts_object * record = NULL;
-  struct filter * objs, *printer;
+  smacq_graph * objs, *printer;
 
   dts_environment * tenv = dts_init();
 

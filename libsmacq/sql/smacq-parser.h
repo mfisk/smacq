@@ -1,6 +1,8 @@
+#include <smacq.h>
+
 struct graph {
-      struct filter * head;
-      struct filter * tail;
+      smacq_graph * head;
+      smacq_graph * tail;
 };
 
 struct vphrase {
@@ -9,8 +11,8 @@ struct vphrase {
 };
 
 struct group {
-	struct arglist * args;
-	struct arglist * having;
+      struct arglist * args;
+      struct arglist * having;
 };
 
 

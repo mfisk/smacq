@@ -49,11 +49,11 @@
   static struct arglist * newarg(char * arg, int isfunc, struct arglist * func_args);
   static struct arglist * arglist_append(struct arglist * tail, struct arglist * addition);
   static struct vphrase newvphrase(char * verb, struct arglist * args);
-  void print_graph(struct filter * f);
+  void print_graph(smacq_graph * f);
 
   struct graph nullgraph = { head: NULL, tail: NULL };
   
-  struct filter * Graph;
+  smacq_graph * Graph;
 
 %}
 
@@ -223,11 +223,11 @@ verb :  id
 %%
 
 
-struct filter * smacq_build_query(int argc, char ** argv) {
+smacq_graph * smacq_build_query(int argc, char ** argv) {
   int size = 0;
   int i;
   char * qstr; 
-  struct filter * graph;
+  smacq_graph * graph;
   int res;
 
   for (i=0; i<argc; i++) {
@@ -332,7 +332,7 @@ static void graph_join(struct graph * graph, struct graph newg) {
 	graph->tail = newg.tail;
 }
 	
-static void graph_append(struct graph * graph, struct filter * newmod) {
+static void graph_append(struct graph * graph, smacq_graph * newmod) {
 	if (graph->tail) 
 		smacq_add_child(graph->tail, newmod); 
 	graph->tail = newmod;
@@ -441,7 +441,7 @@ static struct arglist * newarg(char * arg, int isfunc, struct arglist * func_arg
      return(al);
 }
 
-void print_graph(struct filter * f) {
+void print_graph(smacq_graph * f) {
 	int i;
 	if (!f) return;
 
@@ -450,8 +450,8 @@ void print_graph(struct filter * f) {
 		printf("\tArgument %s\n", f->argv[i]);
 	}
 	for (i=0; i<f->numchildren; i++) {
-		printf("\tChild %d is %s (%p)\n", i, f->next[i]->name, f->next[i]);
-		print_graph(f->next[i]);
+		printf("\tChild %d is %s (%p)\n", i, f->child[i]->name, f->child[i]);
+		print_graph(f->child[i]);
 	}
 }
 

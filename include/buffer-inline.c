@@ -5,7 +5,7 @@
 #include <pthread.h>
 #include <smacq-internal.h>
 
-static inline void ring_enqueue(struct filter * f, dts_object * d) {
+static inline void ring_enqueue(smacq_graph * f, dts_object * d) {
   pthread_mutex_lock(&f->qlock);
 
   while (f->q[f->ring_produce]) 
@@ -18,7 +18,7 @@ static inline void ring_enqueue(struct filter * f, dts_object * d) {
   pthread_mutex_unlock(&f->qlock);
 }
 
-static inline dts_object * ring_dequeue(struct filter * f) {
+static inline dts_object * ring_dequeue(smacq_graph * f) {
   dts_object * d;
 
   pthread_mutex_lock(&f->qlock);
@@ -35,47 +35,47 @@ static inline dts_object * ring_dequeue(struct filter * f) {
   return d;
 }
 
-static void smacq_passalong(struct filter * f, dts_object * d, int outchan) {
+static void smacq_passalong(smacq_graph * f, dts_object * d, int outchan) {
   int i;
 
-  if (!f->next) return;
+  if (!f->child) return;
 
   if (d != RING_EOF) // Pass -1 as EOF, but don't try to reference it
     dts_incref(d, f->numchildren);
 
   if (outchan >= 0) {
 	assert(outchan < f->numchildren);
-	ring_enqueue(f->next[outchan], d);
+	ring_enqueue(f->child[outchan], d);
   } else {
   	for (i=0; i < f->numchildren; i++) {
-    		//if (f->next[i] != recurse_except) 
-      		ring_enqueue(f->next[i], d);
+    		//if (f->child[i] != recurse_except) 
+      		ring_enqueue(f->child[i], d);
 	}
   }
 }
 
 
-static inline void smacq_passall(struct filter * f, dts_object * d) {
-  struct filter * top = f;
+static inline void smacq_passall(smacq_graph * f, dts_object * d) {
+  smacq_graph * top = f;
   while(top->previous) top = top->previous;
   
   smacq_passalong(top, d, -1);
 }
 
-static void smacq_canceldownto(struct filter * f, struct filter * until) {
+static void smacq_canceldownto(smacq_graph * f, smacq_graph * until) {
   int i;
 
   if (f == until) return;
 
   for (i=0; i < f->numchildren; i++) {
-      smacq_canceldownto(f->next[i], until);
+      smacq_canceldownto(f->child[i], until);
   }
 
   pthread_cancel(f->thread);
 }
 
-static inline void smacq_cancelupstream(struct filter * f) {
-  struct filter * top = f;
+static inline void smacq_cancelupstream(smacq_graph * f) {
+  smacq_graph * top = f;
 
   while(top->previous) top = top->previous;
 
