@@ -199,6 +199,8 @@ EXTERN void smacq_destroy_graph(struct filter * f);
 struct filter * smacq_clone_child(struct filter * parent, int child);
 struct filter * smacq_clone_tree(struct filter * donorParent, struct filter * newParent, int child);
 
+void dts_init_object(dts_object * d);
+
 #include <types-inline.c>
 
 #endif
