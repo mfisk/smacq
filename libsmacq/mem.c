@@ -12,7 +12,7 @@
 #define SDEBUG(x)
 #endif
 
-static Id = 0;
+static unsigned long Id = 0;
 
 static inline void dts_init_object(dts_object * d) {
   d->free_data=0;

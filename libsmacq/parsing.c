@@ -264,6 +264,8 @@ char * print_operand(struct dts_operand * op) {
 	  return buf;
 	  break;
   }
+
+  return NULL;
 }
 
 static char * qstrcatn(char * dst, int bufsize, const char * src) {
@@ -282,6 +284,8 @@ static char * qstrcatn(char * dst, int bufsize, const char * src) {
 	}
 
 	dst[0] = '\0';
+
+	return dst;
 }
 
 char * print_comparison(dts_comparison * comp) {
@@ -566,7 +570,6 @@ dts_comparison * comp_new_func(char * str, int argc, char ** argv, struct arglis
 }
 
 char * expression2fieldname(struct dts_operand * expr) {
-    int i;
     int size = 10;
     char * expr_str;
     
@@ -579,7 +582,7 @@ char * expression2fieldname(struct dts_operand * expr) {
 
     { /* Change . to : in fieldname */
       char * i;
-      while (i = index(expr_str, '.')) {
+      while ((i = index(expr_str, '.'))) {
 	i[0] = ':';
       }
     }

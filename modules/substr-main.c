@@ -27,7 +27,6 @@ static struct smacq_options options[] = {
 
 static int cdecode(unsigned char * needle) {
   int used;
-  int i;
   int esc = 0;
   int len = strlen(needle);
   unsigned char * decoded = malloc(len+1);
@@ -71,7 +70,7 @@ static int cdecode(unsigned char * needle) {
 }
 
 static void add_entry(struct state * state, char * field, char * needle, int output) {
-  struct batch * batch;
+  struct batch * batch = NULL;
   int nlen;
   if (!field && !needle) return;
 

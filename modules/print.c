@@ -45,7 +45,7 @@ static int print_field(struct state * state, const dts_object * field, char * fn
 }
 
 static smacq_result print_consume(struct state * state, const dts_object * datum, int * outchan) {
-  int i,j;
+  int i;
   int printed = 0;
   int column = 0;
   const dts_object *field;

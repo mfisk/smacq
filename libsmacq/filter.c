@@ -70,6 +70,8 @@ static double eval_arith_operand(const dts_object * datum, struct dts_operand * 
   		}
 		break;
   }
+
+  return NAN;
 }
 
 static inline int type_match_one(dts_environment * tenv, const dts_object * datum, 

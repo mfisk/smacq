@@ -79,8 +79,7 @@ static int dfa_try(struct state * state, const dts_object * datum, int current_s
 }
 
 static smacq_result dfa_consume(struct state * state, const dts_object * datum, int * outchan) {
-  int i, t;
-  int used = 0;
+  int i;
   int next_state;
 
   for (i=0; i < darray_size(&state->machines); i++) {

@@ -224,12 +224,10 @@ static inline const dts_object * dts_construct_fromstring(dts_environment * tenv
 
 #include "getfield.c"
 
-static double eval_arith_operand(const dts_object * datum, struct dts_operand * op);
+double eval_arith_operand(const dts_object * datum, struct dts_operand * op);
 
-static inline fetch_operand(dts_environment * tenv, const dts_object * datum, 
+static inline void fetch_operand(dts_environment * tenv, const dts_object * datum, 
 	   struct dts_operand * op, int const_type) {
-  double val;
-
   if (op->type == CONST && op->valueo && op->valueo->type == const_type) {
 	  return; 
   }

@@ -303,7 +303,6 @@ static smacq_result pcapfile_produce(struct state * state, const dts_object ** d
   struct old_pcap_pkthdr * hdrp;
   const dts_object * datum;
   struct dts_pkthdr * pkt;
-  int res;
 
   if (!state->produce) return SMACQ_END;
 
@@ -419,7 +418,8 @@ static int pcapfile_openwrite(struct state * state, const dts_object * datum) {
       return -1;
     }
   }
-  
+
+  return 0;
 }
 
 static smacq_result pcapfile_consume(struct state * state, const dts_object * datum, int * outchan) {

@@ -58,7 +58,6 @@ static smacq_result groupby_consume(struct state * state, const dts_object * dat
   struct iovec * partitionv = fields2vec(state->env, datum, &state->fieldset);
   struct output * bucket;
   int status = SMACQ_FREE;
-  int more;
   assert(partitionv);
 
   bucket = bytes_hash_table_lookupv(state->hashtable, partitionv, state->fieldset.num);

@@ -25,7 +25,7 @@ valtype fname(GHashTable * table, keytype key) { \
    return g_hash_table_lookup(table, (gpointer)key); \
 }
 
-struct darray * dts_prime_all_fields(dts_environment * tenv, const dts_object * o) {
+void dts_prime_all_fields(dts_environment * tenv, const dts_object * o) {
 	int i;
 	const dts_object * field;
   	struct dts_type * t = dts_type_bynum(tenv, dts_gettype(o));
