@@ -20,14 +20,14 @@
 
 class PerType {
  public:
-  dts_typeid id;
+  dts_typeid tid;
   FieldVecHash<int> outChan;
 
   PerType(DTS * dts, dts_typeid idt, std::vector<char*> argv)
-    : id(idt)
+    : tid(idt)
   {
     for (unsigned int i=0; i < argv.size(); i++) {
-      DtsObject valo = dts->construct_fromstring(id, argv[i]);
+      DtsObject valo = dts->construct_fromstring(tid, argv[i]);
       outChan[valo] = i;
     }
   }
@@ -50,24 +50,27 @@ SMACQ_MODULE(equals,
  */
 smacq_result equalsModule::consume(DtsObject datum, int & outchan) {
   DtsObject f = datum->getfield(field);
+  //fprintf(stderr, "Got object %p with field %p\n", datum.get(), f.get());
 
   if (! f) {
-	return SMACQ_FREE;
+		return SMACQ_FREE;
   }
 
   PerType * t = typeSet[f->gettype()];
   if (!t) {
-    t = new PerType(dts, f->gettype(), argv);
-    //fprintf(stderr, "new set %p\n", t);
-    typeSet[f->gettype()] = t;
+		t = new PerType(dts, f->gettype(), argv);
+		//fprintf(stderr, "new set %p\n", t);
+		typeSet[f->gettype()] = t;
   }
 
   //fprintf(stderr, "looking in set %p\n", t);
   FieldVecHash<int>::iterator i = t->outChan.find(f);
 
   if (i == t->outChan.end()) {
+		//fprintf(stderr, "%p: field not found in set %p\n", this, t);
     return SMACQ_FREE;
   } else {
+		//fprintf(stderr, "%p: field found in set %p\n", this, t);
     outchan = i->second;
     return SMACQ_PASS;
   }
