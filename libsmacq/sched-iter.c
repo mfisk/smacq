@@ -161,7 +161,7 @@ void queue_children(struct runq * runq, smacq_graph * f, const dts_object * d, i
   if (outchan >= 0) {
     assert(outchan < f->numchildren);
     runable(runq, f->child[outchan], d);
-  } else {
+  } else if (f->numchildren) {
     int i;
 
     for (i=0; i < f->numchildren; i++) {
@@ -169,6 +169,8 @@ void queue_children(struct runq * runq, smacq_graph * f, const dts_object * d, i
 	runable(runq, f->child[i], d);
       }
     }
+  } else {
+    runable(runq, NULL, d);
   }
 }
 
