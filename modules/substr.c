@@ -85,13 +85,7 @@ static int substr_init(struct smacq_init * context) {
 
   state->set = substr_new(SUBSTR_FAST);
   for (i = 0; i < argc; i++) {
-	  int outchan;
-	  if (state->demux) {
-		  outchan = i;
-	  } else {
-		  outchan = -1;
-	  }
-	  substr_add(state->set, strlen(argv[i]), argv[i], 0, (void*)outchan, 0, 0);
+	  substr_add(state->set, strlen(argv[i]), argv[i], 0, (void*)i, 0, 0);
   }
   substr_compile(state->set);
   return 0;
