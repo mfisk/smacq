@@ -20,10 +20,7 @@ LIBS = -lgmodule-2.0 -lglib-2.0 -lz -lcrypt -lresolv -lnsl -ldl -lm
 all: gram.c scan.c libsql.o
 
 gram.c:	gram.y scan.l
-	bison -t -y -d  $< && mv y.tab.c $*.c
-	if test -f y.tab.h; then \
-	if cmp -s y.tab.h $*.h; then rm -f y.tab.h; else mv y.tab.h $*.h; fi; \
-	else :; fi
+	-bison -t -y -d $< -o $@
 
 gram.o:	gram.c
 #	gcc -o $@ -c -DYYDEBUG $(CFLAGS) $<
