@@ -13417,7 +13417,7 @@ fi
 
 
 
-                                                                                                    ac_config_files="$ac_config_files Makefile bin/Makefile doc/Makefile libsmacq/Makefile misc/Makefile modules/Makefile modules/substr/Makefile modules/patricia/Makefile test/Makefile types/Makefile"
+                                                                                                    ac_config_files="$ac_config_files Makefile include/Makefile bin/Makefile doc/Makefile libsmacq/Makefile modules/Makefile modules/substr/Makefile modules/patricia/Makefile test/Makefile types/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -13983,10 +13983,10 @@ do
   case "$ac_config_target" in
   # Handling of arguments.
   "Makefile" ) CONFIG_FILES="$CONFIG_FILES Makefile" ;;
+  "include/Makefile" ) CONFIG_FILES="$CONFIG_FILES include/Makefile" ;;
   "bin/Makefile" ) CONFIG_FILES="$CONFIG_FILES bin/Makefile" ;;
   "doc/Makefile" ) CONFIG_FILES="$CONFIG_FILES doc/Makefile" ;;
   "libsmacq/Makefile" ) CONFIG_FILES="$CONFIG_FILES libsmacq/Makefile" ;;
-  "misc/Makefile" ) CONFIG_FILES="$CONFIG_FILES misc/Makefile" ;;
   "modules/Makefile" ) CONFIG_FILES="$CONFIG_FILES modules/Makefile" ;;
   "modules/substr/Makefile" ) CONFIG_FILES="$CONFIG_FILES modules/substr/Makefile" ;;
   "modules/patricia/Makefile" ) CONFIG_FILES="$CONFIG_FILES modules/patricia/Makefile" ;;

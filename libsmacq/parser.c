@@ -98,7 +98,7 @@
 
 
 /* Copy the first part of user declarations.  */
-#line 4 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 4 "parser.y"
 
 void yysmacql_error(char*);
      #define    yymaxdepth yysmacql_maxdepth
@@ -145,7 +145,7 @@ void yysmacql_error(char*);
 #include <smacq-parser.h>
 static struct graph nullgraph = { head: NULL, tail: NULL };
 static smacq_graph * Graph;
-#line 75 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 75 "parser.y"
 
 #include <smacq-parser.h>
 
@@ -164,7 +164,7 @@ static smacq_graph * Graph;
 #endif
 
 #if ! defined (YYSTYPE) && ! defined (YYSTYPE_IS_DECLARED)
-#line 105 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 105 "parser.y"
 typedef union YYSTYPE {
   struct graph graph;
   struct arglist * arglist;
@@ -177,7 +177,7 @@ typedef union YYSTYPE {
   struct dts_operand * operand;
 } YYSTYPE;
 /* Line 191 of yacc.c.  */
-#line 181 "y.tab.c"
+#line 181 "/n/home/mfisk/test/smacq/libsmacq/parser.c"
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
 # define YYSTYPE_IS_DECLARED 1
 # define YYSTYPE_IS_TRIVIAL 1
@@ -189,7 +189,7 @@ typedef union YYSTYPE {
 
 
 /* Line 214 of yacc.c.  */
-#line 193 "y.tab.c"
+#line 193 "/n/home/mfisk/test/smacq/libsmacq/parser.c"
 
 #if ! defined (yyoverflow) || YYERROR_VERBOSE
 
@@ -1200,138 +1200,138 @@ yyreduce:
   switch (yyn)
     {
         case 6:
-#line 126 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 126 "parser.y"
     { yyval.string = yystring; }
     break;
 
   case 7:
-#line 129 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 129 "parser.y"
     { yyval.string = yystring; }
     break;
 
   case 8:
-#line 132 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 132 "parser.y"
     { yyval.string = yystring; }
     break;
 
   case 9:
-#line 133 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 133 "parser.y"
     { yyval.string = "or"; }
     break;
 
   case 10:
-#line 134 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 134 "parser.y"
     { yyval.string = "and"; }
     break;
 
   case 12:
-#line 138 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 138 "parser.y"
     { yyval.arglist->rename = yyvsp[0].string; }
     break;
 
   case 13:
-#line 141 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 141 "parser.y"
     { yyval.arglist = newarg(yyvsp[0].string, WORD, NULL); }
     break;
 
   case 14:
-#line 142 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 142 "parser.y"
     { yyval.arglist = newarg(yyvsp[-3].string, FUNCTION, yyvsp[-1].arglist); }
     break;
 
   case 15:
-#line 143 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 143 "parser.y"
     { yyval.arglist = newarg("expr", FUNCTION, 
 					       newarg(print_operand(yyvsp[-1].operand), WORD, NULL)); 
 			                  }
     break;
 
   case 17:
-#line 151 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 151 "parser.y"
     { yyval.arglist = yyvsp[-3].arglist; yyval.arglist->next = yyvsp[-1].arglist; yyvsp[-1].arglist->next = yyvsp[0].arglist; }
     break;
 
   case 19:
-#line 155 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 155 "parser.y"
     { yyval.arglist = NULL; }
     break;
 
   case 20:
-#line 156 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 156 "parser.y"
     { yyval.arglist = yyvsp[-1].arglist; yyval.arglist->next = yyvsp[0].arglist; }
     break;
 
   case 21:
-#line 159 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 159 "parser.y"
     { yyval.arglist = NULL; }
     break;
 
   case 22:
-#line 160 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 160 "parser.y"
     { yyval.arglist = yyvsp[-1].arglist; yyval.arglist->next = yyvsp[0].arglist; }
     break;
 
   case 23:
-#line 168 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 168 "parser.y"
     { yyval.comp = yyvsp[-1].comp; }
     break;
 
   case 24:
-#line 169 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 169 "parser.y"
     { yyval.comp = comp_join(yyvsp[-2].comp, yyvsp[0].comp, OR); }
     break;
 
   case 25:
-#line 170 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 170 "parser.y"
     { yyval.comp = comp_join(yyvsp[-2].comp, yyvsp[0].comp, AND); }
     break;
 
   case 26:
-#line 171 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 171 "parser.y"
     { yyval.comp = comp_join(yyvsp[0].comp, NULL, NOT); }
     break;
 
   case 28:
-#line 175 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 175 "parser.y"
     { yyval.operand = comp_operand(FIELD, yyvsp[0].string); }
     break;
 
   case 29:
-#line 176 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 176 "parser.y"
     { yyval.operand = comp_operand(CONST, yyvsp[0].string); }
     break;
 
   case 30:
-#line 177 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 177 "parser.y"
     { yyval.operand = comp_operand(CONST, yyvsp[0].string); }
     break;
 
   case 31:
-#line 183 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 183 "parser.y"
     {	  
 				  yyval.operand = yyvsp[-1].operand;  
 				}
     break;
 
   case 32:
-#line 187 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 187 "parser.y"
     {
 				  yyval.operand = comp_arith(parse_tenv, yyvsp[-1].arithop, yyvsp[-2].operand, yyvsp[0].operand); 
 				}
     break;
 
   case 35:
-#line 198 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 198 "parser.y"
     {  yyval.comp = comp_new(EXIST, yyvsp[0].operand, yyvsp[0].operand); }
     break;
 
   case 36:
-#line 199 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 199 "parser.y"
     { yyval.comp = comp_new(yyvsp[-1].op, yyvsp[-2].operand, yyvsp[0].operand); }
     break;
 
   case 37:
-#line 200 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 200 "parser.y"
     { 
 				  int argc; char ** argv;
 				  arglist2argv(yyvsp[-1].arglist, &argc, &argv);
@@ -1340,62 +1340,62 @@ yyreduce:
     break;
 
   case 38:
-#line 207 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 207 "parser.y"
     { yyval.op = EQ; }
     break;
 
   case 39:
-#line 208 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 208 "parser.y"
     { yyval.op = GT; }
     break;
 
   case 40:
-#line 209 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 209 "parser.y"
     { yyval.op = LT; }
     break;
 
   case 41:
-#line 210 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 210 "parser.y"
     { yyval.op = GEQ; }
     break;
 
   case 42:
-#line 211 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 211 "parser.y"
     { yyval.op = LEQ; }
     break;
 
   case 43:
-#line 212 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 212 "parser.y"
     { yyval.op = NEQ; }
     break;
 
   case 44:
-#line 213 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 213 "parser.y"
     { yyval.op = LIKE; }
     break;
 
   case 45:
-#line 216 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 216 "parser.y"
     { yyval.arithop = ADD; }
     break;
 
   case 46:
-#line 217 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 217 "parser.y"
     { yyval.arithop = SUB; }
     break;
 
   case 47:
-#line 218 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 218 "parser.y"
     { yyval.arithop = DIVIDE; }
     break;
 
   case 48:
-#line 219 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 219 "parser.y"
     { yyval.arithop = MULT; }
     break;
 
   case 49:
-#line 224 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 224 "parser.y"
     { 
 #ifdef DEBUG
 	   	smacq_graph_print(stderr, yyvsp[-1].graph.head, 0); 
@@ -1406,7 +1406,7 @@ yyreduce:
     break;
 
   case 50:
-#line 234 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 234 "parser.y"
     {
 	   	yyval.graph = yyvsp[-2].graph;
 		graph_join(&(yyval.graph), yyvsp[-1].graph);
@@ -1419,7 +1419,7 @@ yyreduce:
     break;
 
   case 51:
-#line 244 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 244 "parser.y"
     {
 	   	yyval.graph = yyvsp[0].graph;
 		graph_join(&(yyval.graph), yyvsp[-1].graph);
@@ -1427,7 +1427,7 @@ yyreduce:
     break;
 
   case 52:
-#line 249 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 249 "parser.y"
     {
 	   	yyval.graph = yyvsp[-4].graph;
 		graph_join(&(yyval.graph), yyvsp[-1].graph);
@@ -1440,17 +1440,17 @@ yyreduce:
     break;
 
   case 53:
-#line 258 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 258 "parser.y"
     { yyval.graph = optimize_bools(yyvsp[0].comp); }
     break;
 
   case 55:
-#line 262 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 262 "parser.y"
     { yyval.graph = nullgraph; }
     break;
 
   case 56:
-#line 266 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 266 "parser.y"
     {
 	   	yyval.graph = yyvsp[0].graph;
 		graph_join(&(yyval.graph), yyvsp[-1].graph);
@@ -1458,52 +1458,52 @@ yyreduce:
     break;
 
   case 57:
-#line 272 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 272 "parser.y"
     { yyval.graph = nullgraph; }
     break;
 
   case 58:
-#line 273 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 273 "parser.y"
     { yyval.graph = optimize_bools(yyvsp[0].comp); }
     break;
 
   case 59:
-#line 276 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 276 "parser.y"
     { yyval.group.args = NULL; yyval.group.having = NULL;}
     break;
 
   case 60:
-#line 277 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 277 "parser.y"
     { yyval.group.args = yyvsp[-1].arglist; yyval.group.having = yyvsp[0].comp; }
     break;
 
   case 61:
-#line 280 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 280 "parser.y"
     { yyval.comp = NULL; }
     break;
 
   case 62:
-#line 281 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 281 "parser.y"
     { yyval.comp = yyvsp[0].comp; }
     break;
 
   case 63:
-#line 284 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 284 "parser.y"
     { yyval.graph = yyvsp[-1].graph; }
     break;
 
   case 64:
-#line 285 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 285 "parser.y"
     { yyval.graph = newmodule(yyvsp[-3].string, yyvsp[-1].arglist); }
     break;
 
   case 65:
-#line 286 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 286 "parser.y"
     { yyval.graph = newmodule(yyvsp[0].string, NULL); }
     break;
 
   case 67:
-#line 291 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 291 "parser.y"
     {
 	   	smacq_graph * g = yyvsp[-2].graph.head;
 		while(g->next_graph)
@@ -1514,22 +1514,22 @@ yyreduce:
     break;
 
   case 68:
-#line 300 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 300 "parser.y"
     { yyval.graph = newmodule(yyvsp[-1].string, yyvsp[0].arglist); }
     break;
 
   case 69:
-#line 301 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 301 "parser.y"
     { yyval.graph = newmodule(yyvsp[-3].string, yyvsp[-1].arglist); }
     break;
 
   case 70:
-#line 302 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 302 "parser.y"
     { yyval.graph = yyvsp[-1].graph; }
     break;
 
   case 71:
-#line 304 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 304 "parser.y"
     {
 	   	smacq_graph * g = yyvsp[-3].graph.head;
 		while(g->next_graph)
@@ -1543,7 +1543,7 @@ yyreduce:
     }
 
 /* Line 999 of yacc.c.  */
-#line 1547 "y.tab.c"
+#line 1547 "/n/home/mfisk/test/smacq/libsmacq/parser.c"
 
   yyvsp -= yylen;
   yyssp -= yylen;
@@ -1737,7 +1737,7 @@ yyreturn:
 }
 
 
-#line 312 "/n/home/mfisk/test/smacq/libsmacq/parser.y"
+#line 312 "parser.y"
 
 
 extern void yysmacql_scan_string(char*);

@@ -145,7 +145,8 @@ sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 INCLUDES = @GLOBAL_INCLUDES@ -I$(top_srcdir)/include
-#BUILT_SOURCES = 	scanner.c parser.c parser.y
+#BUILT_SOURCES = 	scanner.c parser.c parser.y parser.h
+EXTRA_DIST = parser.h
 #BUILT_SOURCES = 	filter-parser.c expr-parser.c expr-parser.y filter-parser.y
 SUFFIXES = .y .ym
 
@@ -485,6 +486,8 @@ uninstall-am: uninstall-info-am
 	mostlyclean-compile mostlyclean-generic mostlyclean-libtool pdf \
 	pdf-am ps ps-am tags uninstall uninstall-am uninstall-info-am
 
+
+scanner.lo : parser.h
 
 $(srcdir)/%.y: $(srcdir)/%.ym $(srcdir)/grammer.y
 	m4 -I$(srcdir) -P -DBUILDDATE="`date`" < $< > $@
