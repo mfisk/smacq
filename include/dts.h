@@ -57,6 +57,8 @@ struct _dts_object {
 #ifndef SMACQ_OPT_NOPTHREADS
   pthread_mutex_t mutex;
 #endif
+
+  unsigned long id;
 };
 
 struct dts_field_spec {

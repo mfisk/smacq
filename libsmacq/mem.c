@@ -12,10 +12,13 @@
 #define SDEBUG(x)
 #endif
 
+static Id = 0;
+
 static inline void dts_init_object(dts_object * d) {
   d->free_data=0;
   d->refcount=1;
   d->data=d+1;  // Inline data
+  d->id=Id++;
 }
 
 #ifndef max
