@@ -85,7 +85,8 @@ const dts_object * msg_check(dts_environment * tenv, const dts_object * d, dts_f
  */
 void sched_mono(smacq_graph *);
 EXTERN int smacq_sched_iterative(smacq_graph * startf, const dts_object * din, const dts_object ** dout , void ** state, int produce_first);
-EXTERN void smacq_sched_iterative_shutdown(smacq_graph * startf, void ** state);
+struct runq;
+EXTERN void smacq_sched_iterative_shutdown(smacq_graph * startf, struct runq ** runqp);
 
 
 void smacq_start_threads(smacq_graph *);
