@@ -43,6 +43,7 @@ void * smacq_find_module(GModule ** gmodulep, char * envvar, char * envdefault, 
     void * self;
     void * modtable = NULL;
 
+    assert(gmodulep);
     assert(sym);
 
     self = dlopen(NULL, RTLD_NOW);
