@@ -10,9 +10,7 @@
 #include <assert.h>
 #include <smacq.h>
 #include <FieldVec.h>
-#include <FieldVec.h>
 #include <dllist.h>
-#include <produceq.h>
 
 #define KEYBYTES 0
 #define SMACQ_MODULE_IS_ANNOTATION 1
@@ -49,8 +47,6 @@ SMACQ_MODULE(flowid,
   struct timeval interval;
   struct timeval nextgc;
   int hasinterval;
-
-  struct smacq_outputq * outputq;
 
   struct timeval edge;
 
@@ -153,7 +149,7 @@ inline void flowidModule::output(SrcStat * s) {
   
       attach_stats(s, refresh);
       //fprintf(stderr, "enqueuing %p\n", refresh);
-      smacq_produce_enqueue(&outputq, refresh, -1);
+      enqueue(refresh, 0);
 }
 
 inline void flowidModule::finalize(SrcStat * s) {
@@ -322,7 +318,7 @@ smacq_result flowidModule::consume(DtsObject datum, int & outchan) {
   if (hasinterval) 
       timers_manage();
 
-  status |= smacq_produce_canproduce(&outputq);
+  status |= canproduce();
   /* fprintf(stderr, "consume PRODUCE? %d\n", status & (SMACQ_PRODUCE|SMACQ_CANPRODUCE)); */
 
   //fprintf(stderr, "Expires list length %d\n", list_length(expires));
@@ -397,8 +393,8 @@ flowidModule::~flowidModule() {
 }
 
 smacq_result flowidModule::produce(DtsObject & datum, int & outchan) {
-  if (smacq_produce_canproduce(&outputq)) {
-    return smacq_produce_dequeue(&outputq, datum, outchan);
+  if (canproduce()) {
+    return dequeue(datum, outchan);
   } else {
     /* fprintf(stderr, "flowid: produce called with nothing in queue.  Outputing everything in current table!\n"); */
 
@@ -409,8 +405,8 @@ smacq_result flowidModule::produce(DtsObject & datum, int & outchan) {
 
     list_free(&timers);
 
-    if (!smacq_produce_canproduce(&outputq))
-	    return (smacq_result)(SMACQ_FREE|SMACQ_END);
+    if (!canproduce())
+	    return (SMACQ_FREE|SMACQ_END);
 
     return produce(datum, outchan);
   }

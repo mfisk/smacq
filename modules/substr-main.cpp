@@ -3,7 +3,6 @@
 #include <assert.h>
 #include <string.h>
 #include <smacq.h>
-#include <produceq.h>
 #include "substr/substr.h"
 
 #define SMACQ_MODULE_IS_VECTOR 1
@@ -15,7 +14,6 @@ SMACQ_MODULE(substr,
   PROTO_PRODUCE();
 
   int demux;
-  struct smacq_outputq * outputq;
   struct batch * batch;
   int num_batches;
 
@@ -124,7 +122,7 @@ void substrModule::add_entry(char * field, char * needle, int output) {
 }
 
 smacq_result substrModule::produce(DtsObject & datum, int & outchan) {
-  return smacq_produce_dequeue(&outputq, datum, outchan);
+  return dequeue(datum, outchan);
 }
 
 smacq_result substrModule::consume(DtsObject datum, int & outchan) {
@@ -158,7 +156,7 @@ smacq_result substrModule::consume(DtsObject datum, int & outchan) {
 #endif
 
 	  if (matched) {
-		smacq_produce_enqueue(&outputq, datum, chan);
+		enqueue(datum, chan);
 		
 	  } else {
 	  	matched = 1;
@@ -168,14 +166,14 @@ smacq_result substrModule::consume(DtsObject datum, int & outchan) {
   }
 
   if (matched) {
-	return (smacq_result)(SMACQ_PASS|smacq_produce_canproduce(&outputq));
+	return (SMACQ_PASS|canproduce());
   } else {
   	return SMACQ_FREE;
   }
 
 }
 
-substrModule::substrModule(struct smacq_init * context) : SmacqModule(context), outputq(NULL) {
+substrModule::substrModule(struct smacq_init * context) : SmacqModule(context) {
   int i, argc;
   char ** argv;
   smacq_opt field_opt, demux_opt;

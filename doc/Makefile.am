@@ -9,6 +9,9 @@ DOCBOOK2MAN=docbook-to-man
 
 dist_man_MANS=$(DOCDSTS) $(DOCPDFS) $(DOCTXTS)
 
+man:
+	(cd $(srcdir); doxygen)
+
 publish:
 	(cd $(srcdir); rsync -a -e ssh -Ltv *.pdf *.png *.html html $(top_srcdir)/build/iso/smacq*.tar.gz ../smacq.iso smacq.sourceforge.net:smacqweb/)
 
@@ -36,5 +39,9 @@ publish:
 html/classDtsObject__.html:
 	(cd ..; $(DOXYGEN) doc/Doxyfile)
 
-%.3: man/%.3
+%.3: man/man3/%_.3 man
 	ln -f $< $@
+
+%.3: man/man3/%.3 man
+	ln -f $< $@
+

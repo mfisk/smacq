@@ -1,184 +1,163 @@
-.TH dts 3 "$Date: 2004/07/05 03:38:56 $" "LANL"
+.PP
+.TH "DTS" 3 "11 Aug 2004" "SMACQ" \" -*- nroff -*-
+.ad l
+.nh
 .SH NAME
-dts  \- Dynamic Type System API
+DTS \- 
 .SH SYNOPSIS
-.nf
-.B #include <dts.h>
-.fi
-
-.SH DESCRIPTION
-
-The DTS is a C++ class library implementing a dynamic type system.  
-The DTS is used primarily in SMACQ(1) is an extensible component system for analyzing streams of
-structured data.  
-
-The DTS class is usually only instantiated once.  It uses the factory ideom to create instantions
-of the DtsObject class.  
-
-The DTS class has the following public methods:
-
-.SH TYPE MAPPINGS
-.TP
-  dts_typeid requiretype(char * name);
-Types are dynamically loaded classes.  Load the specified type module
-(if it is not already loaded) and return the dynamically assigned numeric
-identifier for that type.
-This number will be consistent for the duration of this instantiation.  It is recommended
-for performance that modules convert type names to integers sparingly and cache results.
-All datum structures are typed with these values.
-
-.TP
-  dts_typeid typenum_byname(char * name);
-If the specified type module is already loaded, this result is the same as requiretype().
-Unlike requiretype(), if the type is not loaded, -1 is returned.
-
-.TP
-  struct dts_type * type_bynum(dts_typeid);
-
-.TP
-  char * typename_bynum(dts_typeid);
-Returns the string name of the specified numeric type identifier.
-
-.TP
-  int type_size(dts_typeid type);
-Return the size of a data type.  -1 indicates a variable-size type.
--2 indicates an error.
-
-.SH FACTORY METHODS 
-.TP
-  DtsObject * construct(dts_typeid, void *);
-Return a new data object with contents copied from data.  This call only
-works for fixed-size objects.
-.TP
-  DtsObject * construct_fromstring(dts_typeid, char *);
-Convert the string-form value into a new, typed data object of the specified type. 
-.TP
-  DtsObject * newObject(dts_typeid);
-Return a new, empty data object large enough to hold \fIdatasize\fP bytes.  
-Use \fIsmacq_requiretype()\fP to get a type number.
-.TP
-  DtsObject * newObject(dts_typeid, int size);
-.TP
-  DtsObject * readObject(struct pickle * pickle, int fd);
-
-.SH FIELDS
-.TP
-  dts_field requirefield(char * name);
-Return the dynamically assigned identifier for the given field name.  This dts_field must be 
-freed with dts_field_free().
-.TP
-  char * field_getname(dts_field f);
-
-.SH FIELDSETS
-.TP
-  void fields_init(struct fieldvec * fieldvec, int argc, char ** argv);
- 
-.SH MISC 
-.TP
-  int dts_lt(int type, void * p1, int len1, void * p2, int len2);
-Convert the string-form value into a typed data object of the specified type. 
-.TP
-  int maxfield();
- 
-.SH TESTS 
+.br
 .PP
-The system knows how to compare typed objects using the following routines.
-The basic data structure for this is dts_comparison.  This structure has an
-operation type that may be one of EQUALITY, INEQUALITY, LIKE, GT, LT, AND, and OR.  In the case of AND and OR, the "group" element points to a dts_comparison list of subterms.  Otherwise, the value string is in the "valstr" element.
-
-.TP
-  int parsetest(dts_comparison * comp, char * test);
-.TP
-  int match(DtsObject * datum, dts_comparison * comps);
-Compares the specified datum with the specified list of comparisions.
-Returns non-zero iff all of the comparisons are true.
-
-.TP
-  dts_comparison * parse_tests(int argc, char ** argv);
-Return the comparison(s) resulting from the given argument vector.
-Comparisons can include AND and OR statements, parentheses for grouping, and equality and inequality operators.
-
-.TP
-  struct dts_operand * parse_expr(int argc, char ** argv);
-  
-.SH MESSAGES 
-.TP
-void send_message(DtsObject &, dts_field_element, dts_comparison *);
-Send a specified field with value specified by data to any data records described
-by the criteria in the comparison list.
-
-.TP
-DtsObject msg_check(DtsObject & o, dts_field_element field);
-
-.SH "DtsObject CLASS METHODS"
-
-.TP
-.BI "void * getdata()"
-Return a pointer to the data
-
-.TP
-.BI "DtsObject getfield(dts_field field)"
-Data records are composed of named fields.
-Return a data object for the specified field of the object.  The field object 
-is only valid for the lifetime of the original object.  dts_decref() must be used to free the object.  NULL is returned on failure.
-
-.TP
-.BI "void attach_field(dts_field, DtsObject &)"
-Attach the specified object as a field of the current object.
-
-.TP
-.BI "int getsize()"
-Return the size of the data
-
-.TP
-.BI "void setsize(int)"
-
-.TP
-.BI "dts_typeid gettype()"
-Return the type of the data
-
-.TP
-.BI "void settype(dts_typeid type)"
-Set the type of the data
-
-.TP
-.BI "DtsObject make_writable()"
-Return a writable version of the specified object.
-This operation invalidates the original object so it should not
-be used any further and should not be passed on to other modules.
-
-.SH "HELPER FUNCTIONS"
-
-.TP
-.BI "TYPE dts_data_as(DtsObject&, TYPE)"
-This is a macro that casts the data portion of the datum to the specified type.  The result can be used either as r-value or an l-value.
-
-.TP
-.BI "void dts_set(DtsObject&, TYPE, VAL)"
-This is a macro that ensures that the object is large enough for the
-size of the specified type and then sets the object contents equal to
-the specified value.
-
-.TP
-.BI "void dts_field_free(dts_field field)"
-Free the given dts_field data structure.
-
-.TP
-.BI "char * dts_fieldname_append(const char * base, const char * addition)"
-Return a newly allocated string containing the addition string appended to the 
-base string and separated by a period.
-
-.TP
-.BI "int dts_comparefields(dts_field, dts_field)"
-Compare the two field specifications and return 0 unless they are the same.
-
-.SH "OBJECT COMPARISON"
-
+\fC#include <dts.h>\fP
 .PP
+.SH "Detailed Description"
+.PP 
+DTS is a Dynamic Type System run-time environment. You probably only want one instance of the DTS for your entire program. Factory methods are used to construct DtsObjects, which are typed using the DTS. 
+.SS "Public Member Functions"
 
-.SH "SEE ALSO"
-.BR FieldVec(3)
-.BR smacq(1),
-.BR smacqq(1),
-.BR dts-modules(3)
-.BR smacq-modules(3)
+.in +1c
+.ti -1c
+.RI "\fBDTS\fP ()"
+.br
+.RI "\fIConstruct a new DTS. You probably only want your program to use pointers to a single instance for the whole program. \fP"
+.ti -1c
+.RI "int \fBfromstring\fP (dts_typeid, char *datastr, \fBDtsObject\fP data)"
+.br
+.ti -1c
+.RI "int \fBdts_lt\fP (int type, void *p1, int len1, void *p2, int len2)"
+.br
+.ti -1c
+.RI "int \fBmaxfield\fP ()"
+.br
+.in -1c
+.PP
+.RI "\fBFactory Methods\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "\fBDtsObject\fP \fBconstruct\fP (dts_typeid, void *data)"
+.br
+.RI "\fIConstruct a new object with a copy of the given data. The amount of data copied is determined by the requested typeid. \fP"
+.ti -1c
+.RI "\fBDtsObject\fP \fBconstruct_fromstring\fP (dts_typeid type, char *data)"
+.br
+.RI "\fIConstruct a new object with data parsed from the given string. The input string should be format accordingly for the given typeid. \fP"
+.ti -1c
+.RI "\fBDtsObject\fP \fBnewObject\fP (dts_typeid)"
+.br
+.RI "\fIReturn a new object of the given type. \fP"
+.ti -1c
+.RI "\fBDtsObject\fP \fBnewObject\fP (dts_typeid, int size)"
+.br
+.RI "\fIReturn a new object of the given type and size. \fP"
+.ti -1c
+.RI "\fBDtsObject\fP \fBreadObject\fP (struct pickle *pickle, int fd)"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBField IDs\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "dts_field \fBrequirefield\fP (char *name)"
+.br
+.RI "\fIDtsObjects expose 0 or more fields (attributes) that can be accessed. Each field is assigned a numeric identifier, a dts_field, specific to this runtime environment. Fields names can be nested (e.g. 'foo.bar.baz') which translates to nested numeric IDs (e.g. '1.3.2'). It is recommended for performance that modules convert type names to IDs sparingly and cache results. Convert the given field name into a numeric identifier. \fP"
+.ti -1c
+.RI "char * \fBfield_getname\fP (dts_field f)"
+.br
+.RI "\fIReturn the name of the specified field. \fP"
+.in -1c
+.in -1c
+.PP
+.RI "\fBType IDs\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "dts_typeid \fBrequiretype\fP (const  char *name)"
+.br
+.RI "\fITypes are dynamically loaded classes. Each type is assigned a numeric identifier specific to this runtime environment. All DtsObjects are typed with these values. It is recommended for performance that modules convert type names to IDs sparingly and cache results. Load the specified type module (if it is not already loaded) and return the dynamically assigned numeric identifier for that type. \fP"
+.ti -1c
+.RI "dts_typeid \fBtypenum_byname\fP (const  char *name)"
+.br
+.RI "\fIIf the specified type module is already loaded, this result is the same as \fBrequiretype()\fP. Unlike \fBrequiretype()\fP, if the type is not loaded, -1 is returned. \fP"
+.ti -1c
+.RI "char * \fBtypename_bynum\fP (const  dts_typeid)"
+.br
+.RI "\fIReturn the name of the given type. \fP"
+.ti -1c
+.RI "dts_type * \fBtype_bynum\fP (const  dts_typeid id)"
+.br
+.RI "\fIReturn the type structure for the given type. \fP"
+.ti -1c
+.RI "int \fBtype_size\fP (const  dts_typeid type)"
+.br
+.RI "\fIReturn the size (in bytes) of the specified type. -1 if size is variable, -2 if type doesn't exist. \fP"
+.in -1c
+.in -1c
+.PP
+.RI "\fBInterface to data testing system\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "int \fBparsetest\fP (dts_comparison *comp, char *test)"
+.br
+.ti -1c
+.RI "int \fBmatch\fP (\fBDtsObject\fP datum, dts_comparison *comps)"
+.br
+.ti -1c
+.RI "dts_comparison * \fBparse_tests\fP (int argc, char **argv)"
+.br
+.ti -1c
+.RI "dts_operand * \fBparse_expr\fP (int argc, char **argv)"
+.br
+.in -1c
+.in -1c
+.PP
+.RI "\fBMessaging\fP"
+.br
+
+.in +1c
+.in +1c
+.ti -1c
+.RI "void \fBsend_message\fP (\fBDtsObject\fP, dts_field_element, dts_comparison *)"
+.br
+.RI "\fISend the given object to the given field of all objects that satisfy the comparison. \fP"
+.ti -1c
+.RI "\fBDtsObject\fP \fBmsg_check\fP (\fBDtsObject\fP o, dts_field_element field)"
+.br
+.RI "\fICheck for a message for this obejct and field. \fP"
+.in -1c
+.in -1c
+.SS "Public Attributes"
+
+.in +1c
+.ti -1c
+.RI "std::stack< \fBDtsObject\fP > \fBfreelist\fP"
+.br
+.RI "\fIThis freelist should only be used by the DtsObject implementation. When an object is freed, it can be put on the freelist instead of being destroyed. \fBnewObject()\fP will use objects on the freelist before constructing new objects. \fP"
+.in -1c
+.SS "Friends"
+
+.in +1c
+.ti -1c
+.RI "int \fByysmacql_parse\fP ()"
+.br
+.ti -1c
+.RI "int \fByyfilterparse\fP ()"
+.br
+.ti -1c
+.RI "int \fByyexprparse\fP ()"
+.br
+.in -1c
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for SMACQ from the source code.

@@ -308,6 +308,9 @@ uninstall-am: uninstall-info-am
 	uninstall-info-am
 
 
+man:
+	(cd $(srcdir); doxygen)
+
 publish:
 	(cd $(srcdir); rsync -a -e ssh -Ltv *.pdf *.png *.html html $(top_srcdir)/build/iso/smacq*.tar.gz ../smacq.iso smacq.sourceforge.net:smacqweb/)
 
@@ -335,7 +338,10 @@ publish:
 html/classDtsObject__.html:
 	(cd ..; $(DOXYGEN) doc/Doxyfile)
 
-%.3: man/%.3
+%.3: man/man3/%_.3 man
+	ln -f $< $@
+
+%.3: man/man3/%.3 man
 	ln -f $< $@
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

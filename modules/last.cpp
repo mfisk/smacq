@@ -8,9 +8,7 @@
 #include <assert.h>
 #include <smacq.h>
 #include <FieldVec.h>
-#include <FieldVec.h>
 #include <dts.h>
-#include <produceq.h>
 #include <sys/time.h>
 
 /* Programming constants */
@@ -26,7 +24,6 @@ SMACQ_MODULE(last,
   PROTO_CONSUME();
   PROTO_PRODUCE();
 
-	     struct smacq_outputq * outputq;
 	     FieldVec fieldvec;
 	     FieldVecHash<DtsObject> last;
 	     
@@ -79,11 +76,10 @@ static inline void timeval_minus(struct timeval x, struct timeval y, struct time
 }
 
 void lastModule::emit_all() {
-  assert (!outputq);
   FieldVecHash<DtsObject>::iterator i;
   
   for (i = last.begin(); i != last.end(); i++) {
-    smacq_produce_enqueue(&outputq, i->second, -1);
+    enqueue(i->second, 0);
     
   }
 
@@ -97,7 +93,7 @@ void lastModule::emit_all() {
   		obj->attach_field(timeseries, timefield);
   	}
 
-  	smacq_produce_enqueue(&outputq, obj, -1);
+  	enqueue(obj, 0);
 	//fprintf(stderr, "last enqueue refresh %p\n", obj);
   }
 
@@ -131,10 +127,6 @@ smacq_result lastModule::consume(DtsObject datum, int & outchan) {
     }
   }
 
-  if (outputq) {
-    condproduce = SMACQ_PRODUCE;
-  }
-
   fieldvec.getfields(datum);
 
   DtsObject old = last[fieldvec];
@@ -143,11 +135,11 @@ smacq_result lastModule::consume(DtsObject datum, int & outchan) {
   
   last[fieldvec] = datum;
 
-  return (smacq_result)(SMACQ_FREE|condproduce);
+  return (SMACQ_FREE|canproduce());
 }
 
 lastModule::lastModule(struct smacq_init * context) 
-  : SmacqModule(context) , outputq(NULL) 
+  : SmacqModule(context)  
 {
   int argc = 0;
   char ** argv;
@@ -182,9 +174,9 @@ lastModule::lastModule(struct smacq_init * context)
 }
 
 smacq_result lastModule::produce(DtsObject & datum, int & outchan) {
-  if (!outputq) {
+  if (canproduce()) {
     emit_all();
   }
 
-  return smacq_produce_dequeue(&outputq, datum, outchan);
+  return dequeue(datum, outchan);
 }

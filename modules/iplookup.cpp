@@ -4,7 +4,6 @@
 #include <string.h>
 #include <smacq.h>
 #include <patricia/patricia.h>
-#include <produceq.h>
 
 #define SMACQ_MODULE_IS_VECTOR 1
 #define SMACQ_MODULE_IS_STATELESS 1
@@ -16,7 +15,6 @@ SMACQ_MODULE(iplookup,
   PROTO_PRODUCE();
 
   int demux;
-  struct smacq_outputq * outputq;
   struct batch * batch;
   int num_batches;
   int ipaddr_type;
@@ -92,7 +90,7 @@ void iplookupModule::add_entry(char * field, char * needle, int output) {
 }
 
 smacq_result iplookupModule::produce(DtsObject & datum, int & outchan) {
-  return smacq_produce_dequeue(&outputq, datum, outchan);
+  return dequeue(datum, outchan);
 }
 
 smacq_result iplookupModule::consume(DtsObject datum, int & outchan) {
@@ -122,7 +120,7 @@ smacq_result iplookupModule::consume(DtsObject datum, int & outchan) {
      if (node) {
 	  	outchan = (int)node->data;
 		if (matched) {
-			smacq_produce_enqueue(&outputq, datum, outchan);
+			enqueue(datum, outchan);
 			
 	  	} else {
 	  		matched = 1;
@@ -131,7 +129,7 @@ smacq_result iplookupModule::consume(DtsObject datum, int & outchan) {
   }
 
   if (matched) {
-	return (smacq_result)(SMACQ_PASS|smacq_produce_canproduce(&outputq));
+	return (SMACQ_PASS|canproduce());
   } else {
   	return SMACQ_FREE;
   }
