@@ -1,6 +1,6 @@
-# Makefile.in generated automatically by automake 1.4-p4 from Makefile.am
+# Makefile.in generated automatically by automake 1.4-p6 from Makefile.am
 
-# Copyright (C) 1994, 1995-8, 1999 Free Software Foundation, Inc.
+# Copyright (C) 1994, 1995-8, 1999, 2001 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
@@ -59,35 +59,18 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 host_alias = @host_alias@
 host_triplet = @host@
-AR = @AR@
-AS = @AS@
 CC = @CC@
 CXX = @CXX@
-CXXCPP = @CXXCPP@
-DLLTOOL = @DLLTOOL@
-ECHO = @ECHO@
-EGREP = @EGREP@
-EXEEXT = @EXEEXT@
-F77 = @F77@
-GCJ = @GCJ@
-GCJFLAGS = @GCJFLAGS@
 GLOBAL_INCLUDES = @GLOBAL_INCLUDES@
 LEX = @LEX@
 LIBS_MODULES_ALL = @LIBS_MODULES_ALL@
 LIBS_MODULES_SHARED = @LIBS_MODULES_SHARED@
 LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
-MAKEINFO = @MAKEINFO@
-OBJDUMP = @OBJDUMP@
 OBJECTS_MODULES_BUILTIN = @OBJECTS_MODULES_BUILTIN@
-OBJEXT = @OBJEXT@
-PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
-RC = @RC@
 SOURCES_MODULES_BUILTIN = @SOURCES_MODULES_BUILTIN@
 SOURCES_TYPES_BUILTIN = @SOURCES_TYPES_BUILTIN@
-STRIP = @STRIP@
-VERSION = @VERSION@
 YACC = @YACC@
 
 SUBDIRS = substr 
@@ -101,7 +84,7 @@ EXTRA_LTLIBRARIES = libpcaplive.la libpython.la libreassemble.la libbench_field.
 # we can preopen
 
 #libsmacq_modules_builtin_la_SOURCES = print.c pcapfile.c head.c groupby.c uniq.c @SOURCES_MODULES_BUILTIN@ 
-libsmacq_modules_builtin_la_SOURCES = print.c pcaplive.c pcapfile.c socket.c uniq.c count.c last.c top.c head.c filter.c msgtest.c entropy.c derivative.c split.c encrypt.c warden.c pdf.c fifo.c delta.c tabularinput.c sync.c rusage.c groupby.c flowid.c sum.c fifodelay.c project.c rename.c join.c bench_field.la mask.c const.c ndjoin.c lor.c counter_loop.c dfa.c noop.c expr.c equals.c cflow.c clock.c disarm.c
+libsmacq_modules_builtin_la_SOURCES = print.c pcaplive.c pcapfile.c socket.c uniq.c count.c last.c top.c head.c filter.c msgtest.c entropy.c derivative.c split.c encrypt.c warden.c pdf.c fifo.c delta.c tabularinput.c sync.c rusage.c groupby.c flowid.c sum.c fifodelay.c project.c rename.c join.c bench_field.la mask.c const.c ndjoin.c lor.c counter_loop.c dfa.c noop.c expr.c equals.c cflow.c clock.c 
 
 libtest_dynamic_la_SOURCES = test_dynamic.c
 
@@ -175,7 +158,7 @@ entropy.lo derivative.lo split.lo encrypt.lo warden.lo pdf.lo fifo.lo \
 delta.lo tabularinput.lo sync.lo rusage.lo groupby.lo flowid.lo sum.lo \
 fifodelay.lo project.lo rename.lo join.lo mask.lo const.lo ndjoin.lo \
 lor.lo counter_loop.lo dfa.lo noop.lo expr.lo equals.lo cflow.lo \
-clock.lo disarm.lo
+clock.lo
 libsubstr_la_OBJECTS =  substr-main.lo
 CXXFLAGS = @CXXFLAGS@
 CXXCOMPILE = $(CXX) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
@@ -190,6 +173,9 @@ LINK = $(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(LDFLAGS) -o $@
 DIST_COMMON =  Makefile.am Makefile.in
 
 
+PACKAGE = @PACKAGE@
+VERSION = @VERSION@
+
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 
 TAR = tar
@@ -197,9 +183,9 @@ GZIP_ENV = --best
 DEP_FILES =  .deps/bench_field-main.P .deps/bench_field-virtual.P \
 .deps/cflow.P .deps/clock.P .deps/const.P .deps/count.P \
 .deps/counter_loop.P .deps/delta.P .deps/derivative.P .deps/dfa.P \
-.deps/disarm.P .deps/encrypt.P .deps/entropy.P .deps/equals.P \
-.deps/expr.P .deps/fifo.P .deps/fifodelay.P .deps/filter.P \
-.deps/flowid.P .deps/groupby.P .deps/head.P .deps/join.P .deps/last.P \
+.deps/encrypt.P .deps/entropy.P .deps/equals.P .deps/expr.P \
+.deps/fifo.P .deps/fifodelay.P .deps/filter.P .deps/flowid.P \
+.deps/groupby.P .deps/head.P .deps/join.P .deps/last.P \
 .deps/libpython.la.P .deps/libreassemble.la.P .deps/lor.P .deps/mask.P \
 .deps/msgtest.P .deps/ndjoin.P .deps/noop.P .deps/pcapfile.P \
 .deps/pcaplive.P .deps/pdf.P .deps/print.P .deps/project.P \
@@ -211,7 +197,7 @@ OBJECTS = $(libpcaplive_la_OBJECTS) libpython.la.lo libreassemble.la.lo $(libben
 
 all: all-redirect
 .SUFFIXES:
-.SUFFIXES: .C .S .c .lo .o .obj .s
+.SUFFIXES: .C .S .c .lo .o .s
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.ac $(ACLOCAL_M4) 
 	cd $(top_srcdir) && $(AUTOMAKE) --gnu modules/Makefile
 
@@ -229,11 +215,6 @@ distclean-noinstLTLIBRARIES:
 
 maintainer-clean-noinstLTLIBRARIES:
 
-# FIXME: We should only use cygpath when building on Windows,
-# and only if it is available.
-.c.obj:
-	$(COMPILE) -c `cygpath -w $<`
-
 .s.o:
 	$(COMPILE) -c $<
 
@@ -242,7 +223,6 @@ maintainer-clean-noinstLTLIBRARIES:
 
 mostlyclean-compile:
 	-rm -f *.o core *.core
-	-rm -f *.$(OBJEXT)
 
 clean-compile:
 
@@ -292,8 +272,6 @@ libsubstr.la: $(libsubstr_la_OBJECTS) $(libsubstr_la_DEPENDENCIES)
 	$(LINK)  $(libsubstr_la_LDFLAGS) $(libsubstr_la_OBJECTS) $(libsubstr_la_LIBADD) $(LIBS)
 .C.o:
 	$(CXXCOMPILE) -c $<
-.C.obj:
-	$(CXXCOMPILE) -c `cygpath -w $<`
 .C.lo:
 	$(LTCXXCOMPILE) -c $<
 
@@ -333,7 +311,7 @@ maintainer-clean-recursive:
 	dot_seen=no; \
 	rev=''; list='$(SUBDIRS)'; for subdir in $$list; do \
 	  rev="$$subdir $$rev"; \
-	  test "$$subdir" = "." && dot_seen=yes; \
+	  test "$$subdir" != "." || dot_seen=yes; \
 	done; \
 	test "$$dot_seen" = "no" && rev=". $$rev"; \
 	target=`echo $@ | sed s/-recursive//`; \
@@ -375,7 +353,7 @@ TAGS: tags-recursive $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) $(LISP)
 	  awk '    { files[$$0] = 1; } \
 	       END { for (i in files) print i; }'`; \
 	test -z "$(ETAGS_ARGS)$$unique$(LISP)$$tags" \
-	  || (cd $(srcdir) && etags $(ETAGS_ARGS) $$tags  $$unique $(LISP) -o $$here/TAGS)
+	  || (cd $(srcdir) && etags -o $$here/TAGS $(ETAGS_ARGS) $$tags  $$unique $(LISP))
 
 mostlyclean-tags:
 
