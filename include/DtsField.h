@@ -7,6 +7,9 @@ typedef unsigned short dts_field_element;
 
 //typedef DtsField::iterator DtsField;
 
+/// DtsField is a vector class used to describe a field
+/// specification such as foo.bar.baz translated into
+/// numeric identifiers for fast lookup.
 class DtsField : public std::vector<dts_field_element> {
   public:
 	operator bool() const { return size()!=0; }
