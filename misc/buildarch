@@ -5,7 +5,8 @@ if [ "$targets" = "" ]; then
         targets="all test"
 fi
 
-platform=`uname -sm| sed 's/  */-/g'`
+#platform=`uname -sm| sed 's/  */-/g'`
+platform=`config/config.guess`
 srcdir=`pwd`
 
 if [ "$BUILDNAME" = "" ]; then
@@ -21,13 +22,14 @@ if [ -d /sw/bin ]; then
 fi
 
 build() {
-
-	echo "Checking for $builddir/Makefile"
+	msg="Checking for $builddir/Makefile..."
 	if [ \! -f $builddir/Makefile ]; then
+		echo "$msg creating with configure"
 		mkdir -p $builddir
 		cd $builddir
 		$srcdir/configure --srcdir=$srcdir $CONFIG
 	else 
+		echo "$msg exists"
 		cd $builddir
 	fi
 	
