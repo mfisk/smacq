@@ -1,5 +1,10 @@
 VERSION 2.2 - unreleased
 ========================
+2004-12 - SmacqModule enqueue() is now a callback to the scheduler:
+           - SmacqModule::canproduce() and dequeue() are obsoleted
+           - Module destructors can now enqueue()
+           - Last-call semantics on produce() removed
+           - Most modules no longer implement produce()
 2004-12 - smacq_getoptsbyname() now prints help on error
 2004-12 - smacq_getoptsbyname() now handles -xy as -x -y and not as --xy
 2004-11 - Added "-t" option to smacqq to describe a type
