@@ -22,11 +22,12 @@ struct state {
   int queryargc;
   char ** queryargv;
   const dts_object * product;
-  int done;
 
   GHashTableofBytes * hashtable;
 
   int refresh_type;
+
+  struct output * cont;
 }; 
 
 struct output {
@@ -37,6 +38,8 @@ struct output {
 static smacq_result groupby_consume(struct state * state, const dts_object * datum, int * outchan) {
   struct iovec * partitionv = fields2vec(state->env, datum, &state->fieldset);
   struct output * bucket;
+  int status = SMACQ_FREE;
+  int more;
   assert(partitionv);
 
   bucket = bytes_hash_table_lookupv(state->hashtable, partitionv, state->fieldset.num);
@@ -51,22 +54,39 @@ static smacq_result groupby_consume(struct state * state, const dts_object * dat
     bytes_hash_table_insertv(state->hashtable, partitionv, state->fieldset.num, bucket);
   } 
 
-  {
-    int more = flow_sched_iterative(bucket->graph, datum, &state->product, &bucket->runq, 0);
+  more = flow_sched_iterative(bucket->graph, datum, &state->product, &bucket->runq, 0);
+  
+  // Producing input is just a PASS
+  if (state->product == datum) {
+    status = SMACQ_PASS;
 
-    more = (more ? 0 : SMACQ_END);
-    
-    if (datum && (state->product == datum)) {
-      return SMACQ_PASS|more;
-    } else if (state->product) { 
-      state->done = more;
-      return SMACQ_FREE|SMACQ_PRODUCE;
+    if (! (more&SMACQ_END)) {
+      more = flow_sched_iterative(bucket->graph, NULL, &state->product, &bucket->runq, 0);
     } else {
-      return SMACQ_FREE|more;
+      state->product = NULL;
     }
   }
+  
+  // Handle refresh (kill-off child)
+  if (dts_gettype(datum) == state->refresh_type) {
+    bytes_hash_table_removev(state->hashtable, partitionv, state->fieldset.num);
+    flow_sched_iterative_shutdown(bucket->graph, &bucket->runq);
+    
+    if (!state->product) {
+      // Null datum is EOF
+      more = flow_sched_iterative(bucket->graph, NULL, &state->product, &bucket->runq, 0);
+    }
+  }
+  
+  if (more & SMACQ_END) {
+    free(bucket);
+  } else {
+    state->cont = bucket;
+  }
 
-  return SMACQ_PASS;
+  if (state->product) status |= SMACQ_PRODUCE;
+
+  return status;
 }
 
 static int groupby_init(struct flow_init * context) {
@@ -111,7 +131,7 @@ static int groupby_init(struct flow_init * context) {
   }
 
   fields_init(state->env, &state->fieldset, argc, argv);
-  state->hashtable = bytes_hash_table_new(KEYBYTES, chain);
+  state->hashtable = bytes_hash_table_new(KEYBYTES, CHAIN, NOFREE);
 
   state->refresh_type = flow_requiretype(state->env, "refresh");
 
@@ -126,9 +146,19 @@ static int groupby_shutdown(struct state * state) {
 static smacq_result groupby_produce(struct state * state, const dts_object ** datump, int * outchan) {
   if (state->product) {
     *datump = state->product;
-    state->product = NULL;
-    return SMACQ_PASS| (state->done ? SMACQ_END : 0);
+
+    if (state->cont) {
+      if (!flow_sched_iterative(state->cont->graph, NULL, &state->product, &state->cont->runq, 0)) {
+	state->cont = NULL;
+      }
+    } else {
+      assert(0);
+      state->product = NULL;
+    }
+
+    return SMACQ_PASS | (state->product ? SMACQ_PRODUCE : 0);
   } else {
+    assert(0);
     return SMACQ_FREE;
   }
 }
