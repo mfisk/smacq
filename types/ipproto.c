@@ -10,7 +10,7 @@ static int smacqtype_ipproto_get_string(const dts_object * obj, dts_object * fie
   struct protoent * p = getprotobynumber((dts_data_as(obj, unsigned char)));
 
   if (p) {
-	dts_setsize(field, strlen(p->p_name));
+	dts_setsize(field, strlen(p->p_name)+1);
 	strcpy(field->data, p->p_name);
   } else {
 	dts_setsize(field, 64);

@@ -10,7 +10,7 @@ static int smacqtype_string_get_string(const dts_object * o, dts_object * data) 
 }
 
 static int parse_string(char * buf,  const dts_object * d) {
-  dts_setsize(d, strlen(buf));
+  dts_setsize(d, strlen(buf)+1);
   strcpy(d->data, buf);
     
   return 1;
