@@ -110,20 +110,20 @@ int parse_opt(struct smacq_options * options, struct smacq_optval * optvals,
 		return 1;
 	    break;
 	  case SMACQ_OPT_TYPE_INT:
-	    val->location->int_t = atoi(nextarg);
+	    val->location->int_t = strtol(nextarg, NULL, 0);
 		return 1;
 	    break;
 	  case SMACQ_OPT_TYPE_UINT32:
-	    val->location->uint32_t = atol(nextarg);
+	    val->location->uint32_t = strtoll(nextarg, NULL, 0);
 		return 1;
 	    break;
 	  case SMACQ_OPT_TYPE_DOUBLE:
-	    val->location->double_t = atof(nextarg);
+	    val->location->double_t = strtod(nextarg, NULL);
 		return 1;
 	    break;
 	  case SMACQ_OPT_TYPE_TIMEVAL:
-	    val->location->timeval_t.tv_sec = floor(atof(nextarg));
-	    val->location->timeval_t.tv_usec = floor(1000000 * (atof(nextarg) - val->location->timeval_t.tv_sec));
+	    val->location->timeval_t.tv_sec = floor(strtod(nextarg, NULL));
+	    val->location->timeval_t.tv_usec = floor(1000000 * (strtod(nextarg, NULL) - val->location->timeval_t.tv_sec));
 		return 1;
 	    break;
 	  case END:
@@ -153,12 +153,10 @@ int smacq_getoptsbyname( int argc, char ** argv,
 
 	for (i = 0; i < argc; i++) {
 	  if ((argv[i][0] != '-') || (argv[i][1]=='\0')) {
-	    if (argc_left) {
-	      if (!*argc_left) {
-			*argv_left = g_new(char *, argc);
-	      }
-	      (*argv_left)[*argc_left] = argv[i];
-	      (*argc_left)++;
+	    if (argc_left && argv_left) {
+	   	  *argv_left = argv+i;
+		  *argc_left = argc - i;
+		  return 0;
 	    } else {
 	      fprintf(stderr, "Unknown option %s", argv[i]);
 		  print_help(options);
