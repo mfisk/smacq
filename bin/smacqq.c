@@ -27,6 +27,7 @@ int main(int argc, char ** argv) {
   smacq_opt multiple, optimize;
   int qargc;
   char ** qargv;
+  dts_environment * tenv = dts_init();
 
   if (argc <= 1) {
 	  fprintf(stderr, "Usage: %s [-m] query\n", argv[0]);
@@ -55,9 +56,8 @@ int main(int argc, char ** argv) {
 	      return -1;
       }
 
-
       while(fgets(queryline, MAX_QUERY_SIZE, stdin)) {
-	      smacq_graph * newgraph = smacq_build_query(1, &queryline);
+	      smacq_graph * newgraph = smacq_build_query(tenv, 1, &queryline);
 	      assert(newgraph);
       	      graphs = smacq_graph_add_graph(graphs, newgraph);
       }
@@ -66,7 +66,7 @@ int main(int argc, char ** argv) {
 	      graphs = smacq_merge_graphs(graphs);
       }
 
-      if (0 != smacq_start(graphs, ITERATIVE, NULL)) {
+      if (0 != smacq_start(graphs, ITERATIVE, tenv)) {
 	      return -1;
       }
 
@@ -78,9 +78,9 @@ int main(int argc, char ** argv) {
       }
       
   } else {
-      graph = smacq_build_query(qargc, qargv);
+      graph = smacq_build_query(tenv, qargc, qargv);
       assert(graph);
-      return smacq_start(graph, RECURSIVE, NULL);
+      return smacq_start(graph, RECURSIVE, tenv);
   }
 }
 

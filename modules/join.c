@@ -88,7 +88,7 @@ static int join_init(struct smacq_init * context) {
 	  //char fstr[256];
 	  //snprintf(fstr, 256, "j%d", argv[i]);
 	  state->joins[j].field = smacq_requirefield(state->env, argv[i+1]);
-	  state->joins[j].graph = smacq_build_query(1, &argv[i]);
+	  state->joins[j].graph = smacq_build_query(state->env->types, 1, &argv[i]);
 	  assert(state->joins[j].graph);
 	  smacq_start(state->joins[j].graph, ITERATIVE, state->env->types);
   }
