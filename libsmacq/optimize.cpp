@@ -208,8 +208,8 @@ inline int SmacqGraph::merge_demuxs(SmacqGraph * a, SmacqGraph * b) {
 }
 
 inline int SmacqGraph::merge_vectors(SmacqGraph * a, SmacqGraph * b) {
-#ifndef SMACQ_OPT_VECTORS
-#warning "SMACQ_OPT_VECTORS not set"
+#ifdef SMACQ_OPT_NOVECTORS
+#warning "SMACQ_OPT_NOVECTORS set"
   return 0;
 #endif 
 
@@ -333,7 +333,7 @@ void SmacqGraph::optimize() {
   print(stderr, 8);
 #endif
 
-#ifdef SMACQ_OPT_HEADS
+#ifndef SMACQ_OPT_NOHEADS
   /* Merge identical heads */
   prev = this;
   for (candidate=prev->next_graph; candidate; candidate=prev->next_graph) {
@@ -363,10 +363,10 @@ void SmacqGraph::optimize() {
   print(stderr, 8);
 #endif
 #else
-#warning "SMACQ_OPT_HEADS not set"
+#warning "SMACQ_OPT_NOHEADS set"
 #endif
 
-#ifdef SMACQ_OPT_CHILDREN
+#ifndef SMACQ_OPT_NOCHILDREN
   /* Now look for common leading subexpressions within trees */
   //optimize_tree();
 
@@ -375,10 +375,10 @@ void SmacqGraph::optimize() {
   print(stderr, 8);
 #endif
 #else
-#warning "SMACQ_OPT_CHILDREN not set"
+#warning "SMACQ_OPT_NOCHILDREN set"
 #endif
 
-#ifdef SMACQ_OPT_TAILS
+#ifdef SMACQ_OPT_NOTAILS
   /* Do the merge again from the tails up */
   merge_all_tails();
 
@@ -387,7 +387,7 @@ void SmacqGraph::optimize() {
   print(stderr, 8);
 #endif
 #else
-#warning "SMACQ_OPT_TAILS not set"
+#warning "SMACQ_OPT_NOTAILS set"
 #endif
 
 #ifdef SMACQ_DEBUG
