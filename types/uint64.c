@@ -5,13 +5,13 @@
 
 static int smacqtype_uint64_get_string(const dts_object * o, dts_object * field) {
   dts_setsize(field, 64); // Only has to hold log10(2**64)
-  snprintf(field->data, 64, "%u", dts_data_as(o, uint64_t));
+  snprintf(field->data, 64, "%llu", dts_data_as(o, uint64_t));
   return 1;
 }
 
 static int smacqtype_uint64_get_hexstring(const dts_object * o, dts_object * field) {
   dts_setsize(field, 16); // 4 bytes -> 8 chars + 3 = 11
-  snprintf(field->data, 64, "0x%x", dts_data_as(o, uint64_t));
+  snprintf(field->data, 64, "0x%llx", dts_data_as(o, uint64_t));
   return 1;
 }
 
