@@ -43,7 +43,7 @@ int printModule::print_field(DtsObject field, char * fname, int printed, int col
 
 	if (tagged) {
 		printf("<%s>%s</%s>", fname, (char *)field->getdata(),fname);
-	} else if (internals || verbose) {
+	} else if (verbose) {
 		printf("%.20s = %s", fname, (char *)field->getdata());
 	} else {
 		printf("%s", (char*)field->getdata());
@@ -64,7 +64,7 @@ smacq_result printModule::consume(DtsObject datum, int & outchan) {
       /* Print all fields */
 
 	  if (internals) {
-		printf("Object %p:%s", datum.get(), delimiter);
+		printf("Object %p:\n", datum.get());
   	  }
 
       DtsField f;
@@ -73,15 +73,13 @@ smacq_result printModule::consume(DtsObject datum, int & outchan) {
       std::vector<DtsObject> v = datum->get_all_fields();
       std::vector<DtsObject>::iterator j;
       int num;
+	  printed=1;
 
       for (num=0, j=v.begin(); j != v.end(); ++j, ++num) {
 			if (*j) {
 				DtsObject str = (*j)->getfield(string_transform);
-				if (str) {
-					f[0] = num;
-					printed = print_field(str, dts->field_getname(f), printed, column);
-					column++;
-				}
+				f[0] = num;
+				printf("\tField %2d: %15s = (obj %p) %s\n", num, dts->field_getname(f), j->get(), (char*)str->getdata());
 			}
       }
 
