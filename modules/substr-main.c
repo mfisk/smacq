@@ -104,7 +104,6 @@ static void add_entry(struct state * state, char * field, char * needle, int out
   }
 
   nlen = strlen(needle);
-
 #ifdef DEBUG
   fprintf(stderr, "decoded %s(%d) to search string of ", needle, nlen);
 #endif
@@ -175,7 +174,7 @@ static smacq_result substr_init(struct smacq_init * context) {
   char ** argv;
   smacq_opt field_opt, demux;
   char * field = NULL;
-  char * hay = NULL;
+  char * pattern = NULL;
   int output = 0;
 
   context->state = state = (struct state*) calloc(sizeof(struct state),1);
@@ -198,19 +197,23 @@ static smacq_result substr_init(struct smacq_init * context) {
   }
 
   for (i = 0; i < argc; i++) {
-	  if (!strcmp(argv[i], ";") && hay) {
+	  if (!strcmp(argv[i], ";") && pattern) {
 		if (!field) field = field_opt.string_t; 
-		add_entry(state, field, hay, output++);
+		//fprintf(stderr, "middle pattern is %s\n", pattern);
+		add_entry(state, field, pattern, output++);
 		field = NULL;
-		hay = NULL;
+		pattern = NULL;
 	  } else if (!field) {
 		field = argv[i];
 	  } else {
-		hay = argv[i];
+		pattern = argv[i];
 	  }
   }
-  if (!field) field = field_opt.string_t; 
-  add_entry(state, field, hay, output++);
+  if (pattern) {
+	if (!field) field = field_opt.string_t; 
+	//fprintf(stderr, "last pattern of %p is %s\n", context->self, pattern);
+  	add_entry(state, field, pattern, output++);
+  }
 
   if (output>1) {
 	  state->demux = 1;
