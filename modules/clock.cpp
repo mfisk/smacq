@@ -8,7 +8,7 @@
 #include <assert.h>
 
 #define SMACQ_MODULE_IS_ANNOTATION 1
-#include <smacq.h>
+#include <SmacqModule.h>
 #include <FieldVec.h>
 #include <FieldVec.h>
 

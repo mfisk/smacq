@@ -1,5 +1,4 @@
 #include <stdlib.h>
-#include <SmacqModule.h>
 #include <DtsObject.h>
 #include <smacq.h>
 

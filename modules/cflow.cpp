@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <sys/types.h>
-#include <smacq.h>
+#include <SmacqModule.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <strucio.h>

@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <assert.h>
-#include <smacq.h>
+#include <SmacqModule.h>
 #include <FieldVec.h>
 #include <dts.h>
 #include <sys/time.h>

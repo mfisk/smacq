@@ -12,8 +12,7 @@
 
 //#define SMACQ_MODULE_IS_VECTOR 1
 #define SMACQ_MODULE_IS_STATELESS 1
-#include <smacq.h>
-#include <FieldVec.h>
+#include <SmacqModule.h>
 #include <FieldVec.h>
 #include <vector>
 #include <dts.h>

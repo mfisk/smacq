@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <assert.h>
-#include <smacq.h>
+#include <SmacqModule.h>
 
 /* Programming constants */
 

@@ -12,7 +12,7 @@
       <firstname>Mike</firstname>
       <surname>Fisk</surname>
     </author>
-    <date>$Date: 2004/11/15 01:45:05 $</date>
+    <date>$Date: 2004/12/12 20:41:02 $</date>
   </refentryinfo>
   <refmeta>
     <refentrytitle>smacqq</refentrytitle>
@@ -40,13 +40,23 @@
      <arg choice="opt">-t <replaceable>type</replaceable></arg>
      <arg choice="req">query</arg>
      </cmdsynopsis>
-<para>
+	<para>
 The <option>-g</option> option describes the query graph created by
 the given query or queries.  The <option>-t</option> option outputs a
 description of the given type.  The <option>-m</option> option causes
 multiple query lines to be read from STDIN instead of the command
 line.  The <option>-O</option> option causes optional query
 optimizations to be made.
-</para>
+	</para>
   </refsect1>
+
+  <refsect1>
+    <title>SEE ALSO</title>
+
+    <para>
+      <command>smacq</command>(1)
+    </para>
+
+  </refsect1>
+
 </refentry>

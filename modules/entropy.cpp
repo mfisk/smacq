@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <assert.h>
-#include <smacq.h>
+#include <SmacqModule.h>
 
 SMACQ_MODULE(entropy,
   PROTO_CTOR(entropy);

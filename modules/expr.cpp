@@ -1,4 +1,4 @@
-#include <smacq.h>
+#include <SmacqModule.h>
 #include <smacq-parser.h>
 
 SMACQ_MODULE(expr,

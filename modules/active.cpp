@@ -13,7 +13,7 @@
 #include <string.h>
 #include <math.h>
 #include <assert.h>
-#include <smacq.h>
+#include <SmacqModule.h>
 #include <FieldVec.h>
 
 static struct smacq_options options[] = {

@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
-#include <smacq.h>
+#include <SmacqModule.h>
 
 SMACQ_MODULE(head,
 	PROTO_CTOR(head);

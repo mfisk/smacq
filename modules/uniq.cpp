@@ -6,7 +6,7 @@
 #include <string.h>
 #include <math.h>
 #include <assert.h>
-#include <smacq.h>
+#include <SmacqModule.h>
 #include <bloom.h>
 #include <FieldVec.h>
 

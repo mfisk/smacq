@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
-#include <smacq.h>
+#include <SmacqModule.h>
 
 static struct smacq_options options[] = {
   {"d", {string_t:"\t"}, "Delimiter", SMACQ_OPT_TYPE_STRING},

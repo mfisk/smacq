@@ -8,8 +8,7 @@
 #include <assert.h>
 
 #define SMACQ_MODULE_IS_ANNOTATION 1
-#include <smacq.h>
-#include <FieldVec.h>
+#include <SmacqModule.h>
 #include <FieldVec.h>
 
 static struct smacq_options options[] = {

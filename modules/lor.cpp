@@ -4,7 +4,7 @@
 #include <assert.h>
 
 #define SMACQ_MODULE_IS_STATELESS 1
-#include <smacq.h>
+#include <SmacqModule.h>
 #include <SmacqGraph.h>
 
 SMACQ_MODULE(lor,

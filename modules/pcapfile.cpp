@@ -5,7 +5,7 @@
 #include <assert.h>
 #include <sys/types.h>
 #include <net/ethernet.h>
-#include <smacq.h>
+#include <SmacqModule.h>
 #include <dts_packet.h>
 #include <pcap.h>
 #include <sys/stat.h>

@@ -7,8 +7,9 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
+
 #include "DtsObject.h"
-#include "smacq.h"
+#include "SmacqModule.h"
 #include "dump.h"
 #include "dts.h"
 

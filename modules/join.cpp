@@ -4,7 +4,7 @@
 #include <vector>
 #include <map>
 
-#include <smacq.h>
+#include <SmacqModule.h>
 #include <FieldVec.h>
 #include <SmacqGraph.h>
 #include <SmacqScheduler.h>

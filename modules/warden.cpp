@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
-#include <smacq.h>
+#include <SmacqModule.h>
 #include <sys/types.h>
 #ifndef linux 
 #include <netinet/in_systm.h>

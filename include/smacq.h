@@ -134,7 +134,6 @@ typedef enum _smacq_result smacq_result;
 #endif
 
 #include "util.c"
-#include "smacq_args.h"
 #include <dts-types.h>
 
 class SmacqGraph;
@@ -143,8 +142,6 @@ class IterativeScheduler;
 /// The only SmacqScheduler is currently IterativeSchedule, so it is a
 /// typedef instead of a base class.
 typedef IterativeScheduler SmacqScheduler;
-
-#include <SmacqModule.h>
 
 enum smacq_log_level { INFO, WARN, ERROR, };
 

@@ -4,7 +4,7 @@
 #include <string.h>
 
 #define SMACQ_MODULE_IS_STATELESS 1
-#include <smacq.h>
+#include <SmacqModule.h>
 
 SMACQ_MODULE(filter,
   PROTO_CTOR(filter);

@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
-#include <smacq.h>
+#include <SmacqModule.h>
 #include <errno.h>
 #include <SmacqScheduler.h>
 #include <DynamicArray.h>

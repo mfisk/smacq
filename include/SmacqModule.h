@@ -6,6 +6,7 @@
 class SmacqModule;
 
 #include <smacq.h>
+#include <smacq_args.h>
 #include <list>
 #include <utility>
 

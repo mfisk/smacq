@@ -18,7 +18,7 @@
 #include <assert.h>
 #include <sys/types.h>
 #include <net/ethernet.h>
-#include <smacq.h>
+#include <SmacqModule.h>
 #include <pcap.h>
 #include <dts_packet.h>
  

@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <dts.h>
+#include <SmacqModule.h>
 
 SMACQ_MODULE(print, 
 	PROTO_CTOR(print);

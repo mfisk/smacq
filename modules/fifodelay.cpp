@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <assert.h>
-#include <smacq.h>
+#include <SmacqModule.h>
 
 static struct smacq_options options[] = {
   {"t", {double_t:0}, "Lag time", SMACQ_OPT_TYPE_TIMEVAL},

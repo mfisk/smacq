@@ -1,4 +1,4 @@
-#include <smacq.h>
+#include <SmacqModule.h>
 
 SMACQ_MODULE(noop,
   PROTO_CTOR(noop);

@@ -5,7 +5,7 @@
 #include <netinet/in.h>
 
 #define SMACQ_MODULE_IS_STATELESS 1
-#include "smacq.h"
+#include <SmacqModule.h>
 
 struct mask {
 	struct in_addr mask;
