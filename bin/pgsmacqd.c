@@ -9,12 +9,13 @@
  * 							*
  ********************************************************/
 #define SMACQPATH "/home/eric/smacq/build/Linux-ppc/bin/smacqq"
-#define DEBUG
-
+/*#define DEBUG */
+#define LINE_SIZE 1000000
 #include <smacq.h>
 #include <stdio.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <netinet/in.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -22,7 +23,6 @@
 #include <errno.h>
 #include <sys/types.h>
 #include <signal.h>
-#include <malloc.h>
 
 #ifdef DEBUG
 #include<mcheck.h>
@@ -36,6 +36,7 @@
  * convert everything to use this global.
  */
 static int sock;
+FILE * in;
 
 int main(int argc, char *argv[])
 {
@@ -98,7 +99,6 @@ int main(int argc, char *argv[])
 	exit(1);
     }
 
-    fclose(stdin);
     for(;;) {
 	clntLen = sizeof(echoClntAddr);
 
@@ -893,13 +893,12 @@ void handleQuery(char * query)
 {
     bool initial_row = true;
     size_t len = 0;
-    ssize_t read;
     int processID;
     int eof_flag;
     int fd[2];
     int length;
     int i,j,k,m;
-    char *buf;
+    char buf[LINE_SIZE];
     char word[FIELD_SIZE];
     fieldRow *fr;
     fieldRow *flabel;
@@ -925,13 +924,13 @@ void handleQuery(char * query)
 	/* 
 	 * maybe I shouldn't use stdin
 	 */
-	stdin = fdopen(fd[0],"r");
+	in = fdopen(fd[0],"r");
 	cursorResponse(sock,"blank");
 
 	flabel = NULL;
 	fr = NULL;
 
-	while((read = getline(&buf,&len,stdin)) != EOF) {
+	while((fgets(buf, LINE_SIZE, in)) != NULL) {
 	    i = 0;
 	    eof_flag = findWord(buf,word);
 #ifdef DEBUG
@@ -982,13 +981,8 @@ void handleQuery(char * query)
 	    printf("|\n");
 #endif
 	}
-	if(buf) {
-	    free(buf);
-	    buf=NULL;
-	    buf = 0;
-	    len = 0;
-	}
-	fclose(stdin);
+	len = 0;
+	fclose(in);
 	close(fd[0]);
 	deleteList(&fr);
 	deleteList(&flabel);
