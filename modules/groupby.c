@@ -49,12 +49,20 @@ static smacq_result groupby_consume(struct state * state, const dts_object * dat
     bucket->runq = NULL;
     //fprintf(stderr, "Cloning %d\n", state->bucket);
     bucket->graph = smacq_build_pipeline(state->queryargc, state->queryargv);
-    //bucket = smacq_add_child(state->self, bucket->graph);
     flow_start(bucket->graph, ITERATIVE, state->env->types);
     bytes_hash_table_insertv(state->hashtable, partitionv, state->fieldset.num, bucket);
   } 
 
   more = flow_sched_iterative(bucket->graph, datum, &state->product, &bucket->runq, 0);
+  
+  // Handle refresh (kill-off child)
+  if (dts_gettype(datum) == state->refresh_type) {
+    int res = bytes_hash_table_removev(state->hashtable, partitionv, state->fieldset.num);
+    assert(res);
+    //fprintf(stderr, "groupby remove from %p\n", state->hashtable);
+    flow_sched_iterative_shutdown(bucket->graph, &bucket->runq);
+
+  }
   
   // Producing input is just a PASS
   if (state->product == datum) {
@@ -69,26 +77,23 @@ static smacq_result groupby_consume(struct state * state, const dts_object * dat
       state->product = NULL;
     }
   }
-  
-  // Handle refresh (kill-off child)
-  if (dts_gettype(datum) == state->refresh_type) {
-    bytes_hash_table_removev(state->hashtable, partitionv, state->fieldset.num);
-    flow_sched_iterative_shutdown(bucket->graph, &bucket->runq);
-    
-    if (!state->product) {
-      // Null datum is EOF
-      more = flow_sched_iterative(bucket->graph, NULL, &state->product, &bucket->runq, 0);
-    }
+
+  if ((dts_gettype(datum) == state->refresh_type) && (!state->product)) {
+    // Null datum is EOF
+    more = flow_sched_iterative(bucket->graph, NULL, &state->product, &bucket->runq, 0);
   }
+
   
   if (more & SMACQ_END) {
     assert(!bucket->runq);
+    smacq_destroy_graph(bucket->graph);
     free(bucket);
   } else {
     state->cont = bucket;
   }
 
-  if (state->product) status |= SMACQ_PRODUCE;
+  if (state->product) status = SMACQ_PRODUCE;
+  if (state->cont) status |= SMACQ_PRODUCE;
 
   return status;
 }
@@ -148,27 +153,30 @@ static int groupby_shutdown(struct state * state) {
 
 
 static smacq_result groupby_produce(struct state * state, const dts_object ** datump, int * outchan) {
+  int status;
+
   if (state->product) {
     *datump = state->product;
+    status = SMACQ_PASS;
+  } else {
+    status = SMACQ_FREE;
+  }
 
-    if (state->cont) {
-      int more;
-      more = flow_sched_iterative(state->cont->graph, NULL, &state->product, &state->cont->runq, 0);
-      if (more & SMACQ_END) {
-	assert(!state->cont->runq);
-	free(state->cont);
-	state->cont = NULL;
-      }
-    } else {
-      assert(0);
-      state->product = NULL;
+  if (state->cont) {
+    int more;
+    more = flow_sched_iterative(state->cont->graph, NULL, &state->product, &state->cont->runq, 0);
+    if (more & SMACQ_END) {
+      assert(!state->cont->runq);
+      smacq_destroy_graph(state->cont->graph);
+      free(state->cont);
+      state->cont = NULL;
     }
-
-    return SMACQ_PASS | (state->product ? SMACQ_PRODUCE : 0);
   } else {
     assert(0);
-    return SMACQ_FREE;
+    state->product = NULL;
   }
+
+  return status | (state->product ? SMACQ_PRODUCE : 0);
 }
 
 /* Right now this serves mainly for type checking at compile time: */
