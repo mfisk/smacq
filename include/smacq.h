@@ -148,6 +148,7 @@ void smacq_remove_child(smacq_graph * parent, int childnum);
 void smacq_remove_parent(smacq_graph * child, const smacq_graph * parent);
 smacq_graph * smacq_merge_graphs(smacq_graph *);
 smacq_graph * smacq_graph_add_graph(smacq_graph * a, smacq_graph * b);
+smacq_graph * smacq_graph_clone(smacq_environment *, smacq_graph *);
 
 smacq_graph * smacq_new_module(int argc, char ** argv);
 EXTERN void smacq_free_module(smacq_graph * f);

@@ -100,6 +100,36 @@ void smacq_destroy_graph(smacq_graph *f) {
   smacq_free_module(f);
 }
 
+/* Recursively clone a standalone graph */
+smacq_graph * smacq_graph_clone(smacq_environment * env, smacq_graph * orig) {
+  int i;
+
+  smacq_graph * clone = malloc(sizeof(smacq_graph));
+  memcpy(clone, orig, sizeof(smacq_graph));
+
+  /* Need or own input buffer */
+  clone->q = g_new0(dts_object *, clone->ringsize);
+
+  /* Need our own context -- will rerun init() method */
+  clone->state = NULL; 
+
+  /* Have distinct children */
+  clone->numparents = 0;
+  clone->numchildren = 0;
+  for(i=0; i < orig->numchildren; i++) {
+      if (orig->child[i]) {
+	  smacq_add_child(clone, smacq_graph_clone(env, orig->child[i]));
+      }
+  }
+
+  /*
+  fprintf(stderr,"New clone:\n");
+  smacq_graph_print(stderr, clone, 1);
+  fprintf(stderr,":\n");
+  */
+
+  return clone;
+}
 
 /*
  * Add the module specified by argv[0] as a child of parent.
@@ -236,29 +266,30 @@ smacq_graph * smacq_build_pipeline(int argc, char ** argv) {
 }
 
 void smacq_init_modules(smacq_graph * f, smacq_environment * env) {
-  struct smacq_init * context = g_new0(struct smacq_init, 1);
+  struct smacq_init context;
   int i;
 
   if (!f || f->state) return;
+  //fprintf(stderr, "init_modules on graph node %p\n", f);
 
-  context->islast = !f->child;
-  context->isfirst = !f->previous;
-  context->env = env;
-  context->argc = f->argc;
-  context->argv = f->argv;
-  context->self = f;
-  context->thread_fn = f->ops.thread_fn;
+  context.islast = !f->child;
+  context.isfirst = !f->previous;
+  context.env = env;
+  context.argc = f->argc;
+  context.argv = f->argv;
+  context.self = f;
+  context.thread_fn = f->ops.thread_fn;
   
-  if ((SMACQ_END|SMACQ_ERROR) & f->ops.init(context)) { 
+  if ((SMACQ_END|SMACQ_ERROR) & f->ops.init(&context)) { 
  	fprintf(stderr, "Error initializing module %s\n", f->name);	 	
 	exit(-1);
   }
 
-  f->state = context->state;
-  free(context);
+  f->state = context.state;
 
-  for (i = 0; i < f->numchildren; i++ ) 
+  for (i = 0; i < f->numchildren; i++ ) {
     smacq_init_modules(f->child[i], env);
+  }
 
   return;
 }
