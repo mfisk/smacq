@@ -14,10 +14,10 @@
 AUTOMAKE_OPTIONS = 1.5 gnits no-dependencies
 
 noinst_LTLIBRARIES = libgnu.la
-AM_CFLAGS = -Wno-long-double
+AM_CFLAGS = @LIBGNU_CFLAGS@
 
 libgnu_la_SOURCES =
-libgnu_la_LIBADD = @LTLIBOBJS@
+libgnu_la_LIBADD = @LTLIBOBJS@ $(LIB_CLOCK_GETTIME)
 EXTRA_DIST =
 BUILT_SOURCES =
 SUFFIXES =
