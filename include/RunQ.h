@@ -20,6 +20,7 @@ class runq {
   void runable(SmacqGraph * f, DtsObject d, enum action action);
   bool pending_normal(SmacqGraph * f);
   bool pending(SmacqGraph * f);
+  void inline print(FILE * fh = stderr);
 
  protected:
   struct qel * insert_before(struct qel *);
@@ -50,34 +51,45 @@ inline struct qel * runq::insert_before(struct qel * point) {
 } 
 
 inline struct qel * runq::insertion_point(SmacqGraph * f, enum action action) {
-  struct qel * el;
+	struct qel * el;
 	
-  if ((action == PRODUCE) && this->head) {
-    // Find an action for this element
-    for (el = head; el != tail; el = el->next) {
-      if (el->f == f) {
-	if (el == head) {
-		return (head = insert_before(el));
+	if ((action == PRODUCE) && this->head) {
+		// PRODUCE takes precedence over all others, so check for a non-PRODUCE action 
+		// for this element and insert before it.
+		for (el = head; el != tail; el = el->next) {
+			if ((el->f == f) && (el->action != PRODUCE)) {
+				if (el == head) {
+					return (head = insert_before(el));
+				} else {
+					return insert_before(el);
+				}
+			}
+		}
 	} else {
-		return insert_before(el);
-  	}
-      }
-    }
-  } else {
-    el = tail;
-  }
+		el = tail;
+	}
 
-  /* Got to tail */
-  tail = tail->next;
+	/* Got to tail */
+	tail = tail->next;
   
-  /* if the new tail would stomp on the head, then make some more room */
-  if (tail == head) {
-    tail = insert_before(head);
-  }
+	/* if the new tail would stomp on the head, then make some more room */
+	if (tail == head) {
+		tail = insert_before(head);
+	}
 
-  return el;
+	return el;
 }
 
+/// Print the contents of the runq.
+void inline runq::print(FILE * fh) {
+	fprintf(fh, "Runq:");
+	for (struct qel * el = head; el != tail; el = el->next) {
+		fprintf(fh, "\t-> %p, %p, %d\n", el->f, el->d.get(), el->action);
+	}
+	fprintf(fh, "\n");
+}
+
+/// Add something to the runq.
 void inline runq::runable(SmacqGraph * f, DtsObject d, enum action action) {
   struct qel * el = insertion_point(f, action);
 
@@ -90,6 +102,8 @@ void inline runq::runable(SmacqGraph * f, DtsObject d, enum action action) {
   if (!this->head) {
     this->head = el;
   }
+
+  //this->print();
 }
 
 inline int runq::pop_runable(SmacqGraph * & f, DtsObject &d, enum action & action) {
