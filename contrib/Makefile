@@ -3,7 +3,9 @@ include config.mk
 ETHEREAL=ethereal-0.9.11
 ARCAT=$(TOPSRCDIR)/misc/arcat
 
-WITH.ethereal: libpacket-ethereal.a
+all: $(WITH)
+
+ethereal: libpacket-ethereal.a
 
 all: #libpacket-ethereal.a #libpcap.la #snort-1.9.0
 
