@@ -5,7 +5,7 @@ debug:
 	BUILDNAME=debug CONFIG="--enable-debug" misc/buildarch 
 
 profile:
-	BUILDNAME=profile CONFIG="--enable-profile" misc/buildarch 
+	BUILDNAME=profile CONFIG="--enable-profile --enable-debug" misc/buildarch 
 
 small:
 	BUILDNAME=small CONFIG="--enable-small" misc/buildarch
