@@ -7,6 +7,7 @@ has() {
 config() {
 	LIBTOOL=${LIBTOOL:-libtool}
 	USR=${USR:-/usr}
+	LDXX=${LDXX:-g++}
 
 	if [ `uname -s` = "Darwin" ]; then 
 		echo 'MAKE=gnumake'
@@ -24,6 +25,7 @@ config() {
 	elif [ `uname -s` = "Linux" ]; then
 		# Red Hat 8.0: 
 		if has g++296; then 
+			LDXX="--mode=link g++296"
 			echo 'CXX=--mode=compile g++296'
 		fi 
 		if has gcc296; then 
@@ -42,6 +44,7 @@ config() {
 	PWD=`pwd`
 
 	echo "LIBTOOL=$LIBTOOL"
+	echo "LDXX=$LDXX"
 	echo "USR=$USR"
 	echo "LDOPTS=$LDOPTS"
 	#echo "COPTS=$COPTS"
