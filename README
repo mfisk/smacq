@@ -20,8 +20,8 @@ How do I pass configure options?
 --------------------------------
 Set them in the CONFIG environment variable before running make:
 	CONFIG="--with-ethereal" make
-	CONFIG="--with-debug" make
-	CONFIG="--with-profile --with-debug" make
+	CONFIG="--enable-debug" make
+	CONFIG="--enable-profile --enable-debug" make
 
 Supported Platforms:
 --------------------
@@ -69,7 +69,7 @@ MacOS/X - Fink:
 Run the following command to install the Fink packages require to compile
 and execute this package:
 	apt-get install \
-		dlcompat zlib glib2-dev libpcap libpcap-shlibs \
+		pkgconfig dlcompat zlib glib2-dev libpcap libpcap-shlibs \
 		libtool groff #python  
 
 FreeBSD:
