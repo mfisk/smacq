@@ -50,7 +50,7 @@ struct state {
   struct timeval nextgc;
   int hasinterval;
 
-  GQueue* outputq;
+  struct smacq_outputq * outputq;
 
   struct timeval edge;
 
@@ -128,7 +128,7 @@ static inline int output(struct state * state, struct iovec * domainv, struct sr
       msgdata = smacq_dts_construct(state->env, state->id_type, &s->id);
       dts_attach_field(refresh, state->flowid_field, msgdata);
 
-      g_queue_push_tail(state->outputq, refresh);
+      smacq_produce_enqueue(&state->outputq, refresh, -1);
 
       for (i = 0; i<state->fieldset.num; i++) {
 	dts_attach_field(refresh, state->fieldset.fields[i].num, s->fields[i]);
@@ -278,7 +278,7 @@ static smacq_result flowid_consume(struct state * state, const dts_object * datu
   if (state->hasinterval)
     bytes_hash_table_foreach_remove(state->stats, test_expired, state);
 
-  if (! g_queue_is_empty(state->outputq) )
+  if (state->outputq)
       status |= SMACQ_PRODUCE;
 
   //fprintf(stderr, "Expires list length %d\n", g_list_length(state->expires));
@@ -288,7 +288,7 @@ static smacq_result flowid_consume(struct state * state, const dts_object * datu
 static int flowid_init(struct smacq_init * context) {
   int argc = 0;
   char ** argv;
-  struct state * state = context->state = g_new0(struct state, 1);
+  struct state * state = context->state = calloc(sizeof(struct state), 1);
   state->env = context->env;
 
   state->refresh_type = smacq_requiretype(state->env, "refresh");
@@ -349,38 +349,29 @@ static int flowid_init(struct smacq_init * context) {
 
   state->stats = bytes_hash_table_new(KEYBYTES, CHAIN, FREE);
 
-  state->outputq = g_queue_new();
-
   return 0;
 }
 
 static int flowid_shutdown(struct state * state) {
-  g_queue_free(state->outputq);
   free(state);
   return SMACQ_END;
 }
 
 
 static smacq_result flowid_produce(struct state * state, const dts_object ** datum, int * outchan) {
-  int status = 0;
-
-  *datum = g_queue_pop_head(state->outputq);
-
-  if (! g_queue_is_empty(state->outputq) )
-      status |= SMACQ_PRODUCE;
-    
-  if (*datum) {
-    status |= SMACQ_PASS;
+  if (state->outputq) {
+    return smacq_produce_dequeue(&state->outputq, datum, outchan);
   } else {
-    fprintf(stderr, "flowid: produce called with nothing in queue.  Outputing everything in current table!\n");
+    //fprintf(stderr, "flowid: produce called with nothing in queue.  Outputing everything in current table!\n");
 
     bytes_hash_table_foreach(state->stats, output_all, state);
 
+    if (!state->outputq)
+	    return SMACQ_FREE;
+
     return flowid_produce(state, datum, outchan);
-    //status |= SMACQ_FREE;
   }
 
-  return status;
 }
 
 /* Right now this serves mainly for type checking at compile time: */
