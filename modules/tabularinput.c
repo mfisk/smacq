@@ -14,7 +14,7 @@ struct state {
   char  delimiter;
   FILE * fh;
 
-  dts_field * field_name;
+  struct darray field_name;
   int * field_type;
   int fields;
 
@@ -31,11 +31,11 @@ static smacq_result tabularinput_produce(struct state* state, const dts_object *
   const dts_object * msgdata;
   char * result;
   const dts_object * datum;
+  dts_field field;
   assert(state);
-  
-  datum = smacq_alloc(state->env, 0, state->empty_type);
-  dts_incref(datum, 1);
 
+  datum = smacq_alloc(state->env, 0, state->empty_type);
+  
   result = fgets(line, MAX_STR, state->fh);
   if (!result) {
     return SMACQ_END;
@@ -63,29 +63,28 @@ static smacq_result tabularinput_produce(struct state* state, const dts_object *
     } else {
       endp[0] = '\0';
     }
-   
+ 
     if (i >= state->fields || !state->field_type[i] ||
-	!(msgdata = smacq_construct_fromstring(state->env, state->field_type[i], strdup(startp))))  {
+	!(msgdata = smacq_construct_fromstring(state->env, state->field_type[i], startp)))  {
       double d = strtod(startp, &badp);
       if (badp && badp != endp) {
 	//fprintf(stderr, "Double test failed, '%s' remains\n", badp);
-	msgdata = smacq_construct_fromstring(state->env, state->string_type, strdup(startp));
+	msgdata = smacq_construct_fromstring(state->env, state->string_type, startp);
       } else {
 	msgdata = smacq_dts_construct(state->env, state->double_type, &d);
       }
     }
 
-    if (!msgdata) 
     assert(msgdata);
 
-    if (i >= state->fields) {
+    field = darray_get(&state->field_name, i);
+    if (! field) {
       char buf[1024];
       sprintf(buf, "%d", i+1);
-      dts_attach_field(datum, smacq_requirefield(state->env, buf), msgdata); 
-    } else {
-      dts_attach_field(datum, state->field_name[i], msgdata); 
+      field = smacq_requirefield(state->env, buf);
+      darray_set(&state->field_name, i, field);
     }
-
+    dts_attach_field(datum, field, msgdata); 
   }
 
   *datump = datum;
@@ -137,20 +136,21 @@ static int tabularinput_init(struct smacq_init * context) {
   }
 
   state->fields = argc;
-  state->field_name = calloc(argc, sizeof(dts_field));
+  darray_init(&state->field_name, argc);
   state->field_type = calloc(argc, sizeof(int));
   
   for (i = 0; i < argc; i++) {
     char * name = strdup(argv[i]);
     char * type;
     type = index(name, ':');
+
+    darray_set(&state->field_name, i, smacq_requirefield(state->env, name));
+
     if (!type) {
       state->field_type[i] = 0;
-      state->field_name[i] = smacq_requirefield(state->env, name);
     } else {
       type[0] = '\0';
       //fprintf(stderr, "Added field %s type %s\n", name, type+1);
-      state->field_name[i] = smacq_requirefield(state->env, name);
       state->field_type[i] = smacq_requiretype(state->env, type+1);
     }
 
