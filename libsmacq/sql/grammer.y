@@ -275,6 +275,7 @@ smacq_graph * smacq_build_query(dts_environment * tenv, int argc, char ** argv) 
   size += argc;
 
   qstr = (char*)malloc(size);
+  qstr[0] = '\0';
   	
   for (i=0; i<argc; i++) {
   	strcatn(qstr, size, argv[i]);
