@@ -385,6 +385,7 @@ void bytes_hash_table_destroy(struct iovec_hash * ht) {
   }
 
   free(ht->randoms);
+  free(ht->buckets);
   cmalloc_destroy(ht->cm_bytes);
   cmalloc_destroy(ht->cm_iovecs);
   cmalloc_destroy(ht->cm_elements);
