@@ -2,6 +2,7 @@ WMAKE=$(MAKE) >&-
 DIRS=libsmacq types modules bin doc
 OS=`uname -s`
 LIBTOOL=libtool
+COPTS=-O9 -Winline
 
 auto:
 	@if [ `uname -s` == "Darwin" ]; then set -x; make fink; else set -x; make LIBTOOL=libtool all; fi
@@ -9,7 +10,7 @@ auto:
 all: dirs
 
 dirs: 
-	@set -e; for f in $(DIRS); do $(MAKE) -C $$f; done
+	@set -e; for f in $(DIRS); do COPTS="$(COPTS)" $(MAKE) -C $$f; done
 
 warn: 
 	make auto >/dev/null
