@@ -7,7 +7,6 @@
 /// A node in a SmacqGraph.  Holds instance arguments, meta-data, etc.
 class SmacqGraphNode{
  public:
-  int pending;
   SmacqGraphNode();
   ~SmacqGraphNode();
   bool set(int argc, char ** argv);
@@ -18,9 +17,7 @@ class SmacqGraphNode{
   int argc; // set by set()
   struct SmacqModule::algebra algebra; // set by load_module()
 
-  // For IterativeScheduler
   bool shutdown;
-  bool shutdown_pending;
 
   SmacqModule * instance;
 
@@ -47,7 +44,7 @@ class SmacqGraphNode{
 };
 
 inline SmacqGraphNode::SmacqGraphNode()
-  : pending(0), shutdown(false), shutdown_pending(false), instance(NULL), q(RINGSIZE) 
+  : shutdown(false), instance(NULL), q(RINGSIZE) 
 {}
 
 inline SmacqGraphNode::~SmacqGraphNode() {
