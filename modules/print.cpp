@@ -120,7 +120,8 @@ smacq_result printModule::consume(DtsObject datum, int & outchan) {
     for (i = 0; i < argc; i++) {
       field = datum->getfield(fields[i]);
       if (binary) {
-	fwrite(field->getdata(), field->getsize(), 1, outputfh);
+	if (field) 
+	  fwrite(field->getdata(), field->getsize(), 1, outputfh);
       } else { 
 	printed = print_field(field, argv[i], printed, column);
 	
