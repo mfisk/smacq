@@ -10,7 +10,6 @@ SUFFIXES = .y .ym
 #libsql.la: $(OBJS)
 #	$(LIBTOOL) $(CCLD) -export-symbols-regex '^smacq_.*' -o $@ $+ $(LIBS)
 
-%.y: %.ym grammer.y
-	m4 -I$(srcdir) -P < $< > $@
-
+$(srcdir)/%.y: $(srcdir)/%.ym $(srcdir)/grammer.y
+	m4 -I$(srcdir) -P -DBUILDDATE=\"`date`\" < $< > $(srcdir)/$@
 

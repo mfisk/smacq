@@ -3,18 +3,18 @@ INCLUDES = @GLOBAL_INCLUDES@ -I$(top_srcdir)/include
 SUFFIXES = .y .ym
 noinst_LTLIBRARIES = libfilter.la
 BUILT_SOURCES = 	filter-parser.c expr-parser.c
-libfilter_la_SOURCES = 	filter-parser.c expr-parser.c
+libfilter_la_SOURCES = 	filter-parser.y expr-parser.y
 
 #LIBS=-lfl
 #libfilter.la: $(OBJS)
 #	$(LIBTOOL) $(CCLD) -export-symbols-regex '^smacq_.*' -o $@ $+ $(LIBS)
 
-%.y: %.ym $(SQLSRC)/grammer.y
-	$(M4) -I$(SQLSRC) -P < $< > $@
+$(srcdir)/%.y: $(srcdir)/%.ym $(SQLSRC)/grammer.y
+	m4 -I$(SQLSRC) -P -DBUILDDATE=\"`date`\" < $< > $(srcdir)/$@
 
-filter-%.c: filter-%.y
+$(srcdir)/filter-%.c: $(srcdir)/filter-%.y
 	$(YACC) -v -p yyfilter -d -o $@ $<
 
-expr-%.c: expr-%.y
+$(srcdir)/expr-%.c: $(srcdir)/expr-%.y
 	$(YACC) -v -p yyexpr -d -o $@ $<
 
