@@ -1,5 +1,5 @@
 all: 
-	set -e; TEST=$(SRCDIR); export TEST; \
+	@set -e; TEST=$(SRCDIR); export TEST; \
 	for f in $(SRCDIR)/*.test; do \
 		out=`basename $$f`.out; \
 		(cd ..; $$f) > $$out 2>&1; \
