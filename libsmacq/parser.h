@@ -74,7 +74,7 @@
 
 
 #if ! defined (YYSTYPE) && ! defined (YYSTYPE_IS_DECLARED)
-#line 105 "/var/tmp/smacq/libsmacq/parser.y"
+#line 105 "/tmp/smacq/libsmacq/parser.y"
 typedef union YYSTYPE {
   struct graph graph;
   struct arglist * arglist;
