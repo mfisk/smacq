@@ -150,8 +150,8 @@ struct iovec_hash * bytes_hash_table_new(int maxbytes, int flags) {
 }
 
 static inline void chain_remove(struct element * e) {
-  if (e->parent) *(e->parent) = e->chain;
-  if (e->chain) e->chain->parent = e->parent;
+  if (e->parent) { *(e->parent) = e->chain; }
+  if (e->chain)  { e->chain->parent = e->parent; }
 
   e->parent = NULL;
   e->chain = NULL;
@@ -274,11 +274,11 @@ void * bytes_hash_table_setv(struct iovec_hash * ht, struct iovec * keys, int co
 
 int bytes_hash_table_incrementv(struct iovec_hash * ht, struct iovec * keys, int count) {
   struct element * element;
-  int oldval;
+  void ** oldvalp = NULL;
 
-  if (bytes_hash_table_getv(ht, keys, count, &element, (void**)&oldval)) {
-  	element->value = (void*)(oldval+1);
-  	return (int)oldval;
+  if (bytes_hash_table_getv(ht, keys, count, &element, oldvalp)) {
+  	element->value = (void*)(((int)oldvalp)+1);
+  	return (int)oldvalp;
   } else {
 	return -1;
   }
@@ -372,14 +372,11 @@ int bytes_hash_table_removev(struct iovec_hash * ht, struct iovec * vecs, int nv
 void bytes_hash_table_destroy(struct iovec_hash * ht) {
   {
   	int b;
-  	struct element * e, * nexte;
+  	struct element * e;
 	
   	for (b=0; b < ht->num_buckets; b++) {
-		e=ht->buckets[b];
-		while (e) {
-			nexte = e->chain;
+		while ((e=ht->buckets[b])) {
   			bytes_hash_table_remove_element(ht, e);
-			e = nexte;
 		}
   	}
   }
