@@ -32,8 +32,8 @@ publish:
 	nroff -man $< > $@
 
 %.3: %.sgml
-	docbook-to-man $< > $@
+	$(DOCBOOK2MAN) $< > $@
 
 %.1: %.sgml
-	docbook-to-man $< > $@
+	$(DOCBOOK2MAN) $< > $@
 

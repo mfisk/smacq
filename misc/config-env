@@ -8,6 +8,7 @@ config() {
 	LIBTOOL=${LIBTOOL:-libtool}
 	USR=${USR:-/usr}
 	LDXX=${LDXX:-g++}
+	DOCBOOK2MAN=${DOCBOOK2MAN:-docbook-to-man}
 
 	if [ `uname -s` = "Darwin" ]; then 
 		echo 'MAKE=gnumake'
@@ -36,6 +37,12 @@ config() {
 		if [ -d /usr/include/pcap ]; then 
 			COPTS="${COPTS}-I/usr/include/pcap "
 		fi 
+
+		# Red Hat:
+		if [ \! -f /usr/bin/docbook-to-man -a -f /usr/bin/docbook2man ]; then
+			DOCBOOK2MAN=docbook2man
+		fi
+
 		LDOPTS="${LDOPTS}-ldl"
 		
 	fi 
