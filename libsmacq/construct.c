@@ -26,6 +26,8 @@ static inline void read_module(smacq_graph * module, struct smacq_functions * mo
 		module->ops.shutdown = FIRST(modtable->shutdown, null_shutdown);
 		module->ops.init = FIRST(modtable->init, null_init);
 		module->ops.thread_fn = modtable->thread;
+
+		module->alg = modtable->alg;
 }
 
 void smacq_graph_print(FILE * fh, smacq_graph * f, int indent) {

@@ -186,15 +186,17 @@ static void apply_demux(smacq_graph * g) {
 
 	if (!g) return;
 
-	for (i = 0; i < g->numchildren; i++) {
+	if (!g->alg.vector) { /* Can't vectorize children of a vector */
+	  for (i = 0; i < g->numchildren; i++) {
 		ichild = g->child[i];
 
 		for (j=1; j < g->numchildren; j++) {
-			if (j==i) continue;
-
 			jchild = g->child[j];
 
-			if (strcmp(ichild->argv[0], "substr")) continue;
+			if (jchild == ichild) continue;
+
+			//if (strcmp(ichild->argv[0], "substr")) continue;
+			if (! ichild->alg.vector) continue;
 
 			if (! strcmp(ichild->argv[0], jchild->argv[0])) {
 				/* Merge arguments */
@@ -214,6 +216,7 @@ static void apply_demux(smacq_graph * g) {
 
 			}
 		}
+	  }
 	}
 
 	for (i = 0; i < g->numchildren; i++) {
