@@ -2,8 +2,8 @@ WMAKE=$(MAKE) >&-
 DIRS=libsmacq types modules bin doc
 OS=`uname -s`
 LIBTOOL=libtool
-COPTS=-ggdb -O0 -fno-inline -Winline	# For debugging
-COPTS=-O9 -Winline 			# Optimized for normal use
+CFLAGS=-ggdb -O0 -fno-inline -Winline	# For debugging
+CFLAGS=-O9 -Winline 			# Optimized for normal use
 
 auto:
 	@if [ `uname -s` == "Darwin" ]; then set -x; make fink; else set -x; make LIBTOOL=libtool all; fi
@@ -11,7 +11,7 @@ auto:
 all: dirs
 
 dirs: 
-	@set -e; for f in $(DIRS); do COPTS="$(COPTS)" $(MAKE) -C $$f; done
+	@set -e; for f in $(DIRS); do COPTS="$(COPTS) $(CFLAGS)" $(MAKE) -C $$f; done
 
 warn: 
 	make auto >/dev/null
