@@ -15,7 +15,7 @@ struct mask {
 struct state {
   smacq_environment * env;
   dts_field field;
-  struct mask mask;
+  struct mask test;
   int ip_type;
 };
 
@@ -45,12 +45,12 @@ static smacq_result mask_consume(struct state * state, const dts_object * datum,
         f = dts_data_as(datum, in_addr_t);
   }
 
-  //fprintf(stderr, "%x & %x =? %x\n", f, state->mask.mask.s_addr, state->mask.addr.s_addr); 
-  if ((f & state->mask.mask.s_addr) == state->mask.addr.s_addr) {
+  //fprintf(stderr, "%x & %x =? %x\n", f, state->test.mask.s_addr, state->test.addr.s_addr); 
+  if ((f & state->test.mask.s_addr) == state->test.addr.s_addr) {
 	  found = 1;
   }
 
-  if (state->mask.not) {
+  if (state->test.not) {
 	  return (found ? SMACQ_FREE : SMACQ_PASS);
   } else {
 	  return (found ? SMACQ_PASS : SMACQ_FREE);
@@ -85,10 +85,10 @@ static smacq_result mask_init(struct smacq_init * context) {
 	  char * slash = index(argv[i], '/');
 	  char * not = index(argv[i], '!');
 
-	  int cidr;
+	  int cidr = 0;
 
 	  if (not && (not == argv[i])) {
-		  state->mask.not = 1;
+		  state->test.not = 1;
 		  argv[i]++;
    	  }
 
@@ -99,13 +99,15 @@ static smacq_result mask_init(struct smacq_init * context) {
 		  cidr = 32;
 	  }
 
-	  state->mask.mask.s_addr = ~((~0) << (32 - cidr));
+	  state->test.mask.s_addr = ((~0) << (32 - cidr));
+	  state->test.mask.s_addr = htonl(state->test.mask.s_addr);
 
-	  if (!inet_aton(argv[i], &state->mask.addr)) {
+	  if (!inet_aton(argv[i], &state->test.addr)) {
 		fprintf(stderr, "mask: Unable to parse address %s.\n", argv[i]);
 		return SMACQ_ERROR|SMACQ_END;
 	  }
-	  //fprintf(stderr, "masking %s with /%d, %s\n", strdup(inet_ntoa(state->mask.addr)), cidr, strdup(inet_ntoa(state->mask.mask)));
+
+	  //fprintf(stderr, "masking %s with /%d, %s\n", strdup(inet_ntoa(state->test.addr)), cidr, strdup(inet_ntoa(state->test.mask)));
   }
 
   return SMACQ_PASS;
