@@ -18,6 +18,7 @@ struct state {
   smacq_environment * env;
   struct fieldset fieldset;
   smacq_graph * self;
+  smacq_graph * mastergraph;
   int queryargc;
   char ** queryargv;
   struct smacq_outputq * outputq;
@@ -104,8 +105,15 @@ static inline struct output * get_partition(struct state * state, struct iovec *
 
   if (!partition) {
     partition =  g_new0(struct output, 1);
-    //fprintf(stderr, "New partition %p\n", partition);
-    partition->graph = smacq_build_query(state->env->types, state->queryargc, state->queryargv);
+    partition->graph = smacq_graph_clone(state->env, state->mastergraph);
+    /*
+    fprintf(stderr, "New partition %p (graph = %p) running %s %s (%d)\n", partition, partition->graph, state->queryargv[0], state->queryargv[1], state->queryargc);
+
+    fprintf(stderr,"New partition:\n");
+    smacq_graph_print(stderr, partition->graph, 1);
+    fprintf(stderr,":\n");
+    */
+
     smacq_start(partition->graph, ITERATIVE, state->env->types);
     smacq_sched_iterative_init(partition->graph, &partition->runq, 0);
     bytes_hash_table_insertv(state->hashtable, state->partitionv, state->fieldset.num, partition);
@@ -192,8 +200,8 @@ static smacq_result groupby_init(struct smacq_init * context) {
   state->queryargc = 0;
   for (i=0; i<argc; i++) {
     if (!strcmp(argv[i], "--")) {
-      state->queryargc = argc - i - 1;
       state->queryargv = argv+(i+1);
+      state->queryargc = argc-(i+1);
       break;
     }
   }
@@ -221,6 +229,8 @@ static smacq_result groupby_init(struct smacq_init * context) {
   state->hashtable = bytes_hash_table_new(KEYBYTES, CHAIN, NOFREE);
 
   state->refresh_type = smacq_requiretype(state->env, "refresh");
+
+  state->mastergraph = smacq_build_query(state->env->types, state->queryargc, state->queryargv);
 
   return 0;
 }
