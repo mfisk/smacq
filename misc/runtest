@@ -2,9 +2,9 @@
 
 test=`basename $1`
 
-err=$srcdir/$test.err
 out=$srcdir/$test.out 
 run=`basename $test`.run 
+err=`basename $test`.err
 
 export TEST=$srcdir
 
