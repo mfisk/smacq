@@ -55,7 +55,12 @@ static struct bytedata * make_bytes(struct GHashTableofBytes * b, int len, void 
 
 static void free_bytes(gpointer k) {
   struct bytedata * s = k;
+  free(s->bytes);
   free(s);
+}
+
+static void free_value(gpointer v) {
+  free(v);
 }
 
 void bytes_init_hash(guint32** randoms, int num, unsigned long prime) {
@@ -125,17 +130,24 @@ struct GHashTableofBytes * bytes_hash_function_new(int keysize) {
 }
 */
 
-GHashTableofBytes * bytes_hash_table_new(int maxbytes, enum chaining_boolean chaining) {
+GHashTableofBytes * bytes_hash_table_new(int maxbytes, enum chaining_boolean chaining, enum free_boolean dofree) {
   GHashTableofBytes * myt;
+  GDestroyNotify vfree;
   
   myt = g_new(GHashTableofBytes, 1);
   myt->maxkeybytes = maxbytes;
   bytes_init_hash(&myt->randoms, maxbytes, 419400011);
 
-  if (chaining == nochain)
-    myt->ht = g_hash_table_new_full(bytes_hash, bytes_always_equal, free_bytes, NULL);
+  if (dofree == FREE) {
+    vfree = free_value;
+  } else {
+    vfree = NULL;
+  }
+
+  if (chaining == NOCHAIN)
+    myt->ht = g_hash_table_new_full(bytes_hash, bytes_always_equal, free_bytes, vfree);
   else 
-    myt->ht = g_hash_table_new_full(bytes_hash, bytes_equal, free_bytes, NULL);
+    myt->ht = g_hash_table_new_full(bytes_hash, bytes_equal, free_bytes, vfree);
 
   return myt;
 }
@@ -190,7 +202,7 @@ int bytes_hash_table_incrementv(GHashTableofBytes * ht, struct iovec * keys, int
   gpointer current;
 
   current = g_hash_table_lookup(ht->ht, s);
-  g_hash_table_replace(ht->ht, s, current + 1);
+  g_hash_table_replace(ht->ht, s, (gpointer)((int)current + 1));
 
   return (int)current;
 }
@@ -260,3 +272,8 @@ void bytes_hash_table_removev(GHashTableofBytes * ht, struct iovec * vecs, int n
   free(s);
 }
 
+void bytes_hash_table_destroy(GHashTableofBytes * ht) {
+  g_hash_table_destroy(ht->ht);
+  free(ht->randoms);
+  free(ht);
+}
