@@ -1,5 +1,5 @@
 LIBTOOL=libtool
-BISON=bison
+BISON=bison -v
 FLEX=flex
 
 OBJS = scanner.lo parser.lo

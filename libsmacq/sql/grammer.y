@@ -81,8 +81,7 @@ argument : word 			{ $$ = newarg($1, 0, NULL); }
 function : id 
 	;
 
-args : null 			{ $$ = NULL; }
-	| arg moreargs 		{ $$ = $1; $$->next = $2; }
+args :  arg ',' arg moreargs 	{ $$ = $1; $$->next = $3; $3->next = $4; }
 	| spacedargs	
 	;
 
