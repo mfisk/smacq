@@ -25,15 +25,15 @@ libsmacq_modules_la_LDFLAGS = -rpath /bogus
 #
 # Per module link requirements
 # 
-libbench_field_la_SOURCES = bench_field-main.c bench_field-virtual.C 
+#libbench_field_la_SOURCES = bench_field-main.c bench_field-virtual.C 
 
-libpcaplive_la_SOURCES = pcaplive.c
-libpcaplive_la_LDFLAGS = -lpcap
+#libpcaplive_la_SOURCES = pcaplive.c
+#libpcaplive_la_LDFLAGS = -lpcap
 
 python_lo_CFLAGS = -I$(USR)/include/python2.2
-libpython_la_LIBADD = python.lo -L/usr/lib/python2.2/config -lpython2.2 -lpthread -lutil 
+#libpython_la_LIBADD = python.lo -L/usr/lib/python2.2/config -lpython2.2 -lpthread -lutil 
 
-libreassemble_la_LIBADD = reassemble.lo spp_export_pkt.lo  
+#libreassemble_la_LIBADD = reassemble.lo spp_export_pkt.lo  
 reassemble_lo_CFLAGS = -I$(SNORT_HOME)
 
 libepan_filter.o: epan_filter.o 
