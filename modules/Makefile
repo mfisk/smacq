@@ -1,5 +1,5 @@
 DIRS=substr
-CFLAGS=-Wall -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I../include $(COPTS)
+CFLAGS=-Wall -I$(USR)/include/glib-2.0 -I$(USR)/lib/glib-2.0/include -I../include $(COPTS)
 LDFLAGS=$(LDOPTS)
 LIBTOOL=libtool
 
@@ -46,7 +46,7 @@ smacq_%.la: %.lo
 # Python module stuff:
 #
 python.lo: python.c ../include/smacq.h 
-	$(LIBTOOL) $(CC) -o $@ $(CFLAGS) -I/usr/include/python2.2 $<
+	$(LIBTOOL) $(CC) -o $@ $(CFLAGS) -I$(USR)/include/python2.2 $<
 
 #
 # Snort module stuff:

@@ -1,4 +1,4 @@
-CFLAGS= -Winline -Wall -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I../include $(COPTS)
+CFLAGS= -Winline -Wall -I$(USR)/include/glib-2.0 -I$(USR)/lib/glib-2.0/include -I../include $(COPTS)
 
 LIBSMACQ=../libsmacq/libsmacq.la
 BUILTINS=../modules/libsmacq-modules.lo ../types/libdts-modules.lo 

@@ -4,7 +4,7 @@ FLEX=flex
 
 OBJS = scanner.lo grammer.lo
 
-CFLAGS = -Wall -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include $(INCLUDES) -I../../include $(COPTS)
+CFLAGS = -Wall -I$(USR)/include/glib-2.0 -I$(USR)/lib/glib-2.0/include $(INCLUDES) -I../../include $(COPTS)
 
 LIBS = -lfl
 

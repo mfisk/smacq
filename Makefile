@@ -3,7 +3,8 @@ CFLAGS=-O9 -Winline 			# Optimized for normal use
 CFLAGS=-ggdb -O0 -fno-inline -Winline	# For debugging
 
 auto:
-	env `./config-env` make all
+	@./config-env
+	env `./config-env` $(MAKE) all
 
 reloc: auto bin/smacqq bin/reloc.sh
 	@LIBS=`ldd bin/smacqq | cut -d'>' -f2 | cut -d'(' -f1`; \
@@ -31,6 +32,7 @@ test: warn
 
 clean: 
 	@for f in $(DIRS); do $(MAKE) -C $$f clean; done
+	@rm -Rf reloc
 
 reallyclean: 
 	@for f in $(DIRS); do $(MAKE) -C $$f reallyclean; done

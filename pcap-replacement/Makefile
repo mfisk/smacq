@@ -2,8 +2,8 @@ PCAPROUTINES=close compile datalink dump_close lookupnet loop open_live perror s
 CCWRAP=$(patsubst %,-Xlinker --wrap -Xlinker pcap_%,$(PCAPROUTINES))
 LDWRAP=$(patsubst %,--wrap pcap_%,$(PCAPROUTINES))
 
-CFLAGS= -Winline -Wall -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I../include
-LDFLAGS=-L/usr/lib/python2.2/config
+CFLAGS= -Winline -Wall -I$(USR)/include/glib-2.0 -I$(USR)/lib/glib-2.0/include -I../include
+LDFLAGS=-L$(USR)/lib/python2.2/config
 
 all: libpcap-preload.so
 

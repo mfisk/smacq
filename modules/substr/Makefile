@@ -1,6 +1,6 @@
 LIBTOOL=libtool
 
-CFLAGS=$(COPTS) -Wall -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include $(INCLUDES) -I../../include
+CFLAGS=$(COPTS) -Wall -I$(USR)/include/glib-2.0 -I$(USR)/lib/glib-2.0/include $(INCLUDES) -I../../include
 
 all: libsubstr.la
 
