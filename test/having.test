@@ -1,0 +1,5 @@
+#!/bin/sh
+
+bin/smacqq -m -O <<EOF 
+print srcip, count from pcapfile($TEST/0325@1112-snort.pcap) group by srcip having count() and count > 10
+EOF
