@@ -1,5 +1,0 @@
-*.output
-*.sw?
-*.lo
-*.la
-.libs
