@@ -27,6 +27,14 @@ static inline void smacq_produce_enqueue(struct smacq_outputq ** qp, const dts_o
   (*qp)->end = nq;
 }
 
+static inline smacq_result smacq_produce_canproduce(struct smacq_outputq ** qp) {
+  if (*qp) {
+	  return SMACQ_PRODUCE;
+  } else {
+	  return 0;
+  }
+}
+
 static inline smacq_result smacq_produce_dequeue(struct smacq_outputq ** qp, const dts_object ** o, int * outchan) {
   struct smacq_outputq * head = *qp;
 
