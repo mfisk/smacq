@@ -9,7 +9,7 @@ static int smacqtype_string_get_string(const dts_object * o, dts_object * data) 
 }
 
 static int parse_string(char * buf, void ** resp, int * reslen) {
-  *resp = buf;
+  *resp = strdup(buf);
   *reslen = strlen(buf);
     
   return 1;
