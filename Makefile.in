@@ -92,7 +92,7 @@ STRIP = @STRIP@
 VERSION = @VERSION@
 YACC = @YACC@
 
-SUBDIRS = libsmacq types modules bin test
+SUBDIRS = libsmacq types modules bin test doc
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = config.h
