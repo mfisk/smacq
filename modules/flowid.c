@@ -39,13 +39,9 @@ struct srcstat {
   unsigned int packet_count, packet_count_back;
 
   const dts_object ** fields;
-  struct timeval wheel_key;
 
   struct element * hash_entry;
-};
-
-struct wheel {
-  GSList * slist;
+  GList * timer_entry;
 };
 
 struct state {
@@ -81,15 +77,12 @@ struct state {
   dts_field packet_count_field;
   dts_field packet_count_back_field;
 
-  struct wheel timers;
+  GList * timers;
+
   struct iovec_hash *stats;
   
   int reverse;
 }; 
-
-static inline void wheel_remove(struct wheel * w, struct srcstat * s) {
-	w->slist = g_slist_remove(w->slist, s);
-}
 
 static void timeval_minus(struct timeval x, struct timeval y, struct timeval * result) {
   *result = x;
@@ -131,66 +124,56 @@ void attach_stats(struct state * state, struct srcstat * s, const dts_object * d
 }
 
 static inline int output(struct state * state, struct srcstat * s) {
-    int i;
+      int i;
 
-    // Output refresh record
+      // Output refresh record
       dts_object * msgdata;
 
       dts_object * refresh = smacq_dts_construct(state->env, state->refresh_type, NULL);
 
-    assert(s);
+      assert(s);
       msgdata = smacq_dts_construct(state->env, state->id_type, &s->id);
       dts_attach_field(refresh, state->flowid_field, msgdata);
 
-      smacq_produce_enqueue(&state->outputq, refresh, -1);
-
       for (i = 0; i<state->fieldset.num; i++) {
+	assert(s->fields[i]);
 	dts_attach_field(refresh, state->fieldset.fields[i].num, s->fields[i]);
       }
 
       msgdata = smacq_dts_construct(state->env, state->timeval_type, &s->lasttime);
       dts_attach_field(refresh, state->finish_field, msgdata);
 
-      dts_attach_field(refresh, state->ts_field, msgdata);
-      dts_incref(msgdata, 1);
+      //dts_attach_field(refresh, state->ts_field, msgdata);
+      //dts_incref(msgdata, 1);
   
       attach_stats(state, s, refresh);
 
+      smacq_produce_enqueue(&state->outputq, refresh, -1);
 
-    return 1;
+      return 1;
 }
 
-static inline int expired(struct state * state, struct iovec * domainv, struct srcstat * s) {
-  if (!state->hasinterval) return 0;
-
-  if (!timeval_past(s->lasttime, state->edge)) {
+static inline void finalize(struct state * state, struct srcstat * s) {
     output(state, s);
 
-    if (domainv) {
-	wheel_remove(&state->timers, s);
-    }
-	
+    state->active--;
+    fprintf(stderr, "%d active flows, timer list has %d\n", state->active, g_list_length(state->timers));
     // Cleanup
     /* Don't have to decref fields, since their refcount will be picked up from being attached in the output routine */
-
-    bytes_hash_table_remove_element(state->stats, s->hash_entry);
-    free(s->fields);
-    free(s);
-
-    return 1;
-  }
-  
-  return 0;
+    g_free(s->fields);
+    g_free(s);
 }
 
-static void output_all(gpointer val, gpointer user_data) {
+static int finalize_wrap(struct element * e, void * val, void * user_data) {
   struct srcstat * s = val;
   struct state * state = user_data;
 
-  output(state, s);
+  finalize(state, s);
+
+  return 1;
 }
 
-struct srcstat * stats_lookup(struct state * state, const dts_object * datum, struct iovec ** domainv, int * swapped) {
+static inline struct srcstat * stats_lookup(struct state * state, const dts_object * datum, struct iovec ** domainv, int * swapped) {
 	struct srcstat * s;
   	*domainv = fields2vec(state->env, datum, &state->fieldset);
 	assert(*domainv);
@@ -200,13 +183,13 @@ struct srcstat * stats_lookup(struct state * state, const dts_object * datum, st
 	}
 
 	s = bytes_hash_table_lookupv(state->stats, *domainv, state->fieldset.num);
-	if (s && !expired(state, *domainv, s)) return s;
+	if (s) return s;
 
 	/* Try reverse */
     	if (state->reverse) {
 		struct iovec * rev_domainv = fields2vec(state->env, datum, &state->fieldset2);
 		s = bytes_hash_table_lookupv(state->stats, rev_domainv, state->fieldset.num);
-		if (s && !expired(state, rev_domainv, s)) {
+		if (s) {
 			*swapped = 1;
 			return s;
 		}
@@ -216,78 +199,51 @@ struct srcstat * stats_lookup(struct state * state, const dts_object * datum, st
 }
 
 
-static inline void wheel_new(struct wheel * w) {
-	w->slist = NULL;
+static inline void timers_new(struct state * state) {
+	state->timers = NULL;
 }
 
-static int _wheel_find(gconstpointer a, gconstpointer b) {
-	struct srcstat * cand = (struct srcstat *)a;
-	struct srcstat * key = (struct srcstat *)b;
-
-	//if (!a) return 0;
-	assert(a);
-
-	//fprintf(stderr, "comp %p (%d) to %p (%d)\n", cand, cand->wheel_key.tv_sec, key, key->wheel_key.tv_sec);
-	if (timeval_past(cand->wheel_key, key->wheel_key)) 
-		return 1;
-
-	return -1;
+static inline void timers_append(struct state * state, struct srcstat * s) {
+	/* XXX: this is inefficient */
+	state->timers = g_list_append(state->timers, s);
+	s->timer_entry = g_list_last(state->timers);
 }
 
-static inline void wheel_insert(struct wheel * w, struct srcstat * s) {
-	s->wheel_key = s->lasttime;
-	//fprintf(stderr, "Insert %p (%d)\n", s, s->wheel_key.tv_sec);
-	w->slist = g_slist_insert_sorted(w->slist, s, _wheel_find);
+static inline struct srcstat * timers_peek(struct state * state) {
+	if (state->timers) {
+		return (struct srcstat*)state->timers->data;
+	} else {
+		return NULL;
+	}
 }
 
-static inline void wheel_append(struct wheel * w, struct srcstat * s) {
-	s->wheel_key = s->lasttime;
-	//fprintf(stderr, "Append %p (%d)\n", s, s->wheel_key.tv_sec);
-	w->slist = g_slist_append(w->slist, s);
+static inline void timers_pop(struct state * state) {
+	GList * head = state->timers;
+	assert(head);
+	state->timers = g_list_remove_link(state->timers, head);
+	g_list_free_1(head);
 }
 
-#define g_slist_first(l) ((l) ? (l)->data : NULL)
-
-static inline struct srcstat * wheel_first(struct wheel * w) {
-	return( (struct srcstat*) g_slist_first(w->slist) );
-	//return( (struct srcstat*) w->slist->data, 0) );
-}
-
-static inline void wheel_pop(struct wheel * w) {
-	assert(g_slist_first(w->slist));
-	w->slist = g_slist_remove(w->slist, w->slist->data);
-}
-
-static inline void wheel_foreach(struct state * state, GFunc func) {
-	g_slist_foreach(state->timers.slist, func, state);
-}
-
-static void wheel_manage(struct state * state) {
-	//fprintf(stderr, "managing of list\n");
+static void timers_manage(struct state * state) {
+    //fprintf(stderr, "managing of list\n");
     while (1) {
-        struct srcstat * i = wheel_first(&state->timers);
-	if (!i) {
+        struct srcstat * s = timers_peek(state);
+	if (!s) {
 		//fprintf(stderr, "end of list\n");
 		break;
 	}
 
-	if (timeval_past(i->wheel_key, state->edge)) {
-		//fprintf(stderr, "stopping at %p time %d now %d \n", i, i->wheel_key.tv_sec, state->edge.tv_sec);
+	if (timeval_past(s->lasttime, state->edge)) {
+		//fprintf(stderr, "stopping at %p time %d now %d \n", s, s->lasttime.tv_sec, state->edge.tv_sec);
 		break;
 	}
 
-        //fprintf(stderr, "testing %p (%d)\n", i, i->wheel_key.tv_sec);
-	wheel_pop(&state->timers);
+	/* Remove from all datastructures */
+	timers_pop(state);
+	bytes_hash_table_remove_element(state->stats, s->hash_entry);
 
-	/* See if we need to axe it */
-	if (!expired(state, NULL, i)) {
-		/* Renew it for later */
-		//fprintf(stderr, "renewing %p\n", i);
-		wheel_insert(&state->timers, i);
-	} else {
-		//fprintf(stderr, "expired %p\n", i);
-	}
-		
+	/* Output and free */
+	finalize(state, s);
     }
 }
 
@@ -344,8 +300,12 @@ static smacq_result flowid_consume(struct state * state, const dts_object * datu
       int i;
 
       s = g_new0(struct srcstat, 1);
+      //fprintf(stderr, "new %p\n", s);
+      //
       s->id = state->flowid++;
       s->starttime = *tsnow;
+      s->lasttime = *tsnow;
+
       s->fields = g_new(const dts_object*, state->fieldset.num);
       for (i = 0; i<state->fieldset.num; i++) {
 	s->fields[i] = smacq_getfield_copy(state->env, datum, state->fieldset.fields[i].num, NULL);
@@ -353,16 +313,22 @@ static smacq_result flowid_consume(struct state * state, const dts_object * datu
       }
 
       bytes_hash_table_setv_get(state->stats, domainv, state->fieldset.num, s, &s->hash_entry);
-      s->lasttime = *tsnow;
-      //fprintf(stderr, "new %p\n", s);
-      wheel_append(&state->timers, s);
+      if (state->hasinterval) timers_append(state, s);
+
       state->active++;
       status = SMACQ_PASS;
   } else {
       // Update state
       s->lasttime = *tsnow;
+      if (state->hasinterval) {
+	/* XXX: this is inefficient */
+      	state->timers = g_list_remove_link(state->timers, s->timer_entry);
+	g_list_free_1(s->timer_entry);
+        timers_append(state, s);
+      }
       //fprintf(stderr, "update %p\n", s);
   }
+
 
   if (swapped) {
     s->byte_count_back += size;
@@ -380,7 +346,7 @@ static smacq_result flowid_consume(struct state * state, const dts_object * datu
   }
 
   if (state->hasinterval) 
-	wheel_manage(state);
+      timers_manage(state);
 
   if (state->outputq)
       status |= SMACQ_PRODUCE;
@@ -452,12 +418,14 @@ static smacq_result flowid_init(struct smacq_init * context) {
   }
 
   state->stats = bytes_hash_table_new(KEYBYTES, CHAIN|NOFREE);
-  wheel_new(&state->timers);
+  timers_new(state);
 
   return 0;
 }
 
 static smacq_result flowid_shutdown(struct state * state) {
+  bytes_hash_table_destroy(state->stats);
+  g_list_free(state->timers);
   free(state);
   return SMACQ_END;
 }
@@ -468,14 +436,13 @@ static smacq_result flowid_produce(struct state * state, const dts_object ** dat
   } else {
     //fprintf(stderr, "flowid: produce called with nothing in queue.  Outputing everything in current table!\n");
 
-    wheel_foreach(state, output_all);
+    bytes_hash_table_foreach_remove(state->stats, finalize_wrap, state);
 
     if (!state->outputq)
 	    return SMACQ_FREE;
 
     return flowid_produce(state, datum, outchan);
   }
-
 }
 
 /* Right now this serves mainly for type checking at compile time: */
