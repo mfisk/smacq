@@ -608,6 +608,7 @@ int transformTargetList(SelectStmt * stmt, list * func_list)
 
           while ((ali = d2_list_dequeue(arg_list, FROM_HEAD)) != NULL) {
 			int func_idx;
+			char * annot_var;
 #ifdef DEBUG
 		    fprintf(stderr, "arg for %s = '%s'\n", li->str_name, ali->str_name);
 #endif
@@ -628,13 +629,23 @@ int transformTargetList(SelectStmt * stmt, list * func_list)
                 append_array(ali->str_name);
 			  }
 			  else { // ! select
-                append_non_annot_array(li->str_name); // ??
+
+			    // temp test until other funcs have -f flags
+			    if (strcmp(li->str_name, "counter") == 0) {
+                  append_array("-f");
+				  annot_var = create_annotation_variable(func_idx);
+                  append_array(annot_var);
+                }
+                append_array(ali->str_name);
+
 			    // temp test until other funcs have -f flags
 			    if (strcmp(li->str_name, "counter") == 0) { 
-                  append_non_annot_array("-f");
-                  append_non_annot_array(create_annotation_variable(func_idx));
+                  append_non_annot_array(annot_var);
                 }
-                append_non_annot_array(ali->str_name);
+				else {
+                  append_non_annot_array(li->str_name); // ??
+				}
+                //append_non_annot_array(ali->str_name);
 			  }
 			}
 			else {
@@ -648,7 +659,7 @@ int transformTargetList(SelectStmt * stmt, list * func_list)
 #endif
             append_array("|");
 		  }
-		}
+	    }
 	  }
     }
     else if (IsA(res->val, Ident)) {
@@ -938,28 +949,28 @@ struct filter * transformStmt(List * ptree)
 
   for (i = 0; i < curr_from_idx; i++) {
 #ifdef DEBUG
-	fprintf(stderr, "i = %d, val = %s\n", i, from_array[i]);
+	fprintf(stderr, "from_array: i = %d, val = %s\n", i, from_array[i]);
 #endif
 	append_final_array(from_array[i]);
   }
 
   for (i = 0; i < curr_idx; i++) {
 #ifdef DEBUG
-	fprintf(stderr, "i = %d, val = %s\n", i, cmd_array[i]);
+	fprintf(stderr, "cmd_array: i = %d, val = %s\n", i, cmd_array[i]);
 #endif
 	append_final_array(cmd_array[i]);
   }
 
   for (i = 0; i < curr_non_annot_idx; i++) {
 #ifdef DEBUG
-	fprintf(stderr, "i = %d, val = %s\n", i, non_annot_array[i]);
+	fprintf(stderr, "non_annot_array: i = %d, val = %s\n", i, non_annot_array[i]);
 #endif
 	append_final_array(non_annot_array[i]);
   }
 
   for (i = 0; i < curr_print_idx; i++) {
 #ifdef DEBUG
-	fprintf(stderr, "i = %d, val = %s\n", i, print_array[i]);
+	fprintf(stderr, "print_array: i = %d, val = %s\n", i, print_array[i]);
 #endif
 	append_final_array(print_array[i]);
   }
