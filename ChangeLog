@@ -1,5 +1,6 @@
 VERSION 2.2 - unreleased
 ========================
+2005-02 - private module added: private copy of fieldspace
 2005-01 - SmacqModule::usesfield() wraps DTS::requirefield() but facilitates join optimization
 2005-01 - join optimization: early evaluation of per-alias invariant predicates
 2005-01 - timeval,time,ntime types: string parser now uses GNU get_date (like CVS dates)
