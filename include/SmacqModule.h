@@ -126,12 +126,6 @@ class SmacqModule {
     unsigned int demux:1;
   };
 
-  struct ops {
-    constructor_fn * constructor;
-  };
-
-
-  
   /// Most subclasses will define their own constructor which will
   /// initialize the instance based on the given context.
   SmacqModule(struct smacq_init * context);
