@@ -82,11 +82,9 @@ smacq_result sortModule::consume(DtsObject datum, int & outchan) {
   fieldvec.getfields(datum);
   tree.insert(std::pair<FieldVec, DtsObject>(fieldvec, datum));
 
-  if (batch_size) {
-	  if (++count == batch_size) {
-		  empty_tree();
-		  count = 0;
-	  }
+  if (batch_size && (++count == batch_size)) {
+	  empty_tree();
+	  count = 0;
   }
   return SMACQ_FREE;
 }
