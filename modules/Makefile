@@ -7,7 +7,7 @@ LDFLAGS=$(LDOPTS)
 SO_LDFLAGS=-L../libsmacq -lsmacq -lpcap -lz -lglib-2.0 -lpython2.2 -lgmodule-2.0 -L. #-lsnort
 STATIC_LDFLAGS=-L../contrib -L/usr/lib/python2.2/config -lpython2.2 -lpcap -lz
 
-BUILTIN_MODULES=pcaplive pcapfile print socket uniq counter last top head intervals filter msgtest entropy derivative split encrypt warden pdf fifo delta tabularinput sync rusage groupby flowid sum fifodelay project rename
+BUILTIN_MODULES=pcaplive pcapfile print socket uniq counter last top head intervals filter msgtest entropy derivative split encrypt warden pdf fifo delta tabularinput sync rusage groupby flowid sum fifodelay project rename join
 
 MODULES=$(BUILTIN_MODULES) #python #reassemble
 
