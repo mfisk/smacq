@@ -85,7 +85,9 @@ struct state {
   int reverse;
 }; 
 
-static inline void wheel_remove(struct wheel * w, struct srcstat * s);
+static inline void wheel_remove(struct wheel * w, struct srcstat * s) {
+	w->slist = g_slist_remove(w->slist, s);
+}
 
 static void timeval_minus(struct timeval x, struct timeval y, struct timeval * result) {
   *result = x;
@@ -156,7 +158,7 @@ static inline int output(struct state * state, struct srcstat * s) {
     return 1;
 }
 
-static int expired(struct state * state, struct iovec * domainv, struct srcstat * s) {
+static inline int expired(struct state * state, struct iovec * domainv, struct srcstat * s) {
   if (!state->hasinterval) return 0;
 
   if (!timeval_past(s->lasttime, state->edge)) {
@@ -240,10 +242,6 @@ static int _wheel_find(gconstpointer a, gconstpointer b) {
 		return 1;
 
 	return -1;
-}
-
-static inline void wheel_remove(struct wheel * w, struct srcstat * s) {
-	w->slist = g_slist_remove(w->slist, s);
 }
 
 static inline void wheel_insert(struct wheel * w, struct srcstat * s) {
