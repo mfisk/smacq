@@ -7,6 +7,7 @@
 
 #include <smacq.h>
 #include <gmodule.h>
+#include <assert.h>
 #include <dts-types.h>
 #include <dts-filter.h>
 #include <dts-module.h>
