@@ -173,6 +173,6 @@ struct dts_operand * dts_parse_expr(dts_environment * tenv, int argc, char ** ar
 char * dts_field_getname(dts_environment * tenv, dts_field f);
 void dts_free(const dts_object*);
 EXTERN int dts_requiretype(dts_environment *, char * name);
-
+void dts_prime_all_fields(dts_environment * tenv, const dts_object * o);
 
 #endif
