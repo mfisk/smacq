@@ -66,8 +66,10 @@ class SmacqGraph : private SmacqGraphNode {
 
   void replace(SmacqGraph *);
 
+  int numchildren() const;
   void add_child(SmacqGraph * child, unsigned int channel = 0);
   void remove_parent(SmacqGraph * parent);
+  void remove_childgraph(SmacqGraph*);
   void remove_child(int, int);
   void replace_child(int, int, SmacqGraph * newchild);
   void replace_child(SmacqGraph * oldchild, SmacqGraph * newchild);
@@ -163,6 +165,15 @@ class SmacqGraph : private SmacqGraphNode {
 };
 
 class fanout : public DynamicArray<SmacqGraph *> {};
+
+/// Return current number of children a graph has
+inline int SmacqGraph::numchildren() const {
+	int total = 0;
+	for (unsigned int i = 0; i < children.size(); i++) {
+		total += children[i].size();
+	}
+	return total;
+}
 
 /// Establish a parent/child relationship with the specified child.
 inline void SmacqGraph::add_child(SmacqGraph * newo, unsigned int channel) {
@@ -325,6 +336,10 @@ inline void SmacqGraph::replace_child(int i, int j, SmacqGraph * newchild) {
   children[i][j]->remove_parent(this);
   newchild->add_parent(this);
   children[i][j] = newchild;
+}
+
+inline void SmacqGraph::remove_childgraph(SmacqGraph * g) {
+  FOREACH_CHILD(g, {if (child == g) { remove_child(i,j); --j; } });
 }
 
 inline void SmacqGraph::remove_child(int i, int j) {
