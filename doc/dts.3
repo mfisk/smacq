@@ -1,4 +1,4 @@
-.TH dts 3 "$Date: 2003/05/04 21:17:59 $" "LANL"
+.TH dts 3 "$Date: 2003/08/26 22:50:20 $" "LANL"
 .SH NAME
 dts  \- Dynamic Type System API
 .SH SYNOPSIS
@@ -125,10 +125,20 @@ The scratch argument should be NULL.
 There are also functions that provide access to groups of fields:
 
 .TP
-.BI "struct iovec * fields2vec(smacq_environment * env, const dts_object * datum, struct fieldset * fieldset)"
+.BI "void fields_init(smacq_environment * env, struct fieldset * fieldset, int argc, char ** argv)"
+
+Given a string vector containing 1 or more field names, initialize the given fieldset vector.
 
 .TP
-.BI "void fields_init(smacq_environment * env, struct fieldset * fieldset, int argc, char ** argv)"
+.BI "struct iovec * fields2vec(smacq_environment * env, const dts_object * datum, struct fieldset * fieldset)"
+
+Returns an iovec for the specified fieldset in the specified object.  If the object does not have one or more fields, then the
+iovec entry for that field will have a zero length.  The size of the returned iovec is the same as fieldset->num.
+
+.TP
+.BI "int iovec_has_undefined(struct iovec *, int)"
+
+Return 1 iff the iovec has a zero-length element.  Otherwise return 0.
 
 .SH "RUNTIME ACCESS"
 
