@@ -38,6 +38,7 @@ struct _dts_object {
   /* private to engine */
   pthread_mutex_t mutex;
   int refcount;
+  int free_memory;
 
   /* Cache of received messages */
   struct darray fields; /* const dts_object * */
@@ -115,6 +116,7 @@ typedef struct _dts_comparison {
 
   char * valstr;
   int size;
+  dts_field rh_field;  /* Set iff valstr==NULL */
   struct _dts_comparison * next;
 
   struct _dts_comparison * group;
