@@ -107,13 +107,15 @@ typedef smacq_result smacq_shutdown_fn(struct state *);
 typedef SmacqModule*  smacq_constructor_fn(struct smacq_init *);
 
 struct smacq_functions {
+  smacq_constructor_fn * constructor;
+  struct smacq_module_algebra algebra;
+/* Put constructor and algebra first so that we can use partial initializers in g++ */
+
   smacq_produce_fn * produce;
   smacq_consume_fn * consume;
   smacq_init_fn * init;
   smacq_shutdown_fn * shutdown;
   smacq_thread_fn * thread;
-  smacq_constructor_fn * constructor;
-  struct smacq_module_algebra algebra;
 };
 
 BEGIN_C_DECLS
