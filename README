@@ -5,6 +5,24 @@ On supported systems (Linux, MacOS/X + Fink), simply run "make" to build.
 If you do not have all of the prerequisits (see below), you may encounter
 an error.
 
+Global configuration options are in config.mk.  The primary reason to edit
+this file is to enable/disable debugging options.
+
+All binary and platform-specific files are placed in platform directories 
+in the "build" subdirectory.  After running "make" once from the top-level
+directory of the source tree, usable Makefiles will exist in each
+subdirectory of the build tree.  You may use these Makefiles to rebuild
+portions of the tree.
+
+Optional functionality:
+-----------------------
+
+The packet data-type can use Ethereal's EPAN system for decoding a 
+multitude of protocols.  This optional functionality can be included 
+using the following syntax:
+	make clean
+	make WITH=ethereal
+
 Other Operating Systems:
 ------------------------
 The SMACQ build procedure depends on GNU libtool and GNU Make.
@@ -12,6 +30,8 @@ By installing the equivalent of the packages listed for the above
 operating systems, and passing the correct arguments to Make, you
 should be able to build SMACQ.  Contributions of documentation for 
 building on other operating systems would be appreciated.
+The misc/config-env script is used to generate the per-platform
+config.mk file placed in each platform directory.
 
 =============================================================================
 			PREREQUISITES
