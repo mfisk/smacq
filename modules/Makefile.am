@@ -5,7 +5,7 @@ EXTRA_LTLIBRARIES = #libpcaplive.la libreassemble.la libbench_field.la
 #BUILT_SOURCES = count.cpp
 SUFFIXES = .sc
 
-libsmacq_modules_la_SOURCES = print.cpp pcaplive.cpp pcapfile.cpp socket.cpp uniq.cpp count.cpp last.cpp top.cpp head.cpp filter.cpp msgtest.cpp entropy.cpp derivative.cpp encrypt.cpp pdf.cpp fifo.cpp delta.cpp tabularinput.cpp rusage.cpp groupby.cpp flowid.cpp sum.cpp fifodelay.cpp project.cpp rename.cpp mask.cpp const.cpp ndjoin.cpp lor.cpp counter_loop.cpp dfa.cpp expr.cpp equals.cpp cflow.cpp clock.cpp disarm.cpp substr-main.cpp iplookup.cpp streamalias.cpp join.cpp
+libsmacq_modules_la_SOURCES = print.cpp pcaplive.cpp pcapfile.cpp socket.cpp uniq.cpp count.cpp last.cpp top.cpp head.cpp filter.cpp msgtest.cpp entropy.cpp derivative.cpp encrypt.cpp pdf.cpp fifo.cpp delta.cpp tabularinput.cpp rusage.cpp groupby.cpp flowid.cpp sum.cpp fifodelay.cpp project.cpp rename.cpp mask.cpp const.cpp ndjoin.cpp lor.cpp counter_loop.cpp dfa.cpp expr.cpp equals.cpp cflow.cpp clock.cpp disarm.cpp substr-main.cpp iplookup.cpp streamalias.cpp join.cpp changes.cpp
 
 EXTRA_libsmacq_modules_la_SOURCES = sqlinsert.cpp python.cpp
 
