@@ -9,8 +9,7 @@ struct state {
   int argc;
   int verbose;
   int flush;
-  dts_field * fields;
-  dts_field string_transform;
+  std::vector<DtsField> fields;
   char * delimiter;
 };
 
@@ -83,27 +82,13 @@ printModule::printModule(struct SmacqModule::smacq_init * context) {
   flush = flush.boolean_t;
   delimiter = delimiter.string_t;
   verbose = verbose.boolean_t;
-  fields = malloc(argc * sizeof(dts_field));
-  string_transform = dts->requirefield("string");
+  fields.resize(argc);
 
   for (i = 0; i < argc; i++) {
 	  fields[i] = dts->requirefield(dts_fieldname_append(argv[i],"string")); 
   }
   return 0;
 }
-
-printModule::~printModule(struct state * state) {
-  int i;
-
-  for (i = 0; i < argc; i++) 
-	  dts_field_free(fields[i]);
-
-  free(fields);
-  return 0;
-}
-
-
-
 
 /* Right now this serves mainly for type checking at compile time: */
 struct smacq_functions smacq_test_dynamic_table = {
