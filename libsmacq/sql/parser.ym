@@ -74,7 +74,7 @@ where : null 		{ $$ = nullgraph; }
 	;
 
 group : null 			{ $$.args = NULL; $$.having = NULL;}
-	| GROUP BY args having 	{ $$.args = $3; $$.having = newarg(print_comparison($4), 0, NULL); }
+	| GROUP BY args having 	{ $$.args = $3; $$.having = $4; }
 	;
 
 having : null			{ $$ = NULL; }
