@@ -9,7 +9,7 @@ auto:
 all: dirs
 
 dirs: 
-	@for f in $(DIRS); do $(MAKE) -C $$f; done
+	@set -e; for f in $(DIRS); do $(MAKE) -C $$f; done
 
 warn: 
 	make auto >/dev/null
