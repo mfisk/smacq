@@ -115,6 +115,10 @@ class DtsObject_ {
 
   	int refcount;
 
+	/// Keep a reference to what we were derived from so it doesn't
+ 	/// get reused.
+ 	DtsObject uses;
+
 	void freeObject();
 	void fieldcache_flush(dts_field_element fnum);
 
@@ -128,7 +132,6 @@ class DtsObject_ {
 	DtsObject getfield_single(dts_field_element fnum);
 	DtsObject getfield_new(dts_field_element fnum);
 	void attach_field_single(dts_field_element field, DtsObject field_data);
-
 
   	int free_data; /* boolean */
 

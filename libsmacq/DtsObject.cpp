@@ -121,14 +121,14 @@ DtsObject DtsObject_::getfield_new(dts_field_element fnum) {
 	return NULL;
       }
     }
+    field->uses = this;
     return field;
     
   } else if (t->info.getfield) {
     field = (DtsObject)dts->newObject(t->num);
+    field->uses = this;
     
-    if (t->info.getfield(this, field, fnum)) {
-      return field;
-    } else {
+    if (!t->info.getfield(this, field, fnum)) {
       return NULL;
     }
     
@@ -139,6 +139,7 @@ DtsObject DtsObject_::getfield_new(dts_field_element fnum) {
     return NULL;
 #endif
   }
+  return field;
 }
 
 DtsObject DtsObject_::getfield_single(dts_field_element fnum) {
