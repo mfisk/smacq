@@ -2,7 +2,7 @@
 #define PCAPFILE_H
 #include "dts_packet.h"
 
-#if 1
+#if 0
 #include <zlib.h>
 #else
 #define gzFile FILE
