@@ -83,9 +83,36 @@ AC_SUBST(OBJECTS_MODULES_BUILTIN)
 LIBS_MODULES_SHARED=`for f in $SHAREDONLY_MODULES; do echo -n " smacq_$f.la "; done`
 AC_SUBST(LIBS_MODULES_SHARED)
 
+if test -n "$GCC"; then
+	CFLAGS="$CFLAGS -Wall"
+fi
+
+AC_ARG_ENABLE(debug,
+	AC_HELP_STRING([--enable-debug],[enable debugging options]),
+	[if test -n "$GCC"; then
+		CFLAGS="$CFLAGS -O0 -ggdb"
+	else
+		CFLAGS="$CFLAGS -O0 -g"
+	fi],)
+
+AC_ARG_WITH([ethereal], 
+	AC_HELP_STRING([--with-ethereal],[Include Ethereal packet decoding]),
+	[with_ethereal="$withval"],
+	[with_ethereal=no])
+
+if test "$with_ethereal" = "no"; then
+	ETHEREAL_LIBRARY=
+	ETHEREAL_DIR=
+else
+	ETHEREAL_LIBRARY=libethereal.la
+	ETHEREAL_DIR=${with_ethereal}
+	CFLAGS="$CFLAGS -DWITH_ETHEREAL -I$ETHEREAL_DIR"
+fi
+AC_SUBST(ETHEREAL_LIBRARY)
+AC_SUBST(ETHEREAL_DIR)
+
 AC_CONFIG_FILES([Makefile
                  bin/Makefile
-                 contrib/Makefile
                  doc/Makefile
                  libsmacq/Makefile
                  libsmacq/filter/Makefile
@@ -93,8 +120,6 @@ AC_CONFIG_FILES([Makefile
                  misc/Makefile
                  modules/Makefile
                  modules/substr/Makefile
-                 pcap-replacement/Makefile
-                 reloc/Makefile
                  test/Makefile
                  types/Makefile])
 AC_OUTPUT
