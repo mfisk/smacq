@@ -32,8 +32,6 @@ struct dts_field_spec dts_type_sv4_fields[] = {
 	{ "nuint32",	"srcpackets",	NULL },
 	{ "nuint32",	"dstbytes",	NULL },
 	{ "nuint32",	"srcbytes",	NULL },
-
-	{ "ip",		"nexthop",	NULL },
 	{ "ntime",	"start",	NULL },
 	{ "nushort",	"startms",	NULL },
 	{ "ntime",	"stop",		NULL },
