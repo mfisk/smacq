@@ -76,9 +76,11 @@ static void free_element(struct element * s) {
   assert(s);
 
   for (i=0; i < s->nvecs; i++) {
-    cmfree(s->table->cm_bytes, s->iovecs[i].iov_base);
+    if (s->iovecs[i].iov_base) 
+    	cmfree(s->table->cm_bytes, s->iovecs[i].iov_base);
   }
-  cmfree(s->table->cm_iovecs, s->iovecs);
+  if (s->iovecs) 
+  	cmfree(s->table->cm_iovecs, s->iovecs);
   cmfree(s->table->cm_elements, s);
 }
 
