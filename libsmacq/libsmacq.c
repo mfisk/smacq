@@ -8,8 +8,7 @@ void dts_init_object(dts_object * d) {
   d->refcount=1;
   pthread_mutex_init(&d->mutex, NULL);
 
-  d->numfields = 0;
-  d->fields = NULL;
+  darray_init(&d->fields, 0);
 }
 
 const dts_object* _smacq_alloc(int size, int type) {

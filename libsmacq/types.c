@@ -6,8 +6,6 @@
 #include <dlfcn.h>
 #include "smacq-internal.h"
 
-#define DTS_NO_DEPRECATED
-
 struct smacq_engine_field {
   int type;
   struct dts_field_descriptor desc;
@@ -81,12 +79,19 @@ static int field_byname(dts_environment * tenv, char * fname) {
 }
 */
 
-static dts_field_element type_getfield_single(dts_environment * tenv, const dts_object * datum, int fnum, dts_object * data) {
+static int type_getfield_single(dts_environment * tenv, const dts_object * datum, int fnum, dts_object * data) {
   struct dts_type * t = dts_type_bynum(tenv, dts_gettype(datum));
+  dts_object * cached;
   int offset;
   struct smacq_engine_field * d;
 
   assert(t);
+
+  cached = darray_get((struct darray*)&datum->fields, fnum);
+  if (cached) {
+      *data = *cached;
+      return 1;
+  }
 
   d = darray_get(&t->fields, fnum);
 
@@ -304,9 +309,11 @@ dts_environment * dts_init() {
   tenv->max_type = 0;
   tenv->max_field = 0;
 
+  darray_init(&tenv->messages_byfield, tenv->max_field);
+  darray_init(&tenv->types, tenv->max_type);
+
   tenv->types_byname = g_hash_table_new(g_str_hash, g_str_equal);
   tenv->fields_byname = g_hash_table_new(g_str_hash, g_str_equal);
-  darray_init(&tenv->messages_byfield, tenv->max_field);
 
   tenv->typenum_byname = type_typenum_byname;
   tenv->typename_bynum = type_typename_bynum;
