@@ -282,12 +282,19 @@ void smacq_remove_parent(smacq_graph * child, const smacq_graph * parent) {
       if (child->numparents) {
 	child->parent[i] = child->parent[child->numparents];
       }
+
+      break;
     }
   }
 }
 
 void smacq_replace_child(smacq_graph * parent, int num, smacq_graph * newchild) {
   assert(num < parent->numchildren);
+
+  if (parent->child[num] == newchild) return;
+  assert(parent->child[num] != newchild);
+
+  //fprintf(stderr, "About to replace %p (child %d of %p) with %p\n", parent->child[num], num, parent, newchild);
   smacq_remove_parent(parent->child[num], parent);
   smacq_add_parent(newchild, parent);
   parent->child[num] = newchild;
