@@ -1,0 +1,15 @@
+#!/bin/sh
+
+DIR=`echo "$PWD/$0" | sed 's/[^/]*$//'`
+export DIR
+
+cat  <<EOM | osascript
+set myPath to (do shell script "echo $DIR")
+tell application "Terminal"
+	activate
+	do script with command myPath & "/smacq-interactive"
+	tell window 1
+		set custom title to "SMACQ Interactive"
+	end tell
+end tell
+EOM

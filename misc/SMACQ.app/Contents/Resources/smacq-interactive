@@ -1,0 +1,9 @@
+#!/bin/sh
+
+DIR=`echo "$0" | sed 's/[^/]*$//'`
+clear
+while true; do
+	echo "============================================================================"
+	echo "Enter a new SMACQ query:"
+	head -1 | $DIR/smacqq -m
+done

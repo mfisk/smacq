@@ -5,13 +5,13 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleExecutable</key>
-	<string>smacqq</string>
+	<string>Resources/smacq-interactive.apple</string>
 	<key>CFBundleGetInfoString</key>
 	<string>smacq.sourceforge.net</string>
 	<key>CFBundleIconFile</key>
 	<string>smacq</string>
 	<key>CFBundleIdentifier</key>
-	<string>net.sourceforge.smacqt</string>
+	<string>net.sourceforge.smacq</string>
 	<key>CFBundleName</key>
 	<string>SMACQ</string>
 	<key>CFBundlePackageType</key>
