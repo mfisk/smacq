@@ -25,6 +25,19 @@ valtype fname(GHashTable * table, keytype key) { \
    return g_hash_table_lookup(table, (gpointer)key); \
 }
 
+struct darray * dts_prime_all_fields(dts_environment * tenv, const dts_object * o) {
+	int i;
+	const dts_object * field;
+  	struct dts_type * t = dts_type_bynum(tenv, dts_gettype(o));
+
+	for (i=0; i <= t->fields.max; i++) {
+		if (darray_get(&t->fields, i)) {
+			field = dts_getfield_single(tenv, o, i);
+			if (field) dts_decref(field);
+		}
+	}
+}
+
 static inline HashTemplate(int, struct dts_type *, lookup_type_byint);
 
 dts_object * dts_construct(dts_environment * tenv, int type, void * data) {
