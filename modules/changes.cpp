@@ -53,7 +53,6 @@ SMACQ_MODULE(changes,
 
 smacq_result changesModule::consume(DtsObject datum, int & outchan) {
 	double total_distance = 0;
-	fprintf(stderr, "changes consuming %p\n", datum.get());
 
 	DtsObject id = datum->getfield(id_field);
 	if (!id) {
