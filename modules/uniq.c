@@ -38,6 +38,7 @@ static struct smacq_options options[] = {
 static smacq_result uniq_consume(struct state * state, const dts_object * datum, int * outchan) {
   struct iovec obj_domainv[2];
   struct iovec * domainv;
+  int numfields = state->fieldset.num;
   
   if (state->use_obj_id) {
 	  domainv = obj_domainv;
@@ -45,7 +46,7 @@ static smacq_result uniq_consume(struct state * state, const dts_object * datum,
 	  obj_domainv[0].iov_len = 4;
 	  obj_domainv[1].iov_base = (void*)datum;
 	  obj_domainv[1].iov_len = 4;
-	  state->fieldset.num = 2;
+	  numfields = 2;
   } else {
 	  domainv = fields2vec(state->env, datum, &state->fieldset);
   }
@@ -56,11 +57,11 @@ static smacq_result uniq_consume(struct state * state, const dts_object * datum,
   }
 
   if (!state->prob) {
-    if (!bytes_hash_table_setv(state->drset, domainv, state->fieldset.num, (void*)1)) 
+    if (!bytes_hash_table_setv(state->drset, domainv, numfields, (void*)1)) 
       // New entry in set
       return SMACQ_PASS;
   } else {
-    if (bloom_insertv(state->summary, domainv, state->fieldset.num)) 
+    if (bloom_insertv(state->summary, domainv, numfields)) 
       return SMACQ_PASS;
   }
     
@@ -102,13 +103,23 @@ static smacq_result uniq_init(struct smacq_init * context) {
   return 0;
 }
 
-static smacq_result uniq_produce(struct state * state, const dts_object ** datum, int * outchan) {
-  return SMACQ_ERROR;
+static smacq_result uniq_shutdown(struct state * state) {
+  if (!state->prob) {
+    bytes_hash_table_destroy(state->drset);
+  } else {
+    //XXX: bloom_summary_destroy(state->summary);
+  }
+
+  fieldset_destroy(&state->fieldset);
+
+  free(state);
+
+  return SMACQ_END;
 }
 
 /* Right now this serves mainly for type checking at compile time: */
 struct smacq_functions smacq_uniq_table = {
-	produce: &uniq_produce, 
+	shutdown: &uniq_shutdown, 
 	consume: &uniq_consume,
 	init: &uniq_init,
 };
