@@ -8,6 +8,11 @@ static int smacqtype_ushort_get_uint32(const dts_object * o, dts_object * field)
   return 1;
 }
 
+static int smacqtype_ushort_get_double(const dts_object * o, dts_object * field) {
+  dts_set(field, double, dts_data_as(o, ushort));
+  return 1;
+}
+
 static int smacqtype_ushort_get_string(const dts_object * o, dts_object * field) {
   dts_setsize(field, 64); // Only has to hold log10(2**32)
   snprintf(field->data, 64, "%hu", dts_data_as(o, unsigned short));
@@ -21,6 +26,7 @@ static int parse_ushort(char * buf,  const dts_object * d) {
 struct dts_field_spec dts_type_ushort_fields[] = {
   { "string",   "string",	smacqtype_ushort_get_string },
   { "uint32",   "uint32",	smacqtype_ushort_get_uint32 },
+  { "double",   "double",	smacqtype_ushort_get_double },
   { END,        NULL }
 };
 
