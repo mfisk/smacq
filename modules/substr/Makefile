@@ -1,6 +1,6 @@
 LIBTOOL=libtool
 
-CFLAGS = -ggdb -Wall -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include $(INCLUDES) -I../../include
+CFLAGS=$(COPTS) -Wall -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include $(INCLUDES) -I../../include
 
 all: libsubstr.la
 

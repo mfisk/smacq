@@ -1,8 +1,9 @@
 DIRS=substr
-CFLAGS=-g -Wall -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I../include $(COPTS)
+CFLAGS=-Wall -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I../include $(COPTS)
 LDFLAGS=$(LDOPTS)
+LIBTOOL=libtool
 
-BUILTIN_MODULES=pcaplive pcapfile print socket uniq counter last top head intervals filter msgtest entropy derivative split encrypt warden pdf fifo delta tabularinput sync rusage groupby flowid sum fifodelay project rename join substr
+BUILTIN_MODULES=pcaplive pcapfile print socket uniq counter last top head intervals filter msgtest entropy derivative split encrypt warden pdf fifo delta tabularinput sync rusage groupby flowid sum fifodelay project rename join substr bench_field
 
 MODULES=$(BUILTIN_MODULES) #python #reassemble
 
@@ -22,18 +23,23 @@ pcapfile.lo: pcapfile.c pcapfile.h
 pcaplive.lo: pcaplive.c pcapfile.h 
 substr.lo: substr/libsubstr.la
 
-%.lo: %.c ../include/smacq.h 
-	$(LIBTOOL) $(CC) -c $(CFLAGS) $< 
+substr.lo: substr-main.lo ../include/smacq.h substr/libsubstr.la
+	$(LIBTOOL) $(CC) -o $@ $(CFLAGS) $< substr/libsubstr.la 
 
-substr.lo: substr.c ../include/smacq.h substr/libsubstr.la
-	$(LIBTOOL) $(CC) -o .$@ -c $(CFLAGS) $<
-	$(LIBTOOL) $(CC) -o $@ $(CFLAGS) .$@ substr/substr.lo substr/trie.lo 
+bench_field.lo: bench_field-main.lo bench_field-virtual.lo ../include/smacq.h substr/libsubstr.la
+	$(LIBTOOL) $(CC) -o $@ $(CFLAGS) $< bench_field-virtual.lo
 
 libsmacq-modules.lo: $(MODULES_OBJS) 
 	$(LIBTOOL) $(CC) -o $@ $+ 
 
 smacq_%.la: %.lo
 	$(LIBTOOL) $(CC) -module -rpath /usr/local/lib $(LDFLAGS) -o $@ $+
+
+%.lo: %.c ../include/smacq.h 
+	$(LIBTOOL) $(CC) -c $(CFLAGS) $< 
+
+%.lo: %.C ../include/smacq.h 
+	$(LIBTOOL) c++ -c $(CFLAGS) $< 
 
 #
 # Python module stuff:
