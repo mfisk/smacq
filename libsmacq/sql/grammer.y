@@ -81,6 +81,12 @@ query : verbphrase from where group
 			graph_join(&($$), newmodule($1.verb, $1.args));
 		}
 	   }
+	| from where 
+           {
+	   	$$.head = ($$.tail = NULL);
+	   	graph_join(&($$), $1);
+		graph_join(&($$), $2);
+	   }
 	;
 
 from :  null 			{ $$.head = NULL; $$.tail = NULL; } 

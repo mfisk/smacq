@@ -26,6 +26,9 @@ struct clause {
 int build_clause(struct state * state, char ** argv, int num) {
 		  /* End of query */
 		  smacq_graph * g;
+
+		  //fprintf(stderr, "Build clause from %s(%p)+%d ... %s\n", argv[0], argv, num, argv[num-1]);
+
 		  if (num < 1) {
 			  fprintf(stderr, "OR: empty clause\n");
 			  return 0;
@@ -37,8 +40,11 @@ int build_clause(struct state * state, char ** argv, int num) {
 		  if (0 != smacq_start(g, ITERATIVE, state->env->types)) {
 			  return 0;
 		  } 
+
 		  state->clause[state->num_clauses-1].graph = g;
 		  state->clause[state->num_clauses-1].runq = NULL;
+
+		  smacq_sched_iterative_init(g, &state->clause[state->num_clauses-1].runq, 0);
 
 		  return 1;
 }
@@ -50,25 +56,25 @@ static smacq_result or_consume(struct state * state, const dts_object * datum, i
   for (i=0; i < state->num_clauses; i++) {
   	const dts_object * output = NULL;
 	struct clause * j = &state->clause[i];
-	int more;
+	int more = 0;
 
 	if (!j) continue;
 
-  	fprintf(stderr, "run graph %d\n", i);
-  	{
-	  more = smacq_sched_iterative(j->graph, datum, &output, &j->runq, 0);
+	smacq_sched_iterative_input(j->graph, datum, j->runq);
+	more = smacq_sched_iterative_busy(j->graph, &output, j->runq, 0);
 
-	  if (SMACQ_END & more) {
+	//more = smacq_sched_iterative(j->graph, datum, &output, &j->runq, 0);
+
+	//fprintf(stderr, "Passed in %p to graph %d, got %p out:\n", datum, i, output);
+
+	if (SMACQ_END & more) {
 		fprintf(stderr, "%d ended\n", i);
 		free(j);
 		state->clause[i].graph = NULL;
 		state->num_active_clauses--;
 		break;
-	  }
-	} //while (j->runq);
+	}
 
-  	fprintf(stderr, "ran graph %d, output %p\n", i, output);
-	fprintf(stderr, "Passed in %p, got %p out:\n", datum, output);
 
 	if (output == datum) {
 		status = SMACQ_PASS;
@@ -106,18 +112,19 @@ static smacq_result or_init(struct smacq_init * context) {
 	int i;
   	for (i=0; i<argc; i++) {
 	  if (!strcmp(argv[i], ";")) {
-		  if (!build_clause(state, argv, i - start))
+		  if (!build_clause(state, argv+start, i - start))
 			  return SMACQ_END;
 		  start = i+1;
 	  }
 	}
-	if (start < argc)
-		build_clause(state, argv, argc - start);
+	if (start < argc) {
+		build_clause(state, argv+start, argc - start - 1);
+	}
   }
 
   state->num_active_clauses = state->num_clauses;
 
-  fprintf(stderr, "init done with %d clauses\n", state->num_active_clauses);
+  //fprintf(stderr, "init done with %d clauses\n", state->num_active_clauses);
 
   return 0;
 }
