@@ -1,4 +1,4 @@
-.TH smacq-modules 3 "$Date: 2002/12/01 03:30:01 $" "LANL"
+.TH smacq-modules 3 "$Date: 2002/12/01 03:32:54 $" "LANL"
 .SH NAME
 smacq-modules - pipeline module programming guide
 .SH SYNOPSIS
@@ -217,20 +217,9 @@ The system knows how to compare typed objects using the following routines:
 	Returns non-zero iff all of the comparisons are true.
 
 .TP
-.BI "int smacq_parsetest(smacq_environment * env, dts_comparison * comparison, char * test)"
-	Initialize the comparison based on the given comparison string of one
-	of the following forms:
-
-.sp
-.nf
-.ne 7
-.ta 8n 16n 32n
-	field<value
-	field=value
-	field!=value
-.ta
-.fi
-.RE
+.BI "dts_comparison * dts_parse_tests(dts_environment * tenv, int argc, char ** argv)"
+	Return the comparison(s) resulting from the given argument vector.
+	Comparisons can include AND and OR statements, parentheses for grouping, and equality and inequality operators.
 	
 .TP
 .BI "int smacq_getoptsbyname(int argc, char ** argv, int * argc_left, char *** argv_left, struct smacq_options * options, struct smacq_optval * optvals)"

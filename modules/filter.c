@@ -41,7 +41,6 @@ static smacq_result filter_consume(struct state * state, const dts_object * datu
 
 static int filter_init(struct smacq_init * context) {
   struct state * state;
-  int i;
 
   context->state = state = (struct state*) calloc(sizeof(struct state),1);
   assert(state);
@@ -57,16 +56,8 @@ static int filter_init(struct smacq_init * context) {
     assert(state->argv);
   }
 
-  state->comp = g_new0(dts_comparison, state->argc);
-
-  for (i=0; i < state->argc; i++) {
-    // Make array a linked list too
-    if (i) state->comp[i-1].next = state->comp+i;
-
-    smacq_parsetest(state->env, state->comp+i, state->argv[i]);
-  }
-
-  return 0;
+  state->comp = dts_parse_tests(state->env->types, state->argc, state->argv);
+  return 0; 
 }
 
 /* Right now this serves mainly for type checking at compile time: */

@@ -107,7 +107,7 @@ struct smacq_init {
 /* 
  * Comparisons & filtering
  */
-enum _dts_comp_op { EQUALITY, INEQUALITY, EXIST, LT, GT };
+enum _dts_comp_op { EQUALITY, INEQUALITY, EXIST, LT, GT, LIKE, AND, OR };
 typedef enum _dts_comp_op dts_compare_operation;
 
 typedef struct _dts_comparison {
@@ -116,10 +116,10 @@ typedef struct _dts_comparison {
   dts_object field_data;
 
   char * valstr;
-
   int size;
-  
   struct _dts_comparison * next;
+
+  struct _dts_comparison * group;
 } dts_comparison;
 
 typedef struct _dts_msg {
@@ -200,6 +200,8 @@ EXTERN void smacq_free_module(struct filter * f);
 EXTERN void smacq_destroy_graph(struct filter * f);
 struct filter * smacq_clone_child(struct filter * parent, int child);
 struct filter * smacq_clone_tree(struct filter * donorParent, struct filter * newParent, int child);
+
+dts_comparison * dts_parse_tests(dts_environment * tenv, int argc, char ** argv);
 
 void dts_init_object(dts_object * d);
 
