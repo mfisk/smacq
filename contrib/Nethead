@@ -2,6 +2,8 @@
 IFACE=eth1
 OUTPUT=/tmp/smacq.out
 OUTPUT=/huge1/mfisk/flatland/sessions
+FILTER="net 204.121.0.0/16"
+FILTER="ip"
 
             #from (fifodelay -t, 5, -i, timeseries, -o, timeseries \
 	    #) \
@@ -11,7 +13,7 @@ while [ 1 ]; do
 	print -d,;, flowid, bytes, packets, srcip, srcport, dstport, \
                 dstip, packetsback, bytesback, start, finish \
 		from (flowid -r, -t, 8, srcip, dstip, srcport, dstport \
-        		from pcaplive(-p,-i,$IFACE,net,204.121.0.0/16) \
+        		from pcaplive(-p,-i,$IFACE,$FILTER) \
 		) \
 	" > $OUTPUT
 done
