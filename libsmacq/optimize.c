@@ -5,6 +5,8 @@
 struct list {
   smacq_graph * g;
   smacq_graph * parent;
+  int child;
+  struct list * prev;
   struct list * next;
 };
 
@@ -19,7 +21,7 @@ static smacq_graph * find_branch(smacq_graph *g) {
 }
 
 /* Return a list of all the tails in the given graph (list=NULL initially) */
-static struct list * list_tails(struct list * list, smacq_graph * g, smacq_graph * parent) {
+static struct list * list_tails(struct list * list, smacq_graph * g, smacq_graph * parent, int child_num) {
   /* A tail is the highest point in the tree that only has linear (fanout = 1) children */
   int i;
 
@@ -27,16 +29,20 @@ static struct list * list_tails(struct list * list, smacq_graph * g, smacq_graph
 
   if (b) {
     for (i = 0; i < b->numchildren; i++) {
-      list = list_tails(list, b->child[i], b);
+      list = list_tails(list, b->child[i], b, i);
     }
 
     return list;
   } else {
-    /* base case: append self */
+    /* base case: prepend self */
     struct list * newl = malloc(sizeof(struct list));
     newl->g = g;
-    newl->next = list;
     newl->parent = parent;
+    newl->child = child_num;
+
+    newl->prev = NULL;
+    newl->next = list;
+    if (list) list->prev = newl;
 
     return newl;
   }
@@ -46,8 +52,12 @@ static int compare_element_names(smacq_graph * a, smacq_graph * b) {
   return !strcmp(a->argv[0], b->argv[0]);
 }
   
+/* 1 iff graphs are equivalent */
 static int compare_elements(smacq_graph * a, smacq_graph * b) {
   int i;
+
+  if (a == b) 
+    return 1;
 
   if (a->argc != b->argc) 
     return 0;
@@ -60,16 +70,21 @@ static int compare_elements(smacq_graph * a, smacq_graph * b) {
   return 1;
 }
 
+/* 1 iff graphs are recursively equivalent */
 static int merge_tail_ends(smacq_graph * a, smacq_graph * b) {
+
+  /* Base case */
   if (!a->numchildren) {
     return compare_elements(a,b);
   }
 
+  /* Recurse to children */
   if (merge_tail_ends(a->child[0], b->child[0])) {
     if (compare_elements(a,b)) {
       return 1;
     } else {
       /* This is the top of the commonality */
+      /* a and b are not equivalent, but their children are */
       smacq_replace_child(b, 0, a->child[0]);
 
       return 0;
@@ -86,7 +101,9 @@ static void merge_tails(struct list * alist, struct list * blist) {
   int adepth = 0; 
   int bdepth = 0; 
   int i;
-  
+ 
+  if (a == b) return;
+
   /* Get tails of equal length */
   for (p = a; p->numchildren; p = p->child[0]) {
     adepth++;
@@ -98,6 +115,8 @@ static void merge_tails(struct list * alist, struct list * blist) {
   
   if (bdepth > adepth) {
     for (i=0; i < (bdepth-adepth); i++) {
+      blist->parent = b;
+      blist->child = 0;
       b = b->child[0];
     }
   } else if (adepth > bdepth) {
@@ -106,15 +125,16 @@ static void merge_tails(struct list * alist, struct list * blist) {
     }
   } 
 
+  if (a == b) return;
+
   if (merge_tail_ends(a, b)) {
-    assert(blist->parent); /* else this would be a head */
-    smacq_replace_child(blist->parent, 0, a);
+    assert(blist->parent); /* else this would be a common head and already removed */
+    smacq_replace_child(blist->parent, blist->child, a);
     
-    if (blist->next) {
+    if (blist->prev) {
       /* Remove b tail from list of tails */
-      struct list * lp = blist->next;
-      *blist = *lp;
-      free(lp);
+      blist->prev->next = blist->next;
+      //free(blist);
     }
   }
 }
@@ -126,7 +146,7 @@ static void merge_all_tails(smacq_graph * g) {
 
   /* Get all the tails we have */
   for (bp = g; bp; bp=bp->next_graph) {
-    list = list_tails(list, bp, NULL);
+    list = list_tails(list, bp, NULL, 0);
   }
 
   /* n**2 comparison between each tails */
@@ -333,6 +353,7 @@ smacq_graph * smacq_merge_graphs(smacq_graph * g) {
       prev = prev->next_graph;
     }
   }
+
 
 #ifdef SMACQ_DEBUG
   fprintf(stderr, "--- merged heads (including vectors, demux, etc.) to ---\n");
