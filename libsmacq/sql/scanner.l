@@ -16,9 +16,9 @@ char *yystring;
 
 quote		\'
 dquote		\"
-space		                 [ \t\n\r\f]+
-toksymbols	     [\,\=\<\>\(\)]
-id		[^\'\"\,\=\<\>\(\) \t\n\r\f]+
+space		[ \t\n\r\f]+
+toksymbols	[\,\=\<\>\(\)]
+id		[^\!\'\"\,\=\<\>\(\) \t\n\r\f]+
 
 %x xdquote
 %x xquote
@@ -31,9 +31,13 @@ group|GROUP	return GROUP;
 by|BY		return BY;
 as|AS		return AS;
 having|HAVING	return HAVING;
-and|AND                     return YYAND;
-or|OR                           return YYOR;
-like|LIKE                      return YYLIKE;
+and|AND         return YYAND;
+or|OR           return YYOR;
+like|LIKE       return YYLIKE;
+">="		return YYGEQ;
+"<="		return YYLEQ;
+"!="		return YYNEQ;
+"=="		return '=';
 
 {quote}		BEGIN(xquote);
 <xquote>{
@@ -75,6 +79,8 @@ like|LIKE                      return YYLIKE;
 			yystring = strdup((char *)yytext); 
 			return ID; 
 	}
+
+.	{ yyerror("Unexpected character in query"); return -1; }
 
 %%
 
