@@ -1,0 +1,17 @@
+Jan 28 06:19:17 mailrelay2 sendmail[21673]: j0SDJHGt021673: from=<mfisk@foo.lanl.gov>, size=292438, class=0, nrcpts=1, msgid=<E1CuVjF-0006jB-NE@foo.lanl.gov>, proto=ESMTP, daemon=MTA, relay=foo.lanl.gov [128.165.1.1]
+Jan 28 06:19:18 mailrelay2 sendmail[21673]: j0SDJHGt021673: Milter add: header: X-PMX-Version: 4.7.0.111621
+Jan 28 06:19:18 mailrelay2 sendmail[21676]: j0SDJHGt021673: to=<mfisk@lanl.gov>, delay=00:00:01, xdelay=00:00:00, mailer=esmtp, pri=322438, relay=pop.lanl.gov. [128.165.1.3], dsn=2.0.0, stat=Sent (j0SDJIuT029327 Message accepted for delivery)
+Jan 28 07:08:03 mailrelay2 sendmail[26025]: j0SE83vC026025: from=<bar@aol.com>, size=28239, class=0, nrcpts=1, msgid=<obzflpuobdjagovznzp@lanl.gov>, proto=ESMTP, daemon=MTA, relay=mailproxy2.lanl.gov [128.165.1.8]
+Jan 28 07:08:07 mailrelay2 sendmail[26025]: j0SE83vC026025: Milter add: header: X-PMX-Version: 4.7.0.111621
+Jan 28 07:08:07 mailrelay2 sendmail[26025]: j0SE83vC026025: Milter add: header: X-PerlMx-Virus-Detected: W32/Bagle-AY
+Jan 28 07:08:07 mailrelay2 sendmail[26025]: j0SE83vC026025: Milter change: header  Subject: from You are made active to [PMX:VIRUS] You are made active
+Jan 28 07:08:07 mailrelay2 sendmail[26025]: j0SE83vC026025: Milter message: body replaced
+Jan 28 07:08:07 mailproxy2 sendmail[13718]: j0SE82CC013716: to=<151502@baz.lanl.gov>, delay=00:00:04, xdelay=00:00:04, mailer=relay, pri=58021, relay=mailrelay2.lanl.gov. [128.165.1.4], dsn=2.0.0, stat=Sent (j0SE83vC026025 Message accepted for delivery)
+Jan 28 07:08:08 mailrelay2 sendmail[26029]: j0SE83vC026025: to=<151502@baz.lanl.gov>, delay=00:00:05, xdelay=00:00:01, mailer=esmtp, pri=58239, relay=baz.lanl.gov. [128.165.1.5], dsn=2.0.0, stat=Sent (Message queued)
+Jan 28 07:18:37 mailrelay3 sendmail[30441]: j0SEIbwv030441: from=<webmaster@frop.com>, size=41708, class=0, nrcpts=1, msgid=<200501281418.j0SEIM9C003058@proofpoint2.lanl.gov>, proto=ESMTP, daemon=MTA, relay=mailproxy2.lanl.gov [128.165.1.8]
+Jan 28 07:18:38 mailrelay3 sendmail[30441]: j0SEIbwv030441: Milter add: header: X-PMX-Version: 4.7.0.111621
+Jan 28 07:18:38 mailrelay3 sendmail[30441]: j0SEIbwv030441: Milter add: header: X-PerlMx-Virus-Detected: W32/Netsky-P
+Jan 28 07:18:38 mailrelay3 sendmail[30441]: j0SEIbwv030441: Milter change: header  Subject: from Postcard to [PMX:VIRUS] Postcard
+Jan 28 07:18:38 mailrelay3 sendmail[30441]: j0SEIbwv030441: Milter message: body replaced
+Jan 28 07:18:38 mailproxy2 sendmail[15622]: j0SEIaCC015617: to=<bob@boo.lanl.gov>, delay=00:00:02, xdelay=00:00:01, mailer=relay, pri=71341, relay=mailrelay3.lanl.gov. [128.165.1.6], dsn=2.0.0, stat=Sent (j0SEIbwv030441 Message accepted for delivery)
+Jan 28 07:18:39 mailrelay3 sendmail[30446]: j0SEIbwv030441: to=<bob@boo.lanl.gov>, delay=00:00:02, xdelay=00:00:01, mailer=esmtp, pri=71708, relay=boo.lanl.gov. [128.165.1.2], dsn=2.0.0, stat=Sent (j0SEIcoi022941 Message accepted for delivery)
