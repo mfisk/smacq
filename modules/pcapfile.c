@@ -218,10 +218,6 @@ static int pcapfile_init(struct smacq_init * context) {
 
   if (context->isfirst) {
     //fprintf(stderr, "Reading pcapfile (no predecessor)\n");
-    if (context->islast) {
-      fprintf(stderr, "Error: nobody to produce for!\n");
-      exit(-1);
-    }
     open_file(state);
     state->produce = 1;
   } else if (context->islast) {
