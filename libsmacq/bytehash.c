@@ -274,9 +274,9 @@ void * bytes_hash_table_setv(struct iovec_hash * ht, struct iovec * keys, int co
 
 int bytes_hash_table_incrementv(struct iovec_hash * ht, struct iovec * keys, int count) {
   struct element * element;
-  void ** oldvalp = NULL;
+  void * oldvalp = NULL;
 
-  if (bytes_hash_table_getv(ht, keys, count, &element, oldvalp)) {
+  if (bytes_hash_table_getv(ht, keys, count, &element, &oldvalp)) {
   	element->value = (void*)(((int)oldvalp)+1);
   	return (int)oldvalp;
   } else {
