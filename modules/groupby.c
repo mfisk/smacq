@@ -147,11 +147,6 @@ static int groupby_init(struct smacq_init * context) {
   return 0;
 }
 
-static int groupby_shutdown(struct state * state) {
-  return SMACQ_END;
-}
-
-
 static smacq_result groupby_produce(struct state * state, const dts_object ** datump, int * outchan) {
   int status;
 
@@ -181,8 +176,9 @@ static smacq_result groupby_produce(struct state * state, const dts_object ** da
 
 /* Right now this serves mainly for type checking at compile time: */
 struct smacq_functions smacq_groupby_table = {
-  &groupby_produce, 
-  &groupby_consume,
-  &groupby_init,
-  &groupby_shutdown
+	produce: &groupby_produce, 
+	consume: &groupby_consume,
+	init: &groupby_init,
+	shutdown: NULL,
+	alg: { demux: 1 }
 };
