@@ -148,8 +148,6 @@ sqlinsertModule::sqlinsertModule(struct SmacqModule::smacq_init * context)
 }
 
 sqlinsertModule::~sqlinsertModule() {
-  int i;
-
   gda_command_free(gda_cmd);
   gda_client_close_all_connections(gda_client);
   g_object_unref(G_OBJECT(gda_client));
