@@ -127,7 +127,6 @@ SmacqGraph * newgroup(struct group group, SmacqGraph * vphrase) {
   }
 
   sprintf(gp, "%p", vphrase);
-  /* smacq_graph_print(stderr, vphrase, 0); */
 
   arglist = newarg("-p", (argtype)0, NULL);
   arglist_append(arglist, newarg(strdup(gp), (argtype)0, NULL));
@@ -148,22 +147,59 @@ SmacqGraph * newmodule(char * module, struct arglist * alist) {
   int rename_argc = 1;
   char ** rename_argv = NULL;
   struct arglist * ap;
+  int num_funcs = 0;
+  SmacqGraph * uniq_obj = NULL;
 
   anew = newarg(module, (argtype)0, NULL);
   arglist_append(anew, alist);
 
+  // Count number of func arguments
+  for(ap=anew; ap; ap=ap->next) {
+	if (ap->isfunc) {
+		num_funcs++;
+	}
+  }
+
+  if (num_funcs > 1) {
+	char ** argv = (char**)malloc(sizeof(char**));
+	argv[0] = "uniqobj";
+	uniq_obj = new SmacqGraph(1, argv);
+  }
+
   for(ap=anew; ap; ap=ap->next) {
     /* Check for function arguments */
-    if (ap->isfunc) 
-      graph_join(&graph, newmodule(ap->arg, ap->func_args));
+    if (ap->isfunc) { 
+      struct arglist * arglist;
+      char * argname = ap->arg;
 
-    /* Check for rename options on arguments */
-    if (ap->rename) {
-      rename_argc += 2;
-      rename_argv = (char**)realloc(rename_argv, rename_argc * sizeof(char*));
-      rename_argv[rename_argc - 2] = ap->arg;
-      rename_argv[rename_argc - 1] = ap->rename;
-      ap->arg = ap->rename;
+      if (ap->rename) {
+  	arglist = newarg("-f", (argtype)0, NULL);
+  	arglist_append(arglist, newarg(ap->rename, (argtype)0, NULL));
+  	arglist_append(arglist, ap->func_args);
+	ap->arg = ap->rename;
+      } else {
+	arglist = ap->func_args;
+      }
+
+      SmacqGraph * fn = newmodule(argname, arglist);
+
+      if (num_funcs > 1) {
+        fn->add_child(uniq_obj);
+      } 
+      if (graph) {
+	graph->add_graph(fn); 
+      } else {
+	graph = fn;
+      }
+    } else {
+    	/* Check for rename options on arguments */
+    	if (ap->rename) {
+      		rename_argc += 2;
+      		rename_argv = (char**)realloc(rename_argv, rename_argc * sizeof(char*));
+      		rename_argv[rename_argc - 2] = ap->arg;
+      		rename_argv[rename_argc - 1] = ap->rename;
+      		ap->arg = ap->rename;
+	}
     }
 
   }

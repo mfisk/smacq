@@ -1,5 +1,8 @@
 VERSION 2.2 - unreleased
 ========================
+2005-03 - Query Parser:
+           - Attribute functions like "f( g(), h() )" now instantiated in parallel so 
+             "print sum(), count()" now works as expected.
 2005-03 - print module: 
            - 2005-03: added --binary option
            - 2005-02: added -f option for file output
