@@ -1,10 +1,6 @@
 /*
  * BUGS:
  *
- *    - Use of renamed arguments later in the argument list is not supported:
- *		select counter() as count, count ....
- *      This is because renames are done as a batch just before the VERB
- *
  *    - Cannot call the same function twice with different "as" names
  *      This is because renames are done as a batch just before the VERB
  *
@@ -168,7 +164,13 @@ argument : word 			{ $$ = newarg($1, 0, NULL); }
 	| function '(' args ')' 	{ $$ = newarg($1, 1, $3); }
 	;
 
-boolarg : word				{ $$ = newarg($1, 0, NULL); }
+boolarg : id				{ $$ = newarg($1, 0, NULL); }
+	| string			
+	    { 
+	    	char * str = malloc(sizeof(char *) * (strlen($1)+2)); 
+		sprintf(str,"\"%s\"", $1); 
+		$$ = newarg(str, 0, NULL); 
+	    }
 	| '<'				{ $$ = newarg("<", 0, NULL); }
 	| '>'				{ $$ = newarg(">", 0, NULL); }
 	| '='				{ $$ = newarg("=", 0, NULL); }
