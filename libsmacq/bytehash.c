@@ -9,6 +9,9 @@
 #include <bytehash.h>
 #include <cmalloc.h>
 
+#define STARTBUCKETS 2
+#define MAXAVGCHAIN 1
+
 struct bytevec {
   int len;
   unsigned char * data;
@@ -35,6 +38,7 @@ struct iovec_hash {
 
   struct element ** buckets;
   int num_buckets;
+  int num_elements;
 };
 
 struct iovec * bytes_hash_element_iovec(struct element * e) {
@@ -160,7 +164,7 @@ struct iovec_hash * bytes_hash_table_new(int maxbytes, int flags) {
   myt->do_chain = !(flags & NOCHAIN); 
   myt->do_free = (flags & FREE); 
 
-  myt->num_buckets = 1000000; /* XXX */
+  myt->num_buckets = STARTBUCKETS;
   myt->buckets = calloc(sizeof(struct element *), myt->num_buckets);
   
   return myt;
@@ -169,6 +173,59 @@ struct iovec_hash * bytes_hash_table_new(int maxbytes, int flags) {
 uint32_t bytes_hash_valuev(struct iovec_hash * ht, int nvecs, struct iovec * vecs) {
   int val = bytes_iovec_hash(ht, vecs, nvecs);
   return val;
+}
+
+static inline void chain_remove(struct element * e) {
+  *(e->parent) = e->chain;
+  if (e->chain) e->chain->parent = e->parent;
+
+  e->parent = NULL;
+  e->chain = NULL;
+}
+
+static inline void chain_add(struct iovec_hash * ht, int bucket, struct element * e) {
+  e->chain = ht->buckets[bucket];
+  if (e->chain) e->chain->parent = &(e->chain);
+
+  e->parent = &(ht->buckets[bucket]);
+  ht->buckets[bucket] = e;
+
+  assert(&(ht->buckets[bucket]) == e->parent);
+}
+
+static inline void relocate(struct iovec_hash * ht, struct element * e, int oldbucket) {
+  int newbucket = bytes_iovec_hash(ht, e->iovecs, e->nvecs) % ht->num_buckets;
+  if (newbucket == oldbucket) return;
+
+  /* Remove from old chain */
+  chain_remove(e);
+
+  /* Put in new chain */
+  chain_add(ht, newbucket, e);
+}
+
+static void rebalance(struct iovec_hash * ht) {
+  int bn;
+  struct element * e, * nexte;
+
+  /* Double size of hash table */
+  ht->num_buckets *= 2;
+  ht->buckets = realloc(ht->buckets, sizeof(struct element *) * ht->num_buckets);
+  memset(ht->buckets + (ht->num_buckets / 2), 0, sizeof(struct element *) * (ht->num_buckets / 2));
+
+  /* Relocate everything in first half (the old table) */
+  for (bn = 0; bn < (ht->num_buckets / 2); bn++) {
+	  e = ht->buckets[bn];
+	  if (e) {
+		  e->parent = &(ht->buckets[bn]); /* realloc() may have changed bucket locations */
+	  }
+	  while (e) {
+		  nexte = e->chain;
+		  /* fprintf(stderr, "relocate? bucket %d e %p, next is %p\n", bn, e, nexte); */
+		  relocate(ht, e, bn);
+		  e = nexte;
+	  }
+  }
 }
 
 bytes_boolean bytes_hash_table_getv(struct iovec_hash * ht, struct iovec * vecs, int nvecs, struct element ** oldkey, void ** current) {
@@ -204,17 +261,20 @@ void * bytes_hash_table_setv(struct iovec_hash * ht, struct iovec * keys, int co
 	  return oldval;
   } else {
 	  struct element * e = make_element(ht, keys, count);
-  	  int b = bytes_iovec_hash(ht, keys, count) % ht->num_buckets;
+  	  int b;
+	  
+	  ht->num_elements++;
+	  if (ht->num_elements/ht->num_buckets > MAXAVGCHAIN) {
+		  rebalance(ht);
+	  }
 
-  	  e->parent = &(ht->buckets[b]);
-  	  e->chain = ht->buckets[b];
-	  if (e->chain) e->chain->parent = &(e->chain);
 	  e->value = value;
-  	  ht->buckets[b] = e;
 
-	  /* Do not free element here and only here. */
+	  b = bytes_iovec_hash(ht, keys, count) % ht->num_buckets;
+	  chain_add(ht, b, e);
 
 	  /* fprintf(stderr, "new key created in bucket %d\n", b); */
+
 	  return NULL;
   }
 }
@@ -268,9 +328,9 @@ int bytes_hash_table_get(struct iovec_hash * ht, int keysize, unsigned char * ke
 }
 
 static inline void bytes_hash_table_remove_element(struct iovec_hash * ht, struct element * e) {
-  assert(e->parent);
-  *(e->parent) = e->chain;
+  chain_remove(e);
   free_element(e);
+  ht->num_elements--;
 }
 
 void bytes_hash_table_foreach_remove(struct iovec_hash * ht, ForEachFunc func, void * user_data) {
