@@ -153,7 +153,7 @@ static smacq_result equals_consume(struct state * state, const dts_object * datu
   for (i=0; i < state->numsets; i++) {
     domainv = fields2vec(state->env, datum, &state->sets[i].fieldset);
 
-    if (!domainv) {
+    if (!domainv || !state->sets[i].fieldset.currentdata[0]) {
       //fprintf(stderr, "Skipping datum\n");
       return SMACQ_FREE;
     }
