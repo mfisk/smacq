@@ -15,13 +15,15 @@ struct vphrase newvphrase(char * verb, struct arglist * args) {
 }
 
 void arglist2argv(struct arglist * alist, int * argc, char *** argvp) {
-	int i;
+	int i = 0;
 	char ** argv;
 	struct arglist * al;
 
-	for(i=0, al=alist; al; i++) {
-		al=al->next;
+	/* Count length of list */
+	for(al=alist; al; al=al->next) {
+		i++;
 	}
+
 	argv = malloc(sizeof(char **) * i);
 	*argc = i;
 	*argvp = argv;
@@ -44,6 +46,14 @@ char * arglist2str(struct arglist * alist) {
 
 	for(al=alist; al; al=al->next) {
 		strcatn(argstr, len, al->arg);
+		if (al->isfunc) {
+			char * fargs = arglist2str(al->func_args);
+			len += strlen(fargs) + 2;
+			argstr = realloc(argstr, len);
+			strcatn(argstr, len, "(");
+			strcatn(argstr, len, fargs);
+			strcatn(argstr, len, ")");
+		}
 		strcatn(argstr, len, " ");
 	}
 
@@ -106,7 +116,6 @@ struct graph newgroup(struct group group, struct vphrase vphrase) {
    */
   struct arglist * atail;
   struct graph g = { NULL, NULL};
-  struct arglist * ap;
   int argcont = 0;
   
   if (!group.args) { 
@@ -115,27 +124,23 @@ struct graph newgroup(struct group group, struct vphrase vphrase) {
   }
   
   atail = arglist_append(group.args, newarg("--", 0, NULL));
-  
-  /* Insert function operations */
-  for(ap=vphrase.args; ap; ap=ap->next) {
-    /* fprintf(stderr, "group arg %s isfunc = %d\n", ap->arg, ap->isfunc); */
-    if (ap->isfunc) {
-      if (argcont) 
+ 
+  if (group.having) { 
+    if (argcont) 
 	atail = arglist_append(atail, newarg("|", 0, NULL));
-      atail = arglist_append(atail, newarg(ap->arg, 0, NULL));
-      atail = arglist_append(atail, ap->func_args);
-      ap->isfunc = 0;
-      argcont = 1;
-    }
+    atail = arglist_append(atail, newarg("where", 0, NULL));
+    atail = arglist_append(atail, newarg(print_comparison(group.having), 0, NULL));
+    argcont = 1;
   }
+
   if (argcont) 
-    g = newmodule("groupby", group.args);
-  
-  if (group.having) 
-    graph_join(&g, newmodule("filter", group.having));
-  
-  graph_join(&g, newmodule(vphrase.verb, vphrase.args));
-  
+	atail = arglist_append(atail, newarg("|", 0, NULL));
+
+  atail = arglist_append(atail, newarg(vphrase.verb, 0, NULL));
+  atail = arglist_append(atail, newarg(arglist2str(vphrase.args), 0, NULL));
+
+  g = newmodule("groupby", group.args);
+ 
   return g;
 }
 
@@ -238,6 +243,7 @@ char * opstr(dts_comparison * comp) {
 
   return "[ERR]";
 }
+
 
 /* Caller must free */
 char * print_operand(struct dts_operand * op) {
