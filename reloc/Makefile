@@ -5,4 +5,4 @@ all:
 
 reallyclean: clean
 clean:
-	rm *.so.* *.dylib.* *.la*
+	rm -f *.so.* *.dylib.* *.la*
