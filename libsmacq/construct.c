@@ -84,14 +84,13 @@ static inline void add_parent(struct filter * newo, struct filter * parent) {
  * Add the module specified by argv[0] as a child of parent.
  * Pass argv,argc to the new module
  */
-struct filter * smacq_add_child(struct filter * parent, int argc, char ** argv){
+struct filter * smacq_new_module(int argc, char ** argv){
   struct filter * newo;
 
   newo = g_new0(struct filter, 1);
   newo->name = *argv;
   newo->argv = argv;
   newo->argc = argc;
-  newo->previous = parent;
   newo->ringsize = RINGSIZE;
   newo->q = g_new0(dts_object *, newo->ringsize);
   
@@ -103,25 +102,39 @@ struct filter * smacq_add_child(struct filter * parent, int argc, char ** argv){
   if (!flow_load_module(newo)) {
 	exit(-1);
   }
+  
+  return newo;
+}
+
+int smacq_add_child(struct filter * parent, struct filter * newo) {
     /* Add to dataflow */
 
     if (parent) {
-	parent->next = g_realloc(parent->next, (parent->numchildren+2)*sizeof(struct filter *));
-	parent->next[parent->numchildren++] = newo;
-	parent->next[parent->numchildren] = NULL;
-	// fprintf(stderr, "Added %s(%p) as child of %s\n", newo->name, newo, parent->name);
+      newo->previous = parent;
+      parent->next = g_realloc(parent->next, (parent->numchildren+2)*sizeof(struct filter *));
+      parent->next[parent->numchildren++] = newo;
+      parent->next[parent->numchildren] = NULL;
+      // fprintf(stderr, "Added %s(%p) as child of %s\n", newo->name, newo, parent->name);
+      
+      add_parent(newo, parent);
 
-	add_parent(newo, parent);
+      return (parent->numchildren - 1);
     }
 
-    return newo;
+    return 0;
+}
+
+struct filter * smacq_add_new_child(struct filter * parent, int argc, char ** argv){
+  struct filter * newo = smacq_new_module(argc, argv);
+  smacq_add_child(parent, newo);
+  return newo;
 }
 
 struct filter * smacq_clone_child(struct filter * parent, int child) {
 	int i;
 
 	struct filter * donor = parent->next[child];
-	struct filter * new = smacq_add_child(parent, donor->argc, donor->argv);
+	struct filter * new = smacq_add_new_child(parent, donor->argc, donor->argv);
 
 	// Rejoin
 	new->next = g_new(struct filter *, donor->numchildren);
@@ -137,7 +150,7 @@ struct filter * smacq_clone_tree(struct filter * donorParent, struct filter * ne
 	int i;
 
 	struct filter * donor = donorParent->next[child];
-	struct filter * new = smacq_add_child(newParent, donor->argc, donor->argv);
+	struct filter * new = smacq_add_new_child(newParent, donor->argc, donor->argv);
 
 	new->next = g_new(struct filter *, donor->numchildren);
 	for (i=0; i < donor->numchildren; i++) {
@@ -166,7 +179,7 @@ struct filter * smacq_build_pipeline(int argc, char ** argv) {
     }
 
     //fprintf(stderr, "adding child %s with %d args\n", o_argv[0], o_argc);
-    last = smacq_add_child(last, o_argc, o_argv);
+    last = smacq_add_new_child(last, o_argc, o_argv);
     if (!objs) objs = last;
 
     if (argc && !strcmp(*argv, "|")) {
@@ -221,7 +234,7 @@ struct filter * smacq_build_query(int argc, char ** argv) {
     }
 
     if (f_argv) {
-      last = smacq_add_child(last, f_argc, f_argv);
+      last = smacq_add_new_child(last, f_argc, f_argv);
       if (!objs) objs = last;
     }
 
@@ -233,7 +246,7 @@ struct filter * smacq_build_query(int argc, char ** argv) {
       for (i = 1; i < q_argc; i++) {
 	if ((func = index(q_argv[i], '('))) {
 	  *func = '\0';
-	  last = smacq_add_child(last, 1, q_argv+i);
+	  last = smacq_add_new_child(last, 1, q_argv+i);
 	  if (!objs) objs = last;
 
 	}	
@@ -242,11 +255,11 @@ struct filter * smacq_build_query(int argc, char ** argv) {
 
     if (w_argv) {
       fprintf(stderr, "where %s\n", w_argv[0]);
-      last = smacq_add_child(last, w_argc, w_argv);
+      last = smacq_add_new_child(last, w_argc, w_argv);
       if (!objs) objs = last;
     }
       
-    last = smacq_add_child(last, q_argc, q_argv);
+    last = smacq_add_new_child(last, q_argc, q_argv);
     if (!objs) objs = last;
   }
 
