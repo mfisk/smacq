@@ -57,7 +57,7 @@ inline void groupbyModule::handle_invalidate(DtsObject datum) {
 
   for (i=outTable.begin(); i != outTable.end();) {
     if (i->first.masks(fieldvec)) {
-      sched->shutdown(i->second);
+      sched->do_shutdown(i->second);
       prev = i++;
       outTable.erase(prev);
 /*
@@ -91,7 +91,7 @@ smacq_result groupbyModule::consume(DtsObject datum, int & outchan) {
 groupbyModule::~groupbyModule() {
   OutputsIterator i;
   for (i=outTable.begin(); i != outTable.end(); ++i) {
-    sched->shutdown(i->second);
+    sched->do_shutdown(i->second);
   }
   outTable.clear();
 }
