@@ -24,10 +24,6 @@ static struct smacq_options options[] = {
   {NULL, {NULL}, NULL, 0}
 };
 
-static smacq_result mask_produce(struct state* state, const dts_object ** datum, int * outchan) {
-  return SMACQ_ERROR;
-}
-
 static smacq_result mask_consume(struct state * state, const dts_object * datum, int * outchan) {
   const dts_object * field;
   in_addr_t f;
@@ -114,7 +110,7 @@ static int mask_shutdown(struct state * state) {
 }
 
 struct smacq_functions smacq_mask_table = {
-	produce: &mask_produce, 
+	produce: NULL,
 	consume: &mask_consume,
 	init: &mask_init,
 	shutdown: &mask_shutdown,
