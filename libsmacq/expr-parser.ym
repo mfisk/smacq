@@ -5,7 +5,7 @@
      #define    yymaxdepth yyexprmaxdepth
      #define    yyparse yyexprparse
      #define    yylex   yyexprlex
-     #define    yyerror yyexprerror
+     //#define    yyerror yyexprerror
      #define    yylval  yyexprlval
      #define    yychar  yyexprchar
      #define    yydebug yyexprdebug
