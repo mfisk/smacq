@@ -332,7 +332,7 @@ smacq_graph * smacq_merge_graphs(smacq_graph * g) {
   smacq_graph * ap, * prev;
   smacq_graph * candidate;
 
-#if defined(SMACQ_DEBUG) && !defined(SMACQ_NO_OPT)
+#if defined(SMACQ_DEBUG2) && !defined(SMACQ_NO_OPT)
   smacq_graphs_print(stderr, g, 8);
 #endif
 
