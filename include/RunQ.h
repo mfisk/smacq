@@ -56,7 +56,11 @@ inline struct qel * runq::insertion_point(SmacqGraph * f, enum action action) {
     // Find an action for this element
     for (el = head; el != tail; el = el->next) {
       if (el->f == f) {
-	return insert_before(el);
+	if (el == head) {
+		return (head = insert_before(el));
+	} else {
+		return insert_before(el);
+  	}
       }
     }
   } else {
