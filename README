@@ -3,45 +3,35 @@
 
 Quick & Dirty:
 --------------
-Type "make".
+Type "make".  If everything works, you will have a "bin/smacqq" executable.
 
-This will make a build directory and a subdirectory for the platform
-you are building in.  In that directory, configure will be run and SMACQ
-will be built.
-
-Why not run ./configure like a normal package?
-----------------------------------------------
-You can, but the results will be built in the source tree (as you
-probably expect).  This prevents you from using the same directory 
-tree to build on multiple platforms.  We automate the "vpath trick" 
-so you don't have to.
-
-How do I pass configure options?
---------------------------------
-Set them in the CONFIG environment variable before running make:
-	CONFIG="--with-ethereal" make
-	CONFIG="--enable-debug" make
-	CONFIG="--enable-profile --enable-debug" make
 
 Supported Platforms:
 --------------------
-Debian GNU/Linux is the development platform.  SMACQ has been built
-on Linux, FreeBSD, and MacOS/X + Fink.  
+Debian GNU/Linux and MacOS/X + Fink are the primary development platforms.  
+SMACQ has also been built on FreeBSD and various buggy versions of RedHat.
+GCC 3.3 is the compiler we usually use.
 
 Optional functionality:
 -----------------------
-The packet data-type can use Ethereal's EPAN system for decoding a 
-multitude of protocols.  This optional functionality can be included 
-using the following syntax:
-	rm -Rf build 
-	CONFIG="--with-ethereal" make 
+SMACQ can build with the following optional functionality:
 
-Troubleshooting:
-----------------
-If you have any problems with the build procedure, you may have gotten
-a package with some out of date files.  Type "make bootstrap" and try
-again.  Note that you will neet autoconf, automake, libtool, etc. installed
-in order to "make bootstrap".
+- Python integration
+	The "python" module allows you to write SMACQ modules in Python
+	instead of C++.  This module is automatically built if Python
+	libraries are detected.
+
+- libgda database integration
+	This provides the "sqlinsert" module that allows you to insert
+	data into various databases (SQLlite, MySQL, Postgres, etc.).
+	configure automatically builds in libgda support if the
+	appropriate libraries are installed on your system:
+		Debian: libgda-dev gda-sqlite
+
+- Ethereal integration
+	The packet data-type can use Ethereal's EPAN system for decoding a 
+	multitude of protocols.  This optional functionality can be included 
+	using the "--with-ethereal" configure option.
 
 =============================================================================
 			PREREQUISITES
@@ -54,55 +44,27 @@ and execute this package:
 		g++ gcc \
 		zlib1g zlib1g-dev \
 		libglib2.0 libglib2.0-dev \
-		libpcap0 libpcap-dev \
-		libgda-dev gda-sqlite \
-		libtool groff #python2.2-dev 
+		libpcap0 libpcap-dev 
 
 Red Hat Linux:
 --------------
-The following packages are required:
+If you can figure out how to install the following packages on Red Hat, 
+more power to you:
 	glib2-devel
-	...
 
 MacOS/X - Fink:
 ----------------
 Run the following command to install the Fink packages require to compile
 and execute this package:
 	apt-get install \
-		pkgconfig dlcompat zlib glib2-dev libpcap libpcap-shlibs \
-		libtool groff #python  
+		pkgconfig dlcompat zlib glib2-dev libpcap libpcap-shlibs
 
 FreeBSD:
 --------
 Run the following commands to install the necessary packages:
-	pkg_add -r gmake libtool bison
+	pkg_add -r gmake 
 	make -C /usr/ports/devel/glib20 install
 
-=============================================================================
-		   	    MISCELLANEOUS NOTES
-
-To force the regeneration of intermediate files from SGML, Bison, and Flex run 
-the following command:
-	make reallyclean
-
-To run the regression tests:
-	make test
-
-To only see warning output (less verbose):
-	make warn
-
-To generate documentation:
-	make dist
-
-=============================================================================
-				BUGS
-
-The following version dependencies exist for developers.  If you are
-just building a tarball, you shouldn't care:
-
-The grammer builds but doesn't seem to work correctly with Bison 1.35.  
-Bison 1.75 does work.  If automake 1.4 is used, the build will not succeed.  Automake 1.7 and 1.9 are known to work.
-	
 =============================================================================
 See http://smacq.sf.net/ for more information.
 
