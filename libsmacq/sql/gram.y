@@ -170,8 +170,9 @@ static Node *makeSetOp(SetOperation op, bool all, Node *larg, Node *rarg);
 
 %type <str>		select_word
 %type <node>		data_func
-//%type <str>		pcapfile, pcaplive
-//%type <str>		smacq_data_reader, smacq_param_list, smacq_param
+
+%type <node>	option
+%type <list>	option_list
 
 /*
  * If you make any token changes, remember to:
@@ -203,7 +204,8 @@ static Node *makeSetOp(SetOperation op, bool all, Node *larg, Node *rarg);
 		USING,
 		WHERE,
 
-		DELTA, UNIQ, TOP, LAST, SPLIT, COUNTER, PCAPFILE, PCAPLIVE
+		DELTA, UNIQ, TOP, LAST, SPLIT, COUNTER, 
+		DERIVATIVE, PCAPFILE, PCAPLIVE
 
 /* Special keywords, not in the query language - see the "lex" file */
 %token <str>	IDENT, FCONST, SCONST, BITCONST, Op
@@ -362,7 +364,30 @@ select_clause: simple_select
  * However, this is not checked by the grammar; parse analysis must check it.
  */
 simple_select: 
-			 //IDENT opt_distinct target_list
+			 select_word option_list opt_distinct target_list
+			 from_clause where_clause
+			 group_clause
+				{
+					SelectStmt *n = makeNode(SelectStmt);
+					if (strcmp($1, "print") == 0) {
+					  n->isPrint = TRUE;
+					}
+					else {
+					  n->isPrint = FALSE;
+					}
+					n->functionname = $1;
+					n->optionList = $2;
+					n->distinctClause = $3;
+					n->targetList = $4;
+					n->fromClause = $5;
+					n->whereClause = $6;
+					n->groupClause = $7;
+					$$ = (Node *)n;
+				}
+		;
+
+/*****
+simple_select: 
 			 select_word opt_distinct target_list
 			 from_clause where_clause
 			 group_clause
@@ -383,6 +408,7 @@ simple_select:
 					$$ = (Node *)n;
 				}
 		;
+*****/
 
 select_word: SELECT								{ $$ = "select"; }
 		| PRINT									{ $$ = "print"; }
@@ -391,10 +417,16 @@ select_word: SELECT								{ $$ = "select"; }
 		| LAST									{ $$ = "last"; }
 		;
 
-/***
-select_word: IDENT								{ $$ = $1; }
+option_list: option_list option
+				{	$$ = lappend($1, $2);  }
+		| option
+				{	$$ = makeList1($1);  }
+		| //EMPTY
+				{ $$ = NIL; }
 		;
-***/
+
+option: AexprConst									{ $$ = (Node *)$1; }
+		;
 
 opt_all:  ALL									{ $$ = TRUE; }
 		| /*EMPTY*/								{ $$ = FALSE; }
@@ -1030,6 +1062,17 @@ target_el:	a_expr
 					$$->indirection = NULL;
 					$$->val = (Node *)$1;
 				}
+		| Sconst 
+				{
+					$$ = makeNode(ResTarget);
+					$$->name = NULL;
+					$$->indirection = NULL;
+					$$->val = (Node *)$1;
+					//Ident *n = makeNode(Ident);
+					//n->name = $1;
+					//n->indirection = $2;
+					//$$ = (Node *)n;
+				}
 		| relation_name '.' '*'
 				{
 					Attr *att = makeNode(Attr);
@@ -1182,6 +1225,7 @@ ColLabel:  IDENT						{ $$ = $1; }
 
 func_name_keyword:
 		  COUNTER							{ $$ = "counter"; }
+		| DERIVATIVE						{ $$ = "derivative"; }
 		| PCAPFILE							{ $$ = "pcapfile"; }
 		| PCAPLIVE							{ $$ = "pcaplive"; }
 		| SPLIT							{ $$ = "split"; }

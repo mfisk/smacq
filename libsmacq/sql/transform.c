@@ -36,15 +36,15 @@ int yydebug = 1;
 struct filter * transformStmt(List *);
 int transformSelectStmt(SelectStmt *);
 
-char * cmd_array[30]; // TBD
+char * cmd_array[50]; // TBD
 int curr_idx;
-char * from_array[30]; // TBD
+char * from_array[50]; // TBD
 int curr_from_idx;
-char * non_annot_array[30]; // TBD
+char * non_annot_array[50]; // TBD
 int curr_non_annot_idx;
-char * print_array[30]; // TBD
+char * print_array[50]; // TBD
 int curr_print_idx;
-char * final_array[100]; // TBD
+char * final_array[200]; // TBD
 int curr_final_idx;
 
 int func_list_count;
@@ -556,6 +556,7 @@ int transformTargetList(SelectStmt * stmt, list * func_list)
   list_item * li;
   list * arg_list;
   List * target_list = stmt->targetList;
+  List * option_list = stmt->optionList; //eg. uniq -m 100
   bool isPrint = stmt->isPrint;
   bool isSelect = strcmp(stmt->functionname, "select") == 0;
   char * fn = stmt->functionname;
@@ -570,6 +571,34 @@ int transformTargetList(SelectStmt * stmt, list * func_list)
   }
   else if (! isSelect) { // uniq, etc.
 	append_non_annot_array(fn);
+
+    while (option_list != NIL) {
+	  A_Const * arg = (A_Const *)lfirst(option_list);
+	  char * option;
+#ifdef SM_DEBUG
+        fprintf(stderr, "Found Option: option type = %i\n", ((A_Const *)arg)->val.type);
+#endif
+      switch (arg->val.type) {
+		case T_String: {
+	      option = arg->val.val.str;
+          break;
+		}
+		case T_Integer: {
+		  char opt[12];
+		  sprintf(opt, "%i", arg->val.val.ival);
+		  option = opt;
+          break;
+		}
+		default: {
+          break;
+		}
+	  }
+#ifdef SM_DEBUG
+      fprintf(stderr, "Found Option A_Const: option = %s\n", option);
+#endif
+	  append_non_annot_array(option);
+      option_list = lnext(option_list);
+	}
   }
 
   while (target_list != NIL) {

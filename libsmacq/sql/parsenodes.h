@@ -7,7 +7,7 @@
  * Portions Copyright (c) 1996-2001, PostgreSQL Global Development Group
  * Portions Copyright (c) 1994, Regents of the University of California
  *
- * $Id: parsenodes.h,v 1.1 2002/10/30 17:39:26 wbarber Exp $
+ * $Id: parsenodes.h,v 1.2 2002/12/10 22:34:47 wbarber Exp $
  *
  *-------------------------------------------------------------------------
  */
@@ -878,6 +878,7 @@ typedef struct SelectStmt
 	/*
 	 * These fields are used only in "leaf" SelectStmts.
 	 */
+    List	   *optionList;     /* wbarber - extentions for SMACQ func flags */
 	List	   *distinctClause; /* NULL, list of DISTINCT ON exprs, or
 								 * lcons(NIL,NIL) for all (SELECT
 								 * DISTINCT) */
