@@ -29,3 +29,6 @@ core
 *.sw?
 build
 smacq.iso
+config.log
+Makefile
+aclocal.m4
