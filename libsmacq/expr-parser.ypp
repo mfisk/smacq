@@ -5,7 +5,7 @@
      #define    yymaxdepth yyexprmaxdepth
      #define    yyparse yyexprparse
      #define    yylex   yyexprlex
-     #define    yyerror yyexprerror
+     //#define    yyerror yyexprerror
      #define    yylval  yyexprlval
      #define    yychar  yyexprchar
      #define    yydebug yyexprdebug
@@ -80,6 +80,7 @@ void yyexprerror(char*);
 %token AS
 %token HAVING
 %token UNION
+%token UNTIL
 %token YYSTRING YYID YYNUMBER
 %token YYNEQ YYLEQ YYGEQ
 
@@ -108,6 +109,7 @@ void yyexprerror(char*);
   enum dts_arith_operand_type arithop;
   dts_comparison * comp;
   struct dts_operand * operand;
+  joinlist * join_list;
 }
 %%
 

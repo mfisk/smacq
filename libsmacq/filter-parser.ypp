@@ -5,7 +5,7 @@
      #define    yymaxdepth yyfiltermaxdepth
      #define    yyparse yyfilterparse
      #define    yylex   yyfilterlex
-     #define    yyerror yyfiltererror
+     //#define    yyerror yyfiltererror
      #define    yylval  yyfilterlval
      #define    yychar  yyfilterchar
      #define    yydebug yyfilterdebug
@@ -47,9 +47,7 @@
 dts_comparison * Comp;
 #define yyfilterlex yysmacql_lex
 extern int yylex();
-void yyerror(char * msg);
 %}
-
 /*
  * BUGS:
  *
@@ -81,6 +79,7 @@ void yyerror(char * msg);
 %token AS
 %token HAVING
 %token UNION
+%token UNTIL
 %token YYSTRING YYID YYNUMBER
 %token YYNEQ YYLEQ YYGEQ
 
@@ -109,6 +108,7 @@ void yyerror(char * msg);
   enum dts_arith_operand_type arithop;
   dts_comparison * comp;
   struct dts_operand * operand;
+  joinlist * join_list;
 }
 %%
 
@@ -233,11 +233,4 @@ booleanline: boolean YYSTOP 	{
   #warning "No PTHREAD_MUTEX_INITIALIZER"
 #endif
 #endif
-
-void yyfiltererror(char * msg) {
-  fprintf(stderr, "Error: %s near %s\n", msg, yytext);
-  //exit(-1);
-}
-
-
 
