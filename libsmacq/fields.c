@@ -4,6 +4,15 @@
 #include <sys/uio.h>
 #include <stdio.h>
 
+int iovec_has_undefined(struct iovec * iov, int nvecs) {
+  int i;
+  for(i=0; i<nvecs; i++) {
+    if (iov[i].iov_len == 0) return 1;
+  }
+
+  return 0;
+}
+
 void fields_init(smacq_environment * env, struct fieldset * fieldset, int argc, char ** argv) {
   fieldset->fields = g_new(struct field, argc);
 
@@ -35,10 +44,7 @@ static const dts_object ** fields2data(smacq_environment * env,
     if (datalist[i]) 
       dts_decref(datalist[i]);
 
-    if (! (datalist[i] = smacq_getfield(env, datum, f->num, NULL))) {
-      //fprintf(stderr, "Debug: uniq: no %s field in this datum of type %s\n", f->name, env->typename_bynum(datum->type));
-      return NULL;
-    }
+    datalist[i] = smacq_getfield(env, datum, f->num, NULL);
 
     //fprintf(stderr, "Field %s len %d\n", f->name, f->len);
   }
@@ -52,6 +58,7 @@ struct iovec * fields2vec(smacq_environment * env,
   struct iovec * exlist;
   int i;
 
+  /* Initialize fieldset->currentdata[] */
   if (!fields2data(env, datum, fieldset)) 
 	  return NULL;
 
@@ -61,8 +68,12 @@ struct iovec * fields2vec(smacq_environment * env,
   exlist = fieldset->currentvecs;
 
   for (i = 0; i < fieldset->num; i++) {
-    exlist[i].iov_len = fieldset->currentdata[i]->len;
-    exlist[i].iov_base = fieldset->currentdata[i]->data;
+    if (fieldset->currentdata[i]) {
+    	exlist[i].iov_len = fieldset->currentdata[i]->len;
+    	exlist[i].iov_base = fieldset->currentdata[i]->data;
+    } else {
+	exlist[i].iov_len = 0;
+    }
   }
 
   return exlist;
