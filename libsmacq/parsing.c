@@ -254,6 +254,24 @@ char * print_operand(struct dts_operand * op) {
   }
 }
 
+static char * qstrcatn(char * dst, int bufsize, const char * src) {
+	int left = strlen(dst);
+	dst += left;
+
+	left = left - bufsize - 1;
+	while (left && (src[0] != '\0')) {
+		if (src[0] == '\"') {
+			*dst++ = '\\';
+			left--;
+			if (!left) break;
+		}
+		*dst++ = *src++;
+		left--;
+	}
+
+	dst[0] = '\0';
+}
+
 char * print_comparison(dts_comparison * comp) {
   int size = 30;
   char * buf = NULL;
@@ -267,12 +285,14 @@ char * print_comparison(dts_comparison * comp) {
   switch(comp->op) {
 	case FUNC:
 	  	for (i=0; i<comp->func.argc; i++)
-    			size += strlen(comp->func.argv[i])+2;
+    			size += 2*strlen(comp->func.argv[i])+4;
   		buf = malloc(size);
     		snprintf(buf, size, "%s(", comp->func.name);
     		for (i=0; i<comp->func.argc; i++) {
-			if (i) strcatn(buf, size, ", ");
-    			strcatn(buf, size, comp->func.argv[i]);
+			if (i) strcatn(buf, size, ",");
+			strcatn(buf, size, "\"");
+    			qstrcatn(buf, size, comp->func.argv[i]);
+			strcatn(buf, size, "\"");
     		}
     		strcatn(buf, size, ")");
 		break;
@@ -293,15 +313,15 @@ char * print_comparison(dts_comparison * comp) {
 	  strcpy(buf, "NOT ( ");
 	  strcatn(buf, size, b);
 	  free(b);
-	  strcatn(buf, size, " )");
 	  break;
 	  
   	case AND:
-                   case OR:
-                       buf = malloc(100);
-	    buf[0] = '\0';
+        case OR:
+          buf = malloc(100);
+	  buf[0] = '\0';
 
-    		for (c = comp->group; c; c=c->next) {
+	  strcatn(buf, size, "( ");
+    			for (c = comp->group; c; c=c->next) {
       			assert(c);
       			b = print_comparison(c);
       			size += strlen(b) + 6;
@@ -317,6 +337,7 @@ char * print_comparison(dts_comparison * comp) {
 				}
       			}
     		}
+		strcatn(buf, size, " )");
 		break;
 
 	default:
@@ -370,8 +391,11 @@ struct graph optimize_bools(dts_comparison * comp) {
  
   for(c=comp; c; c = c->next) {
     if (c->op == AND) {
-      assert (! "untested");
-      graph_join(&g, optimize_bools(c->group));
+      dts_comparison * p;
+
+      for (p=c->group; p; p=p->next) {
+	graph_join(&g, optimize_bools(c->group));
+      }
     } else if (c->op == FUNC) {
       graph_join(&g, newmodule(c->func.name, c->func.arglist));
     } else if (c->op == OR) {
@@ -403,17 +427,47 @@ struct graph optimize_bools(dts_comparison * comp) {
   return g;
 }
 
-dts_comparison * comp_join(dts_comparison * lh, dts_comparison * rh, dts_compare_operation opcode) {
+static dts_comparison * comp_join_andor(dts_comparison * lh, dts_comparison * rh, dts_compare_operation opcode) {
   dts_comparison * ret = NULL;
 
-  if (opcode == AND) {
     if (!lh) return rh;
     if (!rh) return lh;
 
-    ret = lh;
-    for (; lh->next; lh=lh->next) ;
-    
-    lh->next = rh;
+    if (lh->op == opcode && rh->op == opcode) {
+      ret = lh;
+      for (lh=lh->group; lh->next; lh=lh->next) ;
+      lh->next = rh->group;
+      /* rh is now abandoned and can be freed */
+
+    } else if (lh->op == opcode && !rh->next) {
+      ret = lh;
+      for (lh=lh->group; lh->next; lh=lh->next) ;
+      lh->next = rh;
+
+    } else if (rh->op == opcode && !lh->next) {
+      ret = rh;
+      lh->next = rh->group;
+      rh->group = lh;
+
+    } else {
+      assert(!lh->next);
+      assert(!rh->next);
+
+      ret = calloc(1,sizeof(dts_comparison));
+      ret->op = opcode;
+      ret->group = lh;
+      lh->next = rh;
+    }
+
+    return ret;
+}
+ 
+dts_comparison * comp_join(dts_comparison * lh, dts_comparison * rh, dts_compare_operation opcode) {
+  dts_comparison * ret = NULL;
+
+  if (opcode == AND || opcode == OR) {
+    return comp_join_andor(lh, rh, opcode);
+
   } else if (opcode == NOT) {
     assert(!rh);
     assert(lh);
@@ -421,31 +475,7 @@ dts_comparison * comp_join(dts_comparison * lh, dts_comparison * rh, dts_compare
     ret->op = NOT;
     ret->group = lh;
     ret->next = NULL;
-  } else if (opcode == OR) {
-    dts_comparison * left, * right;
 
-    if (!lh) return rh;
-    if (!rh) return lh;
-
-    if (lh->next) {
-      left = calloc(1,sizeof(dts_comparison));
-      left->op = AND;
-      left->group = lh;
-    } else {
-      left = lh;
-    }
-    if (rh->next) {
-      right = calloc(1,sizeof(dts_comparison));
-      right->op = AND;
-      right->group = rh;
-    } else {
-      right = rh;
-    }
-    
-    ret = calloc(1,sizeof(dts_comparison));
-    ret->op = OR;
-    ret->group = left;
-    left->next = right;
   } else {
     assert(!"Shouldn't get here!");
   }
