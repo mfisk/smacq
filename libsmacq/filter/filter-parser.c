@@ -1,4 +1,4 @@
-/* A Bison parser, made from /home/mfisk/smacq/libsmacq/filter/filter-parser.y, by GNU bison 1.75.  */
+/* A Bison parser, made from /usr/home/mfisk/smacq/libsmacq/filter/filter-parser.y, by GNU bison 1.75.  */
 
 /* Skeleton parser for Yacc-like parsing with Bison,
    Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002 Free Software Foundation, Inc.
@@ -98,12 +98,13 @@
 
 
 /* Copy the first part of user declarations.  */
-#line 4 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 4 "/usr/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
 
 #include <smacq.h>
 static dts_comparison * Comp;
-#define yyfilterlex yylex
-#line 29 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+extern char * yysmacql_text;
+#define yyfilterlex yysmacql_lex
+#line 30 "/usr/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
 
 
 #include <smacq-parser.h>
@@ -126,7 +127,7 @@ static dts_comparison * Comp;
 #endif
 
 #ifndef YYSTYPE
-#line 56 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 57 "/usr/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
 typedef union {
   struct graph graph;
   struct arglist * arglist;
@@ -136,8 +137,8 @@ typedef union {
   dts_compare_operation op;
   dts_comparison * comp;
 } yystype;
-/* Line 193 of /usr/share/bison/yacc.c.  */
-#line 141 "/home/mfisk/smacq/libsmacq/filter/filter-parser.c"
+/* Line 193 of /usr/local/share/bison/yacc.c.  */
+#line 142 "/usr/home/mfisk/smacq/libsmacq/filter/filter-parser.c"
 # define YYSTYPE yystype
 # define YYSTYPE_IS_TRIVIAL 1
 #endif
@@ -157,8 +158,8 @@ typedef struct yyltype
 /* Copy the second part of user declarations.  */
 
 
-/* Line 213 of /usr/share/bison/yacc.c.  */
-#line 162 "/home/mfisk/smacq/libsmacq/filter/filter-parser.c"
+/* Line 213 of /usr/local/share/bison/yacc.c.  */
+#line 163 "/usr/home/mfisk/smacq/libsmacq/filter/filter-parser.c"
 
 #if ! defined (yyoverflow) || YYERROR_VERBOSE
 
@@ -336,10 +337,10 @@ static const yysigned_char yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const unsigned char yyrline[] =
 {
-       0,    67,    67,    70,    71,    74,    77,    78,    79,    82,
-      83,    86,    87,    90,    93,    94,    97,    98,   101,   102,
-     105,   112,   113,   114,   115,   118,   119,   120,   128,   129,
-     130,   131,   132,   133,   134,   139
+       0,    68,    68,    71,    72,    75,    78,    79,    80,    83,
+      84,    87,    88,    91,    94,    95,    98,    99,   102,   103,
+     106,   113,   114,   115,   116,   119,   120,   121,   129,   130,
+     131,   132,   133,   134,   135,   140
 };
 #endif
 
@@ -1013,92 +1014,92 @@ yyreduce:
   switch (yyn)
     {
         case 5:
-#line 74 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 75 "/usr/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
     { yyval.string = yystring; }
     break;
 
   case 6:
-#line 77 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 78 "/usr/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
     { yyval.string = yystring; }
     break;
 
   case 7:
-#line 78 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 79 "/usr/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
     { yyval.string = "or"; }
     break;
 
   case 8:
-#line 79 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 80 "/usr/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
     { yyval.string = "and"; }
     break;
 
   case 10:
-#line 83 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 84 "/usr/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
     { yyval.arglist->rename = yyvsp[0].string; }
     break;
 
   case 11:
-#line 86 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 87 "/usr/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
     { yyval.arglist = newarg(yyvsp[0].string, 0, NULL); }
     break;
 
   case 12:
-#line 87 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 88 "/usr/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
     { yyval.arglist = newarg(yyvsp[-3].string, 1, yyvsp[-1].arglist); }
     break;
 
   case 14:
-#line 93 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 94 "/usr/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
     { yyval.arglist = yyvsp[-3].arglist; yyval.arglist->next = yyvsp[-1].arglist; yyvsp[-1].arglist->next = yyvsp[0].arglist; }
     break;
 
   case 16:
-#line 97 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 98 "/usr/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
     { yyval.arglist = NULL; }
     break;
 
   case 17:
-#line 98 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 99 "/usr/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
     { yyval.arglist = yyvsp[-1].arglist; yyval.arglist->next = yyvsp[0].arglist; }
     break;
 
   case 18:
-#line 101 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 102 "/usr/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
     { yyval.arglist = NULL; }
     break;
 
   case 19:
-#line 102 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 103 "/usr/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
     { yyval.arglist = yyvsp[-1].arglist; yyval.arglist->next = yyvsp[0].arglist; }
     break;
 
   case 21:
-#line 112 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 113 "/usr/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
     { yyval.comp = yyvsp[-1].comp; }
     break;
 
   case 22:
-#line 113 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 114 "/usr/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
     { yyval.comp = comp_join(yyvsp[-2].comp, yyvsp[0].comp, 1); }
     break;
 
   case 23:
-#line 114 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 115 "/usr/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
     { yyval.comp = comp_join(yyvsp[-2].comp, yyvsp[0].comp, 0); }
     break;
 
   case 25:
-#line 118 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 119 "/usr/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
     { yyval.comp = comp_new(yyvsp[0].string, EXIST, NULL, 0); }
     break;
 
   case 26:
-#line 119 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 120 "/usr/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
     { yyval.comp = comp_new(yyvsp[-2].string, yyvsp[-1].op, &(yyvsp[0].string), 1); }
     break;
 
   case 27:
-#line 120 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 121 "/usr/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
     {
 					int argc; char ** argv;
 					arglist2argv(yyvsp[-1].arglist, &argc, &argv);
@@ -1108,42 +1109,42 @@ yyreduce:
     break;
 
   case 28:
-#line 128 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 129 "/usr/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
     { yyval.op = EQ; }
     break;
 
   case 29:
-#line 129 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 130 "/usr/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
     { yyval.op = GT; }
     break;
 
   case 30:
-#line 130 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 131 "/usr/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
     { yyval.op = LT; }
     break;
 
   case 31:
-#line 131 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 132 "/usr/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
     { yyval.op = GEQ; }
     break;
 
   case 32:
-#line 132 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 133 "/usr/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
     { yyval.op = LEQ; }
     break;
 
   case 33:
-#line 133 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 134 "/usr/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
     { yyval.op = NEQ; }
     break;
 
   case 34:
-#line 134 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 135 "/usr/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
     { yyval.op = LIKE; }
     break;
 
   case 35:
-#line 139 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 140 "/usr/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
     {
 					Comp = yyvsp[-1].comp;
 					return 0;
@@ -1153,8 +1154,8 @@ yyreduce:
 
     }
 
-/* Line 1016 of /usr/share/bison/yacc.c.  */
-#line 1158 "/home/mfisk/smacq/libsmacq/filter/filter-parser.c"
+/* Line 1016 of /usr/local/share/bison/yacc.c.  */
+#line 1159 "/usr/home/mfisk/smacq/libsmacq/filter/filter-parser.c"
 
   yyvsp -= yylen;
   yyssp -= yylen;
@@ -1373,11 +1374,11 @@ yyreturn:
 }
 
 
-#line 145 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 146 "/usr/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
 
 
 static dts_environment * tenv;
-extern void yy_scan_string(char *);
+extern void yysmacql_scan_string(char *);
 
 #ifdef PTHREAD_MUTEX_INITIALIZER
   static pthread_mutex_t local_lock = PTHREAD_MUTEX_INITIALIZER;
@@ -1453,7 +1454,7 @@ dts_comparison * dts_parse_tests(dts_environment * localtenv, int argc, char ** 
   	strcatn(qstr, size, argv[i]);
   	strcatn(qstr, size, " ");
   }
-  yy_scan_string(qstr);
+  yysmacql_scan_string(qstr);
   //fprintf(stderr, "parsing filter buffer: %s\n", qstr); 
 
   if (yyfilterparse()) {
@@ -1470,8 +1471,8 @@ dts_comparison * dts_parse_tests(dts_environment * localtenv, int argc, char ** 
   return retval;
 }
 
-void yyerror(char * msg) {
-  fprintf(stderr, "Error: %s near %s\n", msg, yytext);
+void yyfiltererror(char * msg) {
+  fprintf(stderr, "Error: %s near %s\n", msg, yysmacql_text);
   //exit(-1);
 }
 
