@@ -439,8 +439,10 @@ static inline void smacq_produce_enqueue(struct smacq_outputq ** qp, const dts_o
   nq->next = NULL;
 
   if (!*qp) {
+  	  fprintf(stderr, "q %p as head\n", nq);
 	  *qp = nq;
   } else {
+  	  fprintf(stderr, "q %p after %p\n", nq, (*qp)->end);
 	  (*qp)->end->next = nq;
   }
 
@@ -456,12 +458,15 @@ static inline smacq_result smacq_produce_dequeue(struct smacq_outputq ** qp, con
 
   *o = head->o;
   *outchan = head->outchan;
-
   *qp = head->next;
-  if (*qp)
-  	(*qp)->end = head->end;
+
+  if (head->next) {
+  	  (*qp)->end = head->end;
+  }
 
   free(head);
+
+  //fprintf(stderr, "popped %p leaving %p\n", head, *qp);
 
   if (*qp) {
 	  return SMACQ_PASS|SMACQ_PRODUCE;
