@@ -19,4 +19,4 @@ flowtype_packet.so: ../include/dts_packet.h
 	$(LIBTOOL) $(CC) -c $(CFLAGS) $<
 
 dts_%.la: %.lo 
-	$(LIBTOOL) $(CC) -module -o $@ $(LDFLAGS) -lc $<
+	$(LIBTOOL) $(CC) -module -rpath /usr/local/lib -o $@ $(LDFLAGS) -lc $<

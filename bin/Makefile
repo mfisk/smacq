@@ -5,7 +5,7 @@ BUILTINS=../modules/libsmacq-modules.lo ../types/libdts-modules.lo
 DYNAMIC_LDFLAGS=$(LIBSMACQ) -lpthread -lz -lm -ldl -lpcap ../libsmacq/libsmacq.la -lgmodule-2.0 -lglib-2.0 #-lutil
 LDFLAGS=$(CFLAGS) $(LDOPTS) -export-dynamic $(DYNAMIC_LDFLAGS)
 
-PRODUCTS=smacqp smacqq iterative-example
+PRODUCTS=smacqp smacqq iterative-example	smacqp-dynamic
 
 all: $(PRODUCTS)
 

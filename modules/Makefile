@@ -4,7 +4,7 @@
 CFLAGS=-g -Wall -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I../include $(COPTS)
 
 LDFLAGS=$(LDOPTS)
-SO_LDFLAGS=-L../libsmacq -lsmacq -lpcap -lz -lglib-2.0 -lpython2.2 -lgmodule-2.0 -L. -lsnort
+SO_LDFLAGS=-L../libsmacq -lsmacq -lpcap -lz -lglib-2.0 -lpython2.2 -lgmodule-2.0 -L. #-lsnort
 STATIC_LDFLAGS=-L../contrib -L/usr/lib/python2.2/config -lpython2.2 -lpcap -lz
 
 BUILTIN_MODULES=pcaplive pcapfile print socket uniq counter last top head intervals filter msgtest entropy derivative split encrypt warden pdf fifo delta tabularinput sync rusage groupby flowid sum fifodelay
@@ -28,7 +28,7 @@ SNORT_OBJS = $(SNORT_HOME)/*.lo
 $(SNORT_HOME):
 	make -C ../contrib $(SNORT_VERSION)
 
-libsmacq-modules.lo: $(MODULES_SHOBJS) 
+libsmacq-modules.lo: $(MODULES_OBJS) 
 	$(LIBTOOL) $(CC) -o $@ $+ 
 
 smacq-modules.off.a: modules-pass1.la
@@ -66,5 +66,5 @@ python.lo: python.c ../include/smacq.h
 	$(LIBTOOL) $(CC) -c $(CFLAGS) -I/usr/include/python2.2 $<
 
 smacq_%.la: %.lo
-	$(LIBTOOL) $(CC) -module $(LDFLAGS) -o $@ $(SO_LDFLAGS) $+
+	$(LIBTOOL) $(CC) -module -rpath /usr/local/lib $(LDFLAGS) -o $@ $(SO_LDFLAGS) $+
 
