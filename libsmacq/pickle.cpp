@@ -20,7 +20,7 @@ struct pickle {
   GArray * source;
 };
 
-static int receive_it(int fd, void * space, int size) {
+static int receive_it(int fd, unsigned char * space, int size) {
   int current;
   int total = 0;
   while (1) {
@@ -38,11 +38,11 @@ static int receive_it(int fd, void * space, int size) {
   }
 }
 
-static int send_it(int fd, void * space, int size) {
+static int send_it(int fd, unsigned char * space, int size) {
   int current;
   int total = 0;
   while (1) {
-    current = write(fd, space+total, size - total);
+    current = write(fd, space + total, size - total);
     if (current <= 0) {
       if (current < 0) 
 	if (errno == EINTR) continue;
@@ -63,7 +63,7 @@ struct pickle * pickle_init(void) {
 }
 
 static GArray ** getsmap(struct pickle * pickle, int fd) {
-  if (fd > pickle->source->len) 
+  if (fd > (int)pickle->source->len) 
     pickle->source = g_array_set_size(pickle->source, fd+1);
 
   return(&g_array_index(pickle->source, GArray*, fd));
@@ -107,10 +107,10 @@ int DTS::pickle_addnewtype(char * name, int extnum, struct pickle * pickle, int 
 }
 
 int DTS::pickle_getnewtype(int fd, struct sockdatum * hdr, struct pickle * pickle) {
-  char *name;
+  unsigned char *name;
   int temp;
   
-  name = (char*)calloc(hdr->namelen + 1,1);
+  name = (unsigned char*)calloc(hdr->namelen + 1,1);
   if ((temp = receive_it(fd, name, hdr->namelen)) <= 0) {   
     if (temp < 0) fprintf(stderr,"Error receiving new type, closing client\n");
     else fprintf(stderr,"Error: New type, no typename sent, closing client\n");
@@ -120,7 +120,7 @@ int DTS::pickle_getnewtype(int fd, struct sockdatum * hdr, struct pickle * pickl
   //fprintf(stderr,"New type %d -> %s, %d, %d\n", hdr->datum.type, name, env->typenum_byname("packet"), strcmp("packet", name));
   
 
-  pickle_addnewtype(name, hdr->datum->gettype(), pickle, fd);
+  pickle_addnewtype((char*)name, hdr->datum->gettype(), pickle, fd);
   free(name);
   return 0;
 }
@@ -129,7 +129,7 @@ int DTS::pickle_getnewtype(int fd, struct sockdatum * hdr, struct pickle * pickl
 DtsObject * DTS::readObject(struct pickle * pickle, int fd) {
   DtsObject * datump;
   struct sockdatum  hdr;
-  int temp = receive_it(fd, &hdr, sizeof(struct sockdatum));
+  int temp = receive_it(fd, (unsigned char*)&hdr, sizeof(struct sockdatum));
 
   //fprintf(stderr, "recvd datum of type %d, size %d\n", hdr.datum->gettype(), hdr.datum->getsize());
 
@@ -172,9 +172,9 @@ int DtsObject::write(struct pickle * pickle, int fd) {
     //fprintf(stderr, "Sending old type %d -> %s\n", &hdr.datum->gettype(), name);
   }
 
-  if (1 > send_it(fd, &hdr, sizeof(struct sockdatum)))  
+  if (1 > send_it(fd, (unsigned char*)&hdr, sizeof(struct sockdatum)))  
     return -1;
-  if (hdr.namelen && (1 > send_it(fd, name, hdr.namelen)))
+  if (hdr.namelen && (1 > send_it(fd, (unsigned char*)name, hdr.namelen)))
     return -1;
   if (1 > send_it(fd, hdr.datum->getdata(), hdr.datum->getsize()))  
     return -1;
