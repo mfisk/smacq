@@ -3,7 +3,7 @@
 #include <string.h>
 #include "smacq.h"
 
-static int flowtype_refresh_get_string(void * data, int dlen, void ** transform, int * tlen) {
+static int smacqtype_refresh_get_string(void * data, int dlen, void ** transform, int * tlen) {
   *transform = strdup("REFRESH_RECORD");
   *tlen = strlen(*transform);
 
@@ -11,7 +11,7 @@ static int flowtype_refresh_get_string(void * data, int dlen, void ** transform,
 }
 
 struct dts_transform_descriptor dts_type_refresh_transforms[] = {
-	{ "string",   flowtype_refresh_get_string },
+	{ "string",   smacqtype_refresh_get_string },
         { END,        NULL }
 };
 

@@ -3,7 +3,7 @@
 #include <string.h>
 #include "smacq.h"
 
-static int flowtype_bytes_get_string(void * data, int dlen, void ** transform, int * tlen) {
+static int smacqtype_bytes_get_string(void * data, int dlen, void ** transform, int * tlen) {
   char buf[64]; // Only has to hold log10(2**32)
 
   assert(dlen=sizeof(int));
@@ -16,7 +16,7 @@ static int flowtype_bytes_get_string(void * data, int dlen, void ** transform, i
 }
 
 struct dts_transform_descriptor dts_type_bytes_transforms[] = {
-	{ "string",   flowtype_bytes_get_string },
+	{ "string",   smacqtype_bytes_get_string },
         { END,        NULL }
 };
 

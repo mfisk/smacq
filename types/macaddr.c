@@ -10,7 +10,7 @@
 #include <arpa/inet.h>
 #include "smacq.h"
 
-static int flowtype_macaddr_get_string(void * data, int dlen, void ** transform, int * tlen) {
+static int smacqtype_macaddr_get_string(void * data, int dlen, void ** transform, int * tlen) {
   char buf[36]; 
   unsigned char * c = data;
 
@@ -34,7 +34,7 @@ static int parse_macaddr(char * buf, void ** resp, int * reslen) {
 }
 
 struct dts_transform_descriptor dts_type_macaddr_transforms[] = {
-	{ "string",   flowtype_macaddr_get_string },
+	{ "string",   smacqtype_macaddr_get_string },
 	{ END,        NULL }
 };
 

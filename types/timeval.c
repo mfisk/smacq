@@ -8,7 +8,7 @@
 
 #include <netinet/in.h>
 
-static int flowtype_timeval_get_double(void * data, int dlen, void ** transform, int * tlen) {
+static int smacqtype_timeval_get_double(void * data, int dlen, void ** transform, int * tlen) {
   struct timeval * t = data;
   double * dblp = malloc(sizeof(double));
   *dblp = (double)t->tv_sec + 1e-6 * (double)t->tv_usec;
@@ -17,7 +17,7 @@ static int flowtype_timeval_get_double(void * data, int dlen, void ** transform,
 
   return 1;
 }
-static int flowtype_timeval_get_string(void * data, int dlen, void ** transform, int * tlen) {
+static int smacqtype_timeval_get_string(void * data, int dlen, void ** transform, int * tlen) {
   struct timeval * t = data;
   char buf[64]; 
 
@@ -56,8 +56,8 @@ static int timeval_lt(void * p1, int len1, void * p2, int len2) {
 }
 
 struct dts_transform_descriptor dts_type_timeval_transforms[] = {
-	{ "string",   	flowtype_timeval_get_string },
-	{ "double",   	flowtype_timeval_get_double },
+	{ "string",   	smacqtype_timeval_get_string },
+	{ "double",   	smacqtype_timeval_get_double },
         { END,        NULL }
 };
 

@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <smacq.h>
 
-static int flowtype_ip_get_string(void * data, int dlen, void ** transform, int * tlen) {
+static int smacqtype_ip_get_string(void * data, int dlen, void ** transform, int * tlen) {
   assert(dlen==4);
   *transform = malloc(16);
   strncpy(*transform, inet_ntoa(*(struct in_addr*)data), 16);
@@ -31,7 +31,7 @@ static int parse_ip(char * buf, void ** resp, int * reslen) {
 }
 
 struct dts_transform_descriptor dts_type_ip_transforms[] = {
-	{ "string",   flowtype_ip_get_string },
+	{ "string",   smacqtype_ip_get_string },
         { END,        NULL }
 };
 

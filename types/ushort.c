@@ -3,7 +3,7 @@
 #include <string.h>
 #include "smacq.h"
 
-static int flowtype_ushort_get_string(void * data, int dlen, void ** transform, int * tlen) {
+static int smacqtype_ushort_get_string(void * data, int dlen, void ** transform, int * tlen) {
   char buf[64]; // Only has to hold log10(2**32)
 
   assert(dlen==sizeof(unsigned short));
@@ -26,7 +26,7 @@ static int parse_ushort(char * buf, void ** resp, int * reslen) {
 }
 
 struct dts_transform_descriptor dts_type_ushort_transforms[] = {
-  { "string",   flowtype_ushort_get_string },
+  { "string",   smacqtype_ushort_get_string },
   { END,        NULL }
 };
 

@@ -146,14 +146,14 @@ struct smacq_functions {
   smacq_thread_fn * thread;
 };
 
-typedef int flowtype_lt_fn(void *, int, void *, int);
-typedef int flowtype_fromstring_fn(char *, void **, int*);
+typedef int smacqtype_lt_fn(void *, int, void *, int);
+typedef int smacqtype_fromstring_fn(char *, void **, int*);
 
 
 struct dts_type_info {
   int size;
-  flowtype_lt_fn * lt;
-  flowtype_fromstring_fn * fromstring;
+  smacqtype_lt_fn * lt;
+  smacqtype_fromstring_fn * fromstring;
 };
 
 

@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include "smacq.h"
 
-static int flowtype_nushort_get_string(void * data, int dlen, void ** transform, int * tlen) {
+static int smacqtype_nushort_get_string(void * data, int dlen, void ** transform, int * tlen) {
   char buf[64]; // Only has to hold log10(2**32)
 
   assert(dlen==sizeof(unsigned short));
@@ -40,7 +40,7 @@ int nushort_lt(void * num1, int size1, void * num2, int size2) {
 }
       
 struct dts_transform_descriptor dts_type_nushort_transforms[] = {
-	{ "string",   flowtype_nushort_get_string },
+	{ "string",   smacqtype_nushort_get_string },
         { END,        NULL }
 };
 

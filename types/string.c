@@ -3,7 +3,7 @@
 #include <string.h>
 #include "smacq.h"
 
-static int flowtype_string_get_string(void * data, int dlen, void ** transform, int * tlen) {
+static int smacqtype_string_get_string(void * data, int dlen, void ** transform, int * tlen) {
   *transform = strdup(data);
   *tlen = dlen;
 
@@ -18,7 +18,7 @@ static int parse_string(char * buf, void ** resp, int * reslen) {
 }
 
 struct dts_transform_descriptor dts_type_string_transforms[] = {
-	{ "string",   flowtype_string_get_string },
+	{ "string",   smacqtype_string_get_string },
         { END,        NULL }
 };
 

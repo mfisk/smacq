@@ -5,7 +5,7 @@
 #include <netinet/in.h>
 #include "smacq.h"
 
-static int flowtype_nuint32_get_string(void * data, int dlen, void ** transform, int * tlen) {
+static int smacqtype_nuint32_get_string(void * data, int dlen, void ** transform, int * tlen) {
   char buf[64]; // Only has to hold log10(2**32)
 
   assert(dlen==sizeof(unsigned int));
@@ -29,7 +29,7 @@ static int parse_nuint32(char * buf, void ** resp, int * reslen) {
 }
 
 struct dts_transform_descriptor dts_type_nuint32_transforms[] = {
-  { "string",   flowtype_nuint32_get_string },
+  { "string",   smacqtype_nuint32_get_string },
   { END,        NULL }
 };
 

@@ -12,7 +12,7 @@
       <firstname>Mike</firstname>
       <surname>Fisk</surname>
     </author>
-    <date>$Date: 2002/10/30 23:23:14 $</date>
+    <date>$Date: 2002/10/31 01:00:59 $</date>
   </refentryinfo>
   <refmeta>
     <refentrytitle>dts-types</refentrytitle>
@@ -42,7 +42,7 @@
 
     <para>
       By convention, types are compiled to an ELF shared library with
-      a name like <filename>flowtype_x.so</filename>, where
+      a name like <filename>smacqtype_x.so</filename>, where
       <classname>x</classname> is the type name.  Types modules are not
       containers for data, but merely interfaces for accessing data of
       that type.  Thus there is no private storage associated with a

@@ -3,7 +3,7 @@
 #include <string.h>
 #include "smacq.h"
 
-static int flowtype_double_get_double(void * data, int dlen, void ** transform, int * tlen) {
+static int smacqtype_double_get_double(void * data, int dlen, void ** transform, int * tlen) {
   double * dbl = malloc(sizeof(double));
   *dbl = *(double*)data;
   *transform = dbl;
@@ -12,7 +12,7 @@ static int flowtype_double_get_double(void * data, int dlen, void ** transform, 
   return 1;
 }
 
-static int flowtype_double_get_string(void * data, int dlen, void ** transform, int * tlen) {
+static int smacqtype_double_get_string(void * data, int dlen, void ** transform, int * tlen) {
   char buf[64]; 
 
   snprintf(buf, 64, "%g", *(double*)data);
@@ -38,8 +38,8 @@ static int parse_string(char * buf, void ** resp, int * reslen) {
 }
 
 struct dts_transform_descriptor dts_type_double_transforms[] = {
-	{ "string",   flowtype_double_get_string },
-	{ "double",   flowtype_double_get_double },
+	{ "string",   smacqtype_double_get_string },
+	{ "double",   smacqtype_double_get_double },
         { END,        NULL }
 };
 

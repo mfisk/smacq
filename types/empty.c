@@ -3,7 +3,7 @@
 #include <string.h>
 #include "smacq.h"
 
-static int flowtype_empty_get_string(void * data, int dlen, void ** transform, int * tlen) {
+static int smacqtype_empty_get_string(void * data, int dlen, void ** transform, int * tlen) {
   *transform = strdup("EMPTY_RECORD");
   *tlen = strlen(*transform);
 
@@ -11,7 +11,7 @@ static int flowtype_empty_get_string(void * data, int dlen, void ** transform, i
 }
 
 struct dts_transform_descriptor dts_type_empty_transforms[] = {
-	{ "string",   flowtype_empty_get_string },
+	{ "string",   smacqtype_empty_get_string },
         { END,        NULL }
 };
 

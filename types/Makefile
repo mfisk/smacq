@@ -13,7 +13,7 @@ clean:
 libdts-modules.lo: $(TYPEOBJS)
 	$(LIBTOOL) $(CC) -o $@ $+
 
-flowtype_packet.so: ../include/dts_packet.h
+smacqtype_packet.so: ../include/dts_packet.h
 
 %.lo: %.c 
 	$(LIBTOOL) $(CC) -c $(CFLAGS) $<
