@@ -1,19 +1,20 @@
 #!/bin/sh 
 
+basetest=`basename $1`
 test=`basename $1`
 
-out=$srcdir/$test.out 
-run=`basename $test`.run 
-err=`basename $test`.err
+out=$srcdir/$basetest.out 
+run=`basename $basetest`.run 
+err=`basename $basetest`.err
 
 export TEST=$srcdir
 
-(set -e; cd ..; $srcdir/$test) > $run 2>$err
+(set -e; ${TOP_SRCDIR}/test/$test) > $run 2>$err
 diff -U3 $out $run; 
 stat="$?"
 if [ "$stat" != "0" ]; then 
-	echo "======== Errors from $test: ========"
+	echo "======== Errors from $basetest: ========"
 	cat $err
-	#echo "======== End of errors from $test ========"
+	#echo "======== End of errors from $basetest ========"
 	exit $stat
 fi
