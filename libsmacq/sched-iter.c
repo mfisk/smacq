@@ -96,6 +96,7 @@ static inline int runq_empty(struct runq * runq) {
 	}
 }
 
+#warning "SMACQ_OPT_RUNRING not set"
 #else
 
 /*
@@ -314,8 +315,13 @@ static inline void run_produce(smacq_graph * f, struct runq * runq) {
 static inline void run_consume(smacq_graph * f, const dts_object * d, struct runq * runq) {
         int outchan = -1;
 	smacq_result retval;
-	
-	assert(! (f->status & SMACQ_FREE));
+
+	if (f->status & SMACQ_FREE) {
+		fprintf(stderr, "Consume called after module %s (%p) freed\n", f->name, f);
+		return;
+	}
+
+	//assert(! (f->status & SMACQ_FREE));
 	retval = f->ops.consume(f->state, d, &outchan);
 
 	if (retval & SMACQ_PASS) {
