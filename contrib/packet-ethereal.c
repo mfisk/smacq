@@ -155,7 +155,7 @@ int epan_getfield(const dts_object * packet, dts_object * fieldo, dts_field_elem
       break;
   }
 
-  //epan_dissect_free(edt);
+  epan_dissect_free(edt);
   //free_data_sources(&fdata);
 
   return 1;
