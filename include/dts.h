@@ -231,7 +231,7 @@ inline char * DTS::typename_bynum(const dts_typeid num) {
 }
 
 inline int DTS::typenum_byname(const char * name) {
-  std::map<const char *, struct dts_type*>::iterator i;
+  std::map<const char *, struct dts_type*, ltstr>::iterator i;
   i = types_byname.find(name);
   if (i == types_byname.end()) return -1;
   return (*i).second->num;
