@@ -116,7 +116,6 @@ static smacq_result substr_consume(struct state * state, const dts_object * datu
   }
   
   memset(&res, 0, sizeof(res));
-  assert(field->len < 100);
 
   while(1) {
 	  if (! substr_search(state->set, field->data, field->len, &res)) 
