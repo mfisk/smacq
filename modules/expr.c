@@ -68,6 +68,7 @@ static double eval_arith_operand(const dts_object * datum, struct dts_operand * 
   		}
 		break;
   }
+  return NAN;
 }
 
 static smacq_result expr_init(struct smacq_init * context) {
