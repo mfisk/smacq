@@ -25,12 +25,11 @@ struct state {
   double period;
   struct smacq_outputq * outputq;
 
-  double current;
-  const dts_object * ticko;
+  long int current_tick;
+  const dts_object * current_ticko;
 }; 
  
 static smacq_result clock_consume(struct state * state, const dts_object * datum, int * outchan) {
-  const dts_object * ticko; 
   double ts;
   long int tick;
 
@@ -43,21 +42,27 @@ static smacq_result clock_consume(struct state * state, const dts_object * datum
   	dts_decref(time);
   }
   tick = ts / state->period;
-  //fprintf(stderr, "got time tick %f (period %f)\n", tick, state->period);
+  /* fprintf(stderr, "got time tick %ld (period %f)\n", tick, state->period); */
 
-  ticko = smacq_dts_construct(state->env, state->ticktype, &tick); 
-  assert(ticko);
-  dts_attach_field(datum, state->clockfield, ticko);
+  /* only change clock forward */
+  if ( tick > state->current_tick) {
+  	const dts_object * ticko; 
+  	/* fprintf(stderr, "clock advanced to %ld (period %f)\n", tick, state->period); */
 
-  if ( tick != state->current) {
 	dts_object * refresh = smacq_dts_construct(state->env, state->refreshtype, " ");
-	dts_attach_field(refresh, state->clockfield, state->ticko);
+	dts_attach_field(refresh, state->clockfield, state->current_ticko);
   	//fprintf(stderr, "clock is queueing %p (a refresh of type %d)\n", refresh, state->refreshtype);
 	smacq_produce_enqueue(&state->outputq, refresh, -1);
-	state->current = tick;
-	state->ticko = ticko;
-	dts_incref(ticko, 1);
+
+  	ticko = smacq_dts_construct(state->env, state->ticktype, &tick); 
+  	assert(ticko);
+
+	state->current_tick = tick;
+	state->current_ticko = ticko;
   }
+
+  dts_attach_field(datum, state->clockfield, state->current_ticko);
+  dts_incref(state->current_ticko, 1);
 
   return SMACQ_PASS|smacq_produce_canproduce(&state->outputq);
 }
@@ -104,7 +109,7 @@ static smacq_result clock_produce(struct state * state, const dts_object ** datu
   } else {
 	/* Forced last call */
 	*datum = smacq_dts_construct(state->env, state->refreshtype, NULL);
-	dts_attach_field(*datum, state->clockfield, state->ticko);
+	dts_attach_field(*datum, state->clockfield, state->current_ticko);
 	return (SMACQ_PASS|SMACQ_END);
   }
 }
