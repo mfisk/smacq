@@ -1,3 +1,6 @@
+BISON=bison
+FLEX=flex
+M4=m4
 include config.mk
 
 OBJS = scanner.lo parser.lo
@@ -15,7 +18,7 @@ libsql.la: $(OBJS)
 scanner.c:: parser.h
 
 %.y: %.ym grammer.y
-	m4 -I$(SRCDIR) -P < $< > $@
+	$(M4) -I$(SRCDIR) -P < $< > $@
 
 %.c: %.y
 	$(BISON) -v -d -o $@ $<
@@ -24,7 +27,7 @@ scanner.c:: parser.h
 	@true
 
 %.c: %.l 
-	$(FLEX) -i -o$@ $<
+	$(FLEX) -i -Pyysmacql_ -o$@ $<
 
 reallyclean: clean
 	rm -Rf scanner.c parser.c parser.h scan.c gram.c gram.h

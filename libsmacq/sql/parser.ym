@@ -1,6 +1,8 @@
 %start queryline
+%name-prefix="yysmacql_"
+
 %{
-void yyerror(char*);
+void yysmacql_error(char*);
 
 #include <smacq-parser.h>
 static struct graph nullgraph = { head: NULL, tail: NULL };
@@ -91,7 +93,8 @@ verbphrase : verb args 		{ $$ = newvphrase($1, $2); }
 
 %%
 
-extern void yy_scan_string(char*);
+extern void yysmacql_scan_string(char*);
+extern char * yysmacql_text;
 
 #ifdef PTHREAD_MUTEX_INITIALIZER
   static pthread_mutex_t local_lock = PTHREAD_MUTEX_INITIALIZER;
@@ -125,10 +128,10 @@ smacq_graph * smacq_build_query(dts_environment * tenv, int argc, char ** argv) 
   /* LOCK */
   pthread_mutex_lock(&local_lock);
 
-  yy_scan_string(qstr);
+  yysmacql_scan_string(qstr);
   //fprintf(stderr, "parsing buffer: %s\n", qstr); 
 
-  res = yyparse();
+  res = yysmacql_parse();
 
   graph = Graph;
 
@@ -147,7 +150,7 @@ smacq_graph * smacq_build_query(dts_environment * tenv, int argc, char ** argv) 
   return graph;
 }
 
-void yyerror(char * msg) {
-  fprintf(stderr, "%s near %s\n", msg, yytext-1);
+void yysmacql_error(char * msg) {
+  fprintf(stderr, "%s near %s\n", msg, yysmacql_text-1);
 }
 

@@ -4,7 +4,8 @@
 %{
 #include <smacq.h>
 static dts_comparison * Comp;
-#define yyfilterlex yylex
+extern char * yysmacql_text;
+#define yyfilterlex yysmacql_lex
 %}
 
 m4_include(grammer.y)
@@ -18,7 +19,7 @@ booleanline: boolean YYSTOP 	{
 %%
 
 static dts_environment * tenv;
-extern void yy_scan_string(char *);
+extern void yysmacql_scan_string(char *);
 
 #ifdef PTHREAD_MUTEX_INITIALIZER
   static pthread_mutex_t local_lock = PTHREAD_MUTEX_INITIALIZER;
@@ -94,7 +95,7 @@ dts_comparison * dts_parse_tests(dts_environment * localtenv, int argc, char ** 
   	strcatn(qstr, size, argv[i]);
   	strcatn(qstr, size, " ");
   }
-  yy_scan_string(qstr);
+  yysmacql_scan_string(qstr);
   //fprintf(stderr, "parsing filter buffer: %s\n", qstr); 
 
   if (yyfilterparse()) {
@@ -111,8 +112,8 @@ dts_comparison * dts_parse_tests(dts_environment * localtenv, int argc, char ** 
   return retval;
 }
 
-void yyerror(char * msg) {
-  fprintf(stderr, "Error: %s near %s\n", msg, yytext);
+void yyfiltererror(char * msg) {
+  fprintf(stderr, "Error: %s near %s\n", msg, yysmacql_text);
   //exit(-1);
 }
 

@@ -42,7 +42,7 @@ like|LIKE       return YYLIKE;
 <xquote>{
 	{quote}	BEGIN(0);
 	[^']+	{
-			yystring = strdup(yytext);
+			yystring = strdup(yysmacql_text);
 			return YYSTRING;
 		}
 
@@ -55,31 +55,31 @@ like|LIKE       return YYLIKE;
 	"\\t"		*yystring++ = '\t';
 	"\\f"		*yystring++ = '\f';
 	\\\\		{
-				*yystring++ = yytext[0]; 
-				*yystring++ = yytext[1];
+				*yystring++ = yysmacql_text[0]; 
+				*yystring++ = yysmacql_text[1];
 			}
-	\\{dquote}	*yystring++ = yytext[1];
+	\\{dquote}	*yystring++ = yysmacql_text[1];
 	{dquote}	{
 				*yystring = '\0'; 
 			 	yystring = strdup(string_buf);
 			 	BEGIN(0); 
 				return YYSTRING;
 			}
-	.		*yystring++ = yytext[0];
+	.		*yystring++ = yysmacql_text[0];
 	}
 
 {space}	{ ; }
 
-{toksymbols}    	return yytext[0];
+{toksymbols}    	return yysmacql_text[0];
 
 <<EOF>>		{ return YYSTOP; }
 
 {id}	{ 
-			yystring = strdup((char *)yytext); 
+			yystring = strdup((char *)yysmacql_text); 
 			return YYID; 
 	}
 
-.	{ yyerror("Unexpected character in query"); return -1; }
+.	{ yysmacql_error("Unexpected character in query"); return -1; }
 
 %%
 
