@@ -36,31 +36,26 @@ int type_parsetest (dts_environment * tenv, dts_comparison * comp,
 
 int type_match_one(dts_environment * tenv, const dts_object * datum, 
 	   dts_comparison * c, int same_types) {
-  dts_object test_data;
-  int dtype;
+  const dts_object * test_data = NULL;
 
   if ((c->op != AND) && (c->op != OR)) {
+    if (! (test_data = tenv->getfield(tenv, datum, c->field, NULL))) {
+	//fprintf(stderr, "Warning: object does not have field number %d\n", c->field);
+	return 0;
+    }
+
     if ((!same_types) && c->valstr) {
       /* The types of these fields may have changed, 
 	 reinitialize the values we're matching against */
 
-      if (! tenv->getfield(tenv, datum, c->field, &test_data)) 
-		return 0;
-      dtype = test_data.type;
       // fprintf(stderr, "Got field %d bytes %p == %p (%d)\n", len, *(unsigned long*)data, *(unsigned long*)c->data, c->size);
 
-      if (!dtype) {
-	// This datum doesn't even have a field by this name.  give up now
-	//fprintf(stderr, "Warning: object does not have field number %d\n", c->field);
-	return 0;
-      }
-      
-      if ((c->op != EXIST) && (dtype != c->field_data.type)) {
+      if ((c->op != EXIST) && (test_data->type != c->field_data.type)) {
 	if (c->field_data.free_data) 
 		free(c->field_data.data);
-	if (! tenv->fromstring(tenv, dtype, c->valstr, &c->field_data)) {
+	if (! tenv->fromstring(tenv, test_data->type, c->valstr, &c->field_data)) {
 	  fprintf(stderr,"Error: value %s is not valid for type %s \n", 
-		  c->valstr, tenv->typename_bynum(tenv, dtype));
+		  c->valstr, tenv->typename_bynum(tenv, test_data->type));
 	  assert(0);
 	}
       }
@@ -69,29 +64,29 @@ int type_match_one(dts_environment * tenv, const dts_object * datum,
 
       switch (c->op) {
       case EQUALITY:
-	if ((c->field_data.type == test_data.type) && 
-	    (c->field_data.len == test_data.len) && 
-	    (!memcmp(c->field_data.data, test_data.data, test_data.len)))  
+	if ((c->field_data.type == test_data->type) && 
+	    (c->field_data.len == test_data->len) && 
+	    (!memcmp(c->field_data.data, test_data->data, test_data->len)))  
 	  return 1;
 	break;
 
       case INEQUALITY:
-	if ((c->field_data.type == test_data.type) &&
-	    ((c->field_data.len != test_data.len) || (memcmp(c->field_data.data, test_data.data, test_data.len))))  
+	if ((c->field_data.type == test_data->type) &&
+	    ((c->field_data.len != test_data->len) || (memcmp(c->field_data.data, test_data->data, test_data->len))))  
 	  return 1;
 	break;
 
       case LT:
-	if ((c->field_data.type == test_data.type) && 
-	    (dts_lt(tenv, c->field_data.type, test_data.data, test_data.len, c->field_data.data, c->field_data.len)))  
+	if ((c->field_data.type == test_data->type) && 
+	    (dts_lt(tenv, c->field_data.type, test_data->data, test_data->len, c->field_data.data, c->field_data.len)))  
 	  return 1;
 	// fprintf(stderr, "%d <? %d: %d\n", *(ushort*)test_data.data, *(ushort*)c->field_data.data, match);
 	break;
 
       case GT:
-	if ((c->field_data.type == test_data.type) && 
-	    (!dts_lt(tenv, c->field_data.type, test_data.data, test_data.len, c->field_data.data, c->field_data.len)) &&  
-	    ((c->field_data.len != test_data.len) || (memcmp(c->field_data.data, test_data.data, test_data.len))))  
+	if ((c->field_data.type == test_data->type) && 
+	    (!dts_lt(tenv, c->field_data.type, test_data->data, test_data->len, c->field_data.data, c->field_data.len)) &&  
+	    ((c->field_data.len != test_data->len) || (memcmp(c->field_data.data, test_data->data, test_data->len))))  
 	  return 1;
 	break;
 
@@ -105,7 +100,7 @@ int type_match_one(dts_environment * tenv, const dts_object * datum,
 
       case AND:
       case OR:
-        // fprintf(stderr, "criterion check %s\n", c->op == AND ? "and" : "or");
+        //fprintf(stderr, "criterion check %s\n", c->op == AND ? "and" : "or");
 	return type_match_andor(tenv, datum, c->group, same_types, c->op);
 	break;
       }
@@ -121,11 +116,11 @@ int type_match_andor(dts_environment * tenv, const dts_object * datum,
 
   for (c = comps; c; c = c->next) {
 	if (!type_match_one(tenv, datum, c, same_types)) {
-		// fprintf(stderr,"no\n");
+		//fprintf(stderr,"no (%d)\n", op);
 		if (op == AND) 
 		  	return 0;
 	} else {
-		// fprintf(stderr,"yes\n");
+		//fprintf(stderr,"yes (%d)\n", op);
 		if (op == OR)
 			return 1;
 	}
