@@ -1,5 +1,3 @@
-fromstring API should change (use dts_object rather than void **).
-
 Resolve:
 	Join needs where information to determine type of join
 	Pcaplive and Disarm modules could take advantage of where information
