@@ -20,15 +20,16 @@ struct state {
   smacq_graph * self;
   int queryargc;
   char ** queryargv;
-  const dts_object * product;
+  struct smacq_outputq * outputq;
 
-  GHashTableofBytes * hashtable;
+  struct iovec_hash * hashtable;
 
   int refresh_type;
 
   struct output * cont;
 
   int lastcall;
+  struct iovec * partitionv;
 }; 
 
 struct output {
@@ -38,69 +39,128 @@ struct output {
 };
 
 /* Bucket may no longer be valid after this call */
-static inline int run(struct state * state, struct output* bucket) {
+static inline int run_and_queue(struct state * state, struct output* partition) {
     int more;
-    more = smacq_sched_iterative_busy(bucket->graph, &state->product, bucket->runq, 0);
+    do {
+	const dts_object * product = NULL;
+    	more = smacq_sched_iterative_busy(partition->graph, &product, partition->runq, 0);
+	//fprintf(stderr, "run_and_queue produced %p with status %x\n", product, more);
+	if (product) smacq_produce_enqueue(&state->outputq, product, -1);
+    	if (more & SMACQ_END) {
+      		assert(!partition->runq);
+      		smacq_destroy_graph(partition->graph);
+      		partition->graph = NULL;
+		break;
+    	}
+    } while (more);
+    return more;
+}
+
+/* Bucket may no longer be valid after this call */
+static inline int run(struct state * state, struct output* partition) {
+    int more;
+    const dts_object * product = NULL;
+    more = smacq_sched_iterative_busy(partition->graph, &product, partition->runq, 0);
+    if (product) smacq_produce_enqueue(&state->outputq, product, -1);
     if (more & SMACQ_END) {
-      assert(!bucket->runq);
-      smacq_destroy_graph(bucket->graph);
-      bucket->graph = NULL;
+      assert(!partition->runq);
+      smacq_destroy_graph(partition->graph);
+      partition->graph = NULL;
     }
     if (more) {
       assert(!state->cont);
-      state->cont = bucket;
+      state->cont = partition;
     }
 
     return more;
 }
 
-static smacq_result groupby_consume(struct state * state, const dts_object * datum, int * outchan) {
-  struct iovec * partitionv = fields2vec(state->env, datum, &state->fieldset);
-  struct output * bucket;
-  int status = SMACQ_FREE;
-  assert(partitionv);
+static inline struct output * get_partition(struct state * state, struct iovec * partitionv) {
+  struct output * partition;
 
-  bucket = bytes_hash_table_lookupv(state->hashtable, partitionv, state->fieldset.num);
+  partition = bytes_hash_table_lookupv(state->hashtable, state->partitionv, state->fieldset.num);
 
-  if (bucket && !bucket->graph) {
-    int res = bytes_hash_table_removev(state->hashtable, partitionv, state->fieldset.num);
+  if (partition && !partition->graph) {
+    int res = bytes_hash_table_removev(state->hashtable, state->partitionv, state->fieldset.num);
     assert(res);
     /* run() already ended this graph, but we didn't know about it before. */ 
-    free(bucket);
-    bucket = NULL;
+    free(partition);
+    partition = NULL;
   }
 
-  if (!bucket) {
-    bucket =  g_new0(struct output, 1);
-    //fprintf(stderr, "New partition %p\n", bucket);
-    bucket->graph = smacq_build_pipeline(state->queryargc, state->queryargv);
-    smacq_start(bucket->graph, ITERATIVE, state->env->types);
-    smacq_sched_iterative_init(bucket->graph, &bucket->runq, 0);
-    bytes_hash_table_insertv(state->hashtable, partitionv, state->fieldset.num, bucket);
+  if (!partition) {
+    partition =  g_new0(struct output, 1);
+    //fprintf(stderr, "New partition %p\n", partition);
+    partition->graph = smacq_build_pipeline(state->queryargc, state->queryargv);
+    smacq_start(partition->graph, ITERATIVE, state->env->types);
+    smacq_sched_iterative_init(partition->graph, &partition->runq, 0);
+    bytes_hash_table_insertv(state->hashtable, state->partitionv, state->fieldset.num, partition);
   } 
 
-  if (dts_gettype(datum) == state->refresh_type) {
-    // Handle refresh (kill-off child)
-    int res = bytes_hash_table_removev(state->hashtable, partitionv, state->fieldset.num);
-    assert(res);
-    //fprintf(stderr, "groupby remove from %p\n", state->hashtable);
-    smacq_sched_iterative_shutdown(bucket->graph, bucket->runq);
-  } else {
-    smacq_sched_iterative_input(bucket->graph, datum, bucket->runq);
+  return partition;
+}
+
+static int check_invalidate(gpointer key, gpointer value, gpointer userdata) {
+  struct state * state = (struct state *)userdata;
+  struct element * element = (struct element*)key;
+  struct output * partition = (struct output*)value;
+
+  if (bytes_mask(element, state->partitionv, state->fieldset.num)) {
+    //fprintf(stderr, "groupby got a partial refresh\n");
+    smacq_sched_iterative_shutdown(partition->graph, partition->runq);
+    partition->shutdown = 1;
+    run_and_queue(state, partition);
+    return 1;
   }
 
-  /* Run may invalidate the bucket, so we shouldn't use that variable
-   * later in this function. */
-  run(state, bucket);
+  return 0;
+}
+
+static inline void handle_invalidate(struct state * state, const dts_object * datum) {
+   bytes_hash_table_foreach_remove(state->hashtable, check_invalidate, state);
+}
+
+static smacq_result groupby_consume(struct state * state, const dts_object * datum, int * outchan) {
+  struct output * partition;
+  int status = SMACQ_FREE;
+
+  //fprintf(stderr , "groupby got %p a type %d (refresh is %d)\n", datum, dts_gettype(datum), state->refresh_type);
+
+  state->partitionv = fields2vec(state->env, datum, &state->fieldset);
+
+  if (iovec_has_undefined(state->partitionv, state->fieldset.num)) {
+  	if (dts_gettype(datum) == state->refresh_type) {
+    		handle_invalidate(state, datum);
+	} else {
+		fprintf(stderr, "Fatal Error: Groupby was passed a data object that did not have the fields it is supposed to group by!\n");
+		assert(0);
+	}
+  } else {
+     partition = get_partition(state, state->partitionv);
+
+     if (dts_gettype(datum) == state->refresh_type) {
+       // Handle refresh (kill-off child)
+       
+       int res = bytes_hash_table_removev(state->hashtable, state->partitionv, state->fieldset.num);
+       assert(res);
+       fprintf(stderr, "groupby remove from %p\n", state->hashtable);
+       smacq_sched_iterative_shutdown(partition->graph, partition->runq);
+     } else {
+       smacq_sched_iterative_input(partition->graph, datum, partition->runq);
+     }
+
+     /* Run may invalidate the partition, so we shouldn't use that variable
+      * later in this function. */
+     run(state, partition);
+  }
   
   // Producing input is just a PASS
-  if (state->product == datum) {
+  if (smacq_produce_peek(&state->outputq) == datum) {
+    smacq_produce_dequeue(&state->outputq, &datum, outchan);
     status = SMACQ_PASS;
-    state->product = NULL;
-    // XXX: memory leak?  need to decref product?
   }
 
-  if (state->product || state->cont) status |= SMACQ_PRODUCE;
+  if (smacq_produce_canproduce(&state->outputq) || state->cont) status |= SMACQ_PRODUCE;
 
   return status;
 }
@@ -154,33 +214,21 @@ static smacq_result groupby_init(struct smacq_init * context) {
   return 0;
 }
 
-static int destroy_bucket(gpointer key, gpointer value, gpointer userdata) {
+static int destroy_partition(gpointer key, gpointer value, gpointer userdata) {
   struct state * state = (struct state *)userdata;
-  struct output * bucket = (struct output*)value;
+  struct output * partition = (struct output*)value;
 
-  if (state->product) {
-	  state->lastcall = 1;
-
-	  /* We can't produce now, but the result of this algorithm
-	   * is that foreach() has to be called once for each
-	   * bucket that has something to produce.  So if n buckets
-	   * have output to produce, foreach is called n times 
-	   * and destroy_bucket is called n*(n-1)/2 times. 
-	   * We'd rather tell foreach() to stop completely. */
-	  return 0;
+  if (!partition->shutdown) {
+	partition->shutdown = 1;
+  	//fprintf(stderr, "doing shutdown of %p\n", partition->graph);
+  	smacq_sched_iterative_shutdown(partition->graph, partition->runq);
   }
 
-  if (!bucket->shutdown) {
-	bucket->shutdown = 1;
-  	//fprintf(stderr, "doing shutdown of %p\n", bucket->graph);
-  	smacq_sched_iterative_shutdown(bucket->graph, bucket->runq);
-  }
-
-  if ((SMACQ_END & run(state, bucket))) {
-  	//fprintf(stderr, "Last call for bucket %p.  Product now %p\n", bucket, state->product);
+  if ((SMACQ_END & run(state, partition))) {
+  	//fprintf(stderr, "Last call for partition %p.  Product now %p\n", partition, state->product);
 	return 1;
   } else {
-  	//fprintf(stderr, "Postponed last call for bucket %p.  Product now %p\n", bucket, state->product);
+  	//fprintf(stderr, "Postponed last call for partition %p.  Product now %p\n", partition, state->product);
 	return 0;
   }
 }
@@ -198,26 +246,23 @@ static smacq_result groupby_produce(struct state * state, const dts_object ** da
     lastcall = 0;
   } 
   
-  if (state->product) {
-    *datump = state->product;
-    state->product = NULL;
-    status = SMACQ_PASS;
-
+  if (smacq_produce_canproduce(&state->outputq)) {
+    status = smacq_produce_dequeue(&state->outputq, datump, outchan);
     lastcall = 0;
   }
-  
+
   if (state->lastcall || lastcall) {
     /* This must be last-call, because we didn't ask for it */
     /* Notify all children */
-    bytes_hash_table_foreach_remove(state->hashtable, destroy_bucket, state);
+    bytes_hash_table_foreach_remove(state->hashtable, destroy_partition, state);
     //fprintf(stderr, "finished a round of last call with %p, %p, %p\n", *datump, state->product, state->cont);
   }
 
-  if (!*datump && (state->cont || state->product)) {
+  if (!*datump && state->cont) {
 	return groupby_produce(state, datump, outchan);
   }
 
-  return status | ((state->cont || state->product) ? SMACQ_PRODUCE : 0); 
+  return status | (state->cont || (SMACQ_PRODUCE & smacq_produce_canproduce(&state->outputq))); 
 }
 
 /* Right now this serves mainly for type checking at compile time: */
@@ -225,6 +270,5 @@ struct smacq_functions smacq_groupby_table = {
 	produce: &groupby_produce, 
 	consume: &groupby_consume,
 	init: &groupby_init,
-	shutdown: NULL,
 	algebra: { demux: 1 }
 };
