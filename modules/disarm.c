@@ -57,7 +57,7 @@ char * fgets_sock(char * buf, int len, FILE * fh) {
 		if (strlen(buf) == (len - 1)) return buf;
 		if (res[strlen(res)-1] == '\n') return buf;
 		left -= strlen(res);
-		fprintf(stderr, "fgets retrying for newline\n");
+		//fprintf(stderr, "fgets retrying for newline\n");
 	}
 }
 
@@ -74,13 +74,12 @@ static smacq_result disarm_produce(struct state * state, const dts_object ** dat
 		return SMACQ_END;
 	}
 
-	fprintf(stderr, "Got sv4 hex line: %s\n", hex);
+	//fprintf(stderr, "Got sv4 hex line: %s\n", hex);
 
 	/* Now we decode the hex into the binary data object */
 
 	len = strlen(hex) - 1;
-	assert((len % 2) == 0);
-	len /= 2;
+	len -= 49;
 
   	datum = (dts_object*)smacq_alloc(state->env, len+2, state->sv4_type);
 	decode = dts_getdata(datum);
@@ -90,7 +89,7 @@ static smacq_result disarm_produce(struct state * state, const dts_object ** dat
 	decode[1] = '\0';
 	decode += 2;
 
-	for (i=0; i<len; i++) {
+	for (i=0; i<49; i++) {
 	 	unsigned char c = hex2val[(unsigned int)hex[i*2]];	
 		//fprintf(stderr, "char %c has value %d\n", hex[i*2], c);
 		assert(c != XX);
@@ -100,6 +99,8 @@ static smacq_result disarm_produce(struct state * state, const dts_object ** dat
 		assert(c != XX);
 		decode[i] |= c;
 	}
+
+	memcpy(decode+49, hex+98, len-49);
 
 	*datump = datum;
 	return SMACQ_PASS|SMACQ_PRODUCE;
