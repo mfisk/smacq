@@ -10,7 +10,10 @@ enum sched_actions { PRODUCE=1, SHUTDOWN=2, LASTCALL=3, ACTION_MAX=5 };
 struct qel {
   smacq_graph * f;
   const dts_object * d;
-  struct qel * next, * prev;
+  struct qel * next;
+#ifndef SMACQ_OPT_RUNRING
+  struct qel * prev;
+#endif
 };
  	
 struct runq {
@@ -138,15 +141,23 @@ void inline runable(struct runq * runq, smacq_graph * f, const dts_object * d) {
 	entry->f = f;
 	entry->next = NULL;
 
-        if (d) dts_incref(d, 1);
+        if (! IS_ACTION(d)) 
+        	dts_incref(d, 1);
 
-	if (runq->tail) {
-		runq->tail->next = entry;
-	}
-	if (!runq->head) {
+	if (d == ACTION_PRODUCE) {
+		entry->next = runq->head;
 		runq->head = entry;
+		if (!runq->tail) 
+			runq->tail = entry;
+	} else {
+		if (runq->tail) {
+			runq->tail->next = entry;
+		}
+		if (!runq->head) {
+			runq->head = entry;
+		}
+		runq->tail = entry;
 	}
-	runq->tail = entry;
 }
 
 static inline int pop_runable(struct runq * runq, smacq_graph ** f, const dts_object **d) {
@@ -174,7 +185,6 @@ static void init_runq(struct runq ** runqp) {
 
 	runq->head = NULL;
 	runq->tail = NULL;
-	runq->prev = NULL;
 }
 
 static inline int runq_empty(struct runq * runq) {
