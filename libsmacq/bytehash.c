@@ -150,7 +150,7 @@ struct iovec_hash * bytes_hash_table_new(int maxbytes, int flags) {
 }
 
 static inline void chain_remove(struct element * e) {
-  *(e->parent) = e->chain;
+  if (e->parent) *(e->parent) = e->chain;
   if (e->chain) e->chain->parent = e->parent;
 
   e->parent = NULL;
