@@ -29,7 +29,7 @@
 #include <string.h>
 #include <smacq-internal.h>
 #include "smacq-parser.h"
-#undef DEBUG
+#define DEBUG
   
   extern int yylex();
   extern void yy_scan_string(const char *);
@@ -49,12 +49,16 @@
   static void graph_join(struct graph * graph, struct graph newg);
   static struct graph newgroup(struct group, struct vphrase);
   static void arglist2argv(struct arglist * al, int * argc, char *** argv);
+  static char * arglist2str(struct arglist * al);
   static struct arglist * newarg(char * arg, int isfunc, struct arglist * func_args);
+  static struct arglist * arglist_append(struct arglist * tail, struct arglist * addition);
   static struct vphrase newvphrase(char * verb, struct arglist * args);
   void print_graph(struct filter * f);
 
   struct graph nullgraph = { head: NULL, tail: NULL };
   
+  struct filter * Graph;
+
 %}
 
 %token WHERE
@@ -68,7 +72,7 @@
 %token AS
 %token HAVING
 
-%type <arglist> having arg argument boolarg boolargs args moreargs moreboolargs
+%type <arglist> joins having arg argument boolarg boolargs args moreargs moreboolargs
 %type <group> group 
 %type <graph> where query from source pverbphrase  
 %type <vphrase> verbphrase
@@ -90,7 +94,8 @@ queryline: query STOP
 #ifdef DEBUG
 	   	print_graph($1.head); 
 #endif
-		return smacq_start($1.head, RECURSIVE, NULL); 
+		Graph = $1.head;
+		return 0;
 	   }
 	;
 
@@ -109,8 +114,26 @@ query : verbphrase from where group
 	   }
 	;
 
-from :  null 		{ $$.head = NULL; $$.tail = NULL; } 
-	| FROM source 	{ $$ = $2; }
+from :  null 			{ $$.head = NULL; $$.tail = NULL; } 
+	| FROM source joins 	
+	   { 
+		$$ = $2; 
+	   	if ($3) {
+			graph_join(&($$), newmodule("join", $3));
+		}
+	   }
+	;
+
+joins : null			{ $$ = NULL; }
+	| ',' boolargs joins	
+	   {
+		$$ = newarg(arglist2str($2), 0, NULL);
+	   	/* fprintf(stderr, "got a join (,) with %s\n", $$->arg); */
+
+	   	if ($3) {
+			$$ = arglist_append($$, $3);
+		} 
+	   }
 	;
 
 source : pverbphrase		
@@ -162,6 +185,7 @@ pverbphrase: verb 		{ $$ = newmodule($1, NULL); }
 	;
 
 verbphrase : verb args 		{ $$ = newvphrase($1, $2); }
+	| verb '(' args ')'	{ $$ = newvphrase($1, $3); }
 	;
 
 boolargs : boolarg moreboolargs	{ $$ = $1; $$->next = $2; }
@@ -184,10 +208,13 @@ verb :  id
 
 %%
 
-int smacq_execute_query(int argc, char ** argv) {
+
+struct filter * smacq_build_query(int argc, char ** argv) {
   int size = 0;
   int i;
-  char * qstr;
+  char * qstr; 
+  struct filter * graph;
+  int res;
 
   for (i=0; i<argc; i++) {
   	size += strlen(argv[i]);
@@ -200,13 +227,23 @@ int smacq_execute_query(int argc, char ** argv) {
   	strcat(qstr, argv[i]);
   	strcat(qstr, " ");
   }
+
+  /* LOCK */
+
   yy_scan_string(qstr);
   /* fprintf(stderr, "parsing buffer: %s\n", qstr); */
-  if (yyparse()) {
-  	return 1;
+
+  res = yyparse();
+
+  graph = Graph;
+
+  /* UNLOCK */
+
+  if (res) {
+  	return NULL;
   }
 
-  return 0;
+  return graph;
 }
 
 void yyerror(char * msg) {
@@ -240,6 +277,24 @@ static void arglist2argv(struct arglist * alist, int * argc, char *** argvp) {
 	for(i=0, al=alist; i<*argc; i++, al=al->next) {
 		argv[i] = al->arg;
 	}
+}
+
+static char * arglist2str(struct arglist * alist) {
+	char * argstr;
+	struct arglist * al;
+	int len = 0;
+
+	for(al=alist; al; al=al->next) 
+		len += strlen(al->arg) + 1;
+
+	argstr = calloc(1, sizeof(char *) * len + 1);
+
+	for(al=alist; al; al=al->next) {
+		strcat(argstr, al->arg);
+		strcat(argstr, " ");
+	}
+
+	return argstr;
 }
 
 static void graph_join(struct graph * graph, struct graph newg) {

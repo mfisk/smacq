@@ -174,7 +174,7 @@ struct filter * smacq_build_pipeline(int argc, char ** argv) {
   return(objs);
 }
 
-struct filter * smacq_build_query(int argc, char ** argv) {
+struct filter * smacq_old_build_query(int argc, char ** argv) {
   struct filter * objs = NULL;
   struct filter * last = NULL;
 

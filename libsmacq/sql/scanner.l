@@ -14,11 +14,11 @@ char *yystring;
 
 %option noyywrap
 
-space		[ \t\n\r\f]
 quote		\'
 dquote		\"
-number		-?[0-9.]+
-id		[a-zA-Z\-][a-zA-Z0-9\-_\.\:]*
+space		                 [ \t\n\r\f]+
+toksymbols	     [\,\=\<\>\(\)]
+id		[^\'\"\,\=\<\>\(\) \t\n\r\f]+
 
 %x xdquote
 %x xquote
@@ -58,18 +58,16 @@ having|HAVING	return HAVING;
 	.		*yystring++ = yytext[0];
 	}
 
-[\ \n\t]	{ ; }
+{space}	{ ; }
 
-[\,\=\<\>\(\)]    	return yytext[0];
-
-{id}|{number}	{ 
-			yystring = strdup((char *)yytext); 
-			return ID; 
-		}
+{toksymbols}    	return yytext[0];
 
 <<EOF>>		{ return STOP; }
 
-.		{ yyerror("Unexpected character"); }
+{id}	{ 
+			yystring = strdup((char *)yytext); 
+			return ID; 
+	}
 
 %%
 

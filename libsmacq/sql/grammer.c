@@ -84,7 +84,7 @@
 #include <string.h>
 #include <smacq-internal.h>
 #include "smacq-parser.h"
-#undef DEBUG
+#define DEBUG
   
   extern int yylex();
   extern void yy_scan_string(const char *);
@@ -104,12 +104,16 @@
   static void graph_join(struct graph * graph, struct graph newg);
   static struct graph newgroup(struct group, struct vphrase);
   static void arglist2argv(struct arglist * al, int * argc, char *** argv);
+  static char * arglist2str(struct arglist * al);
   static struct arglist * newarg(char * arg, int isfunc, struct arglist * func_args);
+  static struct arglist * arglist_append(struct arglist * tail, struct arglist * addition);
   static struct vphrase newvphrase(char * verb, struct arglist * args);
   void print_graph(struct filter * f);
 
   struct graph nullgraph = { head: NULL, tail: NULL };
   
+  struct filter * Graph;
+
 
 
 /* Enabling traces.  */
@@ -126,7 +130,7 @@
 #endif
 
 #ifndef YYSTYPE
-#line 79 "grammer.y"
+#line 83 "grammer.y"
 typedef union {
   struct graph graph;
   struct arglist * arglist;
@@ -135,7 +139,7 @@ typedef union {
   struct group group;
 } yystype;
 /* Line 193 of /usr/share/bison/yacc.c.  */
-#line 139 "grammer.c"
+#line 143 "grammer.c"
 # define YYSTYPE yystype
 # define YYSTYPE_IS_TRIVIAL 1
 #endif
@@ -156,7 +160,7 @@ typedef struct yyltype
 
 
 /* Line 213 of /usr/share/bison/yacc.c.  */
-#line 160 "grammer.c"
+#line 164 "grammer.c"
 
 #if ! defined (yyoverflow) || YYERROR_VERBOSE
 
@@ -254,16 +258,16 @@ union yyalloc
 
 /* YYFINAL -- State number of the termination state. */
 #define YYFINAL  7
-#define YYLAST   48
+#define YYLAST   77
 
 /* YYNTOKENS -- Number of terminals. */
-#define YYNTOKENS  16
+#define YYNTOKENS  20
 /* YYNNTS -- Number of nonterminals. */
-#define YYNNTS  22
+#define YYNNTS  24
 /* YYNRULES -- Number of rules. */
-#define YYNRULES  34
+#define YYNRULES  44
 /* YYNRULES -- Number of states. */
-#define YYNSTATES  59
+#define YYNSTATES  74
 
 /* YYTRANSLATE(YYLEX) -- Bison symbol number corresponding to YYLEX.  */
 #define YYUNDEFTOK  2
@@ -278,10 +282,10 @@ static const unsigned char yytranslate[] =
        0,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+       2,     2,     2,    19,     2,     2,     2,     2,     2,     2,
+      14,    15,     2,     2,    13,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-      13,    14,     2,     2,    15,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
+      16,    18,    17,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
@@ -309,34 +313,38 @@ static const unsigned char yytranslate[] =
    YYRHS.  */
 static const unsigned char yyprhs[] =
 {
-       0,     0,     3,     6,     7,    12,    14,    17,    19,    23,
-      25,    28,    30,    35,    37,    40,    42,    44,    46,    48,
-      50,    52,    56,    58,    63,    65,    67,    72,    75,    79,
-      81,    83,    86,    88,    92
+       0,     0,     3,     6,     7,    12,    14,    18,    20,    24,
+      26,    30,    32,    35,    37,    42,    44,    47,    49,    51,
+      53,    55,    57,    61,    63,    68,    70,    72,    74,    76,
+      78,    80,    82,    84,    86,    91,    94,    99,   102,   104,
+     107,   109,   112,   114,   118
 };
 
 /* YYRHS -- A `-1'-separated list of the rules' RHS. */
 static const yysigned_char yyrhs[] =
 {
-      17,     0,    -1,    19,    10,    -1,    -1,    33,    20,    22,
-      23,    -1,    18,    -1,     6,    21,    -1,    32,    -1,    13,
-      19,    14,    -1,    18,    -1,     3,    34,    -1,    18,    -1,
-       4,     5,    34,    24,    -1,    18,    -1,    12,    25,    -1,
-      34,    -1,    28,    -1,    27,    -1,     8,    -1,     9,    -1,
-      30,    -1,    30,    11,    26,    -1,    26,    -1,    31,    13,
-      35,    14,    -1,    28,    -1,    37,    -1,    37,    13,    35,
-      14,    -1,    37,    34,    -1,    13,    35,    14,    -1,    35,
-      -1,    18,    -1,    29,    36,    -1,    18,    -1,    15,    29,
-      36,    -1,    28,    -1
+      21,     0,    -1,    23,    10,    -1,    -1,    38,    24,    27,
+      28,    -1,    22,    -1,     6,    26,    25,    -1,    22,    -1,
+      13,    39,    25,    -1,    37,    -1,    14,    23,    15,    -1,
+      22,    -1,     3,    39,    -1,    22,    -1,     4,     5,    41,
+      29,    -1,    22,    -1,    12,    39,    -1,    32,    -1,    31,
+      -1,     8,    -1,     9,    -1,    34,    -1,    34,    11,    30,
+      -1,    30,    -1,    36,    14,    41,    15,    -1,    30,    -1,
+      16,    -1,    17,    -1,    18,    -1,    14,    -1,    15,    -1,
+      19,    -1,    32,    -1,    43,    -1,    43,    14,    41,    15,
+      -1,    43,    41,    -1,    43,    14,    41,    15,    -1,    35,
+      40,    -1,    22,    -1,    35,    40,    -1,    22,    -1,    33,
+      42,    -1,    22,    -1,    13,    33,    42,    -1,    32,    -1
 };
 
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const unsigned char yyrline[] =
 {
-       0,    88,    88,    97,    99,   112,   113,   116,   117,   121,
-     122,   125,   126,   129,   130,   133,   136,   137,   140,   142,
-     144,   145,   148,   149,   152,   155,   156,   159,   162,   163,
-     166,   167,   170,   171,   174
+       0,    92,    92,   102,   104,   117,   118,   127,   128,   139,
+     140,   143,   144,   147,   148,   151,   152,   155,   156,   159,
+     161,   163,   164,   167,   168,   171,   172,   173,   174,   175,
+     176,   177,   180,   183,   184,   187,   188,   191,   194,   195,
+     198,   199,   202,   203,   206
 };
 #endif
 
@@ -346,11 +354,11 @@ static const unsigned char yyrline[] =
 static const char *const yytname[] =
 {
   "$end", "error", "$undefined", "WHERE", "GROUP", "BY", "FROM", "SELECT", 
-  "STRING", "ID", "STOP", "AS", "HAVING", "'('", "')'", "','", "$accept", 
-  "queryline", "null", "query", "from", "source", "where", "group", 
-  "having", "booleans", "word", "string", "id", "arg", "argument", 
-  "function", "pverbphrase", "verbphrase", "args", "arglist", "moreargs", 
-  "verb", 0
+  "STRING", "ID", "STOP", "AS", "HAVING", "','", "'('", "')'", "'<'", 
+  "'>'", "'='", "'!'", "$accept", "queryline", "null", "query", "from", 
+  "joins", "source", "where", "group", "having", "word", "string", "id", 
+  "arg", "argument", "boolarg", "function", "pverbphrase", "verbphrase", 
+  "boolargs", "moreboolargs", "args", "moreargs", "verb", 0
 };
 #endif
 
@@ -360,25 +368,27 @@ static const char *const yytname[] =
 static const unsigned short yytoknum[] =
 {
        0,   256,   257,   258,   259,   260,   261,   262,   263,   264,
-     265,   266,   267,    40,    41,    44
+     265,   266,   267,    44,    40,    41,    60,    62,    61,    33
 };
 # endif
 
 /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
 static const unsigned char yyr1[] =
 {
-       0,    16,    17,    18,    19,    20,    20,    21,    21,    22,
-      22,    23,    23,    24,    24,    25,    26,    26,    27,    28,
-      29,    29,    30,    30,    31,    32,    32,    33,    34,    34,
-      35,    35,    36,    36,    37
+       0,    20,    21,    22,    23,    24,    24,    25,    25,    26,
+      26,    27,    27,    28,    28,    29,    29,    30,    30,    31,
+      32,    33,    33,    34,    34,    35,    35,    35,    35,    35,
+      35,    35,    36,    37,    37,    38,    38,    39,    40,    40,
+      41,    41,    42,    42,    43
 };
 
 /* YYR2[YYN] -- Number of symbols composing right hand side of rule YYN.  */
 static const unsigned char yyr2[] =
 {
-       0,     2,     2,     0,     4,     1,     2,     1,     3,     1,
-       2,     1,     4,     1,     2,     1,     1,     1,     1,     1,
-       1,     3,     1,     4,     1,     1,     4,     2,     3,     1,
+       0,     2,     2,     0,     4,     1,     3,     1,     3,     1,
+       3,     1,     2,     1,     4,     1,     2,     1,     1,     1,
+       1,     1,     3,     1,     4,     1,     1,     1,     1,     1,
+       1,     1,     1,     1,     4,     2,     4,     2,     1,     2,
        1,     2,     1,     3,     1
 };
 
@@ -387,76 +397,88 @@ static const unsigned char yyr2[] =
    means the default is an error.  */
 static const unsigned char yydefact[] =
 {
-       0,    19,     0,     0,    34,     3,     3,     1,     2,     0,
-       5,     3,    18,     3,    30,    22,    17,    16,     3,    20,
-       0,    27,    29,     0,     6,     7,    25,     3,     9,     3,
-       0,     0,    32,    31,     0,     3,     0,     3,    10,     0,
-      11,     4,    28,     3,    21,    16,     0,     8,     0,     3,
-      33,    23,    26,     3,     3,    13,    12,    14,    15
+       0,    20,     0,     0,    44,     3,     3,     1,     2,     0,
+       5,     3,    19,     3,    40,    23,    18,    17,     3,    21,
+       0,    35,     0,     3,     9,    33,     0,    11,     3,     0,
+       0,    42,    41,     0,     3,     0,     0,     7,     6,     3,
+      29,    30,    26,    27,    28,    31,    25,    17,     3,    12,
+       0,    13,     4,    36,     3,    22,     0,    10,     3,     0,
+      38,     3,    37,     3,    43,    24,     8,    34,    39,     3,
+       0,    15,    14,    16
 };
 
 /* YYDEFGOTO[NTERM-NUM]. */
 static const yysigned_char yydefgoto[] =
 {
-      -1,     2,    14,     3,    11,    24,    29,    41,    56,    57,
-      15,    16,    17,    18,    19,    20,    25,     5,    21,    22,
-      33,     6
+      -1,     2,    14,     3,    11,    38,    23,    28,    52,    72,
+      15,    16,    17,    18,    19,    48,    20,    24,     5,    49,
+      62,    21,    32,     6
 };
 
 /* YYPACT[STATE-NUM] -- Index in YYTABLE of the portion describing
    STATE-NUM.  */
-#define YYPACT_NINF -27
+#define YYPACT_NINF -45
 static const yysigned_char yypact[] =
 {
-      -6,   -27,     4,     8,   -27,     3,    -1,   -27,   -27,     1,
-     -27,    14,   -27,     7,   -27,   -27,   -27,     6,     5,    10,
-       9,   -27,   -27,    -6,   -27,   -27,    13,    -1,   -27,    26,
-      17,     7,   -27,   -27,     7,     7,    18,     7,   -27,    28,
-     -27,   -27,   -27,     5,   -27,   -27,    20,   -27,    21,    -1,
-     -27,   -27,   -27,    25,    -1,   -27,   -27,   -27,   -27
+      -1,   -45,    12,     8,   -45,    14,     7,   -45,   -45,    -3,
+     -45,    24,   -45,    21,   -45,   -45,   -45,    17,    19,    23,
+      26,   -45,    -1,    22,   -45,    27,    58,   -45,    33,    28,
+      21,   -45,   -45,    21,    21,    30,    58,   -45,   -45,    21,
+     -45,   -45,   -45,   -45,   -45,   -45,   -45,   -45,    58,   -45,
+      37,   -45,   -45,   -45,    19,   -45,    31,   -45,    22,    34,
+     -45,    58,   -45,    21,   -45,   -45,   -45,   -45,   -45,    39,
+      58,   -45,   -45,   -45
 };
 
 /* YYPGOTO[NTERM-NUM].  */
 static const yysigned_char yypgoto[] =
 {
-     -27,   -27,    -5,    16,   -27,   -27,   -27,   -27,   -27,   -27,
-      11,   -27,     2,    12,   -27,   -27,   -27,   -27,   -26,    -8,
-      -3,    32
+     -45,   -45,    -4,    36,   -45,    -5,   -45,   -45,   -45,   -45,
+     -23,   -45,     0,    25,   -45,   -44,   -45,   -45,   -45,   -31,
+      -2,   -11,     2,    51
 };
 
 /* YYTABLE[YYPACT[STATE-NUM]].  What to do in state STATE-NUM.  If
    positive, shift that token.  If negative, reduce the rule which
    number is the opposite.  If zero, do what YYDEFACT says.
    If YYTABLE_NINF, parse error.  */
-#define YYTABLE_NINF -25
+#define YYTABLE_NINF -33
 static const yysigned_char yytable[] =
 {
-      10,    38,     4,     1,     7,    30,    28,    12,     1,     9,
-       1,     4,    13,    32,    23,    12,     1,    27,     8,   -24,
-      31,    34,    35,    53,    40,     4,    37,    46,    58,    48,
-      39,    42,    47,    49,    51,    52,    45,    54,    32,    36,
-      50,    26,     0,    43,     0,    44,     0,     0,    55
+       4,    10,    29,    46,    61,    58,     1,    27,     1,     4,
+      55,    22,     7,    46,    31,    12,     1,    61,     8,    37,
+       9,    13,     4,    56,    51,    46,    47,    26,    59,    12,
+       1,   -32,    30,    47,    33,    36,    47,    50,    46,    73,
+      34,    39,    63,    53,    60,    57,    65,    46,    47,    67,
+      31,    70,    69,    66,    37,    54,    64,    60,    35,    68,
+      25,    47,     0,     0,     0,    71,    12,     1,     0,     0,
+      47,     0,    40,    41,    42,    43,    44,    45
 };
 
 static const yysigned_char yycheck[] =
 {
-       5,    27,     0,     9,     0,    13,    11,     8,     9,     6,
-       9,     9,    13,    18,    13,     8,     9,     3,    10,    13,
-      15,    11,    13,    49,    29,    23,    13,    35,    54,    37,
-       4,    14,    14,     5,    14,    14,    34,    12,    43,    23,
-      43,     9,    -1,    31,    -1,    34,    -1,    -1,    53
+       0,     5,    13,    26,    48,    36,     9,    11,     9,     9,
+      33,    14,     0,    36,    18,     8,     9,    61,    10,    23,
+       6,    14,    22,    34,    28,    48,    26,     3,    39,     8,
+       9,    14,    13,    33,    11,    13,    36,     4,    61,    70,
+      14,    14,     5,    15,    48,    15,    15,    70,    48,    15,
+      54,    12,    63,    58,    58,    30,    54,    61,    22,    61,
+       9,    61,    -1,    -1,    -1,    69,     8,     9,    -1,    -1,
+      70,    -1,    14,    15,    16,    17,    18,    19
 };
 
 /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
    symbol of state STATE-NUM.  */
 static const unsigned char yystos[] =
 {
-       0,     9,    17,    19,    28,    33,    37,     0,    10,     6,
-      18,    20,     8,    13,    18,    26,    27,    28,    29,    30,
-      31,    34,    35,    13,    21,    32,    37,     3,    18,    22,
-      35,    15,    18,    36,    11,    13,    19,    13,    34,     4,
-      18,    23,    14,    29,    26,    28,    35,    14,    35,     5,
-      36,    14,    14,    34,    12,    18,    24,    25,    34
+       0,     9,    21,    23,    32,    38,    43,     0,    10,     6,
+      22,    24,     8,    14,    22,    30,    31,    32,    33,    34,
+      36,    41,    14,    26,    37,    43,     3,    22,    27,    41,
+      13,    22,    42,    11,    14,    23,    13,    22,    25,    14,
+      14,    15,    16,    17,    18,    19,    30,    32,    35,    39,
+       4,    22,    28,    15,    33,    30,    41,    15,    39,    41,
+      22,    35,    40,     5,    42,    15,    25,    15,    40,    41,
+      12,    22,    29,    39
 };
 
 #if ! defined (YYSIZE_T) && defined (__SIZE_TYPE__)
@@ -1007,17 +1029,18 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 89 "grammer.y"
+#line 93 "grammer.y"
     { 
 #ifdef DEBUG
 	   	print_graph(yyvsp[-1].graph.head); 
 #endif
-		return smacq_start(yyvsp[-1].graph.head, RECURSIVE, NULL); 
+		Graph = yyvsp[-1].graph.head;
+		return 0;
 	   }
     break;
 
   case 4:
-#line 100 "grammer.y"
+#line 105 "grammer.y"
     {
 	   	yyval.graph.head = (yyval.graph.tail = NULL);
 	   	graph_join(&(yyval.graph), yyvsp[-2].graph);
@@ -1031,112 +1054,184 @@ yyreduce:
     break;
 
   case 5:
-#line 112 "grammer.y"
+#line 117 "grammer.y"
     { yyval.graph.head = NULL; yyval.graph.tail = NULL; }
     break;
 
   case 6:
-#line 113 "grammer.y"
-    { yyval.graph = yyvsp[0].graph; }
+#line 119 "grammer.y"
+    { 
+		yyval.graph = yyvsp[-1].graph; 
+	   	if (yyvsp[0].arglist) {
+			graph_join(&(yyval.graph), newmodule("join", yyvsp[0].arglist));
+		}
+	   }
     break;
 
-  case 8:
-#line 117 "grammer.y"
-    { yyval.graph = yyvsp[-1].graph; }
-    break;
-
-  case 9:
-#line 121 "grammer.y"
-    { yyval.graph = nullgraph; }
-    break;
-
-  case 10:
-#line 122 "grammer.y"
-    { yyval.graph = newmodule("filter", yyvsp[0].arglist); }
-    break;
-
-  case 11:
-#line 125 "grammer.y"
-    { yyval.group.args = NULL; yyval.group.having = NULL;}
-    break;
-
-  case 12:
-#line 126 "grammer.y"
-    { yyval.group.args = yyvsp[-1].arglist; yyval.group.having = yyvsp[0].arglist; }
-    break;
-
-  case 13:
-#line 129 "grammer.y"
+  case 7:
+#line 127 "grammer.y"
     { yyval.arglist = NULL; }
     break;
 
+  case 8:
+#line 129 "grammer.y"
+    {
+		yyval.arglist = newarg(arglist2str(yyvsp[-1].arglist), 0, NULL);
+	   	/* fprintf(stderr, "got a join (,) with %s\n", $$->arg); */
+
+	   	if (yyvsp[0].arglist) {
+			yyval.arglist = arglist_append(yyval.arglist, yyvsp[0].arglist);
+		} 
+	   }
+    break;
+
+  case 10:
+#line 140 "grammer.y"
+    { yyval.graph = yyvsp[-1].graph; }
+    break;
+
+  case 11:
+#line 143 "grammer.y"
+    { yyval.graph = nullgraph; }
+    break;
+
+  case 12:
+#line 144 "grammer.y"
+    { yyval.graph = newmodule("filter", yyvsp[0].arglist); }
+    break;
+
+  case 13:
+#line 147 "grammer.y"
+    { yyval.group.args = NULL; yyval.group.having = NULL;}
+    break;
+
   case 14:
-#line 130 "grammer.y"
+#line 148 "grammer.y"
+    { yyval.group.args = yyvsp[-1].arglist; yyval.group.having = yyvsp[0].arglist; }
+    break;
+
+  case 15:
+#line 151 "grammer.y"
+    { yyval.arglist = NULL; }
+    break;
+
+  case 16:
+#line 152 "grammer.y"
     { yyval.arglist = yyvsp[0].arglist; }
     break;
 
-  case 18:
-#line 140 "grammer.y"
-    { yyval.string = yystring; }
-    break;
-
   case 19:
-#line 142 "grammer.y"
+#line 159 "grammer.y"
     { yyval.string = yystring; }
     break;
 
-  case 21:
-#line 145 "grammer.y"
-    { yyval.arglist->rename = yyvsp[0].string; }
+  case 20:
+#line 161 "grammer.y"
+    { yyval.string = yystring; }
     break;
 
   case 22:
-#line 148 "grammer.y"
-    { yyval.arglist = newarg(yyvsp[0].string, 0, NULL); }
+#line 164 "grammer.y"
+    { yyval.arglist->rename = yyvsp[0].string; }
     break;
 
   case 23:
-#line 149 "grammer.y"
+#line 167 "grammer.y"
+    { yyval.arglist = newarg(yyvsp[0].string, 0, NULL); }
+    break;
+
+  case 24:
+#line 168 "grammer.y"
     { yyval.arglist = newarg(yyvsp[-3].string, 1, yyvsp[-1].arglist); }
     break;
 
   case 25:
-#line 155 "grammer.y"
-    { yyval.graph = newmodule(yyvsp[0].string, NULL); }
+#line 171 "grammer.y"
+    { yyval.arglist = newarg(yyvsp[0].string, 0, NULL); }
     break;
 
   case 26:
-#line 156 "grammer.y"
-    { yyval.graph = newmodule(yyvsp[-3].string, yyvsp[-1].arglist); }
+#line 172 "grammer.y"
+    { yyval.arglist = newarg("<", 0, NULL); }
     break;
 
   case 27:
-#line 159 "grammer.y"
-    { yyval.vphrase = newvphrase(yyvsp[-1].string, yyvsp[0].arglist); }
+#line 173 "grammer.y"
+    { yyval.arglist = newarg(">", 0, NULL); }
     break;
 
   case 28:
-#line 162 "grammer.y"
-    { yyval.arglist = yyvsp[-1].arglist; }
+#line 174 "grammer.y"
+    { yyval.arglist = newarg("=", 0, NULL); }
+    break;
+
+  case 29:
+#line 175 "grammer.y"
+    { yyval.arglist = newarg("(", 0, NULL); }
     break;
 
   case 30:
-#line 166 "grammer.y"
-    { yyval.arglist = NULL; }
+#line 176 "grammer.y"
+    { yyval.arglist = newarg(")", 0, NULL); }
     break;
 
   case 31:
-#line 167 "grammer.y"
-    { yyval.arglist = yyvsp[-1].arglist; yyval.arglist->next = yyvsp[0].arglist; }
-    break;
-
-  case 32:
-#line 170 "grammer.y"
-    { yyval.arglist = NULL; }
+#line 177 "grammer.y"
+    { yyval.arglist = newarg("!", 0, NULL); }
     break;
 
   case 33:
-#line 171 "grammer.y"
+#line 183 "grammer.y"
+    { yyval.graph = newmodule(yyvsp[0].string, NULL); }
+    break;
+
+  case 34:
+#line 184 "grammer.y"
+    { yyval.graph = newmodule(yyvsp[-3].string, yyvsp[-1].arglist); }
+    break;
+
+  case 35:
+#line 187 "grammer.y"
+    { yyval.vphrase = newvphrase(yyvsp[-1].string, yyvsp[0].arglist); }
+    break;
+
+  case 36:
+#line 188 "grammer.y"
+    { yyval.vphrase = newvphrase(yyvsp[-3].string, yyvsp[-1].arglist); }
+    break;
+
+  case 37:
+#line 191 "grammer.y"
+    { yyval.arglist = yyvsp[-1].arglist; yyval.arglist->next = yyvsp[0].arglist; }
+    break;
+
+  case 38:
+#line 194 "grammer.y"
+    { yyval.arglist = NULL; }
+    break;
+
+  case 39:
+#line 195 "grammer.y"
+    { yyval.arglist = yyvsp[-1].arglist; yyval.arglist->next = yyvsp[0].arglist; }
+    break;
+
+  case 40:
+#line 198 "grammer.y"
+    { yyval.arglist = NULL; }
+    break;
+
+  case 41:
+#line 199 "grammer.y"
+    { yyval.arglist = yyvsp[-1].arglist; yyval.arglist->next = yyvsp[0].arglist; }
+    break;
+
+  case 42:
+#line 202 "grammer.y"
+    { yyval.arglist = NULL; }
+    break;
+
+  case 43:
+#line 203 "grammer.y"
     { yyval.arglist = yyvsp[-1].arglist; yyval.arglist->next = yyvsp[0].arglist; }
     break;
 
@@ -1144,7 +1239,7 @@ yyreduce:
     }
 
 /* Line 1016 of /usr/share/bison/yacc.c.  */
-#line 1148 "grammer.c"
+#line 1243 "grammer.c"
 
   yyvsp -= yylen;
   yyssp -= yylen;
@@ -1363,13 +1458,16 @@ yyreturn:
 }
 
 
-#line 177 "grammer.y"
+#line 209 "grammer.y"
 
 
-int smacq_execute_query(int argc, char ** argv) {
+
+struct filter * smacq_build_query(int argc, char ** argv) {
   int size = 0;
   int i;
-  char * qstr;
+  char * qstr; 
+  struct filter * graph;
+  int res;
 
   for (i=0; i<argc; i++) {
   	size += strlen(argv[i]);
@@ -1382,13 +1480,23 @@ int smacq_execute_query(int argc, char ** argv) {
   	strcat(qstr, argv[i]);
   	strcat(qstr, " ");
   }
+
+  /* LOCK */
+
   yy_scan_string(qstr);
   /* fprintf(stderr, "parsing buffer: %s\n", qstr); */
-  if (yyparse()) {
-  	return 1;
+
+  res = yyparse();
+
+  graph = Graph;
+
+  /* UNLOCK */
+
+  if (res) {
+  	return NULL;
   }
 
-  return 0;
+  return graph;
 }
 
 void yyerror(char * msg) {
@@ -1422,6 +1530,24 @@ static void arglist2argv(struct arglist * alist, int * argc, char *** argvp) {
 	for(i=0, al=alist; i<*argc; i++, al=al->next) {
 		argv[i] = al->arg;
 	}
+}
+
+static char * arglist2str(struct arglist * alist) {
+	char * argstr;
+	struct arglist * al;
+	int len = 0;
+
+	for(al=alist; al; al=al->next) 
+		len += strlen(al->arg) + 1;
+
+	argstr = calloc(1, sizeof(char *) * len + 1);
+
+	for(al=alist; al; al=al->next) {
+		strcat(argstr, al->arg);
+		strcat(argstr, " ");
+	}
+
+	return argstr;
 }
 
 static void graph_join(struct graph * graph, struct graph newg) {
