@@ -207,6 +207,10 @@ static struct vphrase * newmodule(char * module, struct arglist * alist) {
      struct vphrase * vp = malloc(sizeof(struct vphrase));
 
      anew.arg = module;
+     if (!strcmp(module, "select")) {
+     	/* SQL's select is really a projection operation */
+     	anew.arg = "project";
+     }
      anew.next = alist;
 
      arglist2argv(&anew, &(vp->argc), &(vp->argv));
