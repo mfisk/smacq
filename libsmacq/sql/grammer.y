@@ -11,6 +11,8 @@
  *    - Cannot use nested functions as arguments
  *      FIX: we-write arguments recursively or something
  *
+ *    - Cannot do group-by on a verb, only on argument functions
+ *
  */
 
 /*

@@ -77,14 +77,14 @@
 
 
 /* Copy the first part of user declarations.  */
-#line 24 "grammer.y"
+#line 26 "grammer.y"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <smacq-internal.h>
 #include "smacq-parser.h"
-#define DEBUG
+#undef DEBUG
   
   extern int yylex();
   extern void yy_scan_string(const char *);
@@ -126,7 +126,7 @@
 #endif
 
 #ifndef YYSTYPE
-#line 77 "grammer.y"
+#line 79 "grammer.y"
 typedef union {
   struct graph graph;
   struct arglist * arglist;
@@ -333,10 +333,10 @@ static const yysigned_char yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const unsigned char yyrline[] =
 {
-       0,    86,    86,    95,    97,   110,   111,   114,   115,   119,
-     120,   123,   124,   127,   128,   131,   134,   135,   138,   140,
-     142,   143,   146,   147,   150,   153,   154,   157,   160,   161,
-     164,   165,   168,   169,   172
+       0,    88,    88,    97,    99,   112,   113,   116,   117,   121,
+     122,   125,   126,   129,   130,   133,   136,   137,   140,   142,
+     144,   145,   148,   149,   152,   155,   156,   159,   162,   163,
+     166,   167,   170,   171,   174
 };
 #endif
 
@@ -1007,7 +1007,7 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 87 "grammer.y"
+#line 89 "grammer.y"
     { 
 #ifdef DEBUG
 	   	print_graph(yyvsp[-1].graph.head); 
@@ -1017,7 +1017,7 @@ yyreduce:
     break;
 
   case 4:
-#line 98 "grammer.y"
+#line 100 "grammer.y"
     {
 	   	yyval.graph.head = (yyval.graph.tail = NULL);
 	   	graph_join(&(yyval.graph), yyvsp[-2].graph);
@@ -1031,112 +1031,112 @@ yyreduce:
     break;
 
   case 5:
-#line 110 "grammer.y"
+#line 112 "grammer.y"
     { yyval.graph.head = NULL; yyval.graph.tail = NULL; }
     break;
 
   case 6:
-#line 111 "grammer.y"
+#line 113 "grammer.y"
     { yyval.graph = yyvsp[0].graph; }
     break;
 
   case 8:
-#line 115 "grammer.y"
+#line 117 "grammer.y"
     { yyval.graph = yyvsp[-1].graph; }
     break;
 
   case 9:
-#line 119 "grammer.y"
+#line 121 "grammer.y"
     { yyval.graph = nullgraph; }
     break;
 
   case 10:
-#line 120 "grammer.y"
+#line 122 "grammer.y"
     { yyval.graph = newmodule("filter", yyvsp[0].arglist); }
     break;
 
   case 11:
-#line 123 "grammer.y"
+#line 125 "grammer.y"
     { yyval.group.args = NULL; yyval.group.having = NULL;}
     break;
 
   case 12:
-#line 124 "grammer.y"
+#line 126 "grammer.y"
     { yyval.group.args = yyvsp[-1].arglist; yyval.group.having = yyvsp[0].arglist; }
     break;
 
   case 13:
-#line 127 "grammer.y"
+#line 129 "grammer.y"
     { yyval.arglist = NULL; }
     break;
 
   case 14:
-#line 128 "grammer.y"
+#line 130 "grammer.y"
     { yyval.arglist = yyvsp[0].arglist; }
     break;
 
   case 18:
-#line 138 "grammer.y"
-    { yyval.string = yystring; }
-    break;
-
-  case 19:
 #line 140 "grammer.y"
     { yyval.string = yystring; }
     break;
 
+  case 19:
+#line 142 "grammer.y"
+    { yyval.string = yystring; }
+    break;
+
   case 21:
-#line 143 "grammer.y"
+#line 145 "grammer.y"
     { yyval.arglist->rename = yyvsp[0].string; }
     break;
 
   case 22:
-#line 146 "grammer.y"
+#line 148 "grammer.y"
     { yyval.arglist = newarg(yyvsp[0].string, 0, NULL); }
     break;
 
   case 23:
-#line 147 "grammer.y"
+#line 149 "grammer.y"
     { yyval.arglist = newarg(yyvsp[-3].string, 1, yyvsp[-1].arglist); }
     break;
 
   case 25:
-#line 153 "grammer.y"
+#line 155 "grammer.y"
     { yyval.graph = newmodule(yyvsp[0].string, NULL); }
     break;
 
   case 26:
-#line 154 "grammer.y"
+#line 156 "grammer.y"
     { yyval.graph = newmodule(yyvsp[-3].string, yyvsp[-1].arglist); }
     break;
 
   case 27:
-#line 157 "grammer.y"
+#line 159 "grammer.y"
     { yyval.vphrase = newvphrase(yyvsp[-1].string, yyvsp[0].arglist); }
     break;
 
   case 28:
-#line 160 "grammer.y"
+#line 162 "grammer.y"
     { yyval.arglist = yyvsp[-1].arglist; }
     break;
 
   case 30:
-#line 164 "grammer.y"
+#line 166 "grammer.y"
     { yyval.arglist = NULL; }
     break;
 
   case 31:
-#line 165 "grammer.y"
+#line 167 "grammer.y"
     { yyval.arglist = yyvsp[-1].arglist; yyval.arglist->next = yyvsp[0].arglist; }
     break;
 
   case 32:
-#line 168 "grammer.y"
+#line 170 "grammer.y"
     { yyval.arglist = NULL; }
     break;
 
   case 33:
-#line 169 "grammer.y"
+#line 171 "grammer.y"
     { yyval.arglist = yyvsp[-1].arglist; yyval.arglist->next = yyvsp[0].arglist; }
     break;
 
@@ -1363,7 +1363,7 @@ yyreturn:
 }
 
 
-#line 175 "grammer.y"
+#line 177 "grammer.y"
 
 
 int smacq_execute_query(int argc, char ** argv) {

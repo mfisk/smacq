@@ -16,7 +16,7 @@ space		[ \t\n\r\f]
 quote		\'
 dquote		\"
 number		-?[0-9.]+
-id		[a-zA-Z][a-zA-Z0-9_\.\:]*
+id		[a-zA-Z\-][a-zA-Z0-9\-_\.\:]*
 
 %x xdquote
 %x xquote
