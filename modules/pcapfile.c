@@ -13,26 +13,44 @@
 #include "dts_packet.h"
 
 static struct smacq_options options[] = {
-  {"o", {string_t:"-"}, "Output file", SMACQ_OPT_TYPE_STRING},
+  {"w", {string_t:"-"}, "Output file", SMACQ_OPT_TYPE_STRING},
   {"s", {uint32_t:0}, "Maximum output file size (MB)", SMACQ_OPT_TYPE_UINT32},
+  {"l", {boolean_t:0}, "Read list of input files from STDIN", SMACQ_OPT_TYPE_BOOLEAN},
   {NULL, {string_t:NULL}, NULL, 0}
 };
 
 static int open_file(struct state * state) {
   gzFile * filep;
+  char * filename = "";
+  char next_file[4096];
 
-  if (! state->argc) {
+  if (state->file_list) {
+	  int res;
+	  filename = next_file;
+	  res = scanf("%4096s", filename);
+	  if (res == EOF) {
+		  return(0);
+	  } else if (res != 1) {
+		  fprintf(stderr, "Error reading next filename from STDIN\n");
+		  return(0);
+	  }
+  } else if (! state->argc) {
     //fprintf(stderr, "No more files to read from\n");
     return(0);
+  } else {
+    filename = state->argv[0];
+    state->argc--; state->argv++;
   }
 
   if (state->pcap) pcap_close(state->pcap);
-  fprintf(stderr, "pcapfile: Opening %s for read\n", state->argv[0]);
+  if (state->gzfile) gzclose(state->gzfile);
+
+  fprintf(stderr, "pcapfile: Opening %s for read\n", filename);
   
-  if ((!state->argv[0]) || (!strcmp(state->argv[0], "-"))) {
+  if ((!filename) || (!strcmp(filename, "-"))) {
     filep = gzdopen(0, "rb");
   } else {
-    filep = gzopen(state->argv[0], "rb");
+    filep = gzopen(filename, "rb");
   }
 
   if (!filep) {
@@ -46,7 +64,6 @@ static int open_file(struct state * state) {
   
   parse_pcapfile(state, &state->pcap_file_header);
 
-  state->argc--; state->argv++;
   state->gzfile = filep;
 
   return(1); /* success */
@@ -169,7 +186,7 @@ static smacq_result pcapfile_consume(struct state * state, const dts_object * da
   return SMACQ_PASS;
 }
 
-static int pcapfile_shutdown(struct state * state) {
+static smacq_result pcapfile_shutdown(struct state * state) {
 	if (state->dumper) {
 	  pcap_dump_close(state->dumper);
 	  state->dumper = NULL;
@@ -188,7 +205,7 @@ static int pcapfile_shutdown(struct state * state) {
 	return 0;
 }
 
-static int pcapfile_init(struct smacq_init * context) {
+static smacq_result pcapfile_init(struct smacq_init * context) {
   struct state * state;
 
   //fprintf(stderr, "Loading pcapfile (%d,%d)\n", context->isfirst, context->islast);
@@ -199,11 +216,12 @@ static int pcapfile_init(struct smacq_init * context) {
 
   state->env = context->env;
   {
-    smacq_opt output, size;
+    smacq_opt output, size, list;
 
     struct smacq_optval optvals[] = {
-      { "o", &output}, 
+      { "w", &output}, 
       { "s", &size}, 
+      { "l", &list}, 
       {NULL, NULL}
     };
     output.uint32_t = 0;
@@ -212,6 +230,7 @@ static int pcapfile_init(struct smacq_init * context) {
 				 options, optvals);
     
     state->opts.output = output.string_t;
+    state->file_list = list.boolean_t;
     state->maxfilesize = size.uint32_t * 1024 * 1024;
     state->outputleft = 1024*1024;
   }

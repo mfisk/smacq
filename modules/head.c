@@ -24,7 +24,7 @@ static smacq_result head_consume(struct state * state, const dts_object * datum,
   return SMACQ_END;
 }
 
-static int head_init(struct smacq_init * context) {
+static smacq_result head_init(struct smacq_init * context) {
   struct state * state;
   int argc;
   char ** argv;

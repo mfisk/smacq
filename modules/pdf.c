@@ -90,7 +90,7 @@ static smacq_result pdf_consume(struct state * state, const dts_object * datum, 
   return(res);
 }
 
-static int pdf_init(struct smacq_init * context) {
+static smacq_result pdf_init(struct smacq_init * context) {
   int argc = 0;
   char ** argv;
   struct state * state = context->state = g_new0(struct state, 1);
@@ -114,7 +114,7 @@ static int pdf_init(struct smacq_init * context) {
   return 0;
 }
 
-static int pdf_shutdown(struct state * state) {
+static smacq_result pdf_shutdown(struct state * state) {
   return 0;
 }
 

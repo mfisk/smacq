@@ -43,7 +43,7 @@ static int timeval_lt(void * p1, int len1, void * p2, int len2) {
   return(!timeval_ge(*(struct timeval*)p1, *(struct timeval*)p2));
 }
 
-struct dts_field_descriptor dts_type_timeval_fields[] = {
+struct dts_field_spec dts_type_timeval_fields[] = {
   { "string",		"string",	smacqtype_timeval_get_string },
   { "double", 	"double",	smacqtype_timeval_get_double },
   { END,        NULL }

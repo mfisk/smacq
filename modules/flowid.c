@@ -400,7 +400,7 @@ static smacq_result flowid_consume(struct state * state, const dts_object * datu
   return status;
 }
 
-static int flowid_init(struct smacq_init * context) {
+static smacq_result flowid_init(struct smacq_init * context) {
   int argc = 0;
   char ** argv;
   struct state * state = context->state = calloc(sizeof(struct state), 1);
@@ -468,7 +468,7 @@ static int flowid_init(struct smacq_init * context) {
   return 0;
 }
 
-static int flowid_shutdown(struct state * state) {
+static smacq_result flowid_shutdown(struct state * state) {
   free(state);
   return SMACQ_END;
 }

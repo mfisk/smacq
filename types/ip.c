@@ -17,7 +17,7 @@ static int parse_ip(char * buf,  const dts_object * d) {
   return inet_pton(AF_INET, buf, d->data);
 }
 
-struct dts_field_descriptor dts_type_ip_fields[] = {
+struct dts_field_spec dts_type_ip_fields[] = {
         { "string",    "string",	smacqtype_ip_get_string },
         { END,        NULL,     	NULL }
 };

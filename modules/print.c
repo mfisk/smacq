@@ -58,7 +58,7 @@ static smacq_result print_consume(struct state * state, const dts_object * datum
   return SMACQ_PASS;
 }
 
-static int print_init(struct smacq_init * context) {
+static smacq_result print_init(struct smacq_init * context) {
   struct state * state;
   smacq_opt verbose, flush, delimiter;
   int i;
@@ -92,7 +92,7 @@ static int print_init(struct smacq_init * context) {
   return 0;
 }
 
-static int print_shutdown(struct state * state) {
+static smacq_result print_shutdown(struct state * state) {
   int i;
 
   for (i = 0; i < state->argc; i++) 

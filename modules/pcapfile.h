@@ -38,6 +38,7 @@ struct state {
   long long outputleft;
   unsigned long long maxfilesize;
   int suffix;
+  int file_list;
 
   struct pcapfile_options opts;
 };

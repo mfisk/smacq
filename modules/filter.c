@@ -41,7 +41,7 @@ static smacq_result filter_consume(struct state * state, const dts_object * datu
     return SMACQ_FREE;
 }
 
-static int filter_init(struct smacq_init * context) {
+static smacq_result filter_init(struct smacq_init * context) {
   struct state * state;
 
   context->state = state = (struct state*) calloc(sizeof(struct state),1);

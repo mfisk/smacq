@@ -124,12 +124,12 @@ The less-than and fromstring functions are optional and have the following proto
 .PP 
 Each type module may declare a list named 
 \fBdts_type_\fP\fItypename\fP\fB_fields\fP of \fBstruct 
-dts_field_descriptor\fR elements, which are defined as follows: 
+dts_field_spec\fR elements, which are defined as follows: 
  
 .PP 
 .nf 
 .ta 8n 16n 24n 32n 40n 48n 56n 64n 72n 
-\f(CW	struct \fBdts_field_descriptor\fR { 
+\f(CW	struct \fBdts_field_spec\fR { 
 \fB	  char * type; 
 \fR\fB	  char * name; 
 \fR\fB	  field_getfunc_fn * getfunc; 
@@ -187,7 +187,7 @@ dts_transform_descriptor\fR elements, which are defined as follows:
 .PP 
 .nf 
 .ta 8n 16n 24n 32n 40n 48n 56n 64n 72n 
-\f(CW	struct \fBdts_field_descriptor\fR { 
+\f(CW	struct \fBdts_field_spec\fR { 
 \fB	  char * name; 
 \fR\fB	  transform_getfunc_fn * getfunc; 
 \fR 	}; 

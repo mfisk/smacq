@@ -78,7 +78,7 @@ static smacq_result pcaplive_consume(struct state * state, const dts_object * da
 }
 
 
-static int pcaplive_shutdown(struct state * state) {
+static smacq_result pcaplive_shutdown(struct state * state) {
 	if (state->dumper) {
 		pcap_dump_close(state->dumper);
 		state->dumper = NULL;
@@ -112,7 +112,7 @@ static char * merge_args(int argc, char ** argv) {
 }
   
 
-static int pcaplive_init(struct smacq_init * context) {
+static smacq_result pcaplive_init(struct smacq_init * context) {
   char ebuf[PCAP_ERRBUF_SIZE];
   struct state * state;
   smacq_opt snapleno, promisco, interfaceo;

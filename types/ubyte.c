@@ -13,7 +13,7 @@ static int parse_ubyte(char * buf,  const dts_object * d) {
   return dts_set(d, unsigned char, atol(buf));
 }
 
-struct dts_field_descriptor dts_type_ubyte_fields[] = {
+struct dts_field_spec dts_type_ubyte_fields[] = {
   { "string",   "string",	smacqtype_ubyte_get_string },
   { END,        NULL }
 };

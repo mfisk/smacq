@@ -41,7 +41,7 @@ dts_object * dts_construct(dts_environment * tenv, int type, void * data) {
 
 int type_getfieldoffset(dts_environment * tenv, const dts_object * datum, int fnum, int * dtype, int * offset, int * len) {
   struct dts_type * t = dts_type_bynum(tenv, dts_gettype(datum));
-  struct smacq_engine_field * d;
+  struct dts_field_info * d;
 
   if (!t) return 0;
 
@@ -57,7 +57,7 @@ int type_getfieldoffset(dts_environment * tenv, const dts_object * datum, int fn
 }
 
 const dts_object* type_getfield_virtual(dts_environment * tenv, const dts_object * datum, dts_field fieldv, dts_object * scratch) {
-  return dts_getfield(tenv, datum, fieldv, scratch);
+  return dts_getfield(tenv, datum, fieldv);
 }
 
 char * dts_field_getname(dts_environment * tenv, dts_field f) {
@@ -190,11 +190,11 @@ int type_requiretype(dts_environment * tenv, char * name) {
 
   if (t->description) {
     int offset = 0;
-    struct dts_field_descriptor * d = t->description;
+    struct dts_field_spec * d = t->description;
 
     for (d=t->description; (d && d->type != END); d++) {
       int dnum = type_requirefield_single(tenv, d->name);
-      struct smacq_engine_field * f = g_new(struct smacq_engine_field, 1);
+      struct dts_field_info * f = g_new(struct dts_field_info, 1);
       // fprintf(stderr,"\tAdding %s (%s) to %s structure\n", d->name, d->type, t->name);
       f->offset = offset;
       f->type = type_requiretype(tenv, d->type);

@@ -148,7 +148,7 @@ static smacq_result last_consume(struct state * state, const dts_object * datum,
   return(SMACQ_FREE|condproduce);
 }
 
-static int last_init(struct smacq_init * context) {
+static smacq_result last_init(struct smacq_init * context) {
   int argc = 0;
   char ** argv;
   struct state * state = context->state = g_new0(struct state, 1);
@@ -184,7 +184,7 @@ static int last_init(struct smacq_init * context) {
   return 0;
 }
 
-static int last_shutdown(struct state * state) {
+static smacq_result last_shutdown(struct state * state) {
   return 0;
 }
 

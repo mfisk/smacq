@@ -40,7 +40,7 @@ smacq_%.la: %.lo
 	$(LIBTOOL) $(CC) -c $(CFLAGS) $< 
 
 %.lo: %.C ../include/smacq.h 
-	$(LIBTOOL) c++ -c $(CFLAGS) $< 
+	$(LIBTOOL) $(CXX) -c $(CFLAGS) $< 
 
 #
 # Python module stuff:

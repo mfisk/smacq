@@ -201,8 +201,11 @@ int dts_pkthdr_get_icmp_type(const dts_object * datum, dts_object * data) {
   return 1;
 }
 
+int dts_packet_get_wtap_field(const dts_object * datum, dts_object * wtapo, dts_field_element field) {
+  return 0;
+}
 
-struct dts_field_descriptor dts_type_packet_fields[] = {
+struct dts_field_spec dts_type_packet_fields[] = {
 	{ "int",	"linktype",	NULL },
 	{ "int",	"snaplen",	NULL }, 
 
@@ -240,4 +243,9 @@ struct dts_field_descriptor dts_type_packet_fields[] = {
 	{ "timeval",	"timeseries",    dts_pkthdr_get_ts },
 
         { END,	NULL,		NULL }
+};
+
+struct dts_type_info dts_type_packet_table = {
+	size: -1,
+	getfield: dts_packet_get_wtap_field
 };

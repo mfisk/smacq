@@ -43,7 +43,7 @@ static smacq_result msgtest_consume(struct state * state, const dts_object * dat
   return SMACQ_PASS;
 }
 
-static int msgtest_init(struct smacq_init * context) {
+static smacq_result msgtest_init(struct smacq_init * context) {
   struct state * state;
 
   context->state = state = (struct state*) calloc(sizeof(struct state),1);

@@ -27,7 +27,7 @@ static int parse_macaddr(char * buf,  const dts_object * d) {
   return 1;
 }
 
-struct dts_field_descriptor dts_type_macaddr_fields[] = {
+struct dts_field_spec dts_type_macaddr_fields[] = {
 	{ "string",   "string",	smacqtype_macaddr_get_string },
 	{ END,        NULL }
 };

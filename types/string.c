@@ -16,7 +16,7 @@ static int parse_string(char * buf,  const dts_object * d) {
   return 1;
 }
 
-struct dts_field_descriptor dts_type_string_fields[] = {
+struct dts_field_spec dts_type_string_fields[] = {
   { "string",   "string",  smacqtype_string_get_string },
   { END,        NULL }
 };

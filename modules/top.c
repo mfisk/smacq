@@ -96,7 +96,7 @@ static smacq_result top_consume(struct state * state, const dts_object * datum, 
   }
 }
 
-static int top_init(struct smacq_init * context) {
+static smacq_result top_init(struct smacq_init * context) {
   int argc;
   char ** argv;
   smacq_opt pcount;
@@ -142,7 +142,7 @@ static int top_init(struct smacq_init * context) {
   return 0;
 }
 
-static int top_shutdown(struct state * state) {
+static smacq_result top_shutdown(struct state * state) {
   return 0;
 }
 

@@ -41,7 +41,7 @@ int int_lt(void * num1, int size1, void * num2, int size2) {
 	return(*a < *b);
 }
 
-struct dts_field_descriptor dts_type_int_fields[] = {
+struct dts_field_spec dts_type_int_fields[] = {
   { "string",   "string",	smacqtype_int_get_string },
   { "string",   "hexstring",	smacqtype_int_get_hexstring },
   { "double",   "double",	smacqtype_int_get_double },

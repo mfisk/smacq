@@ -122,7 +122,7 @@ An optional filter string is a BPF filter string (see
 .PP 
 \fBpcapfile\fP \fIfilename\fP \&...  
 .PP 
-\fBpcapfile\fP -o \fIfilename\fP  [-s \fImegabytes\fP]  
+\fBpcapfile\fP -w \fIfilename\fP  [-l ]  [-s \fImegabytes\fP]  
 .PP 
 The \fBpcapfile\fP module either reads from or 
 writes to a tcpdump-style, libpcap packet trace file.  If the 
@@ -133,11 +133,13 @@ file.  Otherwise it writes data to a file.
 When reading, one or more files must be specified.  Use 
 \fB-\fP for stdin.  Input files that are 
 compressed with \fBgzip\fP are supported 
-automatically. 
+automatically.  If the \fB-l\fP option 
+is specified then files are read from STDIN instead of  
+the arguments. 
  
 .PP 
 When writing, a single output file must be specified with 
-\fB-o\fP. 
+\fB-w\fP. 
  
 .PP 
 The \fB-s\fP option specifies the maximum file size (in 
@@ -401,4 +403,4 @@ a time delay which is specified with the \fB-t\fP 	option which defaults to 0 se
 \fBsmacq-modules\fP(3), 
 \fBsmacq-embed\fP(3) 
  
-...\" created by instant / docbook-to-man, Tue 18 Mar 2003, 20:25 
+...\" created by instant / docbook-to-man, Wed 19 Mar 2003, 19:15 

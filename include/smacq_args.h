@@ -3,6 +3,7 @@
 
 #include <sys/time.h>
 #include <glib.h>
+#include "smacq.h"
 
 typedef union { 
   char * string_t;
@@ -33,5 +34,11 @@ struct smacq_options {
   smacq_opt_type type;
   int flags;
 };
+
+EXTERN int smacq_getoptsbyname(int argc, char ** argv, 
+			      int * , char***, 
+			      struct smacq_options *, 
+			      struct smacq_optval *);
+
 
 #endif

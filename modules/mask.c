@@ -57,7 +57,7 @@ static smacq_result mask_consume(struct state * state, const dts_object * datum,
   }
 }
 
-static int mask_init(struct smacq_init * context) {
+static smacq_result mask_init(struct smacq_init * context) {
   struct state * state;
   int i, argc;
   char ** argv;
@@ -111,7 +111,7 @@ static int mask_init(struct smacq_init * context) {
   return SMACQ_PASS;
 }
 
-static int mask_shutdown(struct state * state) {
+static smacq_result mask_shutdown(struct state * state) {
   free(state);
   return SMACQ_END;
 }

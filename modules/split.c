@@ -65,7 +65,7 @@ static smacq_result split_consume(struct state * state, const dts_object * datum
   return SMACQ_PASS;
 }
 
-static int split_init(struct smacq_init * context) {
+static smacq_result split_init(struct smacq_init * context) {
   int argc = 0;
   char ** argv;
   int i;
@@ -111,7 +111,7 @@ static int split_init(struct smacq_init * context) {
   return 0;
 }
 
-static int split_shutdown(struct state * state) {
+static smacq_result split_shutdown(struct state * state) {
   return SMACQ_END;
 }
 

@@ -24,7 +24,7 @@ static smacq_result const_consume(struct state * state, const dts_object * datum
   return SMACQ_PASS;
 }
 
-static int const_init(struct smacq_init * context) {
+static smacq_result const_init(struct smacq_init * context) {
   struct state * state;
   int argc;
   char ** argv;
@@ -55,7 +55,7 @@ static int const_init(struct smacq_init * context) {
   return SMACQ_PASS;
 }
 
-static int const_shutdown(struct state * state) {
+static smacq_result const_shutdown(struct state * state) {
   dts_field_free(state->field);
   free(state);
   return SMACQ_END;

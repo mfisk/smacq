@@ -20,7 +20,7 @@ static int smacqtype_uint32_get_double(const dts_object * o, dts_object * field)
   return dts_set(field, double, d);
 }
 
-struct dts_field_descriptor dts_type_uint32_fields[] = {
+struct dts_field_spec dts_type_uint32_fields[] = {
   { "string",   "string",	smacqtype_uint32_get_string },
   { "string",   "hexstring",	smacqtype_uint32_get_hexstring },
   { "double",   "double",	smacqtype_uint32_get_double },

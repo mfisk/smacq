@@ -240,7 +240,7 @@ static smacq_result intervals_consume(struct state * state, const dts_object * d
   return SMACQ_FREE;
 }
 
-static int intervals_init(struct smacq_init * context) {
+static smacq_result intervals_init(struct smacq_init * context) {
   int argc = 0;
   char ** argv;
   struct state * state = context->state = g_new0(struct state, 1);
@@ -280,7 +280,7 @@ static int intervals_init(struct smacq_init * context) {
   return 0;
 }
 
-static int intervals_shutdown(struct state * state) {
+static smacq_result intervals_shutdown(struct state * state) {
   // Print counters
   fprintf(stderr, "SHUTDOWN\n");
   printout(state, 0);

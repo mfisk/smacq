@@ -18,7 +18,7 @@ static int parse_ushort(char * buf,  const dts_object * d) {
   return dts_set(d, ushort, atol(buf));
 }
 
-struct dts_field_descriptor dts_type_ushort_fields[] = {
+struct dts_field_spec dts_type_ushort_fields[] = {
   { "string",   "string",	smacqtype_ushort_get_string },
   { "uint32",   "uint32",	smacqtype_ushort_get_uint32 },
   { END,        NULL }

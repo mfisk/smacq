@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
 #include "smacq.h"
 #include "substr/substr.h"
 
@@ -144,7 +145,7 @@ static smacq_result substr_consume(struct state * state, const dts_object * datu
   return SMACQ_FREE;
 }
 
-static int substr_init(struct smacq_init * context) {
+static smacq_result substr_init(struct smacq_init * context) {
   struct state * state;
   int i, argc;
   char ** argv;
@@ -194,7 +195,7 @@ static int substr_init(struct smacq_init * context) {
   return 0;
 }
 
-static int substr_shutdown(struct state * state) {
+static smacq_result substr_shutdown(struct state * state) {
   free(state);
   return 0;
 }

@@ -81,7 +81,7 @@ static smacq_result join_consume(struct state * state, const dts_object * datum,
   return SMACQ_PASS;
 }
 
-static int join_init(struct smacq_init * context) {
+static smacq_result join_init(struct smacq_init * context) {
   int argc = 0;
   char ** argv;
 
@@ -112,7 +112,7 @@ static int join_init(struct smacq_init * context) {
   return 0;
 }
 
-static int join_shutdown(struct state * state) {
+static smacq_result join_shutdown(struct state * state) {
   return SMACQ_END;
 }
 

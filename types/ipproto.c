@@ -44,7 +44,7 @@ static int ipproto_lt(void * num1, int size1, void * num2, int size2) {
 	return(a < b);
 }
 
-struct dts_field_descriptor dts_type_ipproto_fields[] = {
+struct dts_field_spec dts_type_ipproto_fields[] = {
 	{ "string",   "string",	smacqtype_ipproto_get_string },
         { END,        NULL }
 };

@@ -54,7 +54,7 @@ static smacq_result uniq_consume(struct state * state, const dts_object * datum,
   return SMACQ_FREE;
 }
 
-static int uniq_init(struct smacq_init * context) {
+static smacq_result uniq_init(struct smacq_init * context) {
   int argc;
   char ** argv;
   struct state * state = context->state = g_new0(struct state, 1);
@@ -87,7 +87,7 @@ static int uniq_init(struct smacq_init * context) {
   return 0;
 }
 
-static int uniq_shutdown(struct state * state) {
+static smacq_result uniq_shutdown(struct state * state) {
   return 0;
 }
 

@@ -126,7 +126,7 @@ static smacq_result socket_consume(struct state * state, const dts_object * datu
   return SMACQ_FREE;
 }
 
-static int socket_shutdown(struct state * state) {
+static smacq_result socket_shutdown(struct state * state) {
   int i;
 
   for (i = 0; i <= state->max_fd; i++) {
@@ -203,7 +203,7 @@ static void client_init(struct state * state, int port, char * hostname) {
   *state->client_type_array = 0; 
 }
 
-static int socket_init(struct smacq_init * context) {
+static smacq_result socket_init(struct smacq_init * context) {
   struct state * state;
   smacq_opt port, hostname, serverd;
   context->state = state = (struct state*) calloc(sizeof(struct state),1);

@@ -32,7 +32,7 @@ int nushort_lt(void * num1, int size1, void * num2, int size2) {
 	return(a < b);
 }
 
-struct dts_field_descriptor dts_type_nushort_fields[] = {
+struct dts_field_spec dts_type_nushort_fields[] = {
 	{ "string",   "string",	smacqtype_nushort_get_string },
 	{ "uint32",   "uint32",	smacqtype_nushort_get_uint32 },
         { END,        NULL }

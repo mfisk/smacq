@@ -12,7 +12,7 @@
       <firstname>Mike</firstname>
       <surname>Fisk</surname>
     </author>
-    <date>$Date: 2003/01/31 01:39:05 $</date>
+    <date>$Date: 2003/03/19 03:25:49 $</date>
   </refentryinfo>
   <refmeta>
     <refentrytitle>smacq</refentrytitle>
@@ -128,7 +128,8 @@
       </cmdsynopsis>
       <cmdsynopsis>
 	<command>pcapfile</command>
-	<arg choice=req> -o <replaceable>filename</replaceable></arg>
+	<arg choice=req> -w <replaceable>filename</replaceable></arg>
+	<arg>-l </arg>
 	<arg>-s <replaceable>megabytes</replaceable></arg>
       </cmdsynopsis>
 
@@ -143,12 +144,14 @@
 	When reading, one or more files must be specified.  Use
 	<literal>-</literal> for stdin.  Input files that are
 	compressed with <command>gzip</command> are supported
-	automatically.
+	automatically.  If the <option>-l</option> option
+	is specified then files are read from STDIN instead of 
+	the arguments.
       </para>
 
       <para>
 	When writing, a single output file must be specified with
-	<option>-o</option>.
+	<option>-w</option>.
       </para>
 
       <para>

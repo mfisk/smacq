@@ -19,7 +19,7 @@ void msg_send(dts_environment * tenv, dts_field_element fieldnum, dts_object * d
 }
 
 const dts_object * msg_check(dts_environment * tenv, const dts_object * d, 
-			 dts_field_element field, dts_object * data) {
+			 dts_field_element field) {
   dts_message * m;
   //fprintf(stderr, "Looking for possible messages\n");
  

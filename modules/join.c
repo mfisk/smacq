@@ -55,7 +55,7 @@ static void find_join(struct state * state, dts_comparison * comp) {
 
 }
 
-static int join_init(struct smacq_init * context) {
+static smacq_result join_init(struct smacq_init * context) {
   int argc = 0;
   char ** argv;
   int i, j;
@@ -108,7 +108,7 @@ static int join_init(struct smacq_init * context) {
   return 0;
 }
 
-static int join_shutdown(struct state * state) {
+static smacq_result join_shutdown(struct state * state) {
   return SMACQ_END;
 }
 

@@ -68,7 +68,7 @@ int type_lt_virtual(int type, void * p1, int len1, void * p2, int len2);
 EXTERN dts_environment * dts_init();
 /*
 EXTERN int type_requiretype(dts_environment *, char * name);
-EXTERN int type_newtype(dts_environment *, char * name, struct dts_field_descriptor * d);
+EXTERN int type_newtype(dts_environment *, char * name, struct dts_field_spec * d);
 EXTERN int type_typenum_byname(dts_environment *, char*);
 EXTERN char * type_typename_bynum(dts_environment *, int);
 */
@@ -78,7 +78,7 @@ void * smacq_find_module(GModule ** gmodulep, char * envvar, char * envdefault, 
 /*
  * Interfaces to msg system
  */
-const dts_object * msg_check(dts_environment * tenv, const dts_object * d, dts_field_element field, dts_object *);
+const dts_object * msg_check(dts_environment * tenv, const dts_object * d, dts_field_element field);
 
 /*
  * Scheduler intefaces 
@@ -87,7 +87,6 @@ struct runq;
 void sched_mono(smacq_graph *);
 EXTERN int smacq_sched_iterative(smacq_graph * startf, const dts_object * din, const dts_object ** dout , struct runq **, int produce_first);
 EXTERN void smacq_sched_iterative_shutdown(smacq_graph * startf, struct runq * runq);
-
 
 void smacq_start_threads(smacq_graph *);
 

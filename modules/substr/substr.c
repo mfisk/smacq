@@ -16,9 +16,10 @@
 ** Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
-/* $Id: substr.c,v 1.1 2003/01/18 17:40:19 mfisk Exp $ */
+/* $Id: substr.c,v 1.2 2003/01/19 02:07:28 mfisk Exp $ */
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 #include <sys/time.h>
 #include <unistd.h>

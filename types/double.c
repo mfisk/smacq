@@ -23,7 +23,7 @@ static int parse_string(char * buf,  const dts_object * d) {
   return dts_set(d, double, dbl);
 }
 
-struct dts_field_descriptor dts_type_double_fields[] = {
+struct dts_field_spec dts_type_double_fields[] = {
   { "string",   "string",	smacqtype_double_get_string },
   { "double",   "double",	smacqtype_double_get_double },
   { END,        NULL }

@@ -7,7 +7,7 @@
 int type_match_andor(dts_environment * tenv, const dts_object * datum, 
 	   dts_comparison * comps, int same_types, int op);
 
-int type_parsetest (dts_environment * tenv, dts_comparison * comp, 
+int dts_parsetest (dts_environment * tenv, dts_comparison * comp, 
 		    char * test) {
     int offset = strcspn(test,  "=<>!");
     comp->valstr = test+offset+1;

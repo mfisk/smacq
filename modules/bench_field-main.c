@@ -98,7 +98,7 @@ static smacq_result bench_field_consume(struct state * state, const dts_object *
   return SMACQ_PASS;
 }
 
-static int bench_field_init(struct smacq_init * context) {
+static smacq_result bench_field_init(struct smacq_init * context) {
   int argc = 0;
   char ** argv;
   struct state * state = context->state = g_new0(struct state, 1);
@@ -123,7 +123,7 @@ static int bench_field_init(struct smacq_init * context) {
   return 0;
 }
 
-static int bench_field_shutdown(struct state * state) {
+static smacq_result bench_field_shutdown(struct state * state) {
   free(state);
   return 0;
 }
