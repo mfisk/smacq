@@ -19,7 +19,7 @@ inline struct list * SmacqGraph::list_tails(struct list * list, SmacqGraph * par
     FOREACH_CHILD(b, list = child->list_tails(list, b, i, j));
 
     return list;
-  } else {
+  } else if (parent) {
     /* base case: no branches below here, so prepend self */
     struct list * newl = (struct list*)malloc(sizeof(struct list));
     newl->g = this;
@@ -32,6 +32,11 @@ inline struct list * SmacqGraph::list_tails(struct list * list, SmacqGraph * par
     if (list) list->prev = newl;
 
     return newl;
+  } else if (this->children[0].size()) {
+    // not interested in tails that are heads, but we will take their children
+    return this->children[0][0]->list_tails(list, this, 0, 0);
+  } else {
+    return list;
   }
 }
 
@@ -92,7 +97,8 @@ inline void SmacqGraph::merge_tails(struct list * alist, struct list * blist) {
   int adepth = 0; 
   int bdepth = 0; 
   int i;
- 
+
+  //fprintf(stderr, "merge_tails looking at %p and %p\n", a, b);
   if (a == b) return;
 
   /* Get tails of equal length */
@@ -120,9 +126,10 @@ inline void SmacqGraph::merge_tails(struct list * alist, struct list * blist) {
   if (a == b) return;
 
   if (merge_tail_ends(a, b)) {
-    assert(bparent); /* else this would be a common head and already removed */
+    //fprintf(stderr, "going to replace %p (child %d,%d of %p) with %p\n", b, bchildi, bchildj, bparent, a);
 
-    //fprintf(stderr, "going to replace %p (child %d of %p) with %p\n", bparent->children[0][bchild], bchild, bparent, a);
+    assert(bparent); /* else this would be a common head and already removed */
+    
     bparent->replace_child(bchildi, bchildj, a);
     
     /* Remove b tail from list of tails */
@@ -147,6 +154,7 @@ inline void SmacqGraph::merge_all_tails() {
   }
 
   /* n**2 comparison between each tails */
+  /* XXX: half of these are redundant */
   for (lpa = list; lpa; lpa=lpa->next) {
     for (lpb = list; lpb; lpb=lpb->next) {
       if (lpa != lpb)
@@ -241,7 +249,8 @@ inline int SmacqGraph::merge_fanouts(SmacqGraph * a, SmacqGraph * b) {
    */
   unsigned int i, j;
   
-  if (!compare_elements(a,b)) return 0;
+  if (!compare_elements(a,b) || !a->algebra.stateless || !b->algebra.stateless) 
+	return 0;
 
   assert(a->children.size() <= 1 && b->children.size() <= 1);;
 
@@ -293,7 +302,7 @@ inline void SmacqGraph::optimize_tree() {
   unsigned int an, bn;
   SmacqGraph * a, * b;
   
-  if (!algebra.vector && !algebra.demux) { /* Can't rewrite children of a vector */
+  if (algebra.stateless && !algebra.vector && !algebra.demux) { /* Can't rewrite children of a vector */
     for (an = 0; an < children[0].size(); an++) {
       a = children[0][an];
       
