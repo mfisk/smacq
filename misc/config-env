@@ -24,7 +24,7 @@ config() {
 	elif [ `uname -s` = "Linux" ]; then
 		# Red Hat 8.0: 
 		if has g++296; then 
-			echo 'CXX="--mode=compile g++296"'
+			echo 'CXX=--mode=compile g++296'
 		fi 
 		if has gcc296; then 
 			echo 'CC=gcc296'
