@@ -378,7 +378,7 @@ void SmacqGraph::optimize() {
 #warning "SMACQ_OPT_NOCHILDREN set"
 #endif
 
-#ifdef SMACQ_OPT_NOTAILS
+#ifndef SMACQ_OPT_NOTAILS
   /* Do the merge again from the tails up */
   merge_all_tails();
 
