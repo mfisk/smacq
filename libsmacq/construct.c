@@ -33,7 +33,10 @@ int flow_load_module(struct filter * module) {
     // Find a shared library
     {
       char modfile[256];
-      snprintf(modfile, 256, "%s/smacq_%s", getenv("SMACQ_HOME"), module->name);
+      char * path = getenv("SMACQ_HOME");
+      if (!path) path = "modules";
+
+      snprintf(modfile, 256, "%s/smacq_%s", path, module->name);
 
       assert(g_module_supported());
 

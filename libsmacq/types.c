@@ -221,7 +221,10 @@ static int type_load_module(struct dts_type * t) {
     // Find a shared library
     {
       char modfile[1024];
-      snprintf(modfile, 1024, "%s/dts_%s", getenv("DTS_HOME"), t->name);
+      char * path = getenv("DTS_HOME");
+      if (!path) path = "types"; 
+
+      snprintf(modfile, 1024, "%s/dts_%s", path, t->name);
       t->module = g_module_open(modfile, 0);
     
       if (! t->module) {
