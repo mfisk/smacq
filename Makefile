@@ -21,7 +21,7 @@ bootstrap:
 	libtoolize --copy --force; \
 	aclocal -I libgnu/m4; \
 	autoheader; \
-	automake -a; \
+	automake-1.7 -a; \
 	autoconf
 
 cvsinterforce: cvsinter
