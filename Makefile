@@ -5,13 +5,14 @@ CFLAGS=-ggdb -O0 -fno-inline -Winline	# For debugging
 auto:
 	env `./config-env` make all
 
-portabletar: auto
+reloc: auto bin/smacqq bin/reloc.sh
 	@LIBS=`ldd bin/smacqq | cut -d'>' -f2 | cut -d'(' -f1`; \
-	rm -Rf smacq; \
-	mkdir -p smacq/bin smacq/lib; \
-	cp bin/smacqq smacq/bin/; \
-	cp bin/smacqq.sh smacq/smacqq; \
-	cp $$LIBS smacq/lib/
+	rm -Rf $@; \
+	mkdir -p $@/.bin $@/.lib; \
+	cp bin/smacqq $@/.bin/; \
+	cp bin/reloc.sh $@/.reloc.sh; \
+	(cd $@; ln -s .reloc.sh smacqq); \
+	cp $$LIBS $@/.lib/
 	
 all: dirs
 
