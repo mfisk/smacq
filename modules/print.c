@@ -89,12 +89,20 @@ static int print_init(struct flow_init * context) {
   return 0;
 }
 
+static int print_shutdown(struct state * state) {
+  free(state->fields);
+  free(state);
+  return 0;
+}
+
+
+
 
 /* Right now this serves mainly for type checking at compile time: */
 struct smacq_functions smacq_print_table = {
 	produce: &print_produce, 
 	consume: &print_consume,
 	init: &print_init,
-	shutdown: NULL
+	shutdown: &print_shutdown,
 };
 
