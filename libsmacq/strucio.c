@@ -285,7 +285,7 @@ static inline int open_filename(struct strucio * rdr, char * filename) {
     struct stat stats;
     fstat(fileno(rdr->fh), &stats);
 
-    rdr->mmap = mmap(NULL, stats.st_size, PROT_READ, MAP_PRIVATE|MAP_NORESERVE, fileno(rdr->fh), 0);
+    rdr->mmap = mmap(NULL, stats.st_size, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_NORESERVE, fileno(rdr->fh), 0);
     if ((int)rdr->mmap == -1) rdr->mmap = NULL;
     
     if (rdr->mmap) {
