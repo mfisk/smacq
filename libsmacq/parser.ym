@@ -49,8 +49,7 @@ static struct graph nullgraph = { head: NULL, tail: NULL };
 static smacq_graph * Graph;
 %}
 
-%type <graph> from barequery query pipedquery where 
-%type <vphrase> verbphrase
+%type <graph> query from0 from where action parenquery moreparenquery
 %type <group> group
 %type <comp> having
 
@@ -66,44 +65,43 @@ queryline: query YYSTOP
 	   }
 	;
 
-query : barequery 
-	| '(' barequery ')'	{ $$ = $2; }
-	| query UNION query	{ smacq_graph * g = $1.head; while(g->next_graph) g=g->next_graph; g->next_graph = $3.head; $$ = $1; }
-	;
-
-barequery : verbphrase from where group
+query : action from where group
            {
 	   	$$ = $2;
 		graph_join(&($$), $3);
 		if ($4.args) {
 			graph_join(&($$), newgroup($4, $1));
 		} else {
-			graph_join(&($$), newmodule($1.verb, $1.args));
+			graph_join(&($$), $1);
 		}
 	   }
-	| pipedquery verbphrase where group
+	| action where 
+           {
+	   	$$ = $2;
+		graph_join(&($$), $1);
+	   }
+	| query '|' action where group
            {
 	   	$$ = $1;
-		graph_join(&($$), $3);
-		if ($4.args) {
-			graph_join(&($$), newgroup($4, $2));
+		graph_join(&($$), $4);
+		if ($5.args) {
+			graph_join(&($$), newgroup($5, $3));
 		} else {
-			graph_join(&($$), newmodule($2.verb, $2.args));
+			graph_join(&($$), $3);
 		}
 	   }
-	| from where 
+        | WHERE boolean { $$ = optimize_bools($2); }
+	;
+
+from0 : from
+	| null		{ $$ = nullgraph; }
+	;
+
+from :  FROM action from0
            {
-	   	$$ = $1;
+	   	$$ = $3;
 		graph_join(&($$), $2);
 	   }
-	| verbphrase 	{ $$ = newmodule($1.verb, $1.args); }
-	| where 
-	;
-
-pipedquery : query '|'  { $$ = $1; }
-	;
-
-from :  FROM query 	{ $$ = $2; }
 	;
 
 where : null 		{ $$ = nullgraph; }
@@ -118,10 +116,34 @@ having : null			{ $$ = NULL; }
 	| HAVING boolean	{ $$ = $2; }
 	;
 
-verbphrase : verb args 		{ $$ = newvphrase($1, $2); }
-	| verb '(' args ')'	{ $$ = newvphrase($1, $3); }
+parenquery : '(' query ')'	{ $$ = $2; }
+	| verb '(' args ')'	{ $$ = newmodule($1, $3); }
+	| verb			{ $$ = newmodule($1, NULL); }
 	;
 
+moreparenquery : parenquery
+	| parenquery '+' moreparenquery
+	   {
+	   	smacq_graph * g = $1.head;
+		while(g->next_graph)
+			g=g->next_graph;
+		g->next_graph = $3.head;
+		$$ = $1;
+	   }
+	;
+
+action : verb args 		{ $$ = newmodule($1, $2); }
+	| verb '(' args ')'	{ $$ = newmodule($1, $3); }
+	| '(' query ')'		{ $$ = $2; }
+	| '(' parenquery '+' moreparenquery ')'
+	   {
+	   	smacq_graph * g = $2.head;
+		while(g->next_graph)
+			g=g->next_graph;
+		g->next_graph = $4.head;
+		$$ = $2;
+	   }
+	;
 %%
 
 extern void yysmacql_scan_string(char*);
