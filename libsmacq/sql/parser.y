@@ -48,7 +48,7 @@ static smacq_graph * Graph;
 %token SELECT
 %token AS
 %token HAVING
-%token YYSTRING YYID
+%token YYSTRING YYID YYNUMBER
 %token YYNEQ YYLEQ YYGEQ
 
 %token YYSTOP YYLIKE YYOR YYAND
@@ -56,7 +56,7 @@ static smacq_graph * Graph;
 %right FROM
 
 %type <arglist> arg argument args moreargs spacedargs
-%type <string> function verb word string id
+%type <string> function verb word string id number
 %type <op> op
 %type <comp> boolean test 
 %type <operand> operand
@@ -77,7 +77,11 @@ null:   /* empty */ ;
 
 
 word:	id 		
-	| string  
+	| string
+	| number 
+	;
+
+number:	YYNUMBER 	{ $$ = yystring; }
 	;
 
 string:	YYSTRING 	{ $$ = yystring; }
@@ -126,6 +130,7 @@ boolean : '(' boolean ')'	{ $$ = $2; }
 
 operand : id			{ $$ = comp_operand(FIELD, $1); }
 	| string 		{ $$ = comp_operand(CONST, $1); }
+	| number 		{ $$ = comp_operand(CONST, $1); }
 	;
 	
 test : operand			{ $$ = comp_new(EXIST, $1, $1); }

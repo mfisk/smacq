@@ -7,7 +7,7 @@
 
 char string_buf[MAX_STR_CONST];
 char *yystring;
-
+#define yysmacql__scan_string yysmacql_scan_string
 %}
 
 %option noyywrap
@@ -16,7 +16,8 @@ quote		\'
 dquote		\"
 space		[ \t\n\r\f]+
 toksymbols	[\,\=\<\>\(\)]
-id		[^\!\'\"\,\=\<\>\(\) \t\n\r\f]+
+number		[\-\+]?[0-9e\.]+
+id		[^\!\'\"\,\=\<\>\(\) \t\n\r\f][^\!\'\"\,\=\<\>\(\) \t\n\r\f]*
 
 %x xdquote
 %x xquote
@@ -73,6 +74,11 @@ like|LIKE       return YYLIKE;
 {toksymbols}    	return yysmacql_text[0];
 
 <<EOF>>		{ return YYSTOP; }
+
+{number}	{ 
+			yystring = strdup((char *)yysmacql_text); 
+			return YYNUMBER; 
+	}
 
 {id}	{ 
 			yystring = strdup((char *)yysmacql_text); 

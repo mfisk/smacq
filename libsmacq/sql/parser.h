@@ -41,13 +41,14 @@
      HAVING = 264,
      YYSTRING = 265,
      YYID = 266,
-     YYNEQ = 267,
-     YYLEQ = 268,
-     YYGEQ = 269,
-     YYSTOP = 270,
-     YYLIKE = 271,
-     YYOR = 272,
-     YYAND = 273
+     YYNUMBER = 267,
+     YYNEQ = 268,
+     YYLEQ = 269,
+     YYGEQ = 270,
+     YYSTOP = 271,
+     YYLIKE = 272,
+     YYOR = 273,
+     YYAND = 274
    };
 #endif
 #define WHERE 258
@@ -59,13 +60,14 @@
 #define HAVING 264
 #define YYSTRING 265
 #define YYID 266
-#define YYNEQ 267
-#define YYLEQ 268
-#define YYGEQ 269
-#define YYSTOP 270
-#define YYLIKE 271
-#define YYOR 272
-#define YYAND 273
+#define YYNUMBER 267
+#define YYNEQ 268
+#define YYLEQ 269
+#define YYGEQ 270
+#define YYSTOP 271
+#define YYLIKE 272
+#define YYOR 273
+#define YYAND 274
 
 
 
@@ -83,7 +85,7 @@ typedef union {
   struct dts_operand * operand;
 } yystype;
 /* Line 1281 of /usr/share/bison/yacc.c.  */
-#line 87 "/home/mfisk/smacq/libsmacq/sql/parser.h"
+#line 89 "/home/mfisk/smacq/libsmacq/sql/parser.h"
 # define YYSTYPE yystype
 #endif
 

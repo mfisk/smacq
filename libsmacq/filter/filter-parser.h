@@ -1,4 +1,4 @@
-/* A Bison parser, made from /usr/home/mfisk/smacq/libsmacq/filter/filter-parser.y, by GNU bison 1.75.  */
+/* A Bison parser, made from /home/mfisk/smacq/libsmacq/filter/filter-parser.y, by GNU bison 1.75.  */
 
 /* Skeleton parser for Yacc-like parsing with Bison,
    Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002 Free Software Foundation, Inc.
@@ -23,8 +23,8 @@
    This special exception was added by the Free Software Foundation
    in version 1.24 of Bison.  */
 
-#ifndef BISON__USR_HOME_MFISK_SMACQ_LIBSMACQ_FILTER_FILTER_PARSER_H
-# define BISON__USR_HOME_MFISK_SMACQ_LIBSMACQ_FILTER_FILTER_PARSER_H
+#ifndef BISON__HOME_MFISK_SMACQ_LIBSMACQ_FILTER_FILTER_PARSER_H
+# define BISON__HOME_MFISK_SMACQ_LIBSMACQ_FILTER_FILTER_PARSER_H
 
 /* Tokens.  */
 #ifndef YYTOKENTYPE
@@ -41,13 +41,14 @@
      HAVING = 264,
      YYSTRING = 265,
      YYID = 266,
-     YYNEQ = 267,
-     YYLEQ = 268,
-     YYGEQ = 269,
-     YYSTOP = 270,
-     YYLIKE = 271,
-     YYOR = 272,
-     YYAND = 273
+     YYNUMBER = 267,
+     YYNEQ = 268,
+     YYLEQ = 269,
+     YYGEQ = 270,
+     YYSTOP = 271,
+     YYLIKE = 272,
+     YYOR = 273,
+     YYAND = 274
    };
 #endif
 #define WHERE 258
@@ -59,19 +60,20 @@
 #define HAVING 264
 #define YYSTRING 265
 #define YYID 266
-#define YYNEQ 267
-#define YYLEQ 268
-#define YYGEQ 269
-#define YYSTOP 270
-#define YYLIKE 271
-#define YYOR 272
-#define YYAND 273
+#define YYNUMBER 267
+#define YYNEQ 268
+#define YYLEQ 269
+#define YYGEQ 270
+#define YYSTOP 271
+#define YYLIKE 272
+#define YYOR 273
+#define YYAND 274
 
 
 
 
 #ifndef YYSTYPE
-#line 57 "/usr/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 58 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
 typedef union {
   struct graph graph;
   struct arglist * arglist;
@@ -80,14 +82,15 @@ typedef union {
   struct group group;
   dts_compare_operation op;
   dts_comparison * comp;
+  struct dts_operand * operand;
 } yystype;
-/* Line 1281 of /usr/local/share/bison/yacc.c.  */
-#line 86 "/usr/home/mfisk/smacq/libsmacq/filter/filter-parser.h"
+/* Line 1281 of /usr/share/bison/yacc.c.  */
+#line 89 "/home/mfisk/smacq/libsmacq/filter/filter-parser.h"
 # define YYSTYPE yystype
 #endif
 
 extern YYSTYPE yyfilterlval;
 
 
-#endif /* not BISON__USR_HOME_MFISK_SMACQ_LIBSMACQ_FILTER_FILTER_PARSER_H */
+#endif /* not BISON__HOME_MFISK_SMACQ_LIBSMACQ_FILTER_FILTER_PARSER_H */
 
