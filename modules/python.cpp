@@ -574,7 +574,7 @@ smacq_result pythonModule::consume(DtsObject datum, int &outchan)
 
     if (Py_None == pRet) {
       /* If they returned None, the buck stops here. */
-      ret = SMACQ_FREE;
+      ret = SMACQ_FREE | canproduce();
     } else {
       /* Otherwise, it's gotta be a PyDtsObject */
       if (! PyObject_IsInstance(pRet, (PyObject *)&PyDtsType)) {
@@ -587,10 +587,10 @@ smacq_result pythonModule::consume(DtsObject datum, int &outchan)
        */
       if (((PyDtsObject *)pRet)->d == datum) {
       DUMP();
-        ret = SMACQ_PASS;
+        ret = SMACQ_PASS | canproduce();
       } else {
       DUMP();
-        ret = SMACQ_FREE;
+        ret = SMACQ_FREE | canproduce();
         enqueue(((PyDtsObject *)pRet)->d, 0);
       }
     }
