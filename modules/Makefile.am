@@ -2,12 +2,17 @@ SUBDIRS=substr
 INCLUDES = @GLOBAL_INCLUDES@ -I$(top_srcdir)/include -I/usr/include/pcap
 noinst_LTLIBRARIES = libsmacq_modules.la libtest_dynamic.la 
 EXTRA_LTLIBRARIES = libpcaplive.la libpython.la libreassemble.la libbench_field.la 
+BUILT_SOURCES = count.c
+SUFFIXES = .sc
 
 libsmacq_modules_la_SOURCES = print.c pcaplive.c pcapfile.c socket.c uniq.c count.c last.c top.c head.c filter.c msgtest.c entropy.c derivative.c split.c encrypt.c warden.c pdf.c fifo.c delta.c tabularinput.c sync.c rusage.c groupby.c flowid.c sum.c fifodelay.c project.c rename.c join.c bench_field.la mask.c const.c ndjoin.c lor.c counter_loop.c dfa.c noop.c expr.c equals.c cflow.c clock.c disarm.c substr-main.c 
 libsmacq_modules_la_LIBADD = substr/libsubstr.la
 libsmacq_modules_la_DEPENDENCIES = $(libsmacq_modules_la_LIBADD)
 
 libtest_dynamic_la_SOURCES = test_dynamic.c
+
+.sc.c: 
+	$(top_srcdir)/misc/sc2c $< > $@
 
 # What we really want is a convenience library that we can link into binaries
 # with a "--whole-archive" flag.  However, libtool doesn't do "--whole-archive"
