@@ -12,6 +12,7 @@
 
 static struct smacq_options options[] = {
   {"p", {uint32_t:0}, "pointer to per-partition graph", SMACQ_OPT_TYPE_UINT32},
+  {"g", {boolean_t:0}, "show per-partition graph", SMACQ_OPT_TYPE_BOOLEAN},
   END_SMACQ_OPTIONS
 };
 
@@ -94,9 +95,10 @@ groupbyModule::groupbyModule(struct SmacqModule::smacq_init * context)
   char ** argv;
 
   {
-  	smacq_opt ptr;
+  	smacq_opt ptr, print_graph;
   	struct smacq_optval optvals[] = {
 		{"p", &ptr},
+		{"g", &print_graph},
     		{NULL, NULL}
   	};
   	smacq_getoptsbyname(context->argc-1, context->argv+1,
@@ -105,7 +107,8 @@ groupbyModule::groupbyModule(struct SmacqModule::smacq_init * context)
 
 	if (ptr.uint32_t) {
 		mastergraph = (SmacqGraph*)ptr.uint32_t;
-		mastergraph->print(stderr, 15);
+		if (print_graph.boolean_t) 
+			mastergraph->print(stderr, 15);
 	}
 
   }
