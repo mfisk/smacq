@@ -31,7 +31,7 @@ struct runq {
 
 static inline struct qel * insert_before_head(struct runq * runq) {
 	/* Insert new element before head */
- 	struct qel * entry = (struct qel *)malloc(sizeof(struct qel));
+ 	struct qel * entry = (struct qel *)calloc(1, sizeof(struct qel));
 
 	entry->prev = runq->head->prev;
 	entry->prev->next = entry;
@@ -106,8 +106,8 @@ static void init_runq(struct runq ** runqp) {
 	*runqp = runq;
 
 	/* Make a 2 element ring to start */
-	runq->tail = (struct qel*)malloc(sizeof(struct qel));
-	runq->tail->next = (struct qel*)malloc(sizeof(struct qel));
+	runq->tail = (struct qel*)calloc(1, sizeof(struct qel));
+	runq->tail->next = (struct qel*)calloc(1, sizeof(struct qel));
 	runq->tail->next->next = runq->tail;
 
 	runq->tail->next->prev = runq->tail;
@@ -132,8 +132,8 @@ static inline int runq_empty(struct runq * runq) {
  * freed after use.  This results in a lot of inefficient malloc() calls.
  */
 
-void inline runable(struct runq * runq, smacq_graph * f, DtsObject d, enum action action) {
-	struct qel * entry = malloc(sizeof(struct qel));
+void inline runable(struct runq * runq, smacq_graph * f, DtsObject &d, enum action action) {
+	struct qel * entry = calloc(1, sizeof(struct qel));
 	entry->d = d;
 	entry->f = f;
         entry->action = action;
