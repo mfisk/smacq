@@ -4,13 +4,11 @@
 #include <dts-module.h>
 
 static int smacqtype_ushort_get_uint32(DtsObject o, DtsObject field) {
-  dts_set(field, unsigned int, dts_data_as(o, ushort));
-  return 1;
+  return dts_set(field, unsigned int, dts_data_as(o, ushort));
 }
 
 static int smacqtype_ushort_get_double(DtsObject o, DtsObject field) {
-  dts_set(field, double, dts_data_as(o, ushort));
-  return 1;
+  return dts_set(field, double, dts_data_as(o, ushort));
 }
 
 static int smacqtype_ushort_get_string(DtsObject o, DtsObject field) {

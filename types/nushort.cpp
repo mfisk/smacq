@@ -12,18 +12,15 @@ static int smacqtype_nushort_get_string(DtsObject obj, DtsObject field) {
 }
 
 static int smacqtype_nushort_get_ushort(DtsObject o, DtsObject field) {
-	dts_set(field, ushort, ntohs(dts_data_as(o, ushort)));
-	return 1;
+	return dts_set(field, ushort, ntohs(dts_data_as(o, ushort)));
 }
 
 static int smacqtype_nushort_get_uint32(DtsObject o, DtsObject field) {
-	dts_set(field, uint, ntohs(dts_data_as(o, ushort)));
-	return 1;
+	return dts_set(field, uint32_t, ntohs( dts_data_as(o, ushort)));
 }
 
 static int smacqtype_nushort_get_double(DtsObject o, DtsObject field) {
-	dts_set(field, double, ntohs(dts_data_as(o, ushort)));
-	return 1;
+	return dts_set(field, double, ntohs(dts_data_as(o, ushort)));
 }
 
 static int parse_nushort(char * buf,  DtsObject d) {
