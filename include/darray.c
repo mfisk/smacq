@@ -69,8 +69,9 @@ static inline int str2id_try(idset * ids, char * str) {
   /* Slow linear search */
   for (i=0; i <= ids->max; i++) {
     char * cand = (char*)ids->array[i];
-
-    if (cand && !strcmp(str, cand)) {
+    /* fprintf(stderr, "comparing %s and %s\n", str, cand); */
+    if (cand && (!strcmp(str, cand))) {
+      /* fprintf(stderr, "found %s in %s %d\n", str, cand, i); */
       return i;
     }
   }
@@ -82,6 +83,8 @@ static inline int str2id(idset * ids, char * str) {
   int i = str2id_try(ids, str);
   if (i == -1) {
     return darray_append(ids, strdup(str));
+  } else {
+    return i;
   }
 }  
 
