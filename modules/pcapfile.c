@@ -12,6 +12,8 @@
 #include "pcapfile.h"
 #include "dts_packet.h"
 
+#define PATCHED_TCPDUMP_MAGIC 0xa1b2cd34
+
 static struct smacq_options options[] = {
   {"w", {string_t:"-"}, "Output file", SMACQ_OPT_TYPE_STRING},
   {"s", {uint32_t:0}, "Maximum output file size (MB)", SMACQ_OPT_TYPE_UINT32},
@@ -149,11 +151,11 @@ static smacq_result pcapfile_consume(struct state * state, const dts_object * da
 	state->outputleft -= (sizeof(struct pcap_pkthdr) + pkt->pcap_pkthdr.caplen);
 	//fprintf(stderr, "%lld left\n", state->outputleft);
 	if (state->maxfilesize && (state->outputleft <= 0)) {
-	  pcap_close(state->pcap);
-	  state->pcap = NULL;
+	  fclose(state->fh);
+	  state->fh = NULL;
 	}
 
-	if (! state->pcap) {
+	if (! state->fh) {
 	  char sufbuf[256];
 	  char * filename;
 
@@ -168,15 +170,38 @@ static smacq_result pcapfile_consume(struct state * state, const dts_object * da
 	     state->outputleft = 1;
 	   }
 
-	  state->pcap=pcap_open_dead(pkt->linktype, pkt->snaplen);
-	  assert(state->pcap);
+	  if (!strcmp(filename, "-")) {
+		state->fh = stdout;
+	  } else {
+	  	state->fh = fopen(filename, "w");
+	  }
+	  assert(state->fh);
 	  
-	  state->dumper=pcap_dump_open(state->pcap, filename);
 	  fprintf(stderr, "pcapfile: Info: Opening %s for output (linktype %d, snaplen %d)\n", filename, pkt->linktype, pkt->snaplen);
-	  assert(state->dumper);
+
+	  state->pcap_file_header.snaplen = pkt->snaplen;
+	  state->pcap_file_header.linktype = pkt->linktype;
+
+  	  if (1 != fwrite(&state->pcap_file_header, sizeof(state->pcap_file_header), 1, state->fh)) {
+		  perror("pcapfile write");
+		  return(SMACQ_PASS|SMACQ_END|SMACQ_ERROR);
+	  }
 	}
-	  
-	pcap_dump((char*)state->dumper, (struct pcap_pkthdr*)&pkt->pcap_pkthdr, dts_getdata(datum)+sizeof(struct dts_pkthdr));
+	 
+	if (0) {
+	  int tot = fwrite(&pkt->pcap_pkthdr, sizeof(pkt->pcap_pkthdr), 1, state->fh);
+	  tot += fwrite(&pkt->extended, sizeof(pkt->extended), 1, state->fh);
+	  tot += fwrite(pkt+1, pkt->pcap_pkthdr.caplen, 1, state->fh);
+	  if (tot != 3) {
+		perror("pcapfile write");
+		return(SMACQ_PASS|SMACQ_END|SMACQ_ERROR);
+	  }
+	} else {
+	  if (1 != fwrite(&pkt->pcap_pkthdr, sizeof(pkt->pcap_pkthdr) + sizeof(pkt->extended) + pkt->pcap_pkthdr.caplen, 1, state->fh)) {
+		perror("pcapfile write");
+		return(SMACQ_PASS|SMACQ_END|SMACQ_ERROR);
+	  }
+	};
 
   } else {
 	fprintf(stderr, "Received unknown structure type\n");
@@ -187,13 +212,13 @@ static smacq_result pcapfile_consume(struct state * state, const dts_object * da
 }
 
 static smacq_result pcapfile_shutdown(struct state * state) {
-	if (state->dumper) {
-	  pcap_dump_close(state->dumper);
-	  state->dumper = NULL;
-	}
 	if (state->pcap) {
 	  pcap_close(state->pcap);
 	  state->pcap = NULL;
+	}
+	if (state->fh) {
+	  fclose(state->fh);
+	  state->fh = NULL;
 	}
 	if (state->gzfile) {
 	  gzclose(state->gzfile);
@@ -241,6 +266,11 @@ static smacq_result pcapfile_init(struct smacq_init * context) {
     state->produce = 1;
   } else if (context->islast) {
     fprintf(stderr, "Output will be placed in pcapfile %s\n", state->opts.output);
+    state->pcap_file_header.magic = PATCHED_TCPDUMP_MAGIC;
+    state->pcap_file_header.version_major = 2;
+    state->pcap_file_header.version_minor = 4;
+    state->pcap_file_header.thiszone = 0;
+    state->pcap_file_header.sigfigs = 0;
   } else {
     fprintf(stderr, "pcapfile module must be at beginning or end of dataflow\n");
     exit(-1);
