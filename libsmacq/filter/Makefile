@@ -3,12 +3,12 @@ M4=m4
 
 include config.mk
 
-OBJS = filter-parser.lo # filter-scanner.lo
+OBJS = filter-parser.lo expr-parser.lo # filter-scanner.lo
 SQLSRC=$(TOPSRCDIR)/libsmacq/sql
 CFLAGS += -I$(SQLSRC) -I. 
 LIBS = -lfl
 
-all: libfilter.la $(SRCDIR)/filter-parser.c $(SRCDIR)/filter-parser.h
+all: libfilter.la $(SRCDIR)/filter-parser.c $(SRCDIR)/expr-parser.c $(SRCDIR)/expr-parser.h $(SRCDIR)/filter-parser.h
 
 libfilter.la: $(OBJS)
 	$(LIBTOOL) $(CC) -export-symbols-regex '^smacq_.*' -o $@ $+ $(LIBS)
@@ -16,13 +16,17 @@ libfilter.la: $(OBJS)
 %.lo: $(SRCDIR)/%.c
 	$(LIBTOOL) $(CC) -c $(CFLAGS) $<
 
-$(SRCDIR)/filter-scanner.c: $(SRCDIR)/filter-parser.h
+$(SRCDIR)/%-scanner.c: $(SRCDIR)/%-parser.h
 
 %.y: %.ym $(SQLSRC)/grammer.y
 	$(M4) -I$(SQLSRC) -P < $< > $@
 
-%.c: %.y
+filter-%.c: filter-%.y
 	$(BISON) -v -p yyfilter -d -o $@ $<
+
+
+expr-%.c: expr-%.y
+	$(BISON) -v -p yyexpr -d -o $@ $<
 
 %.h: %.c
 	@true
