@@ -25,7 +25,7 @@
 #include <string.h>
 #include <smacq-internal.h>
 #include "smacq-parser.h"
-//#define DEBUG
+  //#define DEBUG
   
   extern int yylex();
   extern void yy_scan_string(const char *);
@@ -49,7 +49,7 @@
   static struct arglist * newarg(char * arg, int isfunc, struct arglist * func_args);
   static struct arglist * arglist_append(struct arglist * tail, struct arglist * addition);
   static struct vphrase newvphrase(char * verb, struct arglist * args);
-  void print_graph(smacq_graph * f);
+  static struct graph parse_booleans(struct arglist * args);
 
   struct graph nullgraph = { head: NULL, tail: NULL };
   
@@ -88,7 +88,7 @@
 queryline: query STOP	
 	   { 
 #ifdef DEBUG
-	   	print_graph($1.head); 
+	   	smacq_graph_print(STDERR,$1.head); 
 #endif
 		Graph = $1.head;
 		return 0;
@@ -148,8 +148,9 @@ source : pverbphrase
 	| '(' query ')'	{ $$ = $2; }
 	;
 
-where : null 			{ $$ = nullgraph; }
-	| WHERE boolargs 	{ $$ = newmodule("filter", $2); }
+where : null 		{ $$ = nullgraph; }
+	| WHERE boolargs 	{ $$ = parse_booleans($2); }
+/*	| WHERE boolargs 	{ $$ = newmodule("filter", $2); } */
 	;
 
 group : null 			{ $$.args = NULL; $$.having = NULL;}
@@ -223,12 +224,16 @@ verb :  id
 %%
 
 
-smacq_graph * smacq_build_query(int argc, char ** argv) {
+static dts_environment * Tenv;
+
+smacq_graph * smacq_build_query(dts_environment * tenv, int argc, char ** argv) {
   int size = 0;
   int i;
   char * qstr; 
   smacq_graph * graph;
   int res;
+
+  Tenv = tenv;
 
   for (i=0; i<argc; i++) {
   	size += strlen(argv[i]);
@@ -349,43 +354,43 @@ static struct arglist * arglist_append(struct arglist * tail, struct arglist * a
 }
 	
 static struct graph newgroup(struct group group, struct vphrase vphrase) {
-	/*
-	 * This function violates some abstractions by knowing the 
-	 * calling syntax for "groupby" and constructing arguments for it.
-	 */
-	struct arglist * atail;
-	struct graph g = { NULL, NULL};
-	struct arglist * ap;
-	int argcont = 0;
-
-	if (!group.args) { 
-		/* Do nothing if this was "group by" NULL */
-		return newmodule(vphrase.verb, vphrase.args);
-	}
-
-	atail = arglist_append(group.args, newarg("--", 0, NULL));
-
-	/* Insert function operations */
-        for(ap=vphrase.args; ap; ap=ap->next) {
-	   /* fprintf(stderr, "group arg %s isfunc = %d\n", ap->arg, ap->isfunc); */
-     	   if (ap->isfunc) {
-	        if (argcont) 
-			atail = arglist_append(atail, newarg("|", 0, NULL));
-	        atail = arglist_append(atail, newarg(ap->arg, 0, NULL));
-	        atail = arglist_append(atail, ap->func_args);
-		ap->isfunc = 0;
-		argcont = 1;
- 	   }
-	}
-	if (argcont) 
-		g = newmodule("groupby", group.args);
-
-	if (group.having) 
-		graph_join(&g, newmodule("filter", group.having));
-
-	graph_join(&g, newmodule(vphrase.verb, vphrase.args));
-
-	return g;
+  /*
+   * This function violates some abstractions by knowing the 
+   * calling syntax for "groupby" and constructing arguments for it.
+   */
+  struct arglist * atail;
+  struct graph g = { NULL, NULL};
+  struct arglist * ap;
+  int argcont = 0;
+  
+  if (!group.args) { 
+    /* Do nothing if this was "group by" NULL */
+    return newmodule(vphrase.verb, vphrase.args);
+  }
+  
+  atail = arglist_append(group.args, newarg("--", 0, NULL));
+  
+  /* Insert function operations */
+  for(ap=vphrase.args; ap; ap=ap->next) {
+    /* fprintf(stderr, "group arg %s isfunc = %d\n", ap->arg, ap->isfunc); */
+    if (ap->isfunc) {
+      if (argcont) 
+	atail = arglist_append(atail, newarg("|", 0, NULL));
+      atail = arglist_append(atail, newarg(ap->arg, 0, NULL));
+      atail = arglist_append(atail, ap->func_args);
+      ap->isfunc = 0;
+      argcont = 1;
+    }
+  }
+  if (argcont) 
+    g = newmodule("groupby", group.args);
+  
+  if (group.having) 
+    graph_join(&g, newmodule("filter", group.having));
+  
+  graph_join(&g, newmodule(vphrase.verb, vphrase.args));
+  
+  return g;
 }
 
 
@@ -441,18 +446,66 @@ static struct arglist * newarg(char * arg, int isfunc, struct arglist * func_arg
      return(al);
 }
 
-void print_graph(smacq_graph * f) {
-	int i;
-	if (!f) return;
+static char * opstr(dts_comparison * comp) {
+  switch (comp->op) {
+  case LT:
+    return "<";
 
-	printf("Graph node %s (%p):\n", f->name, f);
-	for (i=0; i<f->argc; i++) {
-		printf("\tArgument %s\n", f->argv[i]);
-	}
-	for (i=0; i<f->numchildren; i++) {
-		printf("\tChild %d is %s (%p)\n", i, f->child[i]->name, f->child[i]);
-		print_graph(f->child[i]);
-	}
+  case GT:
+    return ">";
+
+  case EQUALITY:
+    return "==";
+
+  case INEQUALITY:
+    return "!=";
+
+  case LIKE:
+    return "like";
+
+  case EXIST:
+    return "";
+
+ case AND:
+ case OR:
+    return "[GROUP]";
+  }
+
+  return "[ERR]";
 }
 
 
+static char * print_comparison(dts_comparison * comp) {
+  char * field = dts_field_getname(Tenv, comp->field);
+  int size = strlen(comp->valstr) + 20 + strlen(field);
+  char * buf  = malloc(size);
+
+  if (comp->op != EXIST) 
+    snprintf(buf, size, "(%s %s \"%s\")", field, opstr(comp), comp->valstr);
+  else 
+    snprintf(buf, size, "(%s)", field);
+
+  free(field);
+
+  return(buf);
+}
+
+static struct graph parse_booleans(struct arglist * args) {
+  dts_comparison * comp, *c;
+  int argc;
+  char ** argv;
+  struct arglist * arglist;
+  struct graph g;
+  
+  g.head = (g.tail = NULL);
+  arglist2argv(args, &argc, &argv);
+  comp = dts_parse_tests(Tenv, argc, argv);
+  
+  for(c=comp; c; c = c->next) {
+    assert (c->op != AND);
+    arglist = newarg(print_comparison(c), 0, NULL);
+    graph_join(&g, newmodule("filter", arglist));
+  }
+
+  return g;
+}
