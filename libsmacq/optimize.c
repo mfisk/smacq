@@ -1,7 +1,6 @@
 #include <smacq.h>
 
 #define SMACQ_DEBUG
-#define SMACQ_OPT_DEMUX 
 
 struct list {
   smacq_graph * g;
@@ -180,6 +179,7 @@ static int merge_vectors(smacq_graph * a, smacq_graph * b) {
 	int i;
 
 #ifndef SMACQ_OPT_VECTORS
+#warning "SMACQ_OPT_VECTORS not set"
 	return 0;
 #endif 
 
