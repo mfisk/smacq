@@ -34,6 +34,13 @@ using the following syntax:
 	rm -Rf build 
 	CONFIG="--with-ethereal" make 
 
+Troubleshooting:
+----------------
+If you have any problems with the build procedure, you may have gotten
+a package with some out of date files.  Type "make bootstrap" and try
+again.  Note that you will neet autoconf, automake, libtool, etc. installed
+in order to "make bootstrap".
+
 =============================================================================
 			PREREQUISITES
 
