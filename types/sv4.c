@@ -1,9 +1,24 @@
 #include <smacq.h>
+#include <netinet/in.h>
 
 static int get_sv4_data(const dts_object * datum, dts_object * data) {
 	data->data = datum->data + 51;
 	data->len = datum->len - 51;
 	return (data->len > 0);
+}
+static int get_sv4_prompt(const dts_object * o, dts_object * stro) {
+	unsigned short prompt = ntohs(dts_data_as(o, unsigned short));
+	dts_setsize(stro, 6);
+	char * str = dts_getdata(stro);
+
+	str[5] = '\0';
+	if (prompt & 1) str[4] = '>';
+	if (prompt & 2) str[3] = '>';
+	if (prompt & 4) str[2] = '*';
+	if (prompt & 8) str[1] = '<';
+	if (prompt & 16) str[0] = '<';
+
+	return 1;
 }
 
 struct dts_field_spec dts_type_sv4_fields[] = {
@@ -25,6 +40,7 @@ struct dts_field_spec dts_type_sv4_fields[] = {
 	{ "nushort",	"stopms",	NULL },
 	{ "ubyte",	"ipprotocol",	NULL },
 	{ "nushort",	"prompt",	NULL },
+	{ "string",	"promptstr",	get_sv4_prompt },
 	{ "bytes",	"payload",	get_sv4_data },
         { END,		NULL,		NULL }
 };
