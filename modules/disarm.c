@@ -9,7 +9,7 @@
 #include <signal.h>
 #include <netdb.h>
 
-#define MAX_LINE 1000000
+#define MAX_LINE 1200000
 
 struct get_line {
 	FILE * fh;
@@ -302,17 +302,6 @@ static smacq_result disarm_init(struct smacq_init * context) {
   /* Get downstream filters before we apply args */
   smacq_downstream_filters(context->self, filter_callback, state);
 
-  if (!state->date_string && !strcmp("", infile.string_t)) {
-		fprintf(stderr, "disarm: date must be specified!\n");
-		exit(-1);
-  }
-
-  end_date = index(state->date_string, '~');
-  if (end_date) {
-		end_date[0] = '\0';
-		end_date++;
-  }
-
   state->sv4_type = smacq_requiretype(state->env, "sv4");
 
   if (strcmp(infile.string_t, "")) {
@@ -325,6 +314,17 @@ static smacq_result disarm_init(struct smacq_init * context) {
 	char myip_buf[INET_ADDRSTRLEN];
 	char * myip = myip_buf;
 	int sin_size;
+
+  	if (!state->date_string) {
+		fprintf(stderr, "disarm: date must be specified!\n");
+		exit(-1);
+  	}
+
+  	end_date = index(state->date_string, '~');
+  	if (end_date) {
+			end_date[0] = '\0';
+			end_date++;
+  	}
 
   	listen_fd = server_init(state, &myaddr);
 	fd = client_init(state, port.int_t, hostname.string_t, &myip);
