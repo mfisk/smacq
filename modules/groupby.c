@@ -43,7 +43,7 @@ static inline int run_and_queue(struct state * state, struct output* partition) 
     do {
 	const dts_object * product = NULL;
     	more = smacq_sched_iterative_busy(partition->graph, &product, partition->runq, 0);
-	//fprintf(stderr, "run_and_queue produced %p with status %x\n", product, more);
+	/* fprintf(stderr, "run_and_queue produced %p with status %x\n", product, more); */
 	if (product) smacq_produce_enqueue(&state->outputq, product, -1);
     	if (more & SMACQ_END) {
       		assert(!partition->runq);
@@ -236,7 +236,7 @@ static smacq_result groupby_init(struct smacq_init * context) {
 }
 
 static smacq_result groupby_produce(struct state * state, const dts_object ** datump, int * outchan) {
-  int status = SMACQ_FREE;
+  int status;
   int lastcall = 1;
   *datump = NULL;
 
@@ -245,6 +245,7 @@ static smacq_result groupby_produce(struct state * state, const dts_object ** da
     state->cont = NULL;
     run(state, cont);
 
+    status = SMACQ_FREE;
     lastcall = 0;
   } 
   
@@ -256,8 +257,9 @@ static smacq_result groupby_produce(struct state * state, const dts_object ** da
   if (lastcall) {
     /* This must be last-call, because we didn't ask for it */
     /* Notify all children */
-    //fprintf(stderr, "groupby got last call\n");
+    /* fprintf(stderr, "groupby got last call\n"); */
     bytes_hash_table_foreach_remove(state->hashtable, destroy_partition_wrapper, state);
+    status = smacq_produce_dequeue(&state->outputq, datump, outchan);
   }
 
   if (state->cont) status |= SMACQ_PRODUCE;
