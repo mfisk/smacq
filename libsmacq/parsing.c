@@ -167,16 +167,17 @@ struct graph newmodule(char * module, struct arglist * alist) {
      return graph;
 }
 
-struct arglist * newarg(char * arg, int isfunc, struct arglist * func_args) {
+struct arglist * newarg(char * arg, enum argtype argtype, struct arglist * func_args) {
      struct arglist * al;
      if (!arg) return NULL;
      
      al = calloc(1, sizeof(struct arglist));
      al->arg = arg;
-     if (isfunc) {
+     if (argtype == FUNCTION) {
      	al->func_args = func_args;
 	al->isfunc = 1;
      }
+     
 
      return(al);
 }
@@ -466,5 +467,29 @@ dts_comparison * comp_new_func(char * str, int argc, char ** argv, struct arglis
      comp->func.arglist = arglist;
 
      return comp;
+}
+
+char * expression2fieldname(struct dts_operand * expr) {
+    int i;
+    int size = 10;
+    char * expr_str;
+    
+    char * operand = print_operand(expr);
+    size += strlen(operand);
+    
+    expr_str = malloc(size);
+    strcpy(expr_str, "_expr_");
+    strcat(expr_str, operand);
+
+    { /* Change . to : in fieldname */
+      char * i;
+      while (i = index(expr_str, '.')) {
+	i[0] = ':';
+      }
+    }
+
+    free(operand);
+
+    return expr_str;
 }
 

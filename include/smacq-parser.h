@@ -14,6 +14,7 @@ struct arglist {
     char * rename;
     struct arglist * next;
     struct arglist * func_args;
+    struct dts_operand * expr;
     int isfunc;
 };
 
@@ -32,12 +33,15 @@ struct group {
       struct arglist * having;
 };
 
+enum argtype { WORD, FUNCTION };
+
+EXTERN char * expression2fieldname(struct dts_operand * expr);
   EXTERN struct graph newmodule(char * module, struct arglist * alist);
   EXTERN void graph_join(struct graph * graph, struct graph newg);
   EXTERN struct graph newgroup(struct group, struct vphrase);
   EXTERN void arglist2argv(struct arglist * al, int * argc, char *** argv);
   EXTERN char * arglist2str(struct arglist * al);
-  EXTERN struct arglist * newarg(char * arg, int isfunc, struct arglist * func_args);
+  EXTERN struct arglist * newarg(char * arg, enum argtype argtype, struct arglist * func_args);
   EXTERN struct arglist * arglist_append(struct arglist * tail, struct arglist * addition);
   EXTERN struct vphrase newvphrase(char * verb, struct arglist * args);
   EXTERN struct graph optimize_bools(dts_comparison *);
@@ -47,6 +51,7 @@ struct group {
   EXTERN dts_comparison * comp_new(dts_compare_operation op, struct dts_operand *, struct dts_operand *);
   EXTERN dts_comparison * comp_new_func(char *, int, char **, struct arglist *);
   EXTERN char * print_comparison(dts_comparison * comp);
+  EXTERN char * print_operand(struct dts_operand * op);
 
   EXTERN dts_environment * parse_tenv;
 #endif
