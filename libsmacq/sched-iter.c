@@ -1,16 +1,16 @@
 #include <smacq.h>
 #include <stdlib.h>
 
-enum sched_actions { PRODUCE=0, SHUTDOWN=1, LASTCALL=3, MAX=5 };
+enum sched_actions { PRODUCE=1, SHUTDOWN=2, LASTCALL=3, ACTION_MAX=5 };
 #define ACTION_PRODUCE ((void*)PRODUCE)
 #define ACTION_SHUTDOWN ((void*)SHUTDOWN)
 #define ACTION_LASTCALL ((void*)LASTCALL)
-#define ACTION_MAX ((int)MAX)
+#define IS_ACTION(x) (((enum sched_actions)(x)) < ACTION_MAX )
 
 struct qel {
   smacq_graph * f;
   const dts_object * d;
-  struct qel * next;
+  struct qel * next, * prev;
 };
  	
 struct runq {
@@ -27,25 +27,57 @@ struct runq {
  * we never shrink.  Most of the time we can reuse existing elements. 
  */
 
-void inline runable(struct runq * runq, smacq_graph * f, const dts_object * d) {
-	runq->tail->f = f;
-	runq->tail->d = d;
-        if ((int)d > ACTION_MAX) dts_incref(d, 1);
+static inline struct qel * insert_before_head(struct runq * runq) {
+	/* Insert new element before head */
+ 	struct qel * entry = malloc(sizeof(struct qel));
 
+	entry->prev = runq->head->prev;
+	entry->prev->next = entry;
+
+  	entry->next = runq->head;
+	runq->head->prev = entry;
+
+	return entry;
+} 
+
+void inline runable(struct runq * runq, smacq_graph * f, const dts_object * d) {
+	struct qel * el;
+
+        if (! IS_ACTION(d)) {
+		dts_incref(d, 1);
+	}
+
+	if ((d == ACTION_PRODUCE) && runq->head) {
+		/* runq->head->prev is guaranteed to be empty */
+		el = runq->head->prev;
+
+		/* but if it's also the tail, then we need a new element */
+		if (el == runq->tail) {
+			el = insert_before_head(runq);
+		}
+		
+		runq->head = el;
+
+	} else {
+		el = runq->tail;
+		runq->tail = runq->tail->next;
+
+		/* if the new tail would stomp on the head, then make some more room */
+		if (runq->tail == runq->head) {
+			runq->tail = insert_before_head(runq);
+		}
+	}
+			
+	el->f = f;
+	el->d = d;
+		
 	//fprintf(stderr, "%p now runable in %p/%p\n", runq->tail->d, runq, runq->tail);
 	
 	if (!runq->head) {
-		runq->head=runq->tail;
-	} else if (runq->tail->next == runq->head) {
-		/* Insert new element before head */
- 		struct qel * entry = malloc(sizeof(struct qel));
-  		entry->next = runq->head;
-		runq->tail->next = entry;
-	} 
-
-	runq->tail = runq->tail->next;
+		runq->head = el;
+	}
 }
-		
+
 static inline int pop_runable(struct runq * runq, smacq_graph ** f, const dts_object **d) {
 	if (!runq->head) {
 		//fprintf(stderr, "queue %p/%p empty\n", runq, runq->head);
@@ -77,6 +109,9 @@ static void init_runq(struct runq ** runqp) {
 	runq->tail = malloc(sizeof(struct qel));
 	runq->tail->next = malloc(sizeof(struct qel));
 	runq->tail->next->next = runq->tail;
+
+	runq->tail->next->prev = runq->tail;
+	runq->tail->prev = runq->tail->next;
 
 	runq->head = NULL;
 }
@@ -139,6 +174,7 @@ static void init_runq(struct runq ** runqp) {
 
 	runq->head = NULL;
 	runq->tail = NULL;
+	runq->prev = NULL;
 }
 
 static inline int runq_empty(struct runq * runq) {
@@ -359,7 +395,7 @@ static inline smacq_result smacq_sched_iterative_element(const dts_object * d, s
 	}
       } else if (f->status & SMACQ_FREE) {
 	//fprintf(stderr, "sched_iterative_element: can't handle queue element %p for dead module %p\n", d, f);
-      } else if ((int)d > ACTION_MAX) {
+      } else if (! IS_ACTION(d)) {
 	//fprintf(stderr, "sched_iterative_element calling consume on %p\n", d);
 	run_consume(f, d, runq);
       } else {
@@ -383,8 +419,8 @@ static inline smacq_result smacq_sched_iterative_element(const dts_object * d, s
 			case PRODUCE:
 				run_produce(f, runq);
 				break;
-			case MAX:
-				assert(!"MAX shouldn't occur");
+			default:
+				assert(!"shouldn't occur");
 				break;
 		}
       }
