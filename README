@@ -49,6 +49,7 @@ Debian GNU/Linux:
 Run the following command to install the Debian packages require to compile
 and execute this package:
 	apt-get install \
+		g++ gcc \
 		zlib1g zlib1g-dev \
 		libglib2.0 libglib2.0-dev \
 		libpcap0 libpcap-dev \
