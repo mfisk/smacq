@@ -121,8 +121,8 @@ AC_ARG_ENABLE(debug,
 
 AC_ARG_ENABLE(efence,
 	AS_HELP_STRING([--enable-efence],
-			[Enable electric-fence memory debugging]),
-		[LDFLAGS="$LDFLAGS -lefence"])
+		       [Enable electric-fence memory debugging]),
+		       [LDFLAGS="$LDFLAGS -lefence"])
 
 AC_ARG_WITH([ethereal], 
 	AS_HELP_STRING([--with-ethereal],
@@ -187,6 +187,8 @@ res = []
 for i in sys.argv[1:]:
     if i == 'CFLAGS':
         res.append('-I %s' % sysconfig.get_python_inc())
+    elif i == 'PYTHON_LIB':
+        res.append(sysconfig.get_python_lib())
     else:
         res.append(sysconfig.get_config_var(i))
 print ' '.join(res)
@@ -217,6 +219,14 @@ EOF
 	fi
 	AC_MSG_RESULT($LIBS_PYTHON)
 
+	AC_MSG_CHECKING([LIBINST_PYTHON])
+	LIBINST_PYTHON=`$PYTHON $PYCONF PYTHON_LIB`
+	if test $? -ne 0; then
+		rm -f $PYCONF
+		AC_MSG_FAILURE([Python config script failed])
+	fi
+	AC_MSG_RESULT($LIBINST_PYTHON)
+
 	PYTHON_LIBADD="$LDFLAGS_PYTHON python.lo"
 	PYTHON_DEPENDENCIES="python.lo"
 	PYTHON_TESTS="python.test"
@@ -227,6 +237,7 @@ AC_SUBST(PYTHON)
 AC_SUBST(CFLAGS_PYTHON)
 AC_SUBST(LDFLAGS_PYTHON)
 AC_SUBST(LIBS_PYTHON)
+AC_SUBST(LIBINST_PYTHON)
 AC_SUBST(PYTHON_LIBADD)
 AC_SUBST(PYTHON_DEPENDENCIES)
 AC_SUBST(PYTHON_TESTS)

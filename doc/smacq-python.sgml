@@ -12,7 +12,7 @@
     <address>
       <email>neale@lanl.gov</email>
     </address>
-    <date>$Date$</date>
+    <date>$Date: 2004/12/03 23:58:00 $</date>
   </refentryinfo>
   <refmeta>
     <refentrytitle>smacq-python</refentrytitle>
@@ -38,15 +38,17 @@
 
     <cmdsynopsis>
       <command>python</command>
-      <arg choice="req"><replaceable/module/</arg>
+      <arg choice="req"><replaceable>module<arg choice="opt"><replaceable>.class</replaceable></arg></replaceable></arg>
+      <arg choice="opt" rep="repeat"><replaceable/arg/</arg>
     </cmdsynopsis>
 
     <para>
       The Python bindings are invoked with the <command/python/ command.
       Directories in the <literal/PYTHONPATH/ environment variable are
       searched for a module named <literal/module/, which should define
-      a callable object named <literal/init/.  <literal/init/ is called
-      with an instance of a smacq object (see below).
+      a callable object named <literal/init/ (or <literal/class/, if
+      provided).  This object is called with an instance of a smacq
+      object (see below), and any parameters given by <literal/arg/.
     </para>
 
     <para>
@@ -122,15 +124,16 @@
 
       <para>
         This simple module does nothing, simply passing through every
-        data object.
+        data object.  It would be invoked as
+        <literal/python("module.Passthrough")/.
       </para>
 
       <literallayout>
-      class Passthrough:
+      import smacq
+
+      class Passthrough(smacq.Handler):
         def consume(self, datum):
 	  return datum
-
-      init = Passthrough
       </literallayout>
     </refsect2>
 
@@ -143,12 +146,17 @@
         previous packet.  The very first call will return
         <literal/None/, halting processing of the current data object.
         Each subsequent call will return the previous data object.
+        Since this module defines an <literal/init/ object, it can be
+        invoked as <literal/python("module")/ or
+        <literal/python("module.Buffer")/.
       </para>
 
       <literallayout>
-      class Buffer:
+      import smacq
+
+      class Buffer(smacq.Handler):
         def __init__(self, smacq):
-	  self.smacq = smacq
+	  smacq.Handler.__init__(self, smacq)
 	  self.last = None
 
         def consume(self, datum):
@@ -165,24 +173,27 @@
 
       <para>
         This example uses the <literal/enqueue/ method of the SMACQ
-        object to send out data objects, 5 at a time.
+        object to send out data objects in clumps defined by a passed-in
+        argument.  It could be called as <literal/python("module.Batch",
+        "3")/.
       </para>
 
       <literallayout>
-      class Batch:
-        def __init__(self, smacq):
-	  self.smacq = smacq
+      import smacq
+
+      class Batch(smacq.Handler):
+        def __init__(self, smacq, count):
+	  smacq.Handler.__init__(self, smacq)
 	  self.batch = []
+          self.count = int(count)
 
         def consume(self, datum):
 	  self.batch.append(datum)
-	  if len(self.batch) == 5:
+	  if len(self.batch) == self.count:
 	    for d in self.batch:
 	      self.smacq.enqueue(d)
 	    self.batch = []
 	  return None
-
-      init = Batch
       </literallayout>
     </refsect2>
   </refsect>

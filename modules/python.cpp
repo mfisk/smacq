@@ -2,6 +2,7 @@
 #include <Python.h>
 #include <stdint.h>
 #include <limits.h>
+#include <string.h>
 #include <netinet/in.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -150,6 +151,7 @@ static PyObject *PyDts_getraw(PyObject *p, void *closure)
                        self->d->getsize());
 }
 
+
 /** Return data as an appropriate Python type
  */
 static PyObject *PyDts_getvalue(PyObject *p, void *closure)
@@ -160,8 +162,8 @@ static PyObject *PyDts_getvalue(PyObject *p, void *closure)
   void        *data;
   PyObject    *pRet;
 
-  dtstype = self->d->gettype();
   data    = self->d->getdata();
+  dtstype = self->d->gettype();
   dtsname = self->dts->typename_bynum(dtstype);
 
   if (strcmp(dtsname, "ubyte") == 0) {
@@ -173,6 +175,9 @@ static PyObject *PyDts_getvalue(PyObject *p, void *closure)
   } else if (strcmp(dtsname, "uint32") == 0) {
     pRet = PyLong_FromLongLong((long long)*((unsigned long *)data));
   } else if (strcmp(dtsname, "nuint32") == 0) {
+    pRet = PyLong_FromLongLong((long long)ntohl(*((unsigned long *)data)));
+  } else if (strcmp(dtsname, "ntime") == 0) {
+    /* Time, in network byte-order */
     pRet = PyLong_FromLongLong((long long)ntohl(*((unsigned long *)data)));
   } else if (strcmp(dtsname, "ip") == 0) {
     /* We presume that "ip" means "ipv4" */
@@ -192,10 +197,80 @@ static PyObject *PyDts_getvalue(PyObject *p, void *closure)
   return pRet;
 }
 
+/** Set data from a Python object
+ */
+static int PyDts_setvalue(PyObject *p,
+                          PyObject *val,
+                          void *closure)
+{
+  PyDtsObject        *self = (PyDtsObject *)p;
+  dts_typeid          dtstype;
+  char               *dtsname;
+  void               *data;
+
+  data    = self->d->getdata();
+  dtstype = self->d->gettype();
+  dtsname = self->dts->typename_bynum(dtstype);
+
+  if (strcmp(dtsname, "ubyte") == 0) {
+      long i;
+
+      i = PyInt_AsLong(val);
+      if (! PyErr_Occurred()) {
+        *((unsigned char *)data) = (unsigned char)i;
+      }
+  } else if (strcmp(dtsname, "ushort") == 0) {
+      long i;
+
+      i = PyInt_AsLong(val);
+      if (! PyErr_Occurred()) {
+        *((unsigned short *)data) = (unsigned short)i;
+      }
+  } else if (strcmp(dtsname, "nushort") == 0) {
+      long i;
+
+      i = PyInt_AsLong(val);
+      if (! PyErr_Occurred()) {
+        *((unsigned short *)data) = htons((unsigned short)i);
+      }
+  } else if (strcmp(dtsname, "uint32") == 0) {
+      long i;
+
+      i = PyInt_AsLong(val);
+      if (! PyErr_Occurred()) {
+        *((uint32_t *)data) = (uint32_t)i;
+      }
+  } else if (strcmp(dtsname, "nuint32") == 0) {
+      long i;
+
+      i = PyInt_AsLong(val);
+      if (! PyErr_Occurred()) {
+        *((uint32_t *)data) = htonl((uint32_t)i);
+      }
+  } else if (strcmp(dtsname, "ntime") == 0) {
+    /* Time, in network byte-order */
+      long i;
+
+      i = PyInt_AsLong(val);
+      if (! PyErr_Occurred()) {
+        *((uint32_t *)data) = (uint32_t)i;
+      }
+  } else {
+    PyErr_Format(PyExc_NotImplementedError, "Can't convert: %s", dtsname);
+  }
+
+  if (PyErr_Occurred()) {
+    return -1;
+  } else {
+    return 0;
+  }
+}
+
+
 static PyGetSetDef PyDts_getset[] = {
   {"type",  PyDts_gettype,  NULL, "named type of data"},
   {"raw",   PyDts_getraw,   NULL, "raw data as a string"},
-  {"value", PyDts_getvalue, NULL, "data as an appropriate Python type"},
+  {"value", PyDts_getvalue, PyDts_setvalue, "data as an appropriate Python type"},
   {NULL}                        /* Sentinel */
 };
 
@@ -436,26 +511,41 @@ pythonModule::pythonModule(struct smacq_init *context)
     init_count += 1;
   }
 
-  /* XXX: if the module name is empty, compile argv[1] and save it as
-   * the consume function.  But how do you pass in arguments?  Maybe a
-   * lambda?  Mike thinks the object should just be called "o" in the
-   * namespace.  I'm not sure I like that, it doesn't seem very
-   * pythony. */
-
   this->pConsume = NULL;
 
   do {
-    int i;
+    int   i;
+    char  modname[50];
+    char *classname;
+
+    /* If the module name has a period (.) in it, split it into module
+       name, class name */
+    classname = strchr(context->argv[1], '.');
+    if (NULL == classname) {
+      strncpy(modname, context->argv[1], sizeof(modname));
+      classname = "init";
+    } else {
+      unsigned int s;
+
+      s = classname - context->argv[1];
+      if (s > sizeof(modname) - 1) {
+        s = sizeof(modname) - 1;
+      }
+      strncpy(modname, context->argv[1], s);
+      modname[s] = '\0';
+
+      classname += 1;
+    }
 
     /* Load up the module */
-    pModule = PyImport_ImportModule(context->argv[1]);
+    pModule = PyImport_ImportModule(modname);
     if (! pModule) {
       PyErr_Print();
       break;
     }
 
     /* Find the init function */
-    pInit = PyObject_GetAttrString(pModule, "init");
+    pInit = PyObject_GetAttrString(pModule, classname);
     if (! pInit) {
       PyErr_Print();
       break;
@@ -586,10 +676,8 @@ smacq_result pythonModule::consume(DtsObject datum, int &outchan)
        * need to enqueue it.
        */
       if (((PyDtsObject *)pRet)->d == datum) {
-      DUMP();
         ret = SMACQ_PASS | canproduce();
       } else {
-      DUMP();
         ret = SMACQ_FREE | canproduce();
         enqueue(((PyDtsObject *)pRet)->d, 0);
       }
