@@ -25,7 +25,7 @@
 #include <string.h>
 #include <smacq-internal.h>
 #include "smacq-parser.h"
-  //#define DEBUG
+//#define DEBUG
   
   extern int yylex();
   extern void yy_scan_string(const char *);
@@ -243,8 +243,8 @@ smacq_graph * smacq_build_query(dts_environment * tenv, int argc, char ** argv) 
   qstr = (char*)malloc(size);
   	
   for (i=0; i<argc; i++) {
-  	strcat(qstr, argv[i]);
-  	strcat(qstr, " ");
+  	strcatn(qstr, size, argv[i]);
+  	strcatn(qstr, size, " ");
   }
 
   /* LOCK */
@@ -301,16 +301,16 @@ static void arglist2argv(struct arglist * alist, int * argc, char *** argvp) {
 static char * arglist2str(struct arglist * alist) {
 	char * argstr;
 	struct arglist * al;
-	int len = 0;
+	int len = 1;
 
 	for(al=alist; al; al=al->next) 
 		len += strlen(al->arg) + 1;
 
-	argstr = calloc(1, sizeof(char *) * len + 1);
+	argstr = malloc(len);
 
 	for(al=alist; al; al=al->next) {
-		strcat(argstr, al->arg);
-		strcat(argstr, " ");
+		strcatn(argstr, len, al->arg);
+		strcatn(argstr, len, " ");
 	}
 
 	return argstr;

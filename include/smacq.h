@@ -214,6 +214,9 @@ smacq_graph * smacq_build_query(dts_environment * tenv, int argc, char ** argv);
 int smacq_execute_query(int argc, char ** argv);
 smacq_graph * smacq_add_new_child(smacq_graph * parent, int argc, char ** argv);
 int smacq_add_child(smacq_graph * parent, smacq_graph * newo);
+void smacq_add_parent(smacq_graph * newo, smacq_graph * parent);
+void smacq_remove_child(smacq_graph * a, int num);
+void smacq_remove_parent(smacq_graph * child, const smacq_graph * parent);
 smacq_graph * smacq_merge_graphs(smacq_graph *);
 smacq_graph * smacq_graph_add_graph(smacq_graph * a, smacq_graph * b);
 

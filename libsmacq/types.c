@@ -201,13 +201,13 @@ char * dts_field_getname(dts_environment * tenv, dts_field f) {
 	  	name = elbuf;
 	  }
 
-	  strncat(buf, name, 1024);
+	  strcatn(buf, 1024, name);
 
 	  f = dts_field_next(f);
   	  v = dts_field_first(f);
 
 	  if (v) {
-	  	strncat(buf, ".", 1024);
+	  	strcatn(buf, 1024, ".");
 	  }
   }
 }

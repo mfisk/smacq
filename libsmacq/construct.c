@@ -43,7 +43,7 @@ int smacq_load_module(smacq_graph * module) {
     return 0;
 }
 
-static inline void add_parent(smacq_graph * newo, smacq_graph * parent) {
+void smacq_add_parent(smacq_graph * newo, smacq_graph * parent) {
   newo->numparents++;
   newo->parent = g_realloc(newo->parent, newo->numparents * sizeof(smacq_graph *));
   newo->parent[newo->numparents - 1] = parent;
@@ -113,7 +113,7 @@ int smacq_add_child_only(smacq_graph * parent, smacq_graph * newo) {
       parent->child[parent->numchildren] = NULL;
       // fprintf(stderr, "Added %s(%p) as child of %s\n", newo->name, newo, parent->name);
       
-      add_parent(newo, parent);
+      smacq_add_parent(newo, parent);
 
       return (parent->numchildren - 1);
     }
@@ -124,7 +124,7 @@ int smacq_add_child_only(smacq_graph * parent, smacq_graph * newo) {
 int smacq_add_child(smacq_graph * parent, smacq_graph * child) {
 	int res;
 	res = smacq_add_child_only(parent, child);
-	add_parent(child, parent);
+	smacq_add_parent(child, parent);
 
 	return res;
 }
@@ -145,7 +145,7 @@ smacq_graph * smacq_clone_child(smacq_graph * parent, int child) {
 	new->child = g_new(smacq_graph *, donor->numchildren);
 	for (i=0; i < donor->numchildren; i++) {
 		new->child[i] = donor->child[i];
-		add_parent(new->child[i], new);
+		smacq_add_parent(new->child[i], new);
 	}
 
 	return new;
@@ -196,84 +196,6 @@ smacq_graph * smacq_build_pipeline(int argc, char ** argv) {
   return(objs);
 }
 
-smacq_graph * smacq_old_build_query(int argc, char ** argv) {
-  smacq_graph * objs = NULL;
-  smacq_graph * last = NULL;
-
-  assert(0 && "Not implemented!");
-
-  while(argc > 0) {
-    int q_argc = 0, w_argc = 0, f_argc=0;
-    char ** q_argv = argv;
-    char ** w_argv = NULL;
-    char ** f_argv = NULL;
-
-    while (argc) {
-      if (strcmp(*argv,"from")) {
-	q_argc++;
-
-	argc--, argv++;
-      } else {
-	argc--, argv++;
-	break;
-      }
-    }
-
-    if (argc) f_argv = argv;
-      
-    /* from ... */
-    while (argc) {
-      if (strcmp(*argv,"where")) {
-	f_argc++;
-	argc--, argv++;
-      } else {
-	*argv = "filter";
-	break;
-      }
-    }
-
-    if (argc) w_argv = argv;
-
-    /* where ... */
-    while (argc) {
-      w_argc++;
-      argc--;
-    }
-
-    if (f_argv) {
-      last = smacq_add_new_child(last, f_argc, f_argv);
-      if (!objs) objs = last;
-    }
-
-    { 
-      /* Walk through query terms again looking for function calls to handle*/
-      int i;
-      char * func;
-      
-      for (i = 1; i < q_argc; i++) {
-	if ((func = index(q_argv[i], '('))) {
-	  *func = '\0';
-	  last = smacq_add_new_child(last, 1, q_argv+i);
-	  if (!objs) objs = last;
-
-	}	
-      }
-    }
-
-    if (w_argv) {
-      fprintf(stderr, "where %s\n", w_argv[0]);
-      last = smacq_add_new_child(last, w_argc, w_argv);
-      if (!objs) objs = last;
-    }
-      
-    last = smacq_add_new_child(last, q_argc, q_argv);
-    if (!objs) objs = last;
-  }
-
-  return(objs);
-}
-
-
 void smacq_init_modules(smacq_graph * f, smacq_environment * env) {
   struct smacq_init * context = g_new0(struct smacq_init, 1);
   int i;
@@ -298,8 +220,6 @@ void smacq_init_modules(smacq_graph * f, smacq_environment * env) {
   return;
 }
 
-
-
 smacq_graph * smacq_graph_add_graph(smacq_graph * a, smacq_graph * b) {
 	smacq_graph * ap;
 	if (!a) return b;
@@ -309,134 +229,33 @@ smacq_graph * smacq_graph_add_graph(smacq_graph * a, smacq_graph * b) {
 	return a;
 }
 
-static int compare_trees(smacq_graph * a, smacq_graph *b) {
-  int i, j;
+void smacq_remove_parent(smacq_graph * a, const smacq_graph * parent) {
+  int i;
+  assert(a->numparents);
 
-  if (a==b) return 1;
+  for (i = 0; i < a->numparents; i++) {
+    if (a->parent[i] == parent) {
+      a->numparents--;
 
-  if (a->argc != b->argc) return 0;
-
-  for (i=0; i < a->argc; i++) {
-    if (strcmp(a->argv[i], b->argv[i])) return 0;
-  }
-
-  //fprintf(stderr, "%p(%s) === %p(%s)\n", a, a->name, b, b->name);
-  
-  for (i = 0; i < b->numchildren; i++) {
-    for (j = 0; j < a->numchildren; j++) {
-      if (!compare_trees(a->child[j], b->child[i])) {
-	return 0;
+      if (a->numparents) {
+	a->parent[i] = a->parent[a->numparents];
       }
     }
   }
-
-  return 1;
 }
 
-static int merge_tree_tails(smacq_graph * a, smacq_graph *b) {
-  int i, j;
+void smacq_remove_child(smacq_graph * a, int num) {
+  assert(num < a->numchildren);
 
-  if (compare_trees(a,b)) {
-    return 1;
+  smacq_remove_parent(a->child[num], a);
+
+  a->child[num] = NULL;
+  a->numchildren--;
+
+  if (a->numchildren) {
+    /* Still children left */
+
+    /* Move last child to replace this one */
+    a->child[num] = a->child[a->numchildren];
   }
-
-  /* We know they're different, but look for common children */
-
-  for (i = 0; i < b->numchildren; i++) {
-    for (j = 0; j < a->numchildren; j++) {
-      if (merge_tree_tails(a->child[j], b->child[i])) {
-	smacq_add_child(a, b->child[i]);
-	add_parent(b->child[i], a);
-	// XXX: remove old parent
-      }
-    }
-  }
-  
-  return 0;
 }
-
-static int merge_tree(smacq_graph * a, smacq_graph *b) {
-	int i, j;
-
-	if (a==b) return 0;
-	if (a->argc != b->argc) return 0;
-
-	for (i=0; i < a->argc; i++) {
-	  if (strcmp(a->argv[i], b->argv[i])) return 0;
-	}
-
-	// fprintf(stderr, "%p(%s) === %p(%s)\n", a, a->name, b, b->name);
-
-	for (i = 0; i < b->numchildren; i++) {
-		/* If any of our twins children are twins of our children, just use that child */
-		for (j = 0; j < a->numchildren; j++) {
-			if (merge_tree(a->child[j], b->child[i])) {
-				b->child[i] = NULL;
-				break;
-			}
-		}
-
-		/* Pawn this child off on our newly found twin */
-		if (b->child[i]) {
-			smacq_add_child(a, b->child[i]);
-			add_parent(b->child[i], a);
-			/* fprintf(stderr, "%p child %p(%s) now child of %p(%s)\n", b, 
-					b->child[i], b->child[i]->name, 
-					a, a->name); */
-			// XXX: remove old parent
-		}
-	}
-
-	return 1;
-}
-
-smacq_graph * smacq_merge_graphs(smacq_graph * g) {
-  smacq_graph * ap, * bp;
-  smacq_graph * candidate;
-
-#ifdef SMACQ_DEBUG
-  for (bp = g; bp; bp=bp->next_graph) {
-    smacq_graph_print(stderr, bp, 8);
-  }
-#endif
-
-  /* Merge identical heads */
-  for (bp = g, candidate=bp->next_graph; candidate; candidate = bp->next_graph) {
-    int merged = 0;
-    
-    for (ap = g; ap; ap=ap->next_graph) {
-      merged = merge_tree(ap, candidate);
-
-      if (merged) {
-	break;
-      }
-    }
-
-    if (merged) {
-      /* Remove candidate from the list */
-      bp->next_graph = candidate->next_graph;
-    } else {
-      /* Move down list */
-      bp = bp->next_graph;
-    }
-  }
-
-#warning "Need to do tail optimization on a single tree"
-
-  /* Do the merge again from the tails up */
-  for (bp = g; bp && bp->next_graph; bp=bp->next_graph) {
-    for (ap = g; ap->next_graph; ap=ap->next_graph) {
-      merge_tree_tails(ap, bp->next_graph);
-    }
-  }
-
-#ifdef SMACQ_DEBUG
-  fprintf(stderr, "--- optimized to ---\n");
-  for (bp = g; bp; bp=bp->next_graph) {
-    smacq_graph_print(stderr, bp, 8);
-  }
-#endif
-  
-  return g;
-}
-

@@ -1304,8 +1304,8 @@ dts_comparison * dts_parse_tests(dts_environment * localtenv, int argc, char ** 
   qstr = (char*)malloc(size);
   	
   for (i=0; i<argc; i++) {
-  	strcat(qstr, argv[i]);
-  	strcat(qstr, " ");
+  	strcatn(qstr, size, argv[i]);
+  	strcatn(qstr, size, " ");
   }
   yyfilter_scan_string(qstr);
   //fprintf(stderr, "parsing filter buffer: %s\n", qstr); 

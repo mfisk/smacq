@@ -262,5 +262,10 @@ static inline int smacq_match(smacq_environment * env,
   return(type_match(env->types, datum, comps, same_types));
 }
 
+static inline char * strcatn(char * dest, int len, char * src) {
+	int left = len - strlen(dest) - 1;
+	return strncat(dest, src, left);
+}
+
 #endif
 
