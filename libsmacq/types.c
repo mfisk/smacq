@@ -248,8 +248,8 @@ dts_environment * dts_init() {
   tenv->lt = type_lt_virtual;
 
   tenv->freelist.start = calloc(DTS_FREELIST_SIZE, sizeof(dts_object *));
-  tenv->freelist.p = tenv->freelist.start;
-  tenv->freelist.end = tenv->freelist.start + DTS_FREELIST_SIZE - 1;
+  tenv->freelist.p = tenv->freelist.start - 1;
+  tenv->freelist.end = tenv->freelist.p + DTS_FREELIST_SIZE;
 
   return tenv;
 }
