@@ -1,6 +1,10 @@
 Bugs:
 	- "not function()" in booleans
 
+Optimizations:
+	- remove invariants from join test
+	- do invariant tests before streamalias
+
 Looking for volunteers:
 	- Regex parsing for tabularinput
 	- scanf parsing for tabularinput

@@ -1,15 +1,26 @@
 VERSION 2.2 - unreleased
 ========================
-2005-02 - smacqq: -O remove; optimization always on now
+2005-02 - print module: 
+           - 2005-02: added -f option for file output
+           - 2005-01: --boulder (Boulder output format) added
+           - 2004-12: '*' removed; specifying no fields now prints all fields
+2005-02 - Scheduler: 
+           - Default graphs are no longer associated with scheduler
+           - Use explicit call to SmacqGraph::init() now
+	   - seed_produce() added
+           - decide() needs graph
+2005-02 - Query optimization:
+           - newQuery() now requires a scheduler instance as an argument
+             in order instantiate modules & determine if queries are relational.
+           - nonrelational portions of relational queries are now done early 
+           - init() now always does optimization
+           - Complete rewrite of dataflow optimization routines
 2005-02 - uniqobj module added: replaces uniq -o and solves memory "leak"
 2005-02 - private module added: private copy of fieldspace
 2005-01 - SmacqModule::usesfield() wraps DTS::requirefield() but facilitates join optimization
-2005-01 - join optimization: early evaluation of per-alias invariant predicates
 2005-01 - timeval,time,ntime types: string parser now uses GNU get_date (like CVS dates)
 2005-01 - sv4 type: start and stop times are now timevals instead of time_t
-2005-01 - print module: --boulder (Boulder output format) added
 2004-12 - changes module added: detects(/filters for) changes in dynamics
-2004-12 - print module: '*' removed; specifying no fields now prints all fields
 2004-12 - bugfix: DtsObject reference counting now handles uses cycles (memory leak)
 2004-12 - SmacqModule::enqueue() is now a callback to the scheduler:
            - SmacqModule::canproduce() and dequeue() are obsoleted
