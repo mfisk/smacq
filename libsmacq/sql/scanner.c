@@ -409,7 +409,7 @@ char *yytext;
 #line 1 "scanner.l"
 #define INITIAL 0
 #line 2 "scanner.l"
-
+#define YY_NO_UNPUT
 #include "grammer.h"
 #include <string.h>
 #define MAX_STR_CONST 1024

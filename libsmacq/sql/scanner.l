@@ -1,5 +1,5 @@
 %{
-
+#define YY_NO_UNPUT
 #include "grammer.h"
 #include <string.h>
 #define MAX_STR_CONST 1024
