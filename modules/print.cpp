@@ -5,7 +5,6 @@
 
 SMACQ_MODULE(print, 
 	PROTO_CTOR(print);
-	PROTO_DTOR(print);
 	PROTO_CONSUME();
 
 	     char ** argv;
@@ -13,8 +12,8 @@ SMACQ_MODULE(print,
 	     int verbose;
 	     int tagged;
 	     int flush;
-	     dts_field * fields;
-	     dts_field string_transform;
+	     std::vector<DtsField> fields;
+	     DtsField string_transform;
 	     char * delimiter;
 	     
 	     int print_field(DtsObject field, char * fname, int printed, int column);
@@ -60,22 +59,24 @@ smacq_result printModule::consume(DtsObject datum, int & outchan) {
   assert(datum);
 
   for (i = 0; i < argc; i++) {
-    if (!fields[i]) {
+    if (!fields[i].size()) {
       /* Print all fields */
 
+      DtsField f;
+      f.resize(1);
       datum->prime_all_fields();
-/*
-  int j;
-	for (j = 0; j <= datum->fields.max; j++) {
-		field = datum->getfield_single(j);
-		if (field) {
-			printed = print_field(field, dts->fields_bynum(j), 
-					      printed, column);
-			column++;
-		}
+      std::vector<DtsObject> v = datum->get_all_fields();
+      std::vector<DtsObject>::iterator j;
+      int num;
+
+      for (num=0, j=v.begin(); j != v.end(); ++j, ++num) {
+	if (*j) {
+		f[0] = num;
+		printed = print_field(*j, dts->field_getname(f), printed, column);
+		column++;
 	}
-	column--;
-*/
+      }
+
     } else {
 	field = datum->getfield(fields[i]);
 	printed = print_field(field, argv[i], printed, column);
@@ -119,7 +120,7 @@ printModule::printModule(struct smacq_init * context) : SmacqModule(context) {
   delimiter = delimiter_opt.string_t;
   verbose = verbose_opt.boolean_t;
   tagged = tagged_opt.boolean_t;
-  fields = (dts_field_element**)malloc(argc * sizeof(dts_field));
+  fields.resize(argc);
 
   //fprintf(stderr, "creating 1.75 print module, argc=%d, dts=%p\n", argc, dts);
   string_transform = dts->requirefield("string");
@@ -127,19 +128,9 @@ printModule::printModule(struct smacq_init * context) : SmacqModule(context) {
   //fprintf(stderr, "creating2 print module\n");
 
   for (i = 0; i < argc; i++) {
-	  if (!strcmp(argv[i], "*")) {
-		fields[i] = NULL;
-	  } else {
+	  if (strcmp(argv[i], "*")) {
 	  	fields[i] = dts->requirefield(dts_fieldname_append(argv[i],"string")); 
 	  }
   }
 }
 
-printModule::~printModule() {
-  int i;
-
-  for (i = 0; i < argc; i++) 
-	  dts_field_free(fields[i]);
-
-  free(fields);
-}
