@@ -182,16 +182,33 @@ const dts_object* type_getfield_virtual(dts_environment * tenv, const dts_object
   return parent;
 }
 
-void dts_field_printname(dts_environment * tenv, dts_field f) {
+char * dts_field_getname(dts_environment * tenv, dts_field f) {
+  char buf[1024];
+  char * name;
+  dts_field_element v = dts_field_first(f);
+  buf[0] = '\0';
+
   while (1) {
-	  dts_field_element v = dts_field_first(f);
-	  fprintf(stderr, "%d.", v);
 	  if (!v) {
-	  	fprintf(stderr, "\n");
-		return;
+		return strdup(buf);
 	  }
 
+	  name = darray_get(&tenv->fields_bynum, v);
+
+	  if (!name) {
+  		char elbuf[64];
+	  	snprintf(elbuf, 64, "%d", v);
+	  	name = elbuf;
+	  }
+
+	  strncat(buf, name, 1024);
+
 	  f = dts_field_next(f);
+  	  v = dts_field_first(f);
+
+	  if (v) {
+	  	strncat(buf, ".", 1024);
+	  }
   }
 }
 
@@ -212,6 +229,7 @@ static dts_field_element type_requirefield_single(dts_environment * tenv, char *
   } else {
     ++tenv->max_field;
     g_hash_table_insert(tenv->fields_byname, strdup(name), (void*)tenv->max_field);
+    darray_set(&tenv->fields_bynum, tenv->max_field, strdup(name));
     return tenv->max_field;
   }
 }
@@ -336,6 +354,7 @@ dts_environment * dts_init() {
 
   darray_init(&tenv->messages_byfield, tenv->max_field);
   darray_init(&tenv->types, tenv->max_type);
+  darray_init(&tenv->fields_bynum, tenv->max_field);
 
   tenv->types_byname = g_hash_table_new(g_str_hash, g_str_equal);
   tenv->fields_byname = g_hash_table_new(g_str_hash, g_str_equal);
