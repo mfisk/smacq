@@ -1,5 +1,8 @@
 VERSION 2.1 - not yet released
 ==============================
+2004-11 - Parsers now return better error messages
+2004-11 - bugfix: Scheduler made producers greedy
+2004-11 - HAVING clauses added to joins 
 2004-10 - Joins added to query language
 2004-10 - print "*" (like select * in SQL)
 2004-10 - DtsObject::getfield(char*) method added. 
