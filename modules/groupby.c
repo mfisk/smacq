@@ -34,6 +34,7 @@ struct state {
 struct output {
   smacq_graph * graph;
   struct runq * runq;
+  int shutdown:1;
 };
 
 /* Bucket may no longer be valid after this call */
@@ -46,6 +47,7 @@ static inline int run(struct state * state, struct output* bucket) {
       bucket->graph = NULL;
     }
     if (more) {
+      assert(!state->cont);
       state->cont = bucket;
     }
 
@@ -64,14 +66,14 @@ static smacq_result groupby_consume(struct state * state, const dts_object * dat
   if (bucket && !bucket->graph) {
     int res = bytes_hash_table_removev(state->hashtable, partitionv, state->fieldset.num);
     assert(res);
-    /* run() already ended this graph, but we didn't know about it before. */ free(bucket);
+    /* run() already ended this graph, but we didn't know about it before. */ 
+    free(bucket);
     bucket = NULL;
   }
 
   if (!bucket) {
-    bucket =  g_new(struct output, 1);
-    bucket->runq = NULL;
-    fprintf(stderr, "New partition %p\n", bucket);
+    bucket =  g_new0(struct output, 1);
+    //fprintf(stderr, "New partition %p\n", bucket);
     bucket->graph = smacq_build_pipeline(state->queryargc, state->queryargv);
     smacq_start(bucket->graph, ITERATIVE, state->env->types);
     smacq_sched_iterative_init(bucket->graph, &bucket->runq, 0);
@@ -169,18 +171,34 @@ static int destroy_bucket(gpointer key, gpointer value, gpointer userdata) {
 	  return 0;
   }
 
-  fprintf(stderr, "Last call for bucket %p\n", bucket);
-  smacq_sched_iterative_shutdown(bucket->graph, bucket->runq);
+  if (!bucket->shutdown) {
+	bucket->shutdown = 1;
+  	//fprintf(stderr, "doing shutdown of %p\n", bucket->graph);
+  	smacq_sched_iterative_shutdown(bucket->graph, bucket->runq);
+  }
 
-  run(state, bucket);
-
-  return 1;
+  if ((SMACQ_END & run(state, bucket))) {
+  	//fprintf(stderr, "Last call for bucket %p.  Product now %p\n", bucket, state->product);
+	return 1;
+  } else {
+  	//fprintf(stderr, "Postponed last call for bucket %p.  Product now %p\n", bucket, state->product);
+	return 0;
+  }
 }
 
 static smacq_result groupby_produce(struct state * state, const dts_object ** datump, int * outchan) {
   int status = SMACQ_FREE;
   int lastcall = 1;
+  *datump = NULL;
 
+  if (state->cont) {
+    struct output * cont = state->cont;
+    state->cont = NULL;
+    run(state, cont);
+
+    lastcall = 0;
+  } 
+  
   if (state->product) {
     *datump = state->product;
     state->product = NULL;
@@ -189,21 +207,18 @@ static smacq_result groupby_produce(struct state * state, const dts_object ** da
     lastcall = 0;
   }
   
-  if (state->cont) {
-    struct output * cont = state->cont;
-    state->cont=NULL;
-    run(state, cont);
-
-    lastcall = 0;
-  } 
-  
   if (state->lastcall || lastcall) {
     /* This must be last-call, because we didn't ask for it */
     /* Notify all children */
     bytes_hash_table_foreach_remove(state->hashtable, destroy_bucket, state);
+    //fprintf(stderr, "finished a round of last call with %p, %p, %p\n", *datump, state->product, state->cont);
   }
 
-  return status | ((state->product || state->cont) ? SMACQ_PRODUCE : 0);
+  if (!*datump && (state->cont || state->product)) {
+	return groupby_produce(state, datump, outchan);
+  }
+
+  return status | ((state->cont || state->product) ? SMACQ_PRODUCE : 0); 
 }
 
 /* Right now this serves mainly for type checking at compile time: */
