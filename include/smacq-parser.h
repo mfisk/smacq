@@ -6,15 +6,12 @@
 #include <pthread.h>
 #include <dts-filter.h>
 
-extern char * yytext;
-extern char * yystring;
-/*
-extern int yylex();
-extern void yyerror(char*);
-*/
-
 BEGIN_C_DECLS
  
+extern char * yytext;
+extern char * yystring;
+extern void yyerror(char * msg);
+
 struct arglist {
     char * arg;
     char * rename;
@@ -26,8 +23,8 @@ struct arglist {
 
 class joinlist {
  public:
-        joinlist(char * n, SmacqGraph *g)
-                : next(NULL), graph(g), name(n) 
+        joinlist(char * n, SmacqGraph *g, SmacqGraph *u)
+                : next(NULL), graph(g), name(n), until(u) 
 		{}
 
         void append(struct joinlist * b) {
@@ -39,6 +36,7 @@ class joinlist {
         joinlist * next;
         SmacqGraph * graph;
         char * name;
+	SmacqGraph * until;	
 };
 
 struct vphrase {
@@ -72,10 +70,7 @@ char * print_operand(struct dts_operand * op);
 
 extern DTS * parse_dts;
 
-SmacqGraph * newjoin(struct joinlist * joinlist, SmacqGraph * where);
-void joinlist_append(struct joinlist * a, struct joinlist * b);
-void joinlist_create(struct joinlist * a, char * name, SmacqGraph * g);
-
+SmacqGraph * joinlist2graph(joinlist * joinlist, SmacqGraph * where);
 END_C_DECLS
 
 #endif
