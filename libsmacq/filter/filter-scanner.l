@@ -5,10 +5,12 @@
 #include <string.h>
 #define MAX_STR_CONST 1024
 
-extern void yyerror(const char *);
-
 char string_buf[MAX_STR_CONST];
 char *yystring;
+
+static void yyerror(const char * msg) {
+	fprintf(stderr, "Scan error: %s at %s\n", msg, yytext);
+}
 
 %}
 
