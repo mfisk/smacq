@@ -53,6 +53,7 @@ static smacq_result print_consume(struct state * state, const dts_object * datum
 
   for (i = 0; i < state->argc; i++) {
     if (!state->fields[i]) {
+      /* Print all fields */
 	int j;
 
 	dts_prime_all_fields(state->env->types, datum);
@@ -60,7 +61,9 @@ static smacq_result print_consume(struct state * state, const dts_object * datum
 	for (j = 0; j <= datum->fields.max; j++) {
 		field = dts_getfield_single(state->env->types, datum, j);
 		if (field) {
-			printed = print_field(state, field, "FOO", printed, column);
+			printed = print_field(state, field, 
+				     darray_get(&state->env->types->fields_bynum, j), 
+					      printed, column);
 			column++;
 		}
 	}
