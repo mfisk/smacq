@@ -321,6 +321,7 @@ int bytes_hash_table_get(struct iovec_hash * ht, int keysize, unsigned char * ke
 }
 
 void bytes_hash_table_remove_element(struct iovec_hash * ht, struct element * e) {
+  assert(e);
   chain_remove(e);
   if (ht->do_free) free(e->value);
   free_element(e);
