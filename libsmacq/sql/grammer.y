@@ -4,6 +4,7 @@
 #include <string.h>
 #include <smacq-internal.h>
 #include "smacq-parser.h"
+#undef DEBUG
   
   extern int yylex();
   extern void yy_scan_string(const char *);
@@ -15,11 +16,13 @@
     char * arg;
     char * rename;
     struct arglist * next;
+    struct graph func;
   };
 
   static struct graph newmodule(char * module, struct arglist * alist);
   static void arglist2argv(struct arglist * al, int * argc, char *** argv);
-  static struct arglist * newarg(char * arg);
+  static struct arglist * newarg(char * arg, int isfunc, struct arglist * func_args);
+  void print_graph(struct filter * f);
 
   struct graph nullgraph = { head: NULL, tail: NULL };
   
@@ -48,8 +51,13 @@
 }
 %%
 
-
-queryline: query STOP	{ return smacq_start($1.head, RECURSIVE, NULL); }
+queryline: query STOP	
+	   { 
+#ifdef DEBUG
+	   	print_graph($1.head); 
+#endif
+		return smacq_start($1.head, RECURSIVE, NULL); 
+	   }
 	;
 
 null:   /* empty */ ;
@@ -59,16 +67,12 @@ query : verbphrase from
 	   	if ($2.head) {
 			smacq_add_child($2.tail, $1.head);
 			$$.head = $2.head;
-	   		fprintf(stderr, "from head was %p, %s\n", 
-				$2.head, $2.head ? $2.head->name : ""); 
 		} else {
 			$$.head = $1.head;
 		}
 		$$.tail = $1.tail;
 		assert($$.head);
 		assert($$.tail);
-	   	fprintf(stderr, "Got a full query! (%s thru %s)\n", 
-			$$.head->name, $$.tail->name); 
 	   }
 	;
 
@@ -93,8 +97,8 @@ arg: argument
 	| argument AS word		{ $$->rename = $3; }
 	;
 
-argument : word 			{ $$ = newarg($1); } 
-	| function '(' arglist ')' 	{ $$ = newarg($1); }
+argument : word 			{ $$ = newarg($1, 0, NULL); } 
+	| function '(' arglist ')' 	{ $$ = newarg($1, 1, $3); }
 	;
 
 function : id 
@@ -201,9 +205,37 @@ static void arglist2argv(struct arglist * alist, int * argc, char *** argvp) {
 	}
 }
 
+static void graph_join(struct graph * graph, struct graph newg) {
+	if (!newg.head) 
+		return; /* Do nothing */
+
+	assert(graph);
+
+	if (!graph->head) {
+		graph->head = newg.head;
+		graph->tail = newg.tail;
+		return;
+	}
+
+	fprintf(stderr, "Adding %s after %s\n", newg.head->name, graph->tail->name);
+	/* Splice them together */
+	assert(graph->tail);
+
+	smacq_add_child(graph->tail, newg.head); 
+	graph->tail = newg.tail;
+}
+	
+static void graph_append(struct graph * graph, struct filter * newmod) {
+	if (graph->tail) 
+		smacq_add_child(graph->tail, newmod); 
+	graph->tail = newmod;
+	if (! graph->head) 
+		graph->head = newmod;
+}
+	
 static struct graph newmodule(char * module, struct arglist * alist) {
      struct arglist anew;
-     struct graph graph;
+     struct graph graph = { head: NULL, tail: NULL };
 
      int argc;
      char ** argv;
@@ -214,14 +246,15 @@ static struct graph newmodule(char * module, struct arglist * alist) {
 
      anew.arg = module;
      anew.rename = NULL;
+     anew.func.head = NULL;
      if (!strcmp(module, "select")) {
      	/* SQL's select is really a projection operation */
      	anew.arg = "project";
      }
      anew.next = alist;
 
-     /* Check for rename options on arguments */
      for(ap=&anew; ap; ap=ap->next) {
+        /* Check for rename options on arguments */
      	if (ap->rename) {
 		rename_argc += 2;
 		rename_argv = realloc(rename_argv, rename_argc * sizeof(char*));
@@ -229,36 +262,46 @@ static struct graph newmodule(char * module, struct arglist * alist) {
 		rename_argv[rename_argc - 1] = ap->rename;
 		ap->arg = ap->rename;
 	}
+
+	/* Check for function arguments */
+	if (ap->func.head) 
+		graph_join(&graph, ap->func);
      }
-
-     arglist2argv(&anew, &argc, &argv);
-
-     /* fprintf(stderr,"new module: %s,%s\n", module, argv[0]); */
-     graph.tail = smacq_new_module(argc, argv);
 
      if (rename_argc > 1) {
         /* We need to splice in a rename module before this module */
-     	int i;
      	rename_argv[0] = "rename";
-	for(i=0; i<(rename_argc); i++) {
-		printf("rename arg: %s\n", rename_argv[i]);
-	}
-	graph.head = smacq_new_module(rename_argc, rename_argv);
-
-	smacq_add_child(graph.head, graph.tail);
-     } else {
-     	graph.head = graph.tail;
+        graph_append(&graph, smacq_new_module(rename_argc, rename_argv));
      }
+
+     arglist2argv(&anew, &argc, &argv);
+     graph_append(&graph, smacq_new_module(argc, argv));
 
      return graph;
 }
 
-static struct arglist * newarg(char * arg) {
-     struct arglist * al = malloc(sizeof(struct arglist));
+static struct arglist * newarg(char * arg, int isfunc, struct arglist * func_args) {
+     struct arglist * al = calloc(1, sizeof(struct arglist));
      al->arg = arg;
-     al->next = NULL;
-     al->rename = NULL;
+     if (isfunc) {
+     	al->func = newmodule(arg, func_args);
+     }
+
      return(al);
+}
+
+void print_graph(struct filter * f) {
+	int i;
+	if (!f) return;
+
+	printf("Graph node %s (%p):\n", f->name, f);
+	for (i=0; i<f->argc; i++) {
+		printf("\tArgument %s\n", f->argv[i]);
+	}
+	for (i=0; i<f->numchildren; i++) {
+		printf("\tChild %d is %s (%p)\n", i, f->next[i]->name, f->next[i]);
+		print_graph(f->next[i]);
+	}
 }
 
 

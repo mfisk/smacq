@@ -82,6 +82,7 @@
 #include <string.h>
 #include <smacq-internal.h>
 #include "smacq-parser.h"
+#undef DEBUG
   
   extern int yylex();
   extern void yy_scan_string(const char *);
@@ -93,11 +94,13 @@
     char * arg;
     char * rename;
     struct arglist * next;
+    struct graph func;
   };
 
   static struct graph newmodule(char * module, struct arglist * alist);
   static void arglist2argv(struct arglist * al, int * argc, char *** argv);
-  static struct arglist * newarg(char * arg);
+  static struct arglist * newarg(char * arg, int isfunc, struct arglist * func_args);
+  void print_graph(struct filter * f);
 
   struct graph nullgraph = { head: NULL, tail: NULL };
   
@@ -117,14 +120,14 @@
 #endif
 
 #ifndef YYSTYPE
-#line 44 "grammer.y"
+#line 47 "grammer.y"
 typedef union {
   struct graph graph;
   struct arglist * arglist;
   char * string;
 } yystype;
 /* Line 193 of /usr/share/bison/yacc.c.  */
-#line 128 "grammer.c"
+#line 131 "grammer.c"
 # define YYSTYPE yystype
 # define YYSTYPE_IS_TRIVIAL 1
 #endif
@@ -145,7 +148,7 @@ typedef struct yyltype
 
 
 /* Line 213 of /usr/share/bison/yacc.c.  */
-#line 149 "grammer.c"
+#line 152 "grammer.c"
 
 #if ! defined (yyoverflow) || YYERROR_VERBOSE
 
@@ -321,10 +324,10 @@ static const yysigned_char yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const unsigned char yyrline[] =
 {
-       0,    52,    52,    55,    57,    76,    77,    80,    81,    84,
-      85,    88,    90,    92,    93,    96,    97,   100,   103,   104,
-     125,   126,   129,   130,   133,   136,   137,   142,   143,   146,
-     147,   152
+       0,    54,    54,    63,    65,    80,    81,    84,    85,    88,
+      89,    92,    94,    96,    97,   100,   101,   104,   107,   108,
+     129,   130,   133,   134,   137,   140,   141,   146,   147,   150,
+     151,   156
 };
 #endif
 
@@ -992,81 +995,82 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 52 "grammer.y"
-    { return smacq_start(yyvsp[-1].graph.head, RECURSIVE, NULL); }
+#line 55 "grammer.y"
+    { 
+#ifdef DEBUG
+	   	print_graph(yyvsp[-1].graph.head); 
+#endif
+		return smacq_start(yyvsp[-1].graph.head, RECURSIVE, NULL); 
+	   }
     break;
 
   case 4:
-#line 58 "grammer.y"
+#line 66 "grammer.y"
     {
 	   	if (yyvsp[0].graph.head) {
 			smacq_add_child(yyvsp[0].graph.tail, yyvsp[-1].graph.head);
 			yyval.graph.head = yyvsp[0].graph.head;
-	   		fprintf(stderr, "from head was %p, %s\n", 
-				yyvsp[0].graph.head, yyvsp[0].graph.head ? yyvsp[0].graph.head->name : ""); 
 		} else {
 			yyval.graph.head = yyvsp[-1].graph.head;
 		}
 		yyval.graph.tail = yyvsp[-1].graph.tail;
 		assert(yyval.graph.head);
 		assert(yyval.graph.tail);
-	   	fprintf(stderr, "Got a full query! (%s thru %s)\n", 
-			yyval.graph.head->name, yyval.graph.tail->name); 
 	   }
     break;
 
   case 5:
-#line 76 "grammer.y"
-    { yyval.graph = nullgraph; }
-    break;
-
-  case 6:
-#line 77 "grammer.y"
-    { yyval.graph = newmodule("filter", yyvsp[0].arglist); }
-    break;
-
-  case 7:
 #line 80 "grammer.y"
     { yyval.graph = nullgraph; }
     break;
 
-  case 8:
+  case 6:
 #line 81 "grammer.y"
+    { yyval.graph = newmodule("filter", yyvsp[0].arglist); }
+    break;
+
+  case 7:
+#line 84 "grammer.y"
+    { yyval.graph = nullgraph; }
+    break;
+
+  case 8:
+#line 85 "grammer.y"
     { yyval.graph = newmodule("groupby", yyvsp[0].arglist); }
     break;
 
   case 11:
-#line 88 "grammer.y"
+#line 92 "grammer.y"
     { yyval.string = yystring; }
     break;
 
   case 12:
-#line 90 "grammer.y"
+#line 94 "grammer.y"
     { yyval.string = yystring; }
     break;
 
   case 14:
-#line 93 "grammer.y"
+#line 97 "grammer.y"
     { yyval.arglist->rename = yyvsp[0].string; }
     break;
 
   case 15:
-#line 96 "grammer.y"
-    { yyval.arglist = newarg(yyvsp[0].string); }
+#line 100 "grammer.y"
+    { yyval.arglist = newarg(yyvsp[0].string, 0, NULL); }
     break;
 
   case 16:
-#line 97 "grammer.y"
-    { yyval.arglist = newarg(yyvsp[-3].string); }
+#line 101 "grammer.y"
+    { yyval.arglist = newarg(yyvsp[-3].string, 1, yyvsp[-1].arglist); }
     break;
 
   case 18:
-#line 103 "grammer.y"
+#line 107 "grammer.y"
     { yyval.graph.head = NULL; yyval.graph.tail = NULL; }
     break;
 
   case 19:
-#line 105 "grammer.y"
+#line 109 "grammer.y"
     {
 	   	if (yyvsp[-1].graph.head) {
 			if (yyvsp[0].graph.head) {
@@ -1088,47 +1092,47 @@ yyreduce:
     break;
 
   case 21:
-#line 126 "grammer.y"
+#line 130 "grammer.y"
     { yyval.graph = yyvsp[-1].graph; }
     break;
 
   case 22:
-#line 129 "grammer.y"
+#line 133 "grammer.y"
     { yyval.graph = newmodule(yyvsp[0].string, NULL); }
     break;
 
   case 23:
-#line 130 "grammer.y"
+#line 134 "grammer.y"
     { yyval.graph = newmodule(yyvsp[-3].string, yyvsp[-1].arglist); }
     break;
 
   case 24:
-#line 133 "grammer.y"
+#line 137 "grammer.y"
     { yyval.graph = newmodule(yyvsp[-1].string, yyvsp[0].arglist); }
     break;
 
   case 25:
-#line 136 "grammer.y"
+#line 140 "grammer.y"
     { yyval.arglist = yyvsp[-1].arglist; }
     break;
 
   case 27:
-#line 142 "grammer.y"
-    { yyval.arglist = NULL; }
-    break;
-
-  case 28:
-#line 143 "grammer.y"
-    { yyval.arglist = yyvsp[-1].arglist; yyval.arglist->next = yyvsp[0].arglist; }
-    break;
-
-  case 29:
 #line 146 "grammer.y"
     { yyval.arglist = NULL; }
     break;
 
-  case 30:
+  case 28:
 #line 147 "grammer.y"
+    { yyval.arglist = yyvsp[-1].arglist; yyval.arglist->next = yyvsp[0].arglist; }
+    break;
+
+  case 29:
+#line 150 "grammer.y"
+    { yyval.arglist = NULL; }
+    break;
+
+  case 30:
+#line 151 "grammer.y"
     { yyval.arglist = yyvsp[-1].arglist; yyval.arglist->next = yyvsp[0].arglist; }
     break;
 
@@ -1136,7 +1140,7 @@ yyreduce:
     }
 
 /* Line 1016 of /usr/share/bison/yacc.c.  */
-#line 1140 "grammer.c"
+#line 1144 "grammer.c"
 
   yyvsp -= yylen;
   yyssp -= yylen;
@@ -1355,7 +1359,7 @@ yyreturn:
 }
 
 
-#line 155 "grammer.y"
+#line 159 "grammer.y"
 
 
 int smacq_execute_query(int argc, char ** argv) {
@@ -1405,9 +1409,37 @@ static void arglist2argv(struct arglist * alist, int * argc, char *** argvp) {
 	}
 }
 
+static void graph_join(struct graph * graph, struct graph newg) {
+	if (!newg.head) 
+		return; /* Do nothing */
+
+	assert(graph);
+
+	if (!graph->head) {
+		graph->head = newg.head;
+		graph->tail = newg.tail;
+		return;
+	}
+
+	fprintf(stderr, "Adding %s after %s\n", newg.head->name, graph->tail->name);
+	/* Splice them together */
+	assert(graph->tail);
+
+	smacq_add_child(graph->tail, newg.head); 
+	graph->tail = newg.tail;
+}
+	
+static void graph_append(struct graph * graph, struct filter * newmod) {
+	if (graph->tail) 
+		smacq_add_child(graph->tail, newmod); 
+	graph->tail = newmod;
+	if (! graph->head) 
+		graph->head = newmod;
+}
+	
 static struct graph newmodule(char * module, struct arglist * alist) {
      struct arglist anew;
-     struct graph graph;
+     struct graph graph = { head: NULL, tail: NULL };
 
      int argc;
      char ** argv;
@@ -1418,14 +1450,15 @@ static struct graph newmodule(char * module, struct arglist * alist) {
 
      anew.arg = module;
      anew.rename = NULL;
+     anew.func.head = NULL;
      if (!strcmp(module, "select")) {
      	/* SQL's select is really a projection operation */
      	anew.arg = "project";
      }
      anew.next = alist;
 
-     /* Check for rename options on arguments */
      for(ap=&anew; ap; ap=ap->next) {
+        /* Check for rename options on arguments */
      	if (ap->rename) {
 		rename_argc += 2;
 		rename_argv = realloc(rename_argv, rename_argc * sizeof(char*));
@@ -1433,36 +1466,46 @@ static struct graph newmodule(char * module, struct arglist * alist) {
 		rename_argv[rename_argc - 1] = ap->rename;
 		ap->arg = ap->rename;
 	}
+
+	/* Check for function arguments */
+	if (ap->func.head) 
+		graph_join(&graph, ap->func);
      }
-
-     arglist2argv(&anew, &argc, &argv);
-
-     /* fprintf(stderr,"new module: %s,%s\n", module, argv[0]); */
-     graph.tail = smacq_new_module(argc, argv);
 
      if (rename_argc > 1) {
         /* We need to splice in a rename module before this module */
-     	int i;
      	rename_argv[0] = "rename";
-	for(i=0; i<(rename_argc); i++) {
-		printf("rename arg: %s\n", rename_argv[i]);
-	}
-	graph.head = smacq_new_module(rename_argc, rename_argv);
-
-	smacq_add_child(graph.head, graph.tail);
-     } else {
-     	graph.head = graph.tail;
+        graph_append(&graph, smacq_new_module(rename_argc, rename_argv));
      }
+
+     arglist2argv(&anew, &argc, &argv);
+     graph_append(&graph, smacq_new_module(argc, argv));
 
      return graph;
 }
 
-static struct arglist * newarg(char * arg) {
-     struct arglist * al = malloc(sizeof(struct arglist));
+static struct arglist * newarg(char * arg, int isfunc, struct arglist * func_args) {
+     struct arglist * al = calloc(1, sizeof(struct arglist));
      al->arg = arg;
-     al->next = NULL;
-     al->rename = NULL;
+     if (isfunc) {
+     	al->func = newmodule(arg, func_args);
+     }
+
      return(al);
+}
+
+void print_graph(struct filter * f) {
+	int i;
+	if (!f) return;
+
+	printf("Graph node %s (%p):\n", f->name, f);
+	for (i=0; i<f->argc; i++) {
+		printf("\tArgument %s\n", f->argv[i]);
+	}
+	for (i=0; i<f->numchildren; i++) {
+		printf("\tChild %d is %s (%p)\n", i, f->next[i]->name, f->next[i]);
+		print_graph(f->next[i]);
+	}
 }
 
 
