@@ -34,6 +34,7 @@ static smacq_result mask_consume(struct state * state, const dts_object * datum,
 
   if (state->field) {
   	field = smacq_getfield(state->env, datum, state->field, NULL);
+  	//if (!field) fprintf(stderr, "mask: No such field (%d) on %p\n", state->field[0], datum);
   	if (!field) return SMACQ_FREE;
 	assert(dts_gettype(field) == state->ip_type);
 
@@ -75,6 +76,8 @@ static int mask_init(struct smacq_init * context) {
   }
 
   state->field = smacq_requirefield(state->env, argv[0]);
+  //fprintf(stderr, "Mask on field %s, %d (env %p)\n", argv[0], state->field[0], state->env);
+  
   state->ip_type = smacq_requiretype(state->env, "ip");
 
   assert(argc==2);
