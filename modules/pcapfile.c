@@ -76,13 +76,26 @@ static smacq_result pcapfile_produce(struct state * state, const dts_object ** d
   struct old_pcap_pkthdr hdr;
   struct dts_pkthdr * pkt;
   const dts_object * datum = NULL;
+  int res;
 
   if (!state->produce) return SMACQ_END;
 
   assert(state->gzfile);
 
-  if (sizeof(struct old_pcap_pkthdr) != read_file(state, &hdr, sizeof(struct old_pcap_pkthdr))) 
-    return SMACQ_END;
+  while(1) {
+     res = read_file(state, &hdr, sizeof(struct old_pcap_pkthdr));
+
+     if (sizeof(struct old_pcap_pkthdr) != res) {
+    	if (res) {
+		fprintf(stderr, "pcapfile: premature end of file (read %d bytes instead of %d)\n", res, sizeof(struct old_pcap_pkthdr));
+		continue;
+    	} else {
+    		return SMACQ_END;
+	}
+     } else {
+	break;
+     }
+  }
 
   fixup_pcap(state, &hdr);
 
