@@ -160,8 +160,8 @@ struct iovec_hash * bytes_hash_table_new(int maxbytes, int flags) {
   myt->do_chain = !(flags & NOCHAIN); 
   myt->do_free = (flags & FREE); 
 
-  myt->num_buckets = 1000; /* XXX */
-  myt->buckets = calloc(sizeof(struct element *), 1000);
+  myt->num_buckets = 1000000; /* XXX */
+  myt->buckets = calloc(sizeof(struct element *), myt->num_buckets);
   
   return myt;
 }
