@@ -1,6 +1,6 @@
-# Makefile.in generated automatically by automake 1.4-p6 from Makefile.am
+# Makefile.in generated automatically by automake 1.4-p4 from Makefile.am
 
-# Copyright (C) 1994, 1995-8, 1999, 2001 Free Software Foundation, Inc.
+# Copyright (C) 1994, 1995-8, 1999 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
@@ -59,29 +59,33 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 host_alias = @host_alias@
 host_triplet = @host@
+AR = @AR@
 AS = @AS@
 CC = @CC@
 CXX = @CXX@
+CXXCPP = @CXXCPP@
 DLLTOOL = @DLLTOOL@
 ECHO = @ECHO@
+EGREP = @EGREP@
 ETHEREAL_DIR = @ETHEREAL_DIR@
 ETHEREAL_LIBRARY = @ETHEREAL_LIBRARY@
 EXEEXT = @EXEEXT@
+F77 = @F77@
+GCJ = @GCJ@
+GCJFLAGS = @GCJFLAGS@
 GLOBAL_INCLUDES = @GLOBAL_INCLUDES@
-HAVE_LIB = @HAVE_LIB@
 LEX = @LEX@
-LIB = @LIB@
 LIBS_MODULES_ALL = @LIBS_MODULES_ALL@
 LIBS_MODULES_SHARED = @LIBS_MODULES_SHARED@
 LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
-LTLIB = @LTLIB@
 MAKEINFO = @MAKEINFO@
 OBJDUMP = @OBJDUMP@
 OBJECTS_MODULES_BUILTIN = @OBJECTS_MODULES_BUILTIN@
 OBJEXT = @OBJEXT@
 PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
+RC = @RC@
 SOURCES_MODULES_BUILTIN = @SOURCES_MODULES_BUILTIN@
 SOURCES_TYPES_BUILTIN = @SOURCES_TYPES_BUILTIN@
 STRIP = @STRIP@
@@ -94,6 +98,7 @@ noinst_LTLIBRARIES = libdts_modules.la
 EXTRA_LTLIBRARIES = libpacket_la 
 
 libdts_modules_la_SOURCES = bytes.c empty.c ipproto.c ntime.c string.c ubyte.c cflow.c int.c macaddr.c nuint32.c time.c uint32.c double.c ip.c netlong.c nushort.c refresh.c timeval.c ushort.c packet.c sv4.c uint64.c
+libdts_modules_la_DEPENDENCIES = 
 libdts_modules_la_LDFLAGS = -rpath /bogus
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = ../config.h
@@ -217,7 +222,7 @@ TAGS:  $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) $(LISP)
 	  awk '    { files[$$0] = 1; } \
 	       END { for (i in files) print i; }'`; \
 	test -z "$(ETAGS_ARGS)$$unique$(LISP)$$tags" \
-	  || (cd $(srcdir) && etags -o $$here/TAGS $(ETAGS_ARGS) $$tags  $$unique $(LISP))
+	  || (cd $(srcdir) && etags $(ETAGS_ARGS) $$tags  $$unique $(LISP) -o $$here/TAGS)
 
 mostlyclean-tags:
 
