@@ -1,9 +1,6 @@
 #include <smacq.h>
 #include <smacq-parser.h>
 
-#define __USE_ISOC99 1
-#include <math.h>
-
 static struct smacq_options options[] = {
   {NULL, {string_t:NULL}, NULL, 0}
 };
@@ -20,56 +17,6 @@ struct state {
 
   int double_type;
 };
-
-static double eval_arith_operand(const dts_object * datum, struct dts_operand * op) {
-  double val1, val2;
-
-  switch (op->type) {
-	  case FIELD:
-  	  	 fetch_operand(datum->tenv, datum, op, -1);
-		 if (op->valueo) {
-		 	 assert(op->valueo->type == datum->tenv->double_type);
-			 return dts_data_as(op->valueo, double);
-		 } else {
-			 fprintf(stderr, "Warning: no field %s to eval, using NaN for value\n", op->origin.literal.str);
-			 return NAN;
-		 };
-		 break;
-
-	  case CONST:
-  	  	 fetch_operand(datum->tenv, datum, op, datum->tenv->double_type);
-		 if (op->valueo) {
-			 return dts_data_as(op->valueo, double);
-		 } else {
-			 return NAN;
-		 };
-		 break;
-
-	  case ARITH:
-  		val1 = eval_arith_operand(datum, op->origin.arith.op1);
-  		val2 = eval_arith_operand(datum, op->origin.arith.op2);
-  		switch (op->origin.arith.type) {
-	  		case ADD:
-				fprintf(stderr, "%g + %g\n", val1, val2);
-		  		return val1 + val2;
-		  		break;
-	  		case SUB:
-				fprintf(stderr, "%g - %g\n", val1, val2);
-		  		return val1 - val2;
-		  		break;
-	  		case DIVIDE:
-				fprintf(stderr, "%g / %g\n", val1, val2);
-		  		return val1 / val2;
-		  		break;
-	  		case MULT:
-				fprintf(stderr, "%g * %g\n", val1, val2);
-	  	  		return val1 * val2;
-		  		break;
-  		}
-		break;
-  }
-  return NAN;
-}
 
 static smacq_result expr_init(struct smacq_init * context) {
   struct state * state;

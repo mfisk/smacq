@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
 #include <smacq_args.h>
 
 struct smacq_options * get_optstruct_byname(struct smacq_options * opts, char * name) {

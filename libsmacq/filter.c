@@ -4,9 +4,6 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#define __USE_ISOC99 1
-#include <math.h>
-
 static inline int type_match_andor(dts_environment * tenv, const dts_object * datum, 
 	   dts_comparison * comps, int op);
 
@@ -27,56 +24,8 @@ static inline int lt(dts_environment * tenv, const dts_comparison * c) {
 	    (dts_lt(tenv, c->op1->valueo->type, c->op1->valueo->data, c->op1->valueo->len, c->op2->valueo->data, c->op2->valueo->len)));
 }
 
-static double eval_arith_operand(const dts_object * datum, struct dts_operand * op) {
-  double val1, val2;
-
-  switch (op->type) {
-	  case FIELD:
-  	  	 fetch_operand(datum->tenv, datum, op, -1);
-		 if (op->valueo) {
-		 	 assert(op->valueo->type == datum->tenv->double_type);
-			 return dts_data_as(op->valueo, double);
-		 } else {
-			 fprintf(stderr, "Warning: no field %s to eval, using NaN for value\n", op->origin.literal.str);
-			 return NAN;
-		 };
-		 break;
-
-	  case CONST:
-  	  	 fetch_operand(datum->tenv, datum, op, datum->tenv->double_type);
-		 if (op->valueo) {
-			 return dts_data_as(op->valueo, double);
-		 } else {
-			 return NAN;
-		 };
-		 break;
-
-	  case ARITH:
-  		val1 = eval_arith_operand(datum, op->origin.arith.op1);
-  		val2 = eval_arith_operand(datum, op->origin.arith.op2);
-  		switch (op->origin.arith.type) {
-	  		case ADD:
-		  		return val1 + val2;
-		  		break;
-	  		case SUB:
-		  		return val1 - val2;
-		  		break;
-	  		case DIVIDE:
-		  		return val1 / val2;
-		  		break;
-	  		case MULT:
-	  	  		return val1 * val2;
-		  		break;
-  		}
-		break;
-  }
-
-  return NAN;
-}
-
 static inline int type_match_one(dts_environment * tenv, const dts_object * datum, 
 	   dts_comparison * c) {
-  const dts_object * test_data = NULL;
   int retval = 0;
 
   switch (c->op) {
