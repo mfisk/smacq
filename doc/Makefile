@@ -10,7 +10,7 @@ clean:
 	rm -f $(PRODUCTS) smacq-embed.3 dts-types.3 smacqp.1
 
 publish:
-	rsync -e ssh -av *.pdf *.html smacq.sourceforge.net:smacqweb/
+	rsync -e ssh -av *.pdf *.png *.html smacq.sourceforge.net:smacqweb/
 
 %.3.ps: %.3
 	groff -man $< > $@
