@@ -9,8 +9,9 @@ static int get_sv4_data(const dts_object * datum, dts_object * data) {
 static int get_sv4_prompt(const dts_object * o, dts_object * stro) {
 	void * p = dts_getdata(o) + 47;
 	ushort prompt = ntohs( *(ushort*)p );
+	char * str;
 	dts_setsize(stro, 6);
-	char * str = dts_getdata(stro);
+	str = dts_getdata(stro);
 
 	str[0] = ((prompt & 16) ? '<' : ' ');
 	str[1] = ((prompt & 8) ? '<' : ' ');
