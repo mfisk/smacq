@@ -46,7 +46,7 @@ struct state {
 
   GList * expires;
 
-  int timeseries; // Field number
+  dts_field timeseries; // Field number
 }; 
 
 static void timeval_minus(struct timeval x, struct timeval y, struct timeval * result) {
@@ -65,16 +65,14 @@ static void timeval_minus(struct timeval x, struct timeval y, struct timeval * r
 static void print_extent(gpointer key, gpointer value, gpointer userdata) {
   struct state * state = userdata;
   struct srcstat * stats = value;
-  char * str;
-  int slen;
   int i;
 
   if (key == NULL) { // We're talking about the current value, not a table lookup
       dts_object d;
       i = 0;
       while((i = smacq_nextfielddata(&state->fieldset, &d, i))) {
-	smacq_presentdata(state->env, &d, smacq_transform(state->env, "string"), (void*)&str, &slen);
-	fprintf(state->printfd, "%s ", str);
+	smacq_getfield(state->env, &d, smacq_requirefield(state->env, "string"), &d);
+	fprintf(state->printfd, "%s ", (char*)d.data);
       }
   } else {
     int offset = 0;
@@ -88,8 +86,8 @@ static void print_extent(gpointer key, gpointer value, gpointer userdata) {
         d.data = b->bytes+offset;
         offset += d.len;
 
-        smacq_presentdata(state->env, &d, smacq_transform(state->env, "string"), (void*)&str, &slen);
-        fprintf(state->printfd, "%s ", str);
+        smacq_getfield(state->env, &d, smacq_requirefield(state->env, "string"), &d);
+        fprintf(state->printfd, "%s ", (char*)d.data);
     }
 
   }

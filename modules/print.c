@@ -9,8 +9,8 @@ struct state {
   int argc;
   int verbose;
   int flush;
-  int * fields;
-  int string_transform;
+  dts_field * fields;
+  dts_field string_transform;
   char * delimiter;
 };
 
@@ -26,24 +26,26 @@ static smacq_result print_produce(struct state* state, const dts_object ** datum
 }
 
 static smacq_result print_consume(struct state * state, const dts_object * datum, int * outchan) {
-  int slen;
-  char * str;
   int i,j;
   int printed = 0;
-  dts_object field_data;
+  dts_object field_data, print_data;
   assert(datum);
   assert(state->argv[0]);
+
+  dts_init_object(&field_data);
+  dts_init_object(&print_data);
 
   for (i = 0; i < state->argc; i++) {
     if (printed) {
       	printf(state->delimiter);
     }
     if (smacq_getfield(state->env, datum, state->fields[i], &field_data)) {
-      int r = smacq_presentdata(state->env, &field_data, state->string_transform, (void*)&str, &slen);
+      int r = smacq_getfield(state->env, &field_data, state->string_transform, &print_data);
+      // int r = smacq_presentdata(state->env, &field_data, state->string_transform, (void*)&str, &slen);
       if (r == -1) {
 	fprintf(stderr, "No string transform for field %s\n", state->argv[i]);
       } else if (r == 0) {
-	fprintf(stderr, "Unable to transform to string\n");
+	fprintf(stderr, "Unable to transform %s to string\n", state->argv[i]);
       } else {
         if (!printed) {
     	   for (j=0; j<i; j++) 
@@ -51,12 +53,11 @@ static smacq_result print_consume(struct state * state, const dts_object * datum
         }
         printed++;
 	if (state->verbose) {
-		printf("%.20s = %s", state->argv[i], str);
+		printf("%.20s = %s", state->argv[i], (char *)dts_getdata(&print_data));
 	} else {
-		printf("%s", str);
+		printf("%s", (char*)dts_getdata(&print_data));
 	}
 		
-	free(str);
       }
     } else if (state->verbose) {
       fprintf(stderr, "Warning: print: no field %s\n", state->argv[i]);
@@ -94,15 +95,22 @@ static int print_init(struct smacq_init * context) {
   state->flush = flush.boolean_t;
   state->delimiter = delimiter.string_t;
   state->verbose = verbose.boolean_t;
-  state->fields = malloc(state->argc * sizeof(int));
-  state->string_transform = smacq_transform(state->env, "string");
+  state->fields = malloc(state->argc * sizeof(dts_field));
+  state->string_transform = smacq_requirefield(state->env, "string");
 
-  for (i = 0; i < state->argc; i++) 
+  for (i = 0; i < state->argc; i++) {
 	  state->fields[i] = smacq_requirefield(state->env, state->argv[i]); 
+	  // dts_field_printname(state->env->types, state->fields[i]);
+  }
   return 0;
 }
 
 static int print_shutdown(struct state * state) {
+  int i;
+
+  for (i = 0; i < state->argc; i++) 
+	  dts_field_free(state->fields[i]);
+
   free(state->fields);
   free(state);
   return 0;

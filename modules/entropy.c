@@ -19,8 +19,8 @@ struct state {
 
   double total, prev_total;
 
-  int probfield; 
-  int entropyfield;
+  dts_field probfield; 
+  dts_field entropyfield;
   int refreshtype;
   int probtype;
 

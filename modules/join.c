@@ -17,7 +17,7 @@ static struct smacq_options options[] = {
 
 struct join {
   struct filter * graph;
-  int field;
+  dts_field field;
   void * runq;
 };
 
@@ -27,6 +27,7 @@ struct state {
   int whereargc;
   char ** whereargv;
   const dts_object * product;
+  dts_comparison * comp;
 
   struct join * joins;
 }; 
@@ -47,10 +48,17 @@ static smacq_result join_consume(struct state * state, const dts_object * datum,
   return SMACQ_PASS;
 }
 
+static void find_join(struct state * state, dts_comparison * comp) {
+	if (!comp) return;
+
+	/* Look for equality between fields in different joins */
+
+}
+
 static int join_init(struct smacq_init * context) {
   int argc = 0;
   char ** argv;
-  int i;
+  int i, j;
   struct state * state = context->state = g_new0(struct state, 1);
   state->env = context->env;
   argc=context->argc-1;
@@ -67,20 +75,25 @@ static int join_init(struct smacq_init * context) {
 
   argc -= (state->whereargc);
 
+  // state->comp = dts_parse_tests(state->env->types, state->whereargc, state->whereargv);
+  
   // Consume rest of arguments as joins
   assert(argc > 0);
+  assert((argc % 2) == 0);
 
   state->joins = calloc(argc, sizeof(struct join));
-  state->numjoins = argc; 
+  state->numjoins = argc/2; 
 
-  for (i=0; i<argc; i++) {
-	  char fstr[256];
-	  snprintf(fstr, 256, "j%d", i+1);
-	  state->joins[i].field = smacq_requirefield(state->env, fstr);
-	  state->joins[i].graph = smacq_build_query(1, &argv[i]);
-	  smacq_start(state->joins[i].graph, ITERATIVE, state->env->types);
+  for (i=0, j=0; i<argc; i+=2, j++) {
+	  //char fstr[256];
+	  //snprintf(fstr, 256, "j%d", argv[i]);
+	  state->joins[j].field = smacq_requirefield(state->env, argv[i+1]);
+	  state->joins[j].graph = smacq_build_query(1, &argv[i]);
+	  assert(state->joins[j].graph);
+	  smacq_start(state->joins[j].graph, ITERATIVE, state->env->types);
   }
-	
+
+  find_join(state, state->comp);
 
   {
   	struct smacq_optval optvals[] = {

@@ -51,10 +51,10 @@ struct state {
   int longtype;
 
   int rss;
-  int rss_field;
+  dts_field rss_field;
 
   int idrss;
-  int idrss_field;
+  dts_field idrss_field;
 }; 
   
 static smacq_result rusage_consume(struct state * state, const dts_object * datum, int * outchan) {

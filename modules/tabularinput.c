@@ -14,7 +14,7 @@ struct state {
   char  delimiter;
   FILE * fh;
 
-  int * field_name;
+  dts_field * field_name;
   int * field_type;
   int fields;
 

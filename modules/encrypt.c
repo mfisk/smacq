@@ -20,7 +20,7 @@ static struct smacq_options options[] = {
 struct state {
   smacq_environment * env;
   struct fieldset fieldset;
-  int changefield;
+  dts_field changefield;
   GHashTableofBytes * hashtable;
   const dts_object * datum;
 

@@ -62,18 +62,18 @@ struct state {
 
   // Cache
   int id_type;
-  int flowid_field;
+  dts_field flowid_field;
   int refresh_type;
-  int start_field;
-  int finish_field;
+  dts_field start_field;
+  dts_field finish_field;
   int timeval_type;
-  int ts_field; // Field number
-  int len_field;
+  dts_field ts_field; // Field number
+  dts_field len_field;
   int len_type;
-  int byte_count_field;
-  int byte_count_back_field;
-  int packet_count_field;
-  int packet_count_back_field;
+  dts_field byte_count_field;
+  dts_field byte_count_back_field;
+  dts_field packet_count_field;
+  dts_field packet_count_back_field;
   
   int reverse;
 }; 

@@ -22,20 +22,19 @@ struct state {
   GHashTableofBytes *counters;
 
   double total;
-  int xfield;
+  dts_field xfield;
   char * xfieldname;
 
-  int sumtype, sumfield;
+  int sumtype;
+  dts_field sumfield;
   int refreshtype;
   
   int refreshonly;
 }; 
  
 static smacq_result sum_consume(struct state * state, const dts_object * datum, int * outchan) {
-  dts_object newx;
+  dts_object newx, newxp;
   dts_object * msgdata;
-  double * newxp;
-  int newxpsize;
   
   if (dts_gettype(datum) != state->refreshtype) {
     if (!smacq_getfield(state->env, datum, state->xfield, &newx)) {
@@ -43,16 +42,14 @@ static smacq_result sum_consume(struct state * state, const dts_object * datum, 
       return SMACQ_PASS;
     }
     
-    if (1 > smacq_presentdata(state->env, &newx, smacq_transform(state->env, "double"), (void*)&newxp, &newxpsize)) {
+    if (1 > smacq_getfield(state->env, &newx, smacq_requirefield(state->env, "double"), &newxp)) {
       fprintf(stderr, "sum: can't convert field %s to double\n", state->xfieldname);
       return SMACQ_PASS;
     }
 
     // assert(newx.type == state->doubletype);
 
-    state->total += *newxp;
-
-    free(newxp);
+    state->total += dts_data_as(&newxp, double);
   }
 
   if ( (!state->refreshonly) || (dts_gettype(datum) == state->refreshtype)) {

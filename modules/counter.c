@@ -32,9 +32,9 @@ struct state {
 
   int prob; // Report probabilities
   
-  int timefield; // Field number
-  int probfield; 
-  int countfield;
+  dts_field timefield; // Field number
+  dts_field probfield; 
+  dts_field countfield;
   int counttype;
   int probtype;
 }; 

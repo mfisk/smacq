@@ -20,7 +20,7 @@ struct obj_list{
 struct state {
   smacq_environment * env;
   struct obj_list * fifo, * last;
-  int ts_field, edge_field;
+  dts_field ts_field, edge_field;
   struct timeval edge, interval;
 }; 
 

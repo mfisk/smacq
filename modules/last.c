@@ -37,7 +37,7 @@ struct state {
 
   struct obj_list * outputq;
 
-  int timeseries; // Field number
+  dts_field timeseries; // Field number
   int refreshtype, timevaltype;
 }; 
 

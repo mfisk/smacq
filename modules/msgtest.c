@@ -37,6 +37,7 @@ static smacq_result msgtest_consume(struct state * state, const dts_object * dat
   comp->field = smacq_requirefield(state->env, "srcip");
   
   /* Send it to everybody else */
+
   smacq_msg_send(state->env, smacq_requirefield(state->env, "prior"), &msgdata, comp);
 
   return SMACQ_PASS;

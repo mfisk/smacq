@@ -37,7 +37,7 @@ struct state {
   int do_count;
   int do_filter;
 
-  int count_field;
+  dts_field count_field;
   int int_type;
 };
 

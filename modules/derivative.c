@@ -22,17 +22,16 @@ struct state {
   int started;
 
   double lastx, lasty;
-  int xfield, yfield;
+  dts_field xfield, yfield;
   char * xfieldname, * yfieldname;
 
-  int derivtype, derivfield;
-  int doubletransform;
+  int derivtype;
+  dts_field derivfield, doubletransform;
 }; 
  
 static smacq_result derivative_consume(struct state * state, const dts_object * datum, int * outchan) {
   dts_object newx, newy;
-  double * newxp, * newyp;
-  int newxpsize, newypsize;
+  dts_object newxp, newyp;
 
   if (!smacq_getfield(state->env, datum, state->xfield, &newx)) {
 	fprintf(stderr, "derivative: no %s field\n", state->xfieldname);
@@ -43,11 +42,11 @@ static smacq_result derivative_consume(struct state * state, const dts_object * 
 	return SMACQ_PASS;
   }
 
-  if (1 > smacq_presentdata(state->env, &newx, state->doubletransform, (void*)&newxp, &newxpsize)) {
+  if (1 > smacq_getfield(state->env, &newx, state->doubletransform, &newxp)) {
 	fprintf(stderr, "derivative: can't convert field %s to double\n", state->xfieldname);
 	return SMACQ_PASS;
   }
-  if (1 > smacq_presentdata(state->env, &newy, state->doubletransform, (void*)&newyp, &newypsize)) {
+  if (1 > smacq_getfield(state->env, &newy, state->doubletransform, &newyp)) {
 	fprintf(stderr, "derivative: can't convert field %s to double\n", state->yfieldname);
 	//free(*newxp);
 	return SMACQ_PASS;
@@ -57,7 +56,8 @@ static smacq_result derivative_consume(struct state * state, const dts_object * 
   // assert(newy.type == state->doubletype);
 
   if (state->started) {
-	double dydx = (*newyp - state->lasty) / (*newxp - state->lastx);
+	double dydx = (dts_data_as(&newyp, double) - state->lasty) / 
+			(dts_data_as(&newxp, double) - state->lastx);
     	dts_object * msgdata = smacq_dts_construct(state->env, state->derivtype, &dydx);
     	dts_attach_field(datum, state->derivfield, msgdata); 
 	//fprintf(stderr, "%g - %g / %g - %g\n", *newyp, state->lasty, *newxp, state->lastx);
@@ -68,8 +68,8 @@ static smacq_result derivative_consume(struct state * state, const dts_object * 
   //free(*newxp);
   //free(*newyp);
 
-  state->lastx = *newxp;
-  state->lasty = *newyp;
+  state->lastx = dts_data_as(&newxp, double);
+  state->lasty = dts_data_as(&newyp, double);
 	
   return SMACQ_PASS;
 }
@@ -101,7 +101,7 @@ static int derivative_init(struct smacq_init * context) {
   state->xfield = smacq_requirefield(state->env, state->xfieldname);
   state->yfield = smacq_requirefield(state->env, state->yfieldname);
 
-  state->doubletransform = smacq_transform(state->env, "double");
+  state->doubletransform = smacq_requirefield(state->env, "double");
 
   return 0;
 }

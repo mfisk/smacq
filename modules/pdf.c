@@ -33,7 +33,8 @@ struct state {
   
   struct obj_list * outputq, *list;
 
-  int refreshtype, probtype, probfield, countfield;
+  int refreshtype, probtype;
+  dts_field probfield, countfield;
   unsigned long long total;
 }; 
 

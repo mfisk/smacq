@@ -22,23 +22,22 @@ struct state {
   int started;
 
   double lastx;
-  int xfield;
+  dts_field xfield;
   char * xfieldname;
 
-  int deltatype, deltafield;
+  int deltatype;
+  dts_field deltafield;
 }; 
  
 static smacq_result delta_consume(struct state * state, const dts_object * datum, int * outchan) {
-  dts_object newx;
-  double * newxp;
-  int newxpsize;
+  dts_object newx, newxp;
 
   if (!smacq_getfield(state->env, datum, state->xfield, &newx)) {
 	fprintf(stderr, "delta: no %s field\n", state->xfieldname);
 	return SMACQ_PASS;
   }
 
-  if (1 > smacq_presentdata(state->env, &newx, smacq_transform(state->env, "double"), (void*)&newxp, &newxpsize)) {
+  if (1 > smacq_getfield(state->env, &newx, smacq_requirefield(state->env, "double"), &newxp)) {
 	fprintf(stderr, "delta: can't convert field %s to double\n", state->xfieldname);
 	return SMACQ_PASS;
   }
@@ -46,15 +45,14 @@ static smacq_result delta_consume(struct state * state, const dts_object * datum
   // assert(newx.type == state->doubletype);
 
   if (state->started) {
-	double delta = *newxp - state->lastx;
+	double delta = dts_data_as(&newxp, double) - state->lastx;
     	dts_object * msgdata = smacq_dts_construct(state->env, state->deltatype, &delta);
     	dts_attach_field(datum, state->deltafield, msgdata); 
   } else {
 	state->started = 1;
   }
 
-  state->lastx = *newxp;
-  free(newxp);
+  state->lastx = dts_data_as(&newxp, double);
 	
   return SMACQ_PASS;
 }
