@@ -251,6 +251,7 @@ static inline int open_filename(struct state * state, char * filename) {
     fstat(fileno(state->fh), &stats);
 
     state->mmap = mmap(NULL, stats.st_size, PROT_READ, MAP_SHARED, fileno(state->fh), 0);
+    if ((int)state->mmap == -1) state->mmap = NULL;
     
     if (state->mmap) {
       state->mmap_end = state->mmap + stats.st_size;
