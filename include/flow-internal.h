@@ -77,6 +77,8 @@ const dts_object * msg_check(dts_environment * tenv, const dts_object * d, int f
  */
 void sched_mono(struct filter *);
 EXTERN int flow_sched_iterative(struct filter * startf, const dts_object * din, const dts_object ** dout , void ** state, int produce_first);
+EXTERN void flow_sched_iterative_shutdown(struct filter * startf, void ** state);
+
 
 void flow_start_threads(struct filter *);
 

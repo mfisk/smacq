@@ -80,6 +80,13 @@ static inline void add_parent(struct filter * newo, struct filter * parent) {
   newo->parent[newo->numparents - 1] = parent;
 }		
 
+void smacq_free_module(struct filter * f) {
+  free(f->q);
+  free(f->parent);
+  free(f->next);
+  free(f);
+}
+
 /*
  * Add the module specified by argv[0] as a child of parent.
  * Pass argv,argc to the new module

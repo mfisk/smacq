@@ -72,8 +72,15 @@ void do_shutdown(struct runq ** runqp, struct filter *f) {
       }
     }
   }
+
+  smacq_free_module(f);
 }
     
+void flow_sched_iterative_shutdown(struct filter * startf, void ** state) {
+  struct runq ** runqp = (struct runq **)state;
+  runable(runqp, startf, NULL);
+}
+
 /*
  * If dout is non-NULL, when an object is passed or produced by a leaf node, this function will return it in dout.
  * The runq should point to NULL initially, and should be treated opaquely by the caller.
@@ -122,8 +129,8 @@ int flow_sched_iterative(struct filter * startf, const dts_object * din, const d
 
       if (!d) {
 	/* Must terminate */
-	/* They should try again, but just in case, we'll leave the terminate record on the queue,
-	   bur won't shutdown the graph again on subsequent calls */
+	/* They shouldn't try again, but just in case, we'll leave the terminate record on the queue,
+	   but won't shutdown the graph again on subsequent calls */
 	if (f) do_shutdown(runqp, f);
 	(*runqp)->f = NULL;
 	*dout = NULL;
