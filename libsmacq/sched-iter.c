@@ -43,7 +43,7 @@ void inline runable(struct runq * runq, smacq_graph * f, const dts_object * d) {
 
 	runq->empty = 0;
 
-	// fprintf(stderr, "%p now runable, ", runq->tail);
+	//fprintf(stderr, "%p now runable in %p/%p\n", runq->tail->d, runq, runq->tail);
 
 	if (runq->tail->next == runq->head) {
 		/* Insert new element before head */
@@ -52,22 +52,22 @@ void inline runable(struct runq * runq, smacq_graph * f, const dts_object * d) {
 		runq->tail->next = entry;
 	} 
 	runq->tail = runq->tail->next;
-
-	// fprintf(stderr, "%p will be next\n", runq->tail);
 }
 		
 static inline int pop_runable(struct runq * runq, smacq_graph ** f, const dts_object **d) {
-	struct qel * res = runq->head;
 
-	if (runq->empty)
+	if (runq->empty) {
+		//fprintf(stderr, "queue %p/%p empty\n", runq, runq->head);
 		return 0;
+	}
 
-	*f = res->f;
-	*d = res->d;
+	*f = runq->head->f;
+	*d = runq->tail->d;
+
+	//fprintf(stderr, "%p for %p off queue from %p/%p\n", runq->head->d, runq->head->f, runq, runq->head);
 
 	runq->head = runq->head->next;
 
-	// fprintf(stderr, "%p off queue\n", res);
 	if (runq->head == runq->tail) {
 		/* Ring is empty */
 		runq->empty = 1;
@@ -321,7 +321,7 @@ static inline int run_consume(smacq_graph * f, const dts_object * d, struct runq
 	int status = 0;
 
 	if (f->status & SMACQ_FREE) {
-		fprintf(stderr, "Consume called after module %s (%p) freed\n", f->name, f);
+		//fprintf(stderr, "Consume called after module %s (%p) freed\n", f->name, f);
 		return 0;
 	}
 
@@ -373,6 +373,7 @@ void smacq_sched_iterative_init(smacq_graph * startf, struct runq ** runqp, int 
 static inline smacq_result smacq_sched_iterative_element(const dts_object * d, smacq_graph * f, const dts_object ** dout, struct runq * runq) {
       if (!f) {
 	/* Datum fell off end of data-flow graph */
+	//fprintf(stderr, "sched_iterative_element returning %p\n", d);
 
 	if (dout) {
 	  *dout = d;
@@ -382,9 +383,11 @@ static inline smacq_result smacq_sched_iterative_element(const dts_object * d, s
 	  return SMACQ_FREE;
 	}
       } else if (d) {
+	//fprintf(stderr, "sched_iterative_element calling consume on %p\n", d);
 	run_consume(f, d, runq);
       } else {
 	/* Force produce */
+	//fprintf(stderr, "sched_iterative_element calling produce on %p\n", d);
 	run_produce(f, runq);
       }
 
