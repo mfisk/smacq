@@ -57,14 +57,15 @@
 
 
 #ifndef YYSTYPE
-#line 47 "grammer.y"
+#line 50 "grammer.y"
 typedef union {
   struct graph graph;
   struct arglist * arglist;
+  struct vphrase vphrase;
   char * string;
 } yystype;
 /* Line 1281 of /usr/share/bison/yacc.c.  */
-#line 68 "grammer.h"
+#line 69 "grammer.h"
 # define YYSTYPE yystype
 #endif
 

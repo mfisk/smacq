@@ -4,7 +4,7 @@
 #include <string.h>
 #include <smacq-internal.h>
 #include "smacq-parser.h"
-#undef DEBUG
+#define DEBUG
   
   extern int yylex();
   extern void yy_scan_string(const char *);
@@ -20,6 +20,8 @@
   };
 
   static struct graph newmodule(char * module, struct arglist * alist);
+  static void graph_join(struct graph * graph, struct graph newg);
+  static struct graph newgroup(struct arglist *, struct vphrase);
   static void arglist2argv(struct arglist * al, int * argc, char *** argv);
   static struct arglist * newarg(char * arg, int isfunc, struct arglist * func_args);
   void print_graph(struct filter * f);
@@ -38,8 +40,9 @@
 %token STOP
 %token AS
 
-%type <arglist> arg argument args arglist moreargs
-%type <graph> where group query from source pverbphrase verbphrase 
+%type <arglist> arg argument group args arglist moreargs
+%type <graph> where query from source pverbphrase  
+%type <vphrase> verbphrase
 %type <string> function verb word string id 
 
 %start queryline
@@ -47,6 +50,7 @@
 %union {
   struct graph graph;
   struct arglist * arglist;
+  struct vphrase vphrase;
   char * string;
 }
 %%
@@ -62,18 +66,25 @@ queryline: query STOP
 
 null:   /* empty */ ;
 
-query : verbphrase from 
+query : verbphrase from where group
            {
-	   	if ($2.head) {
-			smacq_add_child($2.tail, $1.head);
-			$$.head = $2.head;
+	   	$$.head = ($$.tail = NULL);
+	   	graph_join(&($$), $2);
+		graph_join(&($$), $3);
+		if ($4) {
+			graph_join(&($$), newgroup($4, $1));
 		} else {
-			$$.head = $1.head;
+			graph_join(&($$), newmodule($1.verb, $1.args));
 		}
-		$$.tail = $1.tail;
-		assert($$.head);
-		assert($$.tail);
 	   }
+	;
+
+from :  null 		{ $$.head = NULL; $$.tail = NULL; } 
+	| FROM source 	{ $$ = $2; }
+	;
+
+source : pverbphrase		
+	| '(' query ')'	{ $$ = $2; }
 	;
 
 
@@ -81,8 +92,8 @@ where : null 		{ $$ = nullgraph; }
 	| WHERE args 	{ $$ = newmodule("filter", $2); }
 	;
 
-group : null 		{ $$ = nullgraph; }
-	| GROUP BY args { $$ = newmodule("groupby", $3); }
+group : null 		{ $$ = NULL; }
+	| GROUP BY args { $$ = $3; }
 	;
 
 word:	id 		
@@ -104,37 +115,11 @@ argument : word 			{ $$ = newarg($1, 0, NULL); }
 function : id 
 	;
 
-from :  null 		{ $$.head = NULL; $$.tail = NULL; } 
-	| FROM source where group 
-           {
-	   	if ($3.head) {
-			if ($4.head) {
-				smacq_add_child($2.tail, $3.head);
-				smacq_add_child($3.tail, $4.head);
-				$$.tail = $4.tail;
-			} else {
-				smacq_add_child($2.tail, $3.head);
-				$$.tail = $3.tail;
-			}
-		} else if ($4.head) {
-			smacq_add_child($2.tail, $4.head);
-			$$.tail = $4.tail;
-		} else {
-			$$.tail = $2.tail;
-		}
-		$$.head = $2.head;
-	   }
-	;
-
-source : pverbphrase		
-	| '(' query ')' 	{ $$ = $2; }
-	;
-
 pverbphrase: verb 		{ $$ = newmodule($1, NULL); }
 	| verb '(' arglist ')' 	{ $$ = newmodule($1, $3); }
 	;
 
-verbphrase : verb args 		{ $$ = newmodule($1, $2); }
+verbphrase : verb args 		{ $$.verb = $1; $$.args = $2; }
 	;
 
 args : 	'(' arglist ')' 	{ $$ = $2; }
@@ -233,6 +218,29 @@ static void graph_append(struct graph * graph, struct filter * newmod) {
 		graph->head = newmod;
 }
 	
+static struct graph newgroup(struct arglist * alist, struct vphrase vphrase) {
+	struct graph g;
+	struct arglist anew = { NULL };
+	struct arglist anew2 = { NULL };
+	struct arglist * al;
+
+	assert(alist);
+
+	for (al = alist; al->next; al=al->next) ;
+
+	al->next = &anew;
+	anew.arg = "--";
+	anew.next = &anew2;
+
+	anew2.arg = vphrase.verb;
+	anew2.next = vphrase.args;
+
+	g = newmodule("groupby", alist);
+	al->next = NULL; /* Just in case somebody tries to use alist again */
+	return g;
+}
+
+
 static struct graph newmodule(char * module, struct arglist * alist) {
      struct arglist anew;
      struct graph graph = { head: NULL, tail: NULL };
