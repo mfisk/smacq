@@ -5,6 +5,7 @@
 #include <time.h>
 #include <netinet/in.h>
 #include <dts-module.h>
+#include "getdate_tv.h"
 
 static int smacqtype_ntime_get_double(DtsObject o, DtsObject field) {
   time_t t = dts_data_as(o, time_t);
@@ -41,6 +42,15 @@ static int smacqtype_ntime_get_date(DtsObject o, DtsObject field) {
  
   return 1;
 }
+
+static int parse_timeval(char * buf,  DtsObject d) {
+  struct timeval tv, now;
+  gettimeofday(&tv, NULL);
+  assert(get_date_tv(&tv, buf, &now));
+  tv.tv_sec = htonl(tv.tv_sec);
+  return dts_set(d, time_t, tv.tv_sec);
+} 
+
 struct dts_field_spec dts_type_ntime_fields[] = {
   { "time",	"time",		smacqtype_ntime_get_time },
   { "string",	"string",	smacqtype_ntime_get_string },
@@ -51,5 +61,6 @@ struct dts_field_spec dts_type_ntime_fields[] = {
 };
 
 struct dts_type_info dts_type_ntime_table = {
-  size:sizeof(time_t),
+  size: sizeof(time_t),
+  fromstring: parse_timeval
 };

@@ -7,6 +7,7 @@
 #include <time.h>
 #include <netinet/in.h>
 #include <dts-module.h>
+#include "getdate_tv.h"
 
 static int smacqtype_timeval_get_sec(DtsObject o, DtsObject field) {
   struct timeval * t = (struct timeval *)o->getdata();
@@ -46,12 +47,10 @@ static int smacqtype_timeval_get_date(DtsObject o, DtsObject field) {
 }
 
 static int parse_timeval(char * buf,  DtsObject d) {
-  struct timeval rv;
-  double time = atol(buf);
-  rv.tv_sec = (time_t)floor(time);
-  rv.tv_usec = (int32_t)((time - floor(time)) * 1e6);
-
-  return dts_set(d, struct timeval, rv);
+  struct timeval tv, now;
+  gettimeofday(&now, NULL);
+  assert(get_date_tv(&tv, buf, &now));
+  return dts_set(d, struct timeval, tv);
 }
 
 int timeval_ge(struct timeval x, struct timeval y) {

@@ -4,6 +4,7 @@
 #include <sys/time.h>
 #include <time.h>
 #include <dts-module.h>
+#include "getdate_tv.h"
 
 static int smacqtype_time_get_double(DtsObject o, DtsObject field) {
   time_t t = dts_data_as(o, time_t);
@@ -34,6 +35,13 @@ static int time_lt(void * p1, int len1, void * p2, int len2) {
   return((*(unsigned long*)p1 <  *(unsigned long*)p2));
 }
 
+static int parse_timeval(char * buf,  DtsObject d) {
+  struct timeval tv, now;
+  gettimeofday(&now, NULL);
+  assert(get_date_tv(&tv, buf, &now));
+  return dts_set(d, time_t, tv.tv_sec);
+}
+
 struct dts_field_spec dts_type_time_fields[] = {
   { "string",	"string",	smacqtype_time_get_string },
   { "string",	"ctime",	smacqtype_time_get_ctime },
@@ -43,6 +51,6 @@ struct dts_field_spec dts_type_time_fields[] = {
 
 struct dts_type_info dts_type_time_table = {
   size:sizeof(time_t),
-  fromstring: NULL,
+  fromstring: parse_timeval,
   lt:time_lt,
 };
