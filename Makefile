@@ -1,3 +1,5 @@
+AUTOMAKE_VERSION=1.7
+
 default: 
 	misc/buildarch
 
@@ -18,11 +20,10 @@ bootstrap:
 	rm -Rf autom4te.cache config/[a-z]*
 	mkdir -p config
 	export PATH=/sw/bin:$$PATH; \
-	export AMV=1.7; \
 	libtoolize --copy --force; \
-	aclocal-$$$AMV -I libgnu/m4; \
+	aclocal-$(AUTOMAKE_VERSION) -I libgnu/m4; \
 	autoheader; \
-	automake-$$AMV -a; \
+	automake-$(AUTOMAKE_VERSION) -a; \
 	autoconf
 
 cvsinterforce: cvsinter
