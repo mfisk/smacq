@@ -151,10 +151,10 @@ static smacq_result groupby_consume(struct state * state, const dts_object * dat
      partition = get_partition(state, state->partitionv);
 
      if (dts_gettype(datum) == state->refresh_type) {
-
+       int res;
        // Handle refresh (kill-off child)
        destroy_partition(state, partition);
-       int res = bytes_hash_table_removev(state->hashtable, state->partitionv, state->fieldset.num);
+       res = bytes_hash_table_removev(state->hashtable, state->partitionv, state->fieldset.num);
        assert(res);
      } else {
        smacq_sched_iterative_input(partition->graph, datum, partition->runq);
