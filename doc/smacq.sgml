@@ -12,7 +12,7 @@
       <firstname>Mike</firstname>
       <surname>Fisk</surname>
     </author>
-    <date>$Date: 2005/01/03 17:01:48 $</date>
+    <date>$Date: 2005/02/14 02:33:25 $</date>
   </refentryinfo>
   <refmeta>
     <refentrytitle>smacq</refentrytitle>
@@ -542,13 +542,14 @@
       <title>Constant Annotation</title>
       <cmdsynopsis>
 	<command>const</command> 
+	<arg choice="opt">-t <replaceable>type</replaceable></arg>
+	<arg choice="opt">-f <replaceable>field</replaceable></arg>
 	<arg choice="req"> <replaceable>string</replaceable></arg>
 	<arg><replaceable>field</replaceable></arg>
       </cmdsynopsis>
 
       <para>
-	Annotate each object with a field containing the specified string constant.
-	If a field name is specified, it will be used.  Otherwise, the name will be "const".
+	Annotate each object with a field containing the specified constant.  The default field name is "const" and the default type is "string".
       </para>
     </refsect2>
     <refsect2>
