@@ -1,6 +1,6 @@
-# Makefile.in generated automatically by automake 1.4-p6 from Makefile.am
+# Makefile.in generated automatically by automake 1.4-p4 from Makefile.am
 
-# Copyright (C) 1994, 1995-8, 1999, 2001 Free Software Foundation, Inc.
+# Copyright (C) 1994, 1995-8, 1999 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
@@ -74,11 +74,14 @@ F77 = @F77@
 GCJ = @GCJ@
 GCJFLAGS = @GCJFLAGS@
 GLOBAL_INCLUDES = @GLOBAL_INCLUDES@
+HAVE_LIB = @HAVE_LIB@
 LEX = @LEX@
+LIB = @LIB@
 LIBS_MODULES_ALL = @LIBS_MODULES_ALL@
 LIBS_MODULES_SHARED = @LIBS_MODULES_SHARED@
 LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
+LTLIB = @LTLIB@
 MAKEINFO = @MAKEINFO@
 OBJDUMP = @OBJDUMP@
 OBJECTS_MODULES_BUILTIN = @OBJECTS_MODULES_BUILTIN@
@@ -96,8 +99,10 @@ SUBDIRS = substr
 INCLUDES = @GLOBAL_INCLUDES@ -I$(top_srcdir)/include -I/usr/include/pcap
 noinst_LTLIBRARIES = libsmacq_modules.la libtest_dynamic.la 
 EXTRA_LTLIBRARIES = libpcaplive.la libpython.la libreassemble.la libbench_field.la 
+BUILT_SOURCES = count.c
+SUFFIXES = .sc
 
-libsmacq_modules_la_SOURCES = print.c pcaplive.c pcapfile.c socket.c uniq.c count.c last.c top.c head.c filter.c msgtest.c entropy.c derivative.c split.c encrypt.c warden.c pdf.c fifo.c delta.c tabularinput.c sync.c rusage.c groupby.c flowid.c sum.c fifodelay.c project.c rename.c join.c bench_field.la mask.c const.c ndjoin.c lor.c counter_loop.c dfa.c noop.c expr.c equals.c cflow.c clock.c disarm.c substr-main.c 
+libsmacq_modules_la_SOURCES = print.c pcaplive.c pcapfile.c socket.c uniq.c count.c last.c top.c head.c filter.c msgtest.c entropy.c derivative.c split.c encrypt.c warden.c pdf.c fifo.c delta.c tabularinput.c sync.c rusage.c groupby.c flowid.c sum.c fifodelay.c project.c rename.c join.c bench_field.la mask.c const.c ndjoin.c lor.c counter_loop.c dfa.c noop.c expr.c equals.c cflow.c clock.c disarm.c substr-main.c #sqlclient.c
 libsmacq_modules_la_LIBADD = substr/libsubstr.la
 libsmacq_modules_la_DEPENDENCIES = $(libsmacq_modules_la_LIBADD)
 
@@ -199,7 +204,7 @@ OBJECTS = $(libpcaplive_la_OBJECTS) libpython.la.lo libreassemble.la.lo $(libben
 
 all: all-redirect
 .SUFFIXES:
-.SUFFIXES: .C .S .c .lo .o .obj .s
+.SUFFIXES: .C .S .c .lo .o .obj .s .sc
 $(srcdir)/Makefile.in: Makefile.am $(top_srcdir)/configure.ac $(ACLOCAL_M4) 
 	cd $(top_srcdir) && $(AUTOMAKE) --gnu modules/Makefile
 
@@ -315,7 +320,7 @@ maintainer-clean-recursive:
 	dot_seen=no; \
 	rev=''; list='$(SUBDIRS)'; for subdir in $$list; do \
 	  rev="$$subdir $$rev"; \
-	  test "$$subdir" != "." || dot_seen=yes; \
+	  test "$$subdir" = "." && dot_seen=yes; \
 	done; \
 	test "$$dot_seen" = "no" && rev=". $$rev"; \
 	target=`echo $@ | sed s/-recursive//`; \
@@ -357,7 +362,7 @@ TAGS: tags-recursive $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) $(LISP)
 	  awk '    { files[$$0] = 1; } \
 	       END { for (i in files) print i; }'`; \
 	test -z "$(ETAGS_ARGS)$$unique$(LISP)$$tags" \
-	  || (cd $(srcdir) && etags -o $$here/TAGS $(ETAGS_ARGS) $$tags  $$unique $(LISP))
+	  || (cd $(srcdir) && etags $(ETAGS_ARGS) $$tags  $$unique $(LISP) -o $$here/TAGS)
 
 mostlyclean-tags:
 
@@ -485,6 +490,7 @@ distclean-generic:
 	-rm -f config.cache config.log stamp-h stamp-h[0-9]*
 
 maintainer-clean-generic:
+	-test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
 mostlyclean-am:  mostlyclean-noinstLTLIBRARIES mostlyclean-compile \
 		mostlyclean-libtool mostlyclean-tags mostlyclean-depend \
 		mostlyclean-generic
@@ -531,6 +537,9 @@ all-redirect all-am all installdirs-am installdirs mostlyclean-generic \
 distclean-generic clean-generic maintainer-clean-generic clean \
 mostlyclean distclean maintainer-clean
 
+
+.sc.c: 
+	$(top_srcdir)/misc/sc2c $< > $@
 
 libepan_filter.o: epan_filter.o 
 	$(LD) -r -o $@ $< -L$(TOPBINDIR)/contrib -L. -lpacket-ethereal
