@@ -287,11 +287,14 @@ static void optimize_tree(smacq_graph * g) {
 	}
 }
 
-void smacq_graphs_print(FILE * fh, smacq_graph * g, int indent) {
+int smacq_graphs_print(FILE * fh, smacq_graph * g, int indent) {
+  int count = 0;
   smacq_graph * ap;
   for (ap = g; ap; ap=ap->next_graph) {
-    smacq_graph_print(fh, ap, indent);
+    count += smacq_graph_print(fh, ap, indent);
   }
+  fprintf(fh, "Total number of nodes = %d\n", count);
+  return count;
 }
 
 smacq_graph * smacq_merge_graphs(smacq_graph * g) {

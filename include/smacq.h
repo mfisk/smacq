@@ -254,7 +254,7 @@ smacq_graph * smacq_clone_tree(smacq_graph * donorParent, smacq_graph * newParen
 
 dts_comparison * dts_parse_tests(dts_environment * tenv, int argc, char ** argv);
 char * dts_field_getname(dts_environment * tenv, dts_field f);
-void smacq_graph_print(FILE * fh, smacq_graph * f, int indent);
+int smacq_graph_print(FILE * fh, smacq_graph * f, int indent);
 void dts_free(const dts_object*);
 
 #if defined(WIN32) && !defined(inline)       

@@ -29,10 +29,12 @@ static inline void read_module(smacq_graph * graph, struct smacq_functions * mod
 		graph->alg = modtable->alg;
 }
 
-void smacq_graph_print(FILE * fh, smacq_graph * f, int indent) {
+int smacq_graph_print(FILE * fh, smacq_graph * f, int indent) {
   int i;
-  if (!f) return;
-  
+  int count = 1;
+
+  if (!f) return 0;
+
   fprintf(fh, "%p: ", f);
 
   for (i=0; i<f->argc; i++) {
@@ -42,9 +44,10 @@ void smacq_graph_print(FILE * fh, smacq_graph * f, int indent) {
 
   for (i=0; i<f->numchildren; i++) {
     fprintf(fh, "%*s+ Child %d is ", indent, "", i);
-    smacq_graph_print(fh, f->child[i], indent+2);
+    count += smacq_graph_print(fh, f->child[i], indent+2);
   }
 
+  return count;
 }
 
 int smacq_load_module(smacq_graph * graph) {
