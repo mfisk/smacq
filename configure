@@ -465,7 +465,7 @@ ac_includes_default="\
 # include <unistd.h>
 #endif"
 
-ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO AMTAR install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM AWK SET_MAKE am__leading_dot CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE CXX CXXFLAGS ac_ct_CXX CXXDEPMODE am__fastdepCXX_TRUE am__fastdepCXX_FALSE LEX LEXLIB LEX_OUTPUT_ROOT YACC LN_S build build_cpu build_vendor build_os host host_cpu host_vendor host_os EGREP ECHO AR ac_ct_AR RANLIB ac_ct_RANLIB CPP CXXCPP F77 FFLAGS ac_ct_F77 LIBTOOL PYTHON LIBOBJS POW_LIB PKG_CONFIG DEPS_CFLAGS DEPS_LIBS GLOBAL_INCLUDES LDADDS SOURCES_TYPES_BUILTIN LIBS_MODULES_ALL SOURCES_MODULES_BUILTIN OBJECTS_MODULES_BUILTIN LIBS_MODULES_SHARED GDA_CFLAGS GDA_LIBS SQLINSERT_LIBADD SQLINSERT_DEPENDENCIES OPTIONAL_TESTS ETHEREAL_LIBRARY ETHEREAL_DIR CFLAGS_PYTHON LDFLAGS_PYTHON LIBS_PYTHON PYTHON_LIBADD PYTHON_DEPENDENCIES PYTHON_TESTS USE_PYTHON_TRUE USE_PYTHON_FALSE LTLIBOBJS'
+ac_subst_vars='SHELL PATH_SEPARATOR PACKAGE_NAME PACKAGE_TARNAME PACKAGE_VERSION PACKAGE_STRING PACKAGE_BUGREPORT exec_prefix prefix program_transform_name bindir sbindir libexecdir datadir sysconfdir sharedstatedir localstatedir libdir includedir oldincludedir infodir mandir build_alias host_alias target_alias DEFS ECHO_C ECHO_N ECHO_T LIBS INSTALL_PROGRAM INSTALL_SCRIPT INSTALL_DATA CYGPATH_W PACKAGE VERSION ACLOCAL AUTOCONF AUTOMAKE AUTOHEADER MAKEINFO AMTAR install_sh STRIP ac_ct_STRIP INSTALL_STRIP_PROGRAM AWK SET_MAKE am__leading_dot CC CFLAGS LDFLAGS CPPFLAGS ac_ct_CC EXEEXT OBJEXT DEPDIR am__include am__quote AMDEP_TRUE AMDEP_FALSE AMDEPBACKSLASH CCDEPMODE am__fastdepCC_TRUE am__fastdepCC_FALSE CXX CXXFLAGS ac_ct_CXX CXXDEPMODE am__fastdepCXX_TRUE am__fastdepCXX_FALSE LEX LEXLIB LEX_OUTPUT_ROOT YACC LN_S build build_cpu build_vendor build_os host host_cpu host_vendor host_os EGREP ECHO AR ac_ct_AR RANLIB ac_ct_RANLIB CPP CXXCPP F77 FFLAGS ac_ct_F77 LIBTOOL PYTHON LIBOBJS POW_LIB PKG_CONFIG DEPS_CFLAGS DEPS_LIBS GLOBAL_INCLUDES LDADDS SOURCES_TYPES_BUILTIN LIBS_MODULES_ALL SOURCES_MODULES_BUILTIN OBJECTS_MODULES_BUILTIN LIBS_MODULES_SHARED GDA_CFLAGS GDA_LIBS SQLINSERT_LIBADD SQLINSERT_DEPENDENCIES OPTIONAL_TESTS ETHEREAL_LIBRARY ETHEREAL_DIR CFLAGS_PYTHON LDFLAGS_PYTHON LIBS_PYTHON LIBINST_PYTHON PYTHON_LIBADD PYTHON_DEPENDENCIES PYTHON_TESTS USE_PYTHON_TRUE USE_PYTHON_FALSE LTLIBOBJS'
 ac_subst_files=''
 
 # Initialize some variables set by options.
@@ -23853,6 +23853,8 @@ res = []
 for i in sys.argv[1:]:
     if i == 'CFLAGS':
         res.append('-I %s' % sysconfig.get_python_inc())
+    elif i == 'PYTHON_LIB':
+        res.append(sysconfig.get_python_lib())
     else:
         res.append(sysconfig.get_config_var(i))
 print ' '.join(res)
@@ -23901,12 +23903,27 @@ See \`config.log' for more details." >&2;}
 	echo "$as_me:$LINENO: result: $LIBS_PYTHON" >&5
 echo "${ECHO_T}$LIBS_PYTHON" >&6
 
+	echo "$as_me:$LINENO: checking LIBINST_PYTHON" >&5
+echo $ECHO_N "checking LIBINST_PYTHON... $ECHO_C" >&6
+	LIBINST_PYTHON=`$PYTHON $PYCONF PYTHON_LIB`
+	if test $? -ne 0; then
+		rm -f $PYCONF
+		{ { echo "$as_me:$LINENO: error: Python config script failed
+See \`config.log' for more details." >&5
+echo "$as_me: error: Python config script failed
+See \`config.log' for more details." >&2;}
+   { (exit 1); exit 1; }; }
+	fi
+	echo "$as_me:$LINENO: result: $LIBINST_PYTHON" >&5
+echo "${ECHO_T}$LIBINST_PYTHON" >&6
+
 	PYTHON_LIBADD="$LDFLAGS_PYTHON python.lo"
 	PYTHON_DEPENDENCIES="python.lo"
 	PYTHON_TESTS="python.test"
 
 	rm -f $PYCONF
 fi
+
 
 
 
@@ -24690,6 +24707,7 @@ s,@ETHEREAL_DIR@,$ETHEREAL_DIR,;t t
 s,@CFLAGS_PYTHON@,$CFLAGS_PYTHON,;t t
 s,@LDFLAGS_PYTHON@,$LDFLAGS_PYTHON,;t t
 s,@LIBS_PYTHON@,$LIBS_PYTHON,;t t
+s,@LIBINST_PYTHON@,$LIBINST_PYTHON,;t t
 s,@PYTHON_LIBADD@,$PYTHON_LIBADD,;t t
 s,@PYTHON_DEPENDENCIES@,$PYTHON_DEPENDENCIES,;t t
 s,@PYTHON_TESTS@,$PYTHON_TESTS,;t t

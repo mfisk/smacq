@@ -83,6 +83,7 @@ LDFLAGS_PYTHON = @LDFLAGS_PYTHON@
 LEX = @LEX@
 LEXLIB = @LEXLIB@
 LEX_OUTPUT_ROOT = @LEX_OUTPUT_ROOT@
+LIBINST_PYTHON = @LIBINST_PYTHON@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
 LIBS_MODULES_ALL = @LIBS_MODULES_ALL@
@@ -472,10 +473,10 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
-	-rm -f expr-parser.cpp
-	-rm -f filter-parser.cpp
 	-rm -f scanner.cpp
 	-rm -f parser.cpp
+	-rm -f expr-parser.cpp
+	-rm -f filter-parser.cpp
 clean: clean-am
 
 clean-am: clean-generic clean-libtool clean-noinstLTLIBRARIES \
