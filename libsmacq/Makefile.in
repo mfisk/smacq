@@ -151,7 +151,7 @@ sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 INCLUDES = @GLOBAL_INCLUDES@ -I$(top_srcdir)/include
-#BUILT_SOURCES = 	scanner.c parser.c parser.y
+BUILT_SOURCES = scanner.cpp parser.cpp expr-parser.cpp filter-parser.cpp
 #BUILT_SOURCES = 	filter-parser.c expr-parser.c expr-parser.y filter-parser.y
 SUFFIXES = .ypp .ym
 
@@ -222,7 +222,8 @@ DIST_COMMON = Makefile.am Makefile.in expr-parser.cpp filter-parser.cpp \
 	parser.cpp scanner.cpp ylwrap
 SOURCES = $(libsmacq_la_SOURCES)
 
-all: all-am
+all: $(BUILT_SOURCES)
+	$(MAKE) $(AM_MAKEFLAGS) all-am
 
 .SUFFIXES:
 .SUFFIXES: .ypp .ym .c .cpp .lo .lpp .o .obj
@@ -448,11 +449,13 @@ distdir: $(DISTFILES)
 	  fi; \
 	done
 check-am: all-am
-check: check-am
+check: $(BUILT_SOURCES)
+	$(MAKE) $(AM_MAKEFLAGS) check-am
 all-am: Makefile $(LTLIBRARIES)
 
 installdirs:
-install: install-am
+install: $(BUILT_SOURCES)
+	$(MAKE) $(AM_MAKEFLAGS) install-am
 install-exec: install-exec-am
 install-data: install-data-am
 uninstall: uninstall-am
@@ -476,10 +479,11 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
-	-rm -f scanner.cpp
-	-rm -f expr-parser.cpp
 	-rm -f filter-parser.cpp
 	-rm -f parser.cpp
+	-rm -f expr-parser.cpp
+	-test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
+	-rm -f scanner.cpp
 clean: clean-am
 
 clean-am: clean-generic clean-libtool clean-noinstLTLIBRARIES \

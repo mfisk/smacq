@@ -461,12 +461,13 @@ char *yytext;
 char string_buf[MAX_STR_CONST];
 char *yystring;
 #define yysmacql__scan_string yysmacql_scan_string
-#define yylex yysmacq_lex
+#define yy_scan_string yysmacql_scan_string
+#define yylex yysmacql_lex
 #define xdquote 1
 
 #define xquote 2
 
-#line 470 "scanner.cpp"
+#line 471 "scanner.cpp"
 
 /* Macros after this point can all be overridden by user definitions in
  * section 1.
@@ -617,10 +618,10 @@ YY_DECL
 	register char *yy_cp, *yy_bp;
 	register int yy_act;
 
-#line 29 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
+#line 30 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
 
 
-#line 624 "scanner.cpp"
+#line 625 "scanner.cpp"
 
 	if ( yy_init )
 		{
@@ -705,93 +706,93 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 31 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
+#line 32 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
 return WHERE;
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 32 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
+#line 33 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
 return UNION;
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 33 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
+#line 34 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
 return FROM;
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 34 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
+#line 35 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
 return GROUP;
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 35 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
+#line 36 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
 return BY;
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 36 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
+#line 37 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
 return AS;
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 37 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
+#line 38 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
 return HAVING;
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 38 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
+#line 39 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
 return YYAND;
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 39 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
+#line 40 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
 return YYOR;
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 40 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
+#line 41 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
 return YYNOT;
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 41 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
+#line 42 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
 return YYLIKE;
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 42 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
+#line 43 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
 return YYGEQ;
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 43 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
+#line 44 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
 return YYLEQ;
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 44 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
+#line 45 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
 return YYNEQ;
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 45 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
+#line 46 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
 return '=';
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 47 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
+#line 48 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
 BEGIN(xquote);
 	YY_BREAK
 
 case 17:
 YY_RULE_SETUP
-#line 49 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
+#line 50 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
 BEGIN(0);
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 50 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
+#line 51 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
 {
 			yystring = strdup(yytext);
 			return YYSTRING;
@@ -800,33 +801,33 @@ YY_RULE_SETUP
 
 case 19:
 YY_RULE_SETUP
-#line 57 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
+#line 58 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
 yystring = string_buf; BEGIN(xdquote);
 	YY_BREAK
 
 case 20:
 YY_RULE_SETUP
-#line 59 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
+#line 60 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
 *yystring++ = '\n';
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 60 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
+#line 61 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
 *yystring++ = '\r';
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 61 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
+#line 62 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
 *yystring++ = '\t';
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 62 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
+#line 63 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
 *yystring++ = '\f';
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 63 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
+#line 64 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
 {
 				*yystring++ = yytext[0]; 
 				*yystring++ = yytext[1];
@@ -834,12 +835,12 @@ YY_RULE_SETUP
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 67 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
+#line 68 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
 *yystring++ = yytext[1];
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 68 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
+#line 69 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
 {
 				*yystring = '\0'; 
 			 	yystring = strdup(string_buf);
@@ -849,29 +850,29 @@ YY_RULE_SETUP
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 74 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
+#line 75 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
 *yystring++ = yytext[0];
 	YY_BREAK
 
 case 28:
 YY_RULE_SETUP
-#line 77 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
+#line 78 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
 { ; }
 	YY_BREAK
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(xdquote):
 case YY_STATE_EOF(xquote):
-#line 79 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
+#line 80 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
 { return YYSTOP; }
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 81 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
+#line 82 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
 return yytext[0];
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 83 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
+#line 84 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
 { 
 			yystring = strdup((char *)yytext); 
 			return YYNUMBER; 
@@ -879,7 +880,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 88 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
+#line 89 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
 { 
 			yystring = strdup((char *)yytext); 
 			return YYID; 
@@ -887,15 +888,15 @@ YY_RULE_SETUP
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 93 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
+#line 94 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
 { fprintf(stderr, "Unexpected character \"%s\"\n", yytext); return -1; }
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 95 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
+#line 96 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
 ECHO;
 	YY_BREAK
-#line 899 "scanner.cpp"
+#line 900 "scanner.cpp"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -1779,6 +1780,6 @@ int main()
 	return 0;
 	}
 #endif
-#line 95 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
+#line 96 "/Users/mfisk/cvs/smacq/libsmacq/scanner.lpp"
 
 
