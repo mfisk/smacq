@@ -17,13 +17,14 @@ static struct smacq_options options[] = {
   {"m", {boolean_t:0}, "Multiple queries on STDIN", SMACQ_OPT_TYPE_BOOLEAN},
   {"O", {boolean_t:0}, "Optimize multiple queries", SMACQ_OPT_TYPE_BOOLEAN},
   {"f", {string_t:"-"}, "File to read queries from", SMACQ_OPT_TYPE_STRING},
+  {"g", {boolean_t:0}, "Show final graph", SMACQ_OPT_TYPE_BOOLEAN},
   {NULL, {string_t:NULL}, NULL, 0}
 };
 
 
 int main(int argc, char ** argv) {
   smacq_graph * graph;
-  smacq_opt multiple, optimize, qfile;
+  smacq_opt multiple, optimize, qfile, showgraph;
   int qargc;
   char ** qargv;
   dts_environment * tenv = dts_init();
@@ -40,6 +41,7 @@ int main(int argc, char ** argv) {
 		  {"m", &multiple},
 		  {"f", &qfile},
 		  {"O", &optimize},
+		  {"g", &showgraph},
 		  {NULL, NULL}
 	  };
 	  smacq_getoptsbyname(argc-1, argv+1, &qargc, &qargv, options, optvals);
@@ -85,6 +87,10 @@ int main(int argc, char ** argv) {
 	      graphs = smacq_merge_graphs(graphs);
       }
 
+      if (showgraph.boolean_t) {
+	      smacq_graphs_print(stderr, graphs, 8);
+      }
+
       if (0 != smacq_start(graphs, ITERATIVE, tenv)) {
 	      return -1;
       }
@@ -103,6 +109,11 @@ int main(int argc, char ** argv) {
   } else {
       graph = smacq_build_query(tenv, qargc, qargv);
       assert(graph);
+
+      if (showgraph.boolean_t) {
+	      smacq_graphs_print(stderr, graph, 8);
+      }
+
       return smacq_start(graph, RECURSIVE, tenv);
   }
 }
