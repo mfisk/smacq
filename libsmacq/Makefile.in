@@ -380,7 +380,7 @@ $(srcdir)/%.y: $(srcdir)/%.ym $(srcdir)/grammer.y
 	m4 -I$(srcdir) -P -DBUILDDATE="`date`" < $< > $@
 
 %.y: $(srcdir)/%.y
-	ln -s -f $< $@
+	cp $< $@
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
