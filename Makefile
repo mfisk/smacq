@@ -4,13 +4,18 @@ TOPSRCDIR=.
 
 include config.mk
 
-auto: 
-	@misc/config-env
+# This target is first iff we're in the source directory
+auto:
+	misc/config-env # Make the build directory and its config.mk
 	@mkdir -p $(BUILDDIR)
+	@ln -sf `pwd`/Makefile $(BUILDDIR)/Makefile
 	$(MAKE) -C $(BUILDDIR) -f `pwd`/Makefile dirs 
 	@echo "Executables are in build/":
 	@ls -al build/*/bin/smacqq
 	ln -fs build/*/bin/smacqq smacqq
+
+# The build directory's config.mk will cause all to be build
+all: dirs 
 
 smacq.iso: #reloc.RECURSE
 	./misc/mkiso
