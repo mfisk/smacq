@@ -1,0 +1,109 @@
+.\" This -*- nroff -*- file has been generated from
+.\" DocBook SGML with docbook-to-man on Debian GNU/Linux.
+...\"
+...\"	transcript compatibility for postscript use.
+...\"
+...\"	synopsis:  .P! <file.ps>
+...\"
+.de P!
+\\&.
+.fl			\" force out current output buffer
+\\!%PB
+\\!/showpage{}def
+...\" the following is from Ken Flowers -- it prevents dictionary overflows
+\\!/tempdict 200 dict def tempdict begin
+.fl			\" prolog
+.sy cat \\$1\" bring in postscript file
+...\" the following line matches the tempdict above
+\\!end % tempdict %
+\\!PE
+\\!.
+.sp \\$2u	\" move below the image
+..
+.de pF
+.ie     \\*(f1 .ds f1 \\n(.f
+.el .ie \\*(f2 .ds f2 \\n(.f
+.el .ie \\*(f3 .ds f3 \\n(.f
+.el .ie \\*(f4 .ds f4 \\n(.f
+.el .tm ? font overflow
+.ft \\$1
+..
+.de fP
+.ie     !\\*(f4 \{\
+.	ft \\*(f4
+.	ds f4\"
+'	br \}
+.el .ie !\\*(f3 \{\
+.	ft \\*(f3
+.	ds f3\"
+'	br \}
+.el .ie !\\*(f2 \{\
+.	ft \\*(f2
+.	ds f2\"
+'	br \}
+.el .ie !\\*(f1 \{\
+.	ft \\*(f1
+.	ds f1\"
+'	br \}
+.el .tm ? font underflow
+..
+.ds f1\"
+.ds f2\"
+.ds f3\"
+.ds f4\"
+'\" t 
+.ta 8n 16n 24n 32n 40n 48n 56n 64n 72n  
+.TH "smacqq" "1" 
+.SH "NAME" 
+smacqq \(em query tool using SMACQ 
+.SH "DESCRIPTION" 
+.PP 
+"Smacqq" is an extensible tool for performing queries on streams of data. 
+Users with a familiarity of SQL will immediately be comfortable using the 
+basic features of the system.  However, there are additional 
+object-relational and extensibility features that are described below. 
+ 
+.PP 
+The primary difference from standard databases, is that data is 
+not stored in preloaded tables, but is instead produced by data 
+source modules.  Also, the select operation does not 
+automatically print fields.  If printable output is desired, use 
+the \fBprint\fP. 
+ 
+.PP 
+The following example prints the "srcip" and "dstip" fields from 
+a stream of packets stored in a tcpdump-format file named "/tmp/dump": 
+ 
+\f(CW	smacqq 'print srcip, dstip from pcapfile("/tmp/dump")' 
+\fP        
+ 
+.PP 
+Nested queries are also supported.  For example: 
+ 
+\f(CW	smacqq 'print srcip, dstip from (uniq srcip, dstip from pcapfile("/tmp/dump"))' 
+\fP        
+ 
+.PP 
+"Where" clauses are supported: 
+ 
+\f(CW	smacqq 'print dstip from pcapfile("/tmp/dump") where srcip = 128.129.1.2' 
+\fP      
+.PP 
+Extended relational algebra provides aggregate functions and the 
+"group by" term.  This syntax is supported, but with slightly 
+different semantics.  For example, the following query would 
+behave as it would in SQL: 
+ 
+\f(CW	smacqq 'print dstip, sum(len) from pcapfile("/tmp/dump") group 
+by dstip' 
+\fP      
+.PP 
+SMACQ is an extensible system that the user can add modules to. 
+See the \fBsmacqp\fP(1) manpage for a detail 
+description of modules. 
+ 
+.SH "BUGS" 
+.PP 
+Joins are not yet supported. 
+ 
+...\" created by instant / docbook-to-man, Sat 28 Dec 2002, 10:52 

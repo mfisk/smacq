@@ -1,4 +1,4 @@
-DOCS=smacqp.1 smacq-modules.3 dts-types.3 smacq-embed.3
+DOCS=smacqq.1 smacqp.1 smacq-modules.3 dts-types.3 smacq-embed.3
 DOCTXTS=$(patsubst %,%.txt,$(DOCS))
 DOCPDFS=$(patsubst %,%.pdf,$(DOCS))
 
@@ -7,7 +7,7 @@ PRODUCTS=$(DOCTXTS) $(DOCPDFS)
 all: $(DOCS) $(PRODUCTS)
 
 clean: distclean
-	rm -f smacq-embed.3 dts-types.3 smacqp.1
+	rm -f smacq-embed.3 dts-types.3 smacqq.1 smacqp.1
 
 distclean:
 	rm -f $(PRODUCTS)
