@@ -12,7 +12,7 @@
       <firstname>Mike</firstname>
       <surname>Fisk</surname>
     </author>
-    <date>$Date: 2004/03/07 19:24:37 $</date>
+    <date>$Date: 2004/03/13 20:44:53 $</date>
   </refentryinfo>
   <refmeta>
     <refentrytitle>smacq</refentrytitle>
@@ -477,8 +477,7 @@
 
       <para>
 	Annotate each object with a field containing the specified string constant.
-	If a field name is specified, it will be used.  Otherwise, the name will be the same
-	as the value string.
+	If a field name is specified, it will be used.  Otherwise, the name will be "const".
       </para>
     </refsect2>
     <refsect2>

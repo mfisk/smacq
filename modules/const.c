@@ -49,7 +49,7 @@ static smacq_result const_init(struct smacq_init * context) {
   if (argc == 2) {
   	state->field = smacq_requirefield(state->env, argv[1]);
   } else {
-  	state->field = smacq_requirefield(state->env, argv[0]);
+  	state->field = smacq_requirefield(state->env, "const");
   }
 
   return SMACQ_PASS;

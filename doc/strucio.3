@@ -1,25 +1,23 @@
-.\" This -*- nroff -*- file has been generated from
-.\" DocBook SGML with docbook-to-man on Debian GNU/Linux.
-...\"
-...\"	transcript compatibility for postscript use.
-...\"
-...\"	synopsis:  .P! <file.ps>
-...\"
+.\" $Header: /aolnet/dev/src/CVS/sgml/docbook-to-man/cmd/docbook-to-man.sh,v 1.1.1.1 1998/11/13 21:31:59 db3l Exp $
+.\"
+.\"	transcript compatibility for postscript use.
+.\"
+.\"	synopsis:  .P! <file.ps>
+.\"
 .de P!
-\\&.
+.fl
+\!!1 setgray
+.fl
+\\&.\"
+.fl
+\!!0 setgray
 .fl			\" force out current output buffer
-\\!%PB
-\\!/showpage{}def
-...\" the following is from Ken Flowers -- it prevents dictionary overflows
-\\!/tempdict 200 dict def tempdict begin
+\!!save /psv exch def currentpoint translate 0 0 moveto
+\!!/showpage{}def
 .fl			\" prolog
-.sy cat \\$1\" bring in postscript file
-...\" the following line matches the tempdict above
-\\!end % tempdict %
-\\!PE
-\\!.
-.sp \\$2u	\" move below the image
-..
+.sy sed -e 's/^/!/' \\$1\" bring in postscript file
+\!!psv restore
+.
 .de pF
 .ie     \\*(f1 .ds f1 \\n(.f
 .el .ie \\*(f2 .ds f2 \\n(.f
@@ -120,6 +118,8 @@ read.
 Register a function that is to be called any time a new file is opened. 
 The user pointer will be passed as an argument when the callback is made. 
 The function can read or write file headers as needed. 
+The registered function should return 0 on success 
+and -1 to reject the file. 
  
 .SH "READING" 
 .PP 
@@ -239,4 +239,4 @@ created with numerical, increasing, sufix.
 .SH "SEE ALSO" 
 .PP 
 bytehash(3), smacq-modules(3) 
-...\" created by instant / docbook-to-man, Mon 15 Mar 2004, 13:50 
+.\" created by instant / docbook-to-man, Mon 10 May 2004, 11:56 
