@@ -3,7 +3,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <pthread.h>
-#include <flow-internal.h>
+#include <smacq-internal.h>
 
 static inline void ring_enqueue(struct filter * f, dts_object * d) {
   pthread_mutex_lock(&f->qlock);

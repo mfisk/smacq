@@ -6,7 +6,7 @@
 #include <assert.h>
 #include <pthread.h>
 #include <string.h>
-#include <flow-internal.h>
+#include <smacq-internal.h>
 
 struct thread_args {
   struct filter * f;

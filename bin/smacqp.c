@@ -6,7 +6,7 @@
 #include <assert.h>
 #include <pthread.h>
 #include <string.h>
-#include <flow-internal.h>
+#include <smacq-internal.h>
 
 char ** parse_stmt(int, char **, int *);
 

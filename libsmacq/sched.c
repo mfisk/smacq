@@ -1,4 +1,4 @@
-#include <flow-internal.h>
+#include <smacq-internal.h>
 #include <stdio.h>
 
 int flow_start(struct filter * objs, enum flow_scheduler scheduler, dts_environment * tenv) {

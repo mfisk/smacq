@@ -3,7 +3,7 @@
 #include <math.h>
 #include <assert.h>
 #include <smacq.h>
-#include <flow-internal.h>
+#include <smacq-internal.h>
 #include <fields.h>
 #include <bytehash.h>
 

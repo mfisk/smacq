@@ -72,6 +72,7 @@ static inline void dts_attach_field(const dts_object * d, int field, const dts_o
     wd->numfields = field+1;
   }
 
+  //dts_incref(d, 1); Probably should
   d->fields[field] = field_data;
 }
 

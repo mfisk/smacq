@@ -1,4 +1,4 @@
-#include <flow-internal.h>
+#include <smacq-internal.h>
 #include <stdio.h>
 
 static inline const dts_object * flow_datum_fieldobj(const dts_object * d, int field) {

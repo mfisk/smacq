@@ -19,13 +19,13 @@ clean:
 %.lo: %.c
 	$(LIBTOOL) $(CC) -c $(CFLAGS) $<
 
-libsmacq-engine.lo: libsmacq.c ../include/smacq.h ../include/flow-internal.h
+libsmacq-engine.lo: libsmacq.c ../include/smacq.h ../include/smacq-internal.h
 	$(LIBTOOL) $(CC) -c -o $@ $(CFLAGS) $< 
 
-libsmacq.lo: libsmacq.c ../include/smacq.h ../include/flow-internal.h
+libsmacq.lo: libsmacq.c ../include/smacq.h ../include/smacq-internal.h
 	$(LIBTOOL) $(CC) -c -o $@ $(CFLAGS) $< 
 
-types.lo: types.c ../include/smacq.h ../include/flow-internal.h
+types.lo: types.c ../include/smacq.h ../include/smacq-internal.h
 	$(LIBTOOL) $(CC) -c -o $@ $(CFLAGS) $< 
 
 libsmacq-engine.la: $(ENGINEOBJS)

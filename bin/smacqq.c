@@ -6,7 +6,7 @@
 #include <assert.h>
 #include <pthread.h>
 #include <string.h>
-#include <flow-internal.h>
+#include <smacq-internal.h>
 
 static int multiproc = 1;
 

@@ -4,7 +4,7 @@
 #include <assert.h>
 #include <string.h>
 #include <dlfcn.h>
-#include "flow-internal.h"
+#include "smacq-internal.h"
 
 struct flow_engine_field {
   int type;
