@@ -147,6 +147,19 @@ megabytes) for output files.  If specified, the output file
 will have a two-digit suffix number appended and output will 
 be split between as many files as necessary. 
  
+.SS "cflowd Raw Flow File" 
+.PP 
+\fBcflow\fP \fIfilename\fP \&...  [-l ]  
+.PP 
+The \fBcflow\fP module reads from a raw flow file 
+as created by cflowd.   
+One or more files must be specified.  Use 
+\fB-\fP for stdin.  Input files that are 
+compressed with \fBgzip\fP are supported 
+automatically.  If the \fB-l\fP option 
+is specified then files are read from STDIN instead of  
+the arguments. 
+ 
 .SS "Socket" 
 .PP 
 \fBsocket\fP [-p \fIport\fP]  [-h \fIhost\fP]  [-d]  
@@ -437,4 +450,4 @@ a time delay which is specified with the \fB-t\fP 	option which defaults to 0 se
 \fBsmacq-modules\fP(3), 
 \fBsmacq-embed\fP(3) 
  
-...\" created by instant / docbook-to-man, Mon 26 May 2003, 17:50 
+...\" created by instant / docbook-to-man, Mon 01 Sep 2003, 07:59 

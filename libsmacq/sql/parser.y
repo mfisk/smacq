@@ -9,7 +9,7 @@ static struct graph nullgraph = { head: NULL, tail: NULL };
 static smacq_graph * Graph;
 %}
 
-%type <graph> pverbphrase from source query where 
+%type <graph> from barequery query pipedquery where 
 %type <vphrase> verbphrase
 %type <group> group
 %type <comp> having
@@ -49,9 +49,8 @@ static smacq_graph * Graph;
 
 %token YYSTOP YYLIKE YYOR YYAND YYNOT
 
-%right YYNOT
 %left YYAND YYOR
-%right FROM
+%right YYNOT
 
 %left '+' '-'
 %left '*' '/'
@@ -141,22 +140,27 @@ operand : id			{ $$ = comp_operand(FIELD, $1); }
 	;
 
 
-expression :   '(' expression ')' {	  $$ = $2;  } 
-                   | subexpression arithop subexpression  {
+expression :   
+	'(' expression ')' 
+				{	  
+				  $$ = $2;  
+				} 
+	| subexpression arithop subexpression  
+				{
 				  $$ = comp_arith(parse_tenv, $2, $1, $3); 
 				}
 	;
 
-subexpression : expression
-                  | operand
-                  ;
+subexpression : 
+	expression
+	| operand
+	;
 
-test : operand			{ $$ = comp_new(EXIST, $1, $1); }
+test : 	
+	operand		{  $$ = comp_new(EXIST, $1, $1); }
 	| subexpression op subexpression      { $$ = comp_new($2, $1, $3); }
 	| verb '(' args ')'	{ 
 				  int argc; char ** argv;
-				  struct dts_operand op;
-
 				  arglist2argv($3, &argc, &argv);
 				  $$ = comp_new_func($1, argc, argv, $3);
 				}
@@ -188,10 +192,13 @@ queryline: query YYSTOP
 	   }
 	;
 
-query : verbphrase from where group
+query : barequery 
+	| '(' barequery ')'	{ $$ = $2; }
+	;
+
+barequery : verbphrase from where group
            {
-	   	$$.head = ($$.tail = NULL);
-	   	graph_join(&($$), $2);
+	   	$$ = $2;
 		graph_join(&($$), $3);
 		if ($4.args) {
 			graph_join(&($$), newgroup($4, $1));
@@ -199,36 +206,29 @@ query : verbphrase from where group
 			graph_join(&($$), newmodule($1.verb, $1.args));
 		}
 	   }
-	| query '|' verbphrase where group
+	| pipedquery verbphrase where group
            {
-	   	$$.head = ($$.tail = NULL);
-	   	graph_join(&($$), $1);
-		graph_join(&($$), $4);
-		if ($5.args) {
-			graph_join(&($$), newgroup($5, $3));
+	   	$$ = $1;
+		graph_join(&($$), $3);
+		if ($4.args) {
+			graph_join(&($$), newgroup($4, $2));
 		} else {
-			graph_join(&($$), newmodule($3.verb, $3.args));
+			graph_join(&($$), newmodule($2.verb, $2.args));
 		}
 	   }
 	| from where 
            {
-	   	$$.head = ($$.tail = NULL);
-	   	graph_join(&($$), $1);
+	   	$$ = $1;
 		graph_join(&($$), $2);
 	   }
+	| verbphrase 	{ $$ = newmodule($1.verb, $1.args) }
+	| where 
 	;
 
-from :  null 			{ $$.head = NULL; $$.tail = NULL; } 
-	| FROM source 		{ $$ = $2; }
+pipedquery : query '|'  { $$ = $1; }
 	;
 
-source : pverbphrase from
-		        {
-	   			$$.head = ($$.tail = NULL);
-	   			graph_join(&($$), $2);
-				graph_join(&($$), $1);
-			}
-	| '(' query ')'	{ $$ = $2; }
+from :  FROM query 	{ $$ = $2; }
 	;
 
 where : null 		{ $$ = nullgraph; }
@@ -241,10 +241,6 @@ group : null 			{ $$.args = NULL; $$.having = NULL;}
 
 having : null			{ $$ = NULL; }
 	| HAVING boolean	{ $$ = $2; }
-	;
-
-pverbphrase: verb '(' args ')' 	{ $$ = newmodule($1, $3); }
-	| verb spacedargs  	{ $$ = newmodule($1, $2); }
 	;
 
 verbphrase : verb args 		{ $$ = newvphrase($1, $2); }
