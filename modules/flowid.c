@@ -172,9 +172,10 @@ static inline int expired(struct state * state, struct iovec * domainv, struct s
 	
     // Cleanup
     /* Don't have to decref fields, since their refcount will be picked up from being attached in the output routine */
-    free(s->fields);
 
     bytes_hash_table_remove_element(state->stats, s->hash_entry);
+    free(s->fields);
+    free(s);
 
     return 1;
   }
@@ -450,7 +451,7 @@ static smacq_result flowid_init(struct smacq_init * context) {
     free(rargv);
   }
 
-  state->stats = bytes_hash_table_new(KEYBYTES, CHAIN|FREE);
+  state->stats = bytes_hash_table_new(KEYBYTES, CHAIN|NOFREE);
   wheel_new(&state->timers);
 
   return 0;
