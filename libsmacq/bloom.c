@@ -59,7 +59,7 @@ struct bloom_summary {
   int type;
 
   /* Data structures for non-probabilisitic (BLOOM_PERFECT) implementation */
-  GHashTableofBytes * perfectsummary, * perfectcount;
+  struct iovec_hash * perfectsummary, * perfectcount;
 
   /* Diagnostic values for comparing probablisitic and perfect techniques */
   unsigned long falsepositives, overcount;
