@@ -105,7 +105,7 @@ countModule::countModule(struct SmacqModule::smacq_init * context)
 
 countModule::~countModule() {
   if (lastin && fieldvec.empty()) {
-    annotate(lastin, counter);
-	enqueue(lastin);
+     annotate(lastin, counter);
+     enqueue(lastin);
   }
 }

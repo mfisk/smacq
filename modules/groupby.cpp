@@ -90,7 +90,7 @@ smacq_result groupbyModule::consume(DtsObject datum, int & outchan) {
 
 groupbyModule::~groupbyModule() {
   OutputsIterator i;
-  for (i=outTable.begin(); i!= outTable.end(); ++i) {
+  for (i=outTable.begin(); i != outTable.end(); ++i) {
     sched->shutdown(i->second);
   }
   outTable.clear();
