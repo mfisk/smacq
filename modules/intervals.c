@@ -153,7 +153,7 @@ static smacq_result intervals_consume(struct state * state, const dts_object * d
 
   struct timeval endtime;
   dts_object field;
-  struct timeval * value;
+  struct timeval * value = NULL;
 
   if (!smacq_getfield(state->env, datum, state->timeseries, &field)) {
     fprintf(stderr, "error: timeseries not available\n");

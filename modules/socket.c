@@ -64,7 +64,7 @@ static smacq_result socket_produce(struct state * state, const dts_object ** dat
   struct sockaddr_in their_addr;
   int i, new_fd, temp;
   int sin_size;
-  int num_ready_fds, picked_fd;
+  int num_ready_fds, picked_fd = 0;
   fd_set tempset;  
 
   sin_size = sizeof(struct sockaddr_in);

@@ -55,6 +55,8 @@ static smacq_result split_consume(struct state * state, const dts_object * datum
 	// 0 return value is error, so everything is inflated by 1
 	bucket--;
     }
+  } else {
+    assert(0);
   }
 
   // bucket = (state->bucket++) % state->children;
