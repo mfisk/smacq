@@ -11,6 +11,24 @@ static inline void read_module(smacq_graph * module, struct smacq_functions * mo
 		module->ops.thread_fn = modtable->thread;
 }
 
+void smacq_graph_print(FILE * fh, smacq_graph * f, int indent) {
+  int i;
+  if (!f) return;
+  
+  fprintf(fh, "%p: ", f);
+
+  for (i=0; i<f->argc; i++) {
+    fprintf(fh, " %s", f->argv[i]);
+  }
+  fprintf(fh, "\n");
+
+  for (i=0; i<f->numchildren; i++) {
+    fprintf(fh, "%*s+ Child %d is ", indent, "", i);
+    smacq_graph_print(fh, f->child[i], indent+2);
+  }
+
+}
+
 int smacq_load_module(smacq_graph * module) {
     struct smacq_functions * modtable;
 
@@ -350,6 +368,7 @@ static int merge_tree(smacq_graph * a, smacq_graph *b) {
 	// fprintf(stderr, "%p(%s) === %p(%s)\n", a, a->name, b, b->name);
 
 	for (i = 0; i < b->numchildren; i++) {
+		/* If any of our twins children are twins of our children, just use that child */
 		for (j = 0; j < a->numchildren; j++) {
 			if (merge_tree(a->child[j], b->child[i])) {
 				b->child[i] = NULL;
@@ -357,9 +376,13 @@ static int merge_tree(smacq_graph * a, smacq_graph *b) {
 			}
 		}
 
+		/* Pawn this child off on our newly found twin */
 		if (b->child[i]) {
 			smacq_add_child(a, b->child[i]);
 			add_parent(b->child[i], a);
+			/* fprintf(stderr, "%p child %p(%s) now child of %p(%s)\n", b, 
+					b->child[i], b->child[i]->name, 
+					a, a->name); */
 			// XXX: remove old parent
 		}
 	}
@@ -369,22 +392,36 @@ static int merge_tree(smacq_graph * a, smacq_graph *b) {
 
 smacq_graph * smacq_merge_graphs(smacq_graph * g) {
   smacq_graph * ap, * bp;
+  smacq_graph * candidate;
+
+#ifdef SMACQ_DEBUG
+  for (bp = g; bp; bp=bp->next_graph) {
+    smacq_graph_print(stderr, bp, 8);
+  }
+#endif
 
   /* Merge identical heads */
-  for (bp = g; bp && bp->next_graph; bp=bp->next_graph) {
+  for (bp = g, candidate=bp->next_graph; candidate; candidate = bp->next_graph) {
     int merged = 0;
     
-    for (ap = g; ap->next_graph; ap=ap->next_graph) {
-      merged = merge_tree(ap, bp->next_graph);
+    for (ap = g; ap; ap=ap->next_graph) {
+      merged = merge_tree(ap, candidate);
+
       if (merged) {
-	bp->next_graph = bp->next_graph->next_graph;
 	break;
       }
     }
-  }
-  
 
-  return g;
+    if (merged) {
+      /* Remove candidate from the list */
+      bp->next_graph = candidate->next_graph;
+    } else {
+      /* Move down list */
+      bp = bp->next_graph;
+    }
+  }
+
+#warning "Need to do tail optimization on a single tree"
 
   /* Do the merge again from the tails up */
   for (bp = g; bp && bp->next_graph; bp=bp->next_graph) {
@@ -392,6 +429,13 @@ smacq_graph * smacq_merge_graphs(smacq_graph * g) {
       merge_tree_tails(ap, bp->next_graph);
     }
   }
+
+#ifdef SMACQ_DEBUG
+  fprintf(stderr, "--- optimized to ---\n");
+  for (bp = g; bp; bp=bp->next_graph) {
+    smacq_graph_print(stderr, bp, 8);
+  }
+#endif
   
   return g;
 }
