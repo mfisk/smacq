@@ -93,7 +93,7 @@ int dts_pkthdr_get_payload(const dts_object * datum, dts_object * data) {
 
   if (tcphdr) {
   	data->data = ((char*)tcphdr) + tcphdr->th_off * 4;
-	data->len = datum->data + datum->len - data->data + 1;
+	data->len = datum->len + datum->data - data->data;
 	//((char*)ip) + ip->tot_len - ip->ihl;
   	return 1;
   }
