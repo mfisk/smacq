@@ -6,7 +6,7 @@ bootstrap:
 	mkdir -p config
 	export PATH=/sw/bin:$$PATH; \
 	libtoolize --copy --force; \
-	aclocal; \
+	aclocal -I libgnu/m4; \
 	autoheader; \
 	automake -a; \
 	autoconf
