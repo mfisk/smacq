@@ -163,7 +163,7 @@ class SmacqModule {
 	public: 
 	bool otherEntry(unsigned int f) const {
 		DynamicArray<bool>::const_iterator i;
-		for (i = begin(); i != end(); i++) {
+		for (i = begin(); i != end(); ++i) {
 			if (*i != f) return true;
 		}
 		return false;
