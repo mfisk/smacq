@@ -11,8 +11,8 @@ DDEESSCCRRIIPPTTIIOONN
        This manpage describes the modules included with the system by default.
 
 
-       These modules are used by SMACQ's command-line utilities ssmmaaccqqpp((11))  and
-       ssmmaaccqqpp((11))       as well as a C API described in ssmmaaccqq--eemmbbeedd((33)).
+       These modules  are  used  by  SMACQ's  command-line  utility  ssmmaaccqqpp((11))
+       as well as the SMACQ C++ API.
 
 
        The  function  modules included in the system are described in the fol-
@@ -21,24 +21,32 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 QQUUEERRYY SSYYNNTTAAXX
-       Smacq queries are specified using the following SQL-like grammer:
+       SMACQ queries are specified using the following SQL-like grammer:
 
 
-       query : action from [WHERE boolean] [GROUP BY args [HAVING boolean]]
+       query:
+       action from [alias, joins] [WHERE boolean] [GROUP BY args [HAVING boolean]]
        | action [WHERE boolean]
        | WHERE boolean
        | query '|' action [WHERE boolean] [GROUP BY args [HAVING boolean]]
 
-       action : function args
+       action:
+       function args
        | function ( args )
        | ( query )
        | ( parenquery + parenquery )
 
-       parenquery : ( query )
+       joins:
+       [parenquery] alias [, joins]
+
+       parenquery:
+       ( query )
        | function ( args )
        | function
 
-       from : FROM action [from]
+       from:
+       FROM action [from]
+
 
 
        Arguments  can  be given in a space separated list or a comma separated
@@ -46,18 +54,19 @@ QQUUEERRYY SSYYNNTTAAXX
        given the specified alias.
 
 
-       argument: word
+       argument:
+       word
        | function ( args )
        | '[' expression ']'
 
-       boolean : ( boolean )
+       boolean:
+       ( boolean )
        | boolean AND boolean
        | boolean OR boolean
        | NOT boolean
        | operand
        | subexpression op subexpression
        | function ( args )
-       ;
 
 
 IINNPPUUTT//OOUUTTPPUUTT FFUUNNCCTTIIOONNSS
@@ -327,9 +336,9 @@ MMIISSCCEELLLLAANNEEOOUUSS AANNAALLYYSSIISS FFUUNNCCTT
        count the number of occurrences of each value for that tuple.
 
 
-       Unless  the  "-p"  flag  is  specified,  then  a  double  value   named
-       "probability" is annotated instead.  The "-f" flag can still be used to
-       specify an alternate field name.
+       Unless the "-p" flag is specified, then a double value named "probabil-
+       ity"  is annotated instead.  The "-f" flag can still be used to specify
+       an alternate field name.
 
 
        Normally an annotation is made to only the final object and  all  other
@@ -439,8 +448,7 @@ MMIISSCCEELLLLAANNEEOOUUSS AANNAALLYYSSIISS FFUUNNCCTT
 
 
 SSEEEE AALLSSOO
-       ssmmaaccqqqq(1),  ssmmaaccqqpp(1), ddttss(3), ddttss--mmoodduulleess(3), ssmmaaccqq--mmoodduulleess(3), ssmmaaccqq--
-       eemmbbeedd(3)
+       ssmmaaccqqqq(1), DDTTSS(3), SSmmaaccqqGGrraapphh(3)
 
 
 

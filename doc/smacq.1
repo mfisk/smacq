@@ -15,7 +15,7 @@
 \!!save /psv exch def currentpoint translate 0 0 moveto
 \!!/showpage{}def
 .fl			\" prolog
-.sy sed -e 's/^/!/' \\$1\" bring in postscript file
+.sy sed \-e 's/^/!/' \\$1\" bring in postscript file
 \!!psv restore
 .
 .de pF
@@ -62,8 +62,8 @@ of structured data.  This manpage describes the modules
 included with the system by default.  
  
 .PP 
-These modules are used by SMACQ's command-line utilities 
-\fBsmacqp(1)\fR  and \fBsmacqp(1)\fR       as well as a C API described in \fBsmacq-embed(3)\fR. 
+These modules are used by SMACQ's command-line utility 
+\fBsmacqp(1)\fR       as well as the SMACQ C++ API. 
  
 .PP 
 The function modules included in the system are described in the 
@@ -72,26 +72,34 @@ Analysis functions.
  
 .SH "QUERY SYNTAX" 
 .PP 
-Smacq queries are specified using the following SQL-like grammer: 
+SMACQ queries are specified using the following SQL-like grammer: 
  
 .PP 
 .nf 
 .ta 8n 16n 24n 32n 40n 48n 56n 64n 72n 
-query : action from [WHERE boolean] [GROUP BY args [HAVING boolean]] 
+query:  
+action from [alias, joins] [WHERE boolean] [GROUP BY args [HAVING boolean]] 
 | action [WHERE boolean] 
 | WHERE boolean 
 | query '|' action [WHERE boolean] [GROUP BY args [HAVING boolean]] 
  
-action : function args 
+action:  
+function args 
 | function ( args ) 
 | ( query ) 
 | ( parenquery + parenquery ) 
  
-parenquery : ( query ) 
+joins:  
+[parenquery] alias [, joins] 
+ 
+parenquery:  
+( query ) 
 | function ( args ) 
 | function 
  
-from : FROM action [from] 
+from:  
+FROM action [from] 
+ 
  
 .fi 
 .PP 
@@ -102,18 +110,19 @@ given the specified alias.
 .PP 
 .nf 
 .ta 8n 16n 24n 32n 40n 48n 56n 64n 72n 
-argument: word  
+argument:  
+word  
 | function ( args )  
 | '[' expression ']' 
  
-boolean : ( boolean ) 
+boolean: 
+( boolean ) 
 | boolean AND boolean 
 | boolean OR boolean 
 | NOT boolean 
 | operand 
 | subexpression op subexpression 
 | function ( args ) 
-;  
  
 .fi 
 .SH "INPUT/OUTPUT FUNCTIONS" 
@@ -122,14 +131,14 @@ boolean : ( boolean )
 \fBprint\fR [-x]  [-v]  [-B]  [-d \fIdelimiter\fR] fields \&...  
 .PP 
 Print the specified fields for every record that has them If 
-the \fB-v\fP option is given, then warnings are 
+the \fB\-v\fP option is given, then warnings are 
 printed when fields aren't present, and field values are 
-preceded by the field name.  If \fB-x\fP option 
+preceded by the field name.  If \fB\-x\fP option 
 is given, fields are surrounded with XML-style tags.  
-If the \fB-B\fP option 
+If the \fB\-B\fP option 
 is specified, then output is not buffered (output is flushed 
 after each record).  Fields are separated by a delimiter 
-string which can be specified by \fB-d\fP and 
+string which can be specified by \fB\-d\fP and 
 defaults to TAB. 
  
 .SS "Tabular Input" 
@@ -137,9 +146,9 @@ defaults to TAB.
 \fBtabularinput\fR [-d \fIdelimiter\fR]  [-f \fIfilename\fR]  [field [:type]  \&...]  
 .PP 
 Read records from STDIN by default, or a filename specified with 
-the \fB-f\fP option, one per line, with fields delimited 
+the \fB\-f\fP option, one per line, with fields delimited 
 by TAB or an alterate delimiter specified by 
-\fB-d\fP.  If field names are specified, data 
+\fB\-d\fP.  If field names are specified, data 
 columns are assigned those names sequentially.  If no field 
 names are specified, or there are more columns that field 
 names, unnamed fields are named numericaly starting at 1.  
@@ -158,11 +167,11 @@ beginning of a pipeline.  Root privileges are typically
 required to run this module. 
  
 .PP 
-The \fB-i\fP option specifies an interface to 
+The \fB\-i\fP option specifies an interface to 
 listen on (default is \fBany\fP).  The 
-\fB-s\fP option specifies the maximum number of 
+\fB\-s\fP option specifies the maximum number of 
 bytes per packet to capture (default is 68).  The 
-\fB-p\fP specifies that the interface should NOT be 
+\fB\-p\fP specifies that the interface should NOT be 
 placed in promiscuous mode. 
  
 .PP 
@@ -184,16 +193,16 @@ file.  Otherwise it writes data to a file.
 When reading, one or more files must be specified.  Use 
 \fB-\fP for stdin.  Input files that are 
 compressed with \fBgzip\fR are supported 
-automatically.  If the \fB-l\fP option 
+automatically.  If the \fB\-l\fP option 
 is specified then files are read from STDIN instead of  
 the arguments. 
  
 .PP 
 When writing, a single output file must be specified with 
-\fB-w\fP. 
+\fB\-w\fP. 
  
 .PP 
-The \fB-s\fP option specifies the maximum file size (in 
+The \fB\-s\fP option specifies the maximum file size (in 
 megabytes) for output files.  If specified, the output file 
 will have a two-digit suffix number appended and output will 
 be split between as many files as necessary. 
@@ -207,7 +216,7 @@ as created by cflowd.
 One or more files must be specified.  Use 
 \fB-\fP for stdin.  Input files that are 
 compressed with \fBgzip\fR are supported 
-automatically.  If the \fB-l\fP option 
+automatically.  If the \fB\-l\fP option 
 is specified then files are read from STDIN instead of  
 the arguments. 
  
@@ -225,12 +234,12 @@ be a server.  Otherwise it is a consumer that writes data to
 the network. 
  
 .PP 
-The \fB-h\fP and \fB-p\fP options 
+The \fB\-h\fP and \fB\-p\fP options 
 specify a host and port, respectively.  The host option is required 
 for a consumer.  The default port is 3000. 
  
 .PP 
-The \fB-d\fP option is only valid in the server context. 
+The \fB\-d\fP option is only valid in the server context. 
 If specified, the module will continue to accept new 
 connections forever and will never exit.  Without this option, 
 the server will accept a single connection, process it until 
@@ -299,7 +308,7 @@ Treat the specified field(s) as a tuple and filter out all
 occurrences of duplicate values of that tuple. 
  
 .PP 
-The \fB-m\fP option specifies that a probabilistic 
+The \fB\-m\fP option specifies that a probabilistic 
 algorithm using a fixed amount of memory (specified in 
 megabytes) should be employed.  Some records may be mistakenly 
 filtered, but some large datasets cannot be processed with a 
@@ -314,11 +323,11 @@ of occurrences of each values of that tuple.  Filter out all
 records except those whose occurrence deviates from the 
 average by more than a factor of 
 \fBdeviation\fR.  If no 
-\fB-r\fP option is specified, the default 
+\fB\-r\fP option is specified, the default 
 deviation threshold is 1. 
  
 .PP 
-If \fB-m\fP is specified, then probabilistic 
+If \fB\-m\fP is specified, then probabilistic 
 counters are used, consuming a max of 
 \fBmegabytes\fR memory, at the expense of 
 some records not being filtered even though they're value is 
@@ -390,12 +399,12 @@ annotated field is called "flowid".  All but the first packet
 will be filtered out. 
  
 .PP 
-The \fB-r\fP option specifies that the same flow id 
+The \fB\-r\fP option specifies that the same flow id 
 should be assigned to packets in the reverse direction. 
 Separate flow statistics will be kept for each direction. 
  
 .PP 
-The \fB-t\fP option specifies a number of seconds 
+The \fB\-t\fP option specifies a number of seconds 
 idle time before a flow is timed out.  When it times out a 
 REFRESH record with the flows identifying fields (as specified 
 in the arguments), the current time (timeseries) and the 
@@ -458,7 +467,7 @@ If any fields are specified, treat those fields as a tuple and keep track of the
 with that tuple value.  After there is no more data, output the objet for each tuple value. 
  
 .PP 
-The \fB-t\fP option specifies, as a real number, 
+The \fB\-t\fP option specifies, as a real number, 
 the number of seconds between periodic updates.  After the specified 
 amount of time, the last object seen for each tuple value will be emitted  
 (just as is done at the end of the data stream).  At the end of the update, an 
@@ -468,7 +477,7 @@ containing the time.
 Note: Time is not the wall-clock time, but is instead the 
 time stored in the record in the 
 "\fBtimeseries\fP" field of type 
-"\fBtimeval\fP".  The \fB-t\fP cannot 
+"\fBtimeval\fP".  The \fB\-t\fP cannot 
 be used with records that do not have this field. 
  
 .SS "Discrete Probability Density Function" 
@@ -524,19 +533,16 @@ terminated.
 .PP 
 Sort a series of input records and output them sorted by an 
 output time field that is specified with the 
-\fB-o\fP option and defaults to "timeseries".  All records 
+\fB\-o\fP option and defaults to "timeseries".  All records 
 that are past the edge time are immediately updated.  The edge 
 time is determined by the input time field (specified with the 
-\fB-i\fP option and defaullting to "timseries") and 
-a time delay which is specified with the \fB-t\fP 	option which defaults to 0 seconds. 
+\fB\-i\fP option and defaullting to "timseries") and 
+a time delay which is specified with the \fB\-t\fP 	option which defaults to 0 seconds. 
  
 .SH "SEE ALSO" 
 .PP 
 \fBsmacqq\fR(1),  
-\fBsmacqp\fR(1),  
-\fBdts\fR(3),  
-\fBdts-modules\fR(3),  
-\fBsmacq-modules\fR(3), 
-\fBsmacq-embed\fR(3) 
+\fBDTS\fR(3),  
+\fBSmacqGraph\fR(3) 
  
-.\" created by instant / docbook-to-man, Fri 10 Sep 2004, 08:30 
+.\" created by instant / docbook-to-man, Sun 14 Nov 2004, 21:35 

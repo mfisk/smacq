@@ -15,7 +15,7 @@
 \!!save /psv exch def currentpoint translate 0 0 moveto
 \!!/showpage{}def
 .fl			\" prolog
-.sy sed -e 's/^/!/' \\$1\" bring in postscript file
+.sy sed \-e 's/^/!/' \\$1\" bring in postscript file
 \!!psv restore
 .
 .de pF
@@ -87,7 +87,17 @@ Nested queries are also supported.  For example:
 \fP  
 Aliasing with "as" is supported: 
  
-\f(CW	print dstip, totalbytes from select dstip, sum(len) as totalbytes from pcapfile("/tmp/dump") 
+\f(CW	print dstip, totalbytes from (select dstip, sum(len) as totalbytes from pcapfile("/tmp/dump")) 
+\fP  
+Joins are supported as well: 
+ 
+\f(CW	print a.srcip, b.srcip from pcapfile("/tmp/dump") a, b where a.srcip != b.srcip	 
+\fP  
+When used with streams, joins require very large amounts of memory.  The "until"  
+term can be used to define when elements can be removed from the pool of possible 
+values in a join: 
+ 
+\f(CW	print a.srcip, b.srcip from pcapfile("/tmp/dump") a until (new.a.ts > a.ts), b where a.srcip != b.srcip	 
 \fP  
 Extended relational algebra provides aggregate functions and the 
 "group by" and "having" terms.  This syntax is supported, but with slightly 
@@ -139,10 +149,4 @@ arguments, can be separated with commas or spaces:
 \f(CW	print -v, srcip, dstip from pcapfile("/tmp/dump") 
 \fP\  
  
-.SH "BUGS" 
-.PP 
-Joins are not yet supported.  They will be supported in multiple 
-forms:  joins within a buffer window, joins between 
-nondecreasing streams, etc. 
- 
-.\" created by instant / docbook-to-man, Fri 10 Sep 2004, 08:30 
+.\" created by instant / docbook-to-man, Sun 14 Nov 2004, 21:35 

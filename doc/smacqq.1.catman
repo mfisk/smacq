@@ -38,8 +38,20 @@ DDEESSCCRRIIPPTTIIOONN
 
        Aliasing with "as" is supported:
 
-            print dstip, totalbytes from select dstip, sum(len) as  totalbytes
-       from pcapfile("/tmp/dump")
+            print dstip, totalbytes from (select dstip, sum(len) as totalbytes
+       from pcapfile("/tmp/dump"))
+
+       Joins are supported as well:
+
+            print  a.srcip,  b.srcip  from  pcapfile("/tmp/dump")  a,  b where
+       a.srcip != b.srcip
+
+       When used with streams, joins require very  large  amounts  of  memory.
+       The  "until"  term  can  be used to define when elements can be removed
+       from the pool of possible values in a join:
+
+            print  a.srcip,  b.srcip  from   pcapfile("/tmp/dump")   a   until
+       (new.a.ts > a.ts), b where a.srcip != b.srcip
 
        Extended relational algebra provides aggregate functions and the "group
        by" and "having" terms.  This syntax is supported,  but  with  slightly
@@ -89,11 +101,6 @@ DDEESSCCRRIIPPTTIIOONN
        or spaces:
 
             print -v, srcip, dstip from pcapfile("/tmp/dump")
-
-
-BBUUGGSS
-       Joins are not yet supported.  They will be supported in multiple forms:
-       joins within a buffer window, joins between nondecreasing streams, etc.
 
 
 
