@@ -51,14 +51,24 @@ inline SmacqGraph * groupbyModule::get_partition() {
   return partition;
 }
 
+/// Delete any tables that fit the fieldvec mask
 inline void groupbyModule::handle_invalidate(DtsObject datum) {
-  OutputsIterator i;
+  OutputsIterator i, prev;
 
-  for (i=outTable.begin(); i != outTable.end(); ++i) {
+  for (i=outTable.begin(); i != outTable.end();) {
     if ( i->first.masks(fieldvec)) {
       //fprintf(stderr, "groupby got a partial refresh\n");
       sched->shutdown(i->second);
-      outTable.erase(i);
+      prev = i++;
+      outTable.erase(prev);
+/*
+	/// Iterator invalidated; so start over
+      	handle_invalidate(datum);
+      	return;
+*/
+
+    } else {
+      ++i;
     }
   }
 }
