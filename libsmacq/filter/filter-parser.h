@@ -73,7 +73,7 @@
 
 
 #ifndef YYSTYPE
-#line 58 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 59 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
 typedef union {
   struct graph graph;
   struct arglist * arglist;
@@ -81,11 +81,12 @@ typedef union {
   char * string;
   struct group group;
   dts_compare_operation op;
+  enum dts_arith_operand_type arithop;
   dts_comparison * comp;
   struct dts_operand * operand;
 } yystype;
 /* Line 1281 of /usr/share/bison/yacc.c.  */
-#line 89 "/home/mfisk/smacq/libsmacq/filter/filter-parser.h"
+#line 90 "/home/mfisk/smacq/libsmacq/filter/filter-parser.h"
 # define YYSTYPE yystype
 #endif
 

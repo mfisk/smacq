@@ -21,7 +21,7 @@ static smacq_graph * Graph;
  *      This is because renames are done as a batch just before the VERB
  *
  *    - Cannot use nested functions as arguments
- *      FIX: we-write arguments recursively or something
+ *      FIX: re-write arguments recursively or something
  *
  */
 
@@ -59,7 +59,8 @@ static smacq_graph * Graph;
 %type <string> function verb word string id number
 %type <op> op
 %type <comp> boolean test 
-%type <operand> operand
+%type <operand> operand expression
+%type <arithop> arithop
 
 %union {
   struct graph graph;
@@ -68,6 +69,7 @@ static smacq_graph * Graph;
   char * string;
   struct group group;
   dts_compare_operation op;
+  enum dts_arith_operand_type arithop;
   dts_comparison * comp;
   struct dts_operand * operand;
 }
@@ -132,9 +134,15 @@ operand : id			{ $$ = comp_operand(FIELD, $1); }
 	| string 		{ $$ = comp_operand(CONST, $1); }
 	| number 		{ $$ = comp_operand(CONST, $1); }
 	;
-	
+
+expression : '(' expression arithop expression ')' {
+				  $$ = comp_arith(parse_tenv, $3, $2, $4); 
+				}
+	| operand
+	;
+
 test : operand			{ $$ = comp_new(EXIST, $1, $1); }
-	| operand op operand	{ $$ = comp_new($2, $1, $3); }
+	| expression op expression { $$ = comp_new($2, $1, $3); }
 	| verb '(' args ')'	{ 
 				  int argc; char ** argv;
 				  struct dts_operand op;
@@ -153,6 +161,11 @@ op : '=' 		{ $$ = EQ; }
 	| YYLIKE 	{ $$ = LIKE; }		 
 	;
 
+arithop : '+'		{ $$ = ADD; }
+	| '-'		{ $$ = SUB; }
+	| '/'		{ $$ = DIVIDE; }
+	| '*'		{ $$ = MULT; }
+	;
 
 
 queryline: query YYSTOP	

@@ -14,10 +14,13 @@ char *yystring;
 
 quote		\'
 dquote		\"
-space		[ \t\n\r\f]+
-toksymbols	[\,\=\<\>\(\)]
-number		[\-\+]?[0-9e\.]+
-id		[^\!\'\"\,\=\<\>\(\) \t\n\r\f][^\!\'\"\,\=\<\>\(\) \t\n\r\f]*
+space		[[:space:]]+
+arithop		[\-\+\*\/]
+sign		[\-\+]?
+digits		[0-9e\.]
+toksymbols	[\|\,\=\<\>\(\)]|{arithop}
+number		{sign}{digits}+
+id		[^\!\'\"\,\=\<\>\(\)[:space:]\|]+
 
 %x xdquote
 %x xquote
@@ -37,7 +40,6 @@ like|LIKE       return YYLIKE;
 "<="		return YYLEQ;
 "!="		return YYNEQ;
 "=="		return '=';
-"|"		return '|';
 
 {quote}		BEGIN(xquote);
 <xquote>{
@@ -71,9 +73,9 @@ like|LIKE       return YYLIKE;
 
 {space}	{ ; }
 
-{toksymbols}    	return yysmacql_text[0];
-
 <<EOF>>		{ return YYSTOP; }
+
+{toksymbols}    	return yysmacql_text[0];
 
 {number}	{ 
 			yystring = strdup((char *)yysmacql_text); 
@@ -85,7 +87,7 @@ like|LIKE       return YYLIKE;
 			return YYID; 
 	}
 
-.	{ yysmacql_error("Unexpected character in query"); return -1; }
+.	{ fprintf(stderr, "Unexpected character \"%s\"\n", yysmacql_text); return -1; }
 
 %%
 

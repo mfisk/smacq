@@ -219,16 +219,27 @@ char * opstr(dts_comparison * comp) {
 
 /* Caller must free */
 char * print_operand(struct dts_operand * op) {
-  char * buf;
+  char * buf, * op1, * op2;
+  int size;
 
   switch(op->type) {
   	case FIELD:
-	  return strdup(op->str);
+	  return strdup(op->origin.literal.str);
 	  break;
 
   	case CONST:
-	  buf = malloc(2+strlen(op->str));
-	  sprintf(buf, "\"%s\"", op->str);
+	  buf = malloc(3+strlen(op->origin.literal.str));
+	  sprintf(buf, "\"%s\"", op->origin.literal.str);
+	  return buf;
+	  break;
+
+	case ARITH:
+	  op1 = print_operand(op->origin.arith.op1);
+	  op2 = print_operand(op->origin.arith.op2);
+	  size = strlen(op1) + strlen(op2) + 10;
+	  buf = malloc(size);
+	  snprintf(buf, size, "(%s %s %s)", op1, "*", op2);
+	  free(op1); free(op2);
 	  return buf;
 	  break;
   }
@@ -256,7 +267,7 @@ char * print_comparison(dts_comparison * comp) {
 		break;
 
 	case EXIST:
-		size += strlen(comp->op1->str);
+		size += strlen(comp->op1->origin.literal.str);
 		op1 = print_operand(comp->op1);
   		buf = malloc(size);
     		snprintf(buf, size, "(%s)", print_operand(comp->op1));
@@ -266,6 +277,7 @@ char * print_comparison(dts_comparison * comp) {
 	default:
 	  	op1 = print_operand(comp->op1);
 		op2 = print_operand(comp->op2);
+		assert(op1); assert(op2);
 	  	size += 20 + strlen(op1) + strlen(op2);
   		buf = malloc(size);
     		snprintf(buf, size, "(%s %s %s)", op1, opstr(comp), op2);
@@ -382,16 +394,50 @@ struct dts_operand * comp_operand(enum dts_operand_type type, char * str) {
      struct dts_operand * comp = calloc(1,sizeof(struct dts_operand));
 
      comp->type = type;
-     comp->str = str;
+     comp->origin.literal.str = str;
 
      switch (type) {
 	case FIELD:
-       		comp->field = parse_tenv->requirefield(parse_tenv, str);
+       		comp->origin.literal.field = parse_tenv->requirefield(parse_tenv, str);
 		break;
 
 	case CONST:
 	       	break;
      }
+
+     return comp;
+}
+
+static double zero = 0;
+
+static void make_fields_doubles(dts_environment * tenv, struct dts_operand * operand) {
+     assert(operand);
+     if (operand->type == FIELD) {
+	     char * old = operand->origin.literal.str;
+	     operand->origin.literal.str = dts_fieldname_append(old, "double");
+	     //free(old);
+
+	     dts_field_free(operand->origin.literal.field);
+	     operand->origin.literal.field = dts_requirefield(tenv, operand->origin.literal.str);
+     }
+}
+
+struct dts_operand * comp_arith(dts_environment * tenv, enum dts_arith_operand_type op, struct dts_operand * op1, struct dts_operand * op2) {
+     struct dts_operand * comp = calloc(1,sizeof(struct dts_operand));
+   
+     comp->type = ARITH;
+     comp->origin.arith.type = op;
+     comp->origin.arith.op1 = op1;
+     comp->origin.arith.op2 = op2;
+
+     /* The arithmetic evaluator needs the following three things: */
+     if (!tenv->double_field)
+     	tenv->double_field = dts_requirefield(tenv, "double");
+     tenv->double_type = dts_requiretype(tenv, "double");
+     comp->valueo = dts_construct(tenv, tenv->double_type, &zero);
+
+     make_fields_doubles(tenv, op1);
+     make_fields_doubles(tenv, op2);
 
      return comp;
 }

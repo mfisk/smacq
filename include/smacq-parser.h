@@ -43,6 +43,7 @@ struct group {
   EXTERN struct graph optimize_bools(dts_comparison *);
   EXTERN dts_comparison * comp_join(dts_comparison *, dts_comparison *, int isor);
   EXTERN struct dts_operand * comp_operand(enum dts_operand_type type, char * str);
+  EXTERN struct dts_operand * comp_arith(dts_environment *, enum dts_arith_operand_type op, struct dts_operand * op1, struct dts_operand * op2);
   EXTERN dts_comparison * comp_new(dts_compare_operation op, struct dts_operand *, struct dts_operand *);
   EXTERN dts_comparison * comp_new_func(char *, int, char **, struct arglist *);
   EXTERN char * print_comparison(dts_comparison * comp);
