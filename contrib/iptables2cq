@@ -3,10 +3,6 @@
 $ANY = "0.0.0.0/0";
 $found = 0;
 
-$ProtoNum{"tcp"} = 6;
-$ProtoNum{"udp"} = 17;
-$ProtoNum{"icmp"} = 1;
-
 while (($_ = <>)) {
 	$found = 1;
 	@and = ();
@@ -27,38 +23,29 @@ while (($_ = <>)) {
 
 	if ($prot eq "all") { $prot = ""; }
 	else { 
-		push(@and, "ipprotocol = $ProtoNum{$prot}"); 
+		push(@and, "ipprotocol = " . &ProtoNum($prot)); 
 	}
 
 	if ($misc) {
-		if ($misc =~ /(..p) (d|s)pt:(\d+)/) {
-			($mproto, $mdir, $mport) = ($1, $2, $3);
+		if ($misc =~ /(..p) (d|s)pt:(\!?)(\d+)/) {
+			($mproto, $mdir, $mnot, $mport) = ($1, $2, $3, $4);
 			if ( $mdir eq "d" ) { $mdir = "dst"; }
 			elsif ($mdir eq "s" ) { $mdir = "src"; }
 
-			#push(@and, "ipprotocol = $ProtoNum{$mproto}");
-			push(@and, "${mdir}port = $mport");
+			push(@and, "${mdir}port $mnot= $mport");
 		} elsif ($misc =~ /(..p) (d|s)pts:(\d+):(\d+)/) {
 			($mproto, $mdir, $mmin, $mmax) = ($1, $2, $3, $4);
 
 			if ( $mdir eq "d" ) { $mdir = "dst"; }
 			elsif ($mdir eq "s" ) { $mdir = "src"; }
 
-			# push (@and, "ipprotocol = $ProtoNum{$mproto}"); # This seems to always be redundant
-			$or = "";
-			if ($mmax - $mmin > 100) {
-				print STDERR "Trimming huge range $mmin:$mmax to size 100\n";
-				$mmax = $mmin + 100;
-			}
-			for ($i = $mmin; $i <= $mmax; $i++) {
-				if ($i != $mmin) { $or .= " or "; }
-				$or .= "${mdir}port = $i";
-			}
-			push(@and, "($or)");
+			push (@and, "ipprotocol >= $mmin"); 
+			push (@and, "ipprotocol <= $mmax"); 
 		} elsif ($misc =~ /MAC ([0-9a-fA-F:]+)/) {
 			push(@and, "(srcmac = $1 or dstmac = $1)");
 		} else {
 			print STDERR "Unknown criteria $misc!\n";
+			next;
 		}
 	}
 	if ($in eq "*") { $in = ""; }
@@ -87,4 +74,21 @@ if (!$found) {
 	exit -1;
 }
 
-print "not ( " . join(' or ', @DENIES) . " ) and ( " . join(' or ', @ACCEPTS) . " )\n ";
+if (@DENIES) {
+	print "not ( " . join(' or ', @DENIES) . " )";
+	if (@ACCEPTS) { print " and "; }
+}
+if (@ACCEPTS) {
+	print " ( " . join(' or ', @ACCEPTS) . " )\n ";
+}
+
+sub ProtoNum() {
+	local($val) = @_;
+	if ($val =~ /^\d+$/) {
+		return $val; #Already a number
+	} else {
+		@_ = getprotobyname($val);
+		return $_[2];
+	}
+}
+
