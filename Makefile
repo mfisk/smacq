@@ -10,7 +10,7 @@ bootstrap:
 
 cvsinterforce: cvsinter
 		# Have to force timestamp update even if contents unchanged
-	cvs commit -m 'update timestamp' -f stamp-h.in aclocal.m4 *.in `find * -name \*.in`  
+	cvs commit -m 'update timestamp' -f stamp-h.in aclocal.m4 *.in `find * -name \*.in` configure
 
 cvsinter:
 		# All the intermediate files that may change
