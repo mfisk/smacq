@@ -59,6 +59,9 @@ static int filter_init(struct smacq_init * context) {
   }
 
   state->comp = dts_parse_tests(state->env->types, state->argc, state->argv);
+  if (!state->comp) 
+	  return SMACQ_ERROR|SMACQ_END;
+
   return 0; 
 }
 
