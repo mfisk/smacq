@@ -8,6 +8,7 @@ struct state {
   char ** argv;
   int argc;
   int verbose;
+  int tagged;
   int flush;
   dts_field * fields;
   dts_field string_transform;
@@ -15,6 +16,7 @@ struct state {
 };
 
 static struct smacq_options options[] = {
+  {"x", {boolean_t:0}, "XML-markup mode", SMACQ_OPT_TYPE_BOOLEAN},
   {"v", {boolean_t:0}, "Verbose mode: print field names", SMACQ_OPT_TYPE_BOOLEAN},
   {"d", {string_t:"\t"}, "Delimiter", SMACQ_OPT_TYPE_STRING},
   {"B", {boolean_t:0}, "Disable buffering: flush output after each line", SMACQ_OPT_TYPE_BOOLEAN},
@@ -37,7 +39,9 @@ static int print_field(struct state * state, const dts_object * field, char * fn
 	if (state->verbose) printed = 1;
 	if (!field) return printed;
 
-	if (state->verbose) {
+	if (state->tagged) {
+		printf("<%s>%s</%s>", fname, (char *)dts_getdata(field), fname);
+	} else if (state->verbose) {
 		printf("%.20s = %s", fname, (char *)dts_getdata(field));
 	} else {
 		printf("%s", (char*)dts_getdata(field));
@@ -77,7 +81,11 @@ static smacq_result print_consume(struct state * state, const dts_object * datum
 	printed = print_field(state, field, state->argv[i], printed, column);
 
         if (!field && state->verbose) {
-        	fprintf(stderr, "Warning: print: no field %s.string\n", state->argv[i]);
+		if (state->tagged) {
+			printf("no field %s.string", state->argv[i]);
+		} else {
+        		fprintf(stderr, "Warning: print: no field %s.string\n", state->argv[i]);
+		}
 	}
     }
     column++;
@@ -91,7 +99,7 @@ static smacq_result print_consume(struct state * state, const dts_object * datum
 
 static smacq_result print_init(struct smacq_init * context) {
   struct state * state;
-  smacq_opt verbose, flush, delimiter;
+  smacq_opt tagged, verbose, flush, delimiter;
   int i;
 
   context->state = state = (struct state*) calloc(sizeof(struct state),1);
@@ -100,6 +108,7 @@ static smacq_result print_init(struct smacq_init * context) {
   state->env = context->env;
   {
     struct smacq_optval optvals[] = {
+      {"x", &tagged},
       {"v", &verbose},
       {"d", &delimiter},
       {"B", &flush},
@@ -114,6 +123,7 @@ static smacq_result print_init(struct smacq_init * context) {
   state->flush = flush.boolean_t;
   state->delimiter = delimiter.string_t;
   state->verbose = verbose.boolean_t;
+  state->tagged = tagged.boolean_t;
   state->fields = malloc(state->argc * sizeof(dts_field));
   state->string_transform = smacq_requirefield(state->env, "string");
 

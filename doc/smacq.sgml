@@ -12,7 +12,7 @@
       <firstname>Mike</firstname>
       <surname>Fisk</surname>
     </author>
-    <date>$Date: 2003/05/26 23:49:50 $</date>
+    <date>$Date: 2003/08/26 23:02:26 $</date>
   </refentryinfo>
   <refmeta>
     <refentrytitle>smacq</refentrytitle>
@@ -45,6 +45,7 @@
       <title>Print</title>
       <cmdsynopsis>
 	<command>print</command>
+	<arg choice=opt>-x</arg>
 	<arg choice=opt>-v</arg>
 	<arg choice=opt>-B</arg>
 	<arg choice=opt>-d <replaceable>delimiter</replaceable></arg>
@@ -55,7 +56,9 @@
 	Print the specified fields for every record that has them If
 	the <option>-v</option> option is given, then warnings are
 	printed when fields aren't present, and field values are
-	preceded by the field name.  If the <option>-B</option> option
+	preceded by the field name.  If <option>-x</option> option
+	is given, fields are surrounded with XML-style tags. 
+	If the <option>-B</option> option
 	is specified, then output is not buffered (output is flushed
 	after each record).  Fields are separated by a delimiter
 	string which can be specified by <option>-d</option> and
