@@ -31,10 +31,14 @@ std::vector<DtsObject> DtsObject_::get_all_fields() {
 	return fields;
 }
 
+/// Shallow copy.  Preserve all attached fields.
 DtsObject DtsObject_::dup() {
+	std::vector<struct dts_field_info*>::iterator i;
 	DtsObject copy = dts->newObject(this->type, this->len);
-	if (copy)
+	if (copy) {
 		memcpy(copy->data, this->data, this->len);
+		copy->fields = this->fields;
+	}
 	return copy;
 }
 
