@@ -1,7 +1,8 @@
 %{
 #define YY_NO_UNPUT
-#include "filter.h"
-#include "filter-parser.h"
+//#include "filter.h"
+#include <smacq-parser.h>
+#include <filter-parser.h>
 #include <string.h>
 #define MAX_STR_CONST 1024
 

@@ -1,97 +1,28 @@
-/*
- * BUGS:
- *
- */
+%start booleanline
+%type <comp> booleanline
 
 %{
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <smacq.h>
-#include <smacq.h>
-#include "filter.h"
-#include "filter-parser.h"
-#define YYERROR_VERBOSE
-  
-  extern int yylex();
-  extern void yy_scan_string(const char *);
-  void yyerror(char *);
-  extern char * yytext;
-  extern char * yystring;
-  void yyfilter_scan_string(char *);
-
-  static struct list list_join(struct list list, struct list newl, int isor);
-  static struct list newlist(char * field, dts_compare_operation op, char * value);
-
-  static dts_comparison * Comp;
-
+static dts_comparison * Comp;
+#define yyfilterlex yylex
 %}
 
-%token YYSTOP YYLIKE YYOR YYAND YYSTRING YYID YYNEQ YYGEQ YYLEQ 
+m4_include(grammer.y)
 
-%left YYAND YYOR
-
-%type <op> op
-%type <list> boolean booleanline test
-%type <string> word string id
-
-%union {
-  char * string;
-  struct list list;
-  dts_compare_operation op;
-}
-%%
-
-booleanline: boolean YYSTOP 	{ 
-					if ($1.isor) {
-						Comp = calloc(1,sizeof(dts_comparison));
-
-						//fprintf(stderr, "parsed a top-level OR to %p\n", Comp);
-
-						Comp->op = OR;
-						Comp->group = $1.head;
-						Comp->next = NULL;
-					} else {
-						Comp = $1.head; 
-					}
+booleanline: boolean YYSTOP 	{
+					Comp = $1;
 					return 0;
 				}
 	;
 
-boolean : '(' boolean ')'	{ $$ = $2; }
-	| boolean YYOR boolean	{ $$ = list_join($1, $3, 1); }
-	| boolean YYAND boolean	{ $$ = list_join($1, $3, 0); }
-	| test 		
-	;
-
-test : word			{ $$ = newlist($1, EXIST, NULL); }
-	| word op word		{ $$ = newlist($1, $2, $3); }
-	;
-
-op : '=' 		{ $$ = EQ; }
-	| YYGEQ		{ $$ = GEQ; }
-	| YYLEQ		{ $$ = LEQ; }
-	| YYNEQ		{ $$ = NEQ; }
-	| '>'		{ $$ = GT; }
-	| '<' 		{ $$ = LT; }
-	| YYLIKE 	{ $$ = LIKE; }		 
-	;
-
-word:	id 		
-	| string  
-	;
-
-string:	YYSTRING 		{ $$ = yystring; };
-
-id:	YYID 		{ $$ = yystring; };
-
-
 %%
 
 static dts_environment * tenv;
+//void yyfilter_scan_string(char *);
 
 static void print_comp(dts_environment * tenv, dts_comparison * c) {
 	char * op;
+	op = "UNDEFINED";
 
 	if (!c) {
 		// fprintf(stderr,". (%p)\n", c);
@@ -99,8 +30,8 @@ static void print_comp(dts_environment * tenv, dts_comparison * c) {
 	}
 
 	switch(c->op) {
-		case AND: op = "and"; break;
-		case OR: op = "or"; break;
+		case AND: op = "AND"; break;
+		case OR: op = "OR"; break;
 		case GT: op = "<"; break;
 		case LT: op = ">"; break;
 		case EQ: op = "="; break;
@@ -109,10 +40,24 @@ static void print_comp(dts_environment * tenv, dts_comparison * c) {
 		case LEQ: op = "<="; break;
 		case EXIST: op = "exist"; break;
 		case LIKE: op = "like"; break;
-		case FUNC: op = "[FUNC NOT SUPPORTED]"; break;
+		case FUNC: op = "FN"; break;
 	}
 
-	//fprintf(stderr, "Comparison %p: field %d op %s %s, next %p, group %p\n", c, c->field, op, c->valstr, c->next, c->group);
+	switch(c->op) {
+		case AND:
+		case OR:
+			fprintf(stderr, "Comparison %p: op %s, next %p, group %p\n", c, op, c->next, c->group);
+			break;
+
+		case FUNC:
+			fprintf(stderr, "Comparison %p: FN %s(), next %p, group %p\n", c, c->valstr, c->next, c->group);
+			break;
+
+		default:
+			fprintf(stderr, "Comparison %p: field %d... %s %s, next %p, group %p\n", c, c->field[0], op, c->valstr, c->next, c->group);
+			break;
+			
+	}
 	print_comp(tenv, c->group);
 	print_comp(tenv, c->next);
 
@@ -139,12 +84,12 @@ dts_comparison * dts_parse_tests(dts_environment * localtenv, int argc, char ** 
   	strcatn(qstr, size, argv[i]);
   	strcatn(qstr, size, " ");
   }
-  yyfilter_scan_string(qstr);
-  //fprintf(stderr, "parsing filter buffer: %s\n", qstr); 
+  yy_scan_string(qstr);
+  fprintf(stderr, "parsing filter buffer: %s\n", qstr); 
 
   if (yyfilterparse()) {
   	/* Should free the comparisons? */
-        fprintf(stderr, "got nonzero return parsing %s\n", qstr); 
+        fprintf(stderr, "got nonzero return parsing boolean %s\n", qstr); 
   	return NULL;
   }
 
@@ -156,6 +101,12 @@ dts_comparison * dts_parse_tests(dts_environment * localtenv, int argc, char ** 
   return retval;
 }
 
+void yyerror(char * msg) {
+  fprintf(stderr, "Error: %s near %s\n", msg, yytext);
+  //exit(-1);
+}
+
+#if 0
 static struct list list_join(struct list list, struct list newl, int isor) {
 	struct list retval;
 
@@ -231,10 +182,6 @@ static struct list newlist(char * field, dts_compare_operation op, char * value)
 
      return list;
 }
-
-void yyerror(char * msg) {
-  fprintf(stderr, "Error: %s near %s\n", msg, yytext);
-  //exit(-1);
-}
+#endif
 
 

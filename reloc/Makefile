@@ -7,6 +7,10 @@ reloc:  $(BINDIR)/../bin/smacqq $(SRCDIR)/../misc/reloc
 	rm -f smacqq; \
 	ln -s .bin/reloc smacqq; 
 
+$(BINDIR)/../bin/smacqq:
+	echo "No smacqq!"
+	ls $@
+
 clean:
 
 iso: reloc

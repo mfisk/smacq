@@ -12,7 +12,7 @@
       <firstname>Mike</firstname>
       <surname>Fisk</surname>
     </author>
-    <date>$Date: 2003/01/05 04:44:33 $</date>
+    <date>$Date: 2003/03/19 03:25:49 $</date>
   </refentryinfo>
   <refmeta>
     <refentrytitle>smacq-embed</refentrytitle>
@@ -84,7 +84,7 @@
 	begin the scheduler.  Possible scheduler values are ITERATIVE,
 	RECURSIVE, and THREADED.   In the case of RECURSIVE or
 	THREADED, smacq_start() will never return.  In the case of
-	ITERATIVE, the scheduler must be repeatedl;y called using the
+	ITERATIVE, the scheduler must be repeatedly called using the
 	following smacq_sched_iterative() function.
       </para>
 
@@ -100,10 +100,10 @@
 	<paramdef>        smacq_graph * graph</paramdef>
 	<paramdef>        const 	dts_object * data_in</paramdef>
 	<paramdef>        dts_object ** data_out</paramdef>
-	<paramdef>        void ** state</paramdef>
+	<paramdef>        struct runq ** runq</paramdef>
 	<paramdef>        int produce_first</paramdef>
-	</funcprototype>
-      </funcsynopsis>
+      </funcprototype>
+    </funcsynopsis>
       
       <para>
 	Execute the iterative scheduler until one data object is
@@ -130,6 +130,16 @@
 	On the first call, the state argument should be a pointer to a
 	void * initialized to NULL.  
       </para>
+
+    <funcsynopsis>
+      <funcprototype>
+	<funcdef>int <function>smacq_sched_iterative_shutdown</function></funcdef>
+	<paramdef>        smacq_graph * graph</paramdef>
+	<paramdef>        struct runq ** runq</paramdef>
+      </funcprototype>
+    </funcsynopsis>
+      
+      <para>
 
   </refsect1>
   <refsect1>

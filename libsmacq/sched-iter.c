@@ -313,14 +313,16 @@ static inline void run_produce(smacq_graph * f, struct runq * runq) {
 		}
 	}
 }
-      
-static inline void run_consume(smacq_graph * f, const dts_object * d, struct runq * runq) {
+    
+/* Return 1 iff the datum was passed */
+static inline int run_consume(smacq_graph * f, const dts_object * d, struct runq * runq) {
         int outchan = -1;
 	smacq_result retval;
+	int status = 0;
 
 	if (f->status & SMACQ_FREE) {
 		fprintf(stderr, "Consume called after module %s (%p) freed\n", f->name, f);
-		return;
+		return 0;
 	}
 
 	//assert(! (f->status & SMACQ_FREE));
@@ -329,6 +331,7 @@ static inline void run_consume(smacq_graph * f, const dts_object * d, struct run
 	if (retval & SMACQ_PASS) {
 	  //fprintf(stderr, "Pass on %p by %p\n", d, f);
 	  queue_children(runq, f, d, outchan);
+	  status = 1;
 	}
 	dts_decref(d);
 
@@ -339,8 +342,81 @@ static inline void run_consume(smacq_graph * f, const dts_object * d, struct run
         if (retval & SMACQ_END) {
  	  do_shutdown(runq, f);
         }
+
+	return status;
 }
 
+void smacq_sched_iterative_input(smacq_graph * startf, const dts_object * din, struct runq * runq) {
+  if (din) {
+    runable(runq, startf, din);
+  }
+}
+
+void smacq_sched_iterative_init(smacq_graph * startf, struct runq ** runqp, int produce_first) {
+  struct runq * runq = *runqp;
+
+     /* First call */
+     init_runq(runqp);
+     runq = *runqp;
+
+     if (produce_first) {
+	  while(startf) {
+		  //fprintf(stderr, "produce_first for %p\n", startf);
+        	  /* Force first guy to produce */
+		  runable(runq, startf, NULL);
+		  startf = startf->next_graph;
+	  }
+     }
+}
+
+/* Handle one thing on the run queue */
+static inline smacq_result smacq_sched_iterative_element(const dts_object * d, smacq_graph * f, const dts_object ** dout, struct runq * runq) {
+      if (!f) {
+	/* Datum fell off end of data-flow graph */
+
+	if (dout) {
+	  *dout = d;
+	  return SMACQ_PASS;
+	} else {
+	  dts_decref(d);
+	  return SMACQ_FREE;
+	}
+      } else if (d) {
+	run_consume(f, d, runq);
+      } else {
+	/* Force produce */
+	run_produce(f, runq);
+      }
+
+      return SMACQ_FREE;
+}
+
+static inline smacq_result smacq_sched_iterative_once(smacq_graph * startf, const dts_object ** dout, struct runq * runq, int produce_first) {
+  smacq_graph * f;
+  const dts_object * d;
+  *dout = NULL;
+
+  /* Run until something falls off the edge, or until the queue is empty */
+  if (pop_runable(runq, &f, &d)) {
+	return smacq_sched_iterative_element(d, f, dout, runq);
+  } else if (produce_first || (!smacq_sched_iterative_graph_alive(startf)) ) {
+    	return SMACQ_END;
+  } else {
+	return SMACQ_FREE;
+  }
+}
+
+static inline smacq_result smacq_sched_iterative_busy(smacq_graph * startf, const dts_object ** dout, struct runq * runq, int produce_first) {
+  const dts_object * d;
+  smacq_graph * f;
+  *dout = NULL;
+
+  while (pop_runable(runq, &f, &d) && (! (*dout))) {
+	  smacq_sched_iterative_element(d, f, dout, runq);
+  }
+
+  return SMACQ_FREE;
+}
 
 /*
  * If dout is non-NULL, when an object is passed or produced by a leaf node, this function will return it in dout.
@@ -354,55 +430,10 @@ static inline void run_consume(smacq_graph * f, const dts_object * d, struct run
  *      SMACQ_PASS  -  dout was set
  *      SMACQ_END  -  do not call again
  */
-int smacq_sched_iterative(smacq_graph * startf, const dts_object * din, const dts_object ** dout, struct runq ** runqp, int produce_first) {
-  struct runq * runq = *runqp;
-  smacq_graph * f;
-  const dts_object * d;
-  *dout = NULL;
-
-  if (!runq) {
-     /* First call */
-     init_runq(runqp);
-     runq = *runqp;
-
-     if (produce_first) {
-	  while(startf) {
-		  //fprintf(stderr, "produce_first for %p\n", startf);
-        	  /* Force first guy to produce */
-		  runable(runq, startf, NULL);
-		  startf = startf->next_graph;
-	  }
-     }
-  }
-
-  if (din) {
-    runable(runq, startf, din);
-  }
-
-  if (pop_runable(runq, &f, &d)) {
-      if (!f) {
-	/* Datum fell off end of data-flow graph */
-
-	if (dout) {
-	  *dout = d;
-	  return SMACQ_PASS;
-	} else {
-	  dts_decref(d);
-	  return SMACQ_FREE;
-	}
-      } 
-      
-      if (d) {
-	run_consume(f, d, runq);
-      } else {
-	/* Force produce */
-	run_produce(f, runq);
-      }
-  } else if (produce_first || (!smacq_sched_iterative_graph_alive(startf)) ) {
-    return SMACQ_END;
-  }
-
-  return SMACQ_FREE;
+smacq_result smacq_sched_iterative(smacq_graph * startf, const dts_object * din, const dts_object ** dout, struct runq ** runqp, int produce_first) {
+  	if (!(*runqp)) 	smacq_sched_iterative_init(startf, runqp, produce_first);
+	if (din) 	smacq_sched_iterative_input(startf, din, *runqp);
+	return smacq_sched_iterative_once(startf, dout, *runqp, produce_first);
 }
 
 

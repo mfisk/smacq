@@ -105,6 +105,9 @@ typedef struct _dts_comparison {
   int size;
   struct _dts_comparison * next;
 
+  int argc;
+  char ** argv;
+
   struct _dts_comparison * group;
 } dts_comparison;
 

@@ -2,21 +2,24 @@ LIBTOOL=libtool
 BISON=bison
 FLEX=flex
 
-OBJS = filter-scanner.lo filter-parser.lo
+OBJS = filter-parser.lo # filter-scanner.lo
 
-CFLAGS = -Wall -I$(SRCDIR) -I$(USR)/include/glib-2.0 -I$(USR)/lib/glib-2.0/include $(INCLUDES) -I$(SRCDIR)/../../include $(COPTS)
+CFLAGS = -Wall -I$(SRCDIR) -I$(USR)/include/glib-2.0 -I$(USR)/lib/glib-2.0/include $(INCLUDES) -I$(SRCDIR)/../../include -I$(SRCDIR)/../sql/ -I../sql/ -I. $(COPTS)
 
 LIBS = -lfl
 
-all: libfilter.la
+all: libfilter.la $(SRCDIR)/filter-parser.c $(SRCDIR)/filter-parser.h
 
 libfilter.la: $(OBJS)
 	$(LIBTOOL) $(CC) -export-symbols-regex '^smacq_.*' -o $@ $+ $(LIBS)
 
-%.lo: %.c
+%.lo: $(SRCDIR)/%.c
 	$(LIBTOOL) $(CC) -c $(CFLAGS) $<
 
-#filter-scanner.c: filter-parser.h
+$(SRCDIR)/filter-scanner.c: $(SRCDIR)/filter-parser.h
+
+%.y: %.ym $(SRCDIR)/../sql/grammer.y
+	m4 -I$(SRCDIR)/../sql -P < $< > $@
 
 %.c: %.y
 	$(BISON) -p yyfilter -d -o $@ $<
@@ -25,7 +28,7 @@ libfilter.la: $(OBJS)
 	@true
 
 %.c: %.l 
-	$(FLEX) -i -Pyyfilter -o$@ $<
+	$(FLEX) -i -o$@ $<
 
 reallyclean: clean
 	rm -Rf filter-scanner.c filter-parser.c filter-parser.h 

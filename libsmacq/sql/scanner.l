@@ -1,11 +1,9 @@
 %{
 #define YY_NO_UNPUT
-#include "smacq-parser.h"
-#include "grammer.h"
+#include <smacq-parser.h>
+#include <parser.h>
 #include <string.h>
 #define MAX_STR_CONST 1024
-
-extern void yyerror(const char *);
 
 char string_buf[MAX_STR_CONST];
 char *yystring;
@@ -31,8 +29,8 @@ group|GROUP	return GROUP;
 by|BY		return BY;
 as|AS		return AS;
 having|HAVING	return HAVING;
-and|AND         return YYAND;
-or|OR           return YYOR;
+"&&"|and|AND    return YYAND;
+"||"|or|OR      return YYOR;
 like|LIKE       return YYLIKE;
 ">="		return YYGEQ;
 "<="		return YYLEQ;
@@ -44,7 +42,7 @@ like|LIKE       return YYLIKE;
 	{quote}	BEGIN(0);
 	[^']+	{
 			yystring = strdup(yytext);
-			return STRING;
+			return YYSTRING;
 		}
 
 	}
@@ -64,7 +62,7 @@ like|LIKE       return YYLIKE;
 				*yystring = '\0'; 
 			 	yystring = strdup(string_buf);
 			 	BEGIN(0); 
-				return STRING;
+				return YYSTRING;
 			}
 	.		*yystring++ = yytext[0];
 	}
@@ -73,11 +71,11 @@ like|LIKE       return YYLIKE;
 
 {toksymbols}    	return yytext[0];
 
-<<EOF>>		{ return STOP; }
+<<EOF>>		{ return YYSTOP; }
 
 {id}	{ 
 			yystring = strdup((char *)yytext); 
-			return ID; 
+			return YYID; 
 	}
 
 .	{ yyerror("Unexpected character in query"); return -1; }

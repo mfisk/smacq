@@ -5,7 +5,7 @@ LDFLAGS=$(LDOPTS) $(LIBSMACQ)
 LIBTOOL=libtool
 
 SHAREDONLY_MODULES=test_dynamic #python #reassemble
-BUILTIN_MODULES=print pcaplive pcapfile socket uniq counter last top head intervals filter msgtest entropy derivative split encrypt warden pdf fifo delta tabularinput sync rusage groupby flowid sum fifodelay project rename join substr bench_field mask const ndjoin
+BUILTIN_MODULES=print pcaplive pcapfile socket uniq counter last top head intervals filter msgtest entropy derivative split encrypt warden pdf fifo delta tabularinput sync rusage groupby flowid sum fifodelay project rename join substr bench_field mask const ndjoin lor
 
 LIBS_BUILTIN=$(patsubst %,lib%.la,$(BUILTIN_MODULES)) 
 LIBS_SHARED=$(patsubst %,smacq_%.la,$(SHAREDONLY_MODULES))

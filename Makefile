@@ -23,6 +23,11 @@ warn:
 #
 # Let the user build any top-level directory automatically
 #
+#test : .auto ALWAYS
+	#env `./misc/config-env` $(MAKE) $@.RECURSE
+
+test: auto
+
 $(DIRS) test : .ALWAYS
 	env `./misc/config-env` $(MAKE) $@.RECURSE
 

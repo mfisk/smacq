@@ -55,7 +55,7 @@ int type_match_one(dts_environment * tenv, const dts_object * datum,
   const dts_object * test_data = NULL;
   int retval = 0;
 
-  if ((c->op != AND) && (c->op != OR)) {
+  if ((c->op != AND) && (c->op != OR) && (c->op != FUNC)) {
     if (! (test_data = tenv->getfield(tenv, datum, c->field, NULL))) {
 	//fprintf(stderr, "Warning: object does not have field number %d\n", c->field);
 	return 0;
@@ -79,7 +79,7 @@ int type_match_one(dts_environment * tenv, const dts_object * datum,
     }
   }
 
-      switch (c->op) {
+  switch (c->op) {
       case EQ:
 	retval = eq(tenv, c, test_data);
 	break;
@@ -117,12 +117,16 @@ int type_match_one(dts_environment * tenv, const dts_object * datum,
         //fprintf(stderr, "criterion check %s\n", c->op == AND ? "and" : "or");
 	retval = type_match_andor(tenv, datum, c->group, same_types, c->op);
 	break;
-      }
 
-    if (test_data) 
+      case FUNC:
+	fprintf(stderr, "Error: function tests are unsupported\n");
+	break;
+  }
+
+  if (test_data) 
     	dts_decref(test_data);
 
-    return retval;
+  return retval;
 }
       
 

@@ -1,0 +1,62 @@
+%start queryline
+%{
+void yyerror(char*);
+%}
+
+m4_include(grammer.y)
+
+%%
+
+extern void yy_scan_string(char*);
+
+smacq_graph * smacq_build_query(dts_environment * tenv, int argc, char ** argv) {
+  int size = 0;
+  int i;
+  char * qstr; 
+  smacq_graph * graph;
+  int res;
+
+  parse_tenv = tenv;
+
+  for (i=0; i<argc; i++) {
+  	size += strlen(argv[i]);
+  }
+  size += argc;
+
+  qstr = (char*)malloc(size);
+  qstr[0] = '\0';
+  	
+  for (i=0; i<argc; i++) {
+  	strcatn(qstr, size, argv[i]);
+  	strcatn(qstr, size, " ");
+  }
+
+  /* LOCK */
+  pthread_mutex_lock(&local_lock);
+
+  yy_scan_string(qstr);
+  //fprintf(stderr, "parsing buffer: %s\n", qstr); 
+
+  res = yyparse();
+
+  graph = Graph;
+
+  /* UNLOCK */
+  pthread_mutex_unlock(&local_lock);
+
+  if (res) {
+    fprintf(stderr, "smacq_build_query: error parsing query: %s\n", qstr);
+    return NULL;
+  }
+
+  if (!graph) {
+    fprintf(stderr, "unknown parse error\n");
+  }
+
+  return graph;
+}
+
+void yyerror(char * msg) {
+  fprintf(stderr, "%s near %s\n", msg, yytext-1);
+}
+

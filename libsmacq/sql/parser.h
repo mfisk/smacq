@@ -1,4 +1,4 @@
-/* A Bison parser, made from /home/mfisk/smacq/libsmacq/filter/filter-parser.y, by GNU bison 1.75.  */
+/* A Bison parser, made from /home/mfisk/smacq/libsmacq/sql/parser.y, by GNU bison 1.75.  */
 
 /* Skeleton parser for Yacc-like parsing with Bison,
    Copyright (C) 1984, 1989, 1990, 2000, 2001, 2002 Free Software Foundation, Inc.
@@ -23,8 +23,8 @@
    This special exception was added by the Free Software Foundation
    in version 1.24 of Bison.  */
 
-#ifndef BISON__HOME_MFISK_SMACQ_LIBSMACQ_FILTER_FILTER_PARSER_H
-# define BISON__HOME_MFISK_SMACQ_LIBSMACQ_FILTER_FILTER_PARSER_H
+#ifndef BISON__HOME_MFISK_SMACQ_LIBSMACQ_SQL_PARSER_H
+# define BISON__HOME_MFISK_SMACQ_LIBSMACQ_SQL_PARSER_H
 
 /* Tokens.  */
 #ifndef YYTOKENTYPE
@@ -71,7 +71,7 @@
 
 
 #ifndef YYSTYPE
-#line 59 "/home/mfisk/smacq/libsmacq/filter/filter-parser.y"
+#line 55 "/home/mfisk/smacq/libsmacq/sql/parser.y"
 typedef union {
   struct graph graph;
   struct arglist * arglist;
@@ -82,12 +82,12 @@ typedef union {
   dts_comparison * comp;
 } yystype;
 /* Line 1281 of /usr/share/bison/yacc.c.  */
-#line 86 "/home/mfisk/smacq/libsmacq/filter/filter-parser.h"
+#line 86 "/home/mfisk/smacq/libsmacq/sql/parser.h"
 # define YYSTYPE yystype
 #endif
 
-extern YYSTYPE yyfilterlval;
+extern YYSTYPE yylval;
 
 
-#endif /* not BISON__HOME_MFISK_SMACQ_LIBSMACQ_FILTER_FILTER_PARSER_H */
+#endif /* not BISON__HOME_MFISK_SMACQ_LIBSMACQ_SQL_PARSER_H */
 

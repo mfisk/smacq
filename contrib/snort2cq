@@ -1,5 +1,30 @@
 #!/usr/bin/perl
 
+#
+# This script reads Snort rule (conf) files and translates rules
+# into discrete queries in the query language used by SMACQ.
+# This output can be piped to "smacqq -m" which will execute each
+# query simulatenously.  The "-O" option for smacqq will cause
+# the queries to be optimized before execution
+#
+# Snort terms that are not supported by SMACQ are ignored.  A Snort
+# syntax file is output as /tmp/snortcq.conf.  This file can be used
+# to benchmark Snort against SMACQ for the set of functionality common
+# to both systems.
+#
+# This script takes a "-p <value>" option that causes rules to be
+# probabilistically included with the given probability.  The default is 1.
+#
+
+#
+# The following variable definitions will be used when parsing Snort rules:
+#
+$HOME_NET 	= "128.165.0.0/16";
+$EXTERNAL_NET 	= "!$HOME_NET";
+$SMACQ_INPUT 	= "pcapfile(/hog/traces/aa.80)";
+
+############################################################################
+
 sub notany($resultstr, $arg) {
   local($resultstr, $arg) = @_;
 
@@ -45,8 +70,8 @@ while(<>) {
   @contents = ();
 
   chomp;
-  s|\$EXTERNAL_NET|!\$HOME_NET|g;
-  s|\$HOME_NET|128.165.0.0/16|g;
+  s|\$EXTERNAL_NET|$EXTERNAL_NET|g;
+  s|\$HOME_NET|$HOME_NET|g;
   s|\$HTTP_SERVERS|any|g;
   s|\$SQL_SERVERS|any|g;
   s|\$HTTP_PORTS|80|g;
@@ -136,7 +161,7 @@ while(<>) {
   	&notany("substr(payload, \"ARG\")", $c);
   }
 
-  $q = "print sid, srcip, dstip, ts from (const('$sid', sid) from pcapfile(/hog/traces/aa.80)";
+  $q = "print sid, srcip, dstip, ts from (const('$sid', sid) from $SMACQ_INPUT";
   if (@tests) {
   	$q .= " where ";
   	$q .= join(' and ', @tests);
