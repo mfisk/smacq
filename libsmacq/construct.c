@@ -277,3 +277,61 @@ void smacq_init_modules(smacq_graph * f, smacq_environment * env) {
 }
 
 
+
+smacq_graph * smacq_graph_add_graph(smacq_graph * a, smacq_graph * b) {
+	smacq_graph * ap;
+	if (!a) return b;
+
+	for (ap = a; ap->next_graph; ap=ap->next_graph) ;
+	ap->next_graph = b;
+	return a;
+}
+
+static int merge_tree(smacq_graph * a, smacq_graph *b) {
+	int i, j;
+
+	if (a==b) return 0;
+	if (a->argc != b->argc) return 0;
+
+	for (i=0; i < a->argc; i++) {
+		if (strcmp(a->argv[i], b->argv[i])) return 0;
+	}
+
+	fprintf(stderr, "%p(%s) === %p(%s)\n", a, a->name, b, b->name);
+
+	for (i = 0; i < b->numchildren; i++) {
+		for (j = 0; j < a->numchildren; j++) {
+			if (merge_tree(a->child[j], b->child[i])) {
+				b->child[i] = NULL;
+				break;
+			}
+		}
+
+		if (b->child[i]) {
+			smacq_add_child(a, b->child[i]);
+			add_parent(b->child[i], a);
+			// XXX: remove old parent
+		}
+	}
+
+	return 1;
+}
+
+smacq_graph * smacq_merge_graphs(smacq_graph * g) {
+	smacq_graph * ap, * bp;
+
+	for (bp = g; bp && bp->next_graph; bp=bp->next_graph) {
+		int merged = 0;
+
+		for (ap = g; ap->next_graph; ap=ap->next_graph) {
+			merged = merge_tree(ap, bp->next_graph);
+			if (merged) {
+				bp->next_graph = bp->next_graph->next_graph;
+				break;
+			}
+		}
+	}
+
+	return g;
+}
+
