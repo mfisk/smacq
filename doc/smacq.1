@@ -541,6 +541,14 @@ that each record is responsible.  Attach this value as a "probability"
 field of type "double". 
 calculate then use the  
  
+.SS "Private Field Namespace" 
+.PP 
+\fBprivate\fR 
+.PP 
+Return a new object that shares the same data, but has its own namespace for 
+fields.  The namespace is initially the same as the original, but new fields  
+that are added are private to the new copy. 
+ 
 .SS "Project" 
 .PP 
 \fBproject\fR \fIfields\fR \&...  
@@ -650,4 +658,4 @@ boolean:
 \fBDTS\fR(3),  
 \fBSmacqGraph\fR(3) 
  
-.\" created by instant / docbook-to-man, Sun 13 Feb 2005, 14:22 
+.\" created by instant / docbook-to-man, Thu 17 Feb 2005, 12:33 

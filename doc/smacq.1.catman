@@ -456,6 +456,14 @@ MMIISSCCEELLLLAANNEEOOUUSS AANNAALLYYSSIISS FFUUNNCCTT
        "double".  calculate then use the
 
 
+   PPrriivvaattee FFiieelldd NNaammeessppaaccee
+       pprriivvaattee
+
+       Return  a  new  object  that  shares  the  same  data,  but has its own
+       namespace for fields.  The namespace is initially the same as the orig-
+       inal, but new fields that are added are private to the new copy.
+
+
    PPrroojjeecctt
        pprroojjeecctt _f_i_e_l_d_s ...
 
