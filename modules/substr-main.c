@@ -19,7 +19,51 @@ static struct smacq_options options[] = {
   {NULL, {NULL}, NULL, 0}
 };
 
+static void cdecode(unsigned char * needle, int * lenp) {
+  unsigned char * decoded = malloc(*lenp);
+  unsigned char * dp = decoded;
+  unsigned char * np = needle;
+  int used;
+  int i;
+  int esc = 0;
+
+  for (i=0; i < *lenp; i++) {
+	  if (esc) {
+		esc = 0;
+		if (*np == 'x') {
+			np[-1] = '0'; /* make 0x... */
+			sscanf(np-1, "%4hhi%n", dp++, &used);
+			//fprintf(stderr, "\n hex decoded %d chars of %s to val %i\n", used, np-1, dp[-1]);
+			np += used - 1;
+		} else if ((*np == 'o') || (*np == '0')) {
+			np[0] = '0'; /* make 0... */
+			sscanf(np, "%4hhi%n", dp++, &used);
+			//fprintf(stderr, "\n oct decoded %d chars of %s to val %i\n", used, np-1, dp[-1]);
+			np += used;
+		} else {
+			*dp++ = *np++;
+		}
+		continue;
+
+	  } else if (*np == '\\') {
+		esc = 1;
+		np++;
+
+          } else {
+	  	*dp++ = *np++;
+	  }
+  }
+
+  /* return length is the actual length (without null terminator) */
+  *lenp = dp - decoded;
+
+  memmove(needle, decoded, *lenp);
+  decoded[*lenp] = '\0'; /* In case somebody wants to print it */
+  free(decoded);
+}
+
 static void add_entry(struct state * state, char * field, char * needle, int output) {
+  int nlen;
   if (!field && !needle) return;
 
   if (!needle) {
@@ -40,7 +84,13 @@ static void add_entry(struct state * state, char * field, char * needle, int out
 #ifdef DEBUG
   fprintf(stderr, "searching for '%s'\n", needle);
 #endif
-  substr_add(state->set, strlen(needle), needle, 0, (void*)output, 0, 0);
+  nlen = strlen(needle);
+
+  //fprintf(stderr, "decoded %s(%d) to ", needle, nlen);
+  cdecode(needle, &nlen);
+  //fprintf(stderr, "%s(%d)\n", needle, nlen);
+
+  substr_add(state->set, nlen, needle, 0, (void*)output, 0, 0);
 }
 
 static smacq_result substr_produce(struct state* state, const dts_object ** datum, int * outchan) {
