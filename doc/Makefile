@@ -14,7 +14,7 @@ clean:
 	rm -f $(DOCTXTS) $(DOCPDFS)
 
 publish:
-	rsync -e ssh -av *.pdf *.png *.html smacq.sourceforge.net:smacqweb/
+	(cd $(SRCDIR); rsync -e ssh -av *.pdf *.png *.html smacq.sourceforge.net:smacqweb/)
 
 %.3.ps: %.3
 	groff -man $< > $@
