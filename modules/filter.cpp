@@ -45,6 +45,6 @@ filterModule::filterModule(struct SmacqModule::smacq_init * context) : SmacqModu
   }
 
   comp = parse_tests(argc, argv);
-  if (!comp) assert(0);
+  assert(comp);
 }
 
