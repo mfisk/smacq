@@ -1,27 +1,9 @@
 =============================================================================
 			SMACQ BUILD INSTRUCTIONS
 
-Debian GNU/Linux:
------------------
-1. Run the following command to install the Debian packages require to compile
-and execute this package:
-	apt-get install \
-		zlib1g zlib1g-dev \
-		libglib2.0 libglib2.0-dev \
-		libpcap0 libpcap-dev \
-		libtool docbook-to-man groff python2.2-dev wget
-
-2. Run "make" to build
-
-MacOS/X - Fink:
-----------------
-1. Run the following command to install the Fink packages require to compile
-and execute this package:
-	apt-get install \
-		dlcompat zlib glib2-dev libpcap libpcap-shlibs \
-		libtool docbook-bundle groff python wget 
-
-2. Run "make" to build
+On supported systems (Linux, MacOS/X + Fink), simply run "make" to build.
+If you do not have all of the prerequisits (see below), you may encounter
+an error.
 
 Other Operating Systems:
 ------------------------
@@ -32,14 +14,39 @@ should be able to build SMACQ.  Contributions of documentation for
 building on other operating systems would be appreciated.
 
 =============================================================================
-		   	    MISCELLANEOUS NOTES
-	
-The libsmacq/sql build depends on:
-	bison flex
+			PREREQUISITES
+
+Debian GNU/Linux:
+-----------------
+Run the following command to install the Debian packages require to compile
+and execute this package:
+	apt-get install \
+		zlib1g zlib1g-dev \
+		libglib2.0 libglib2.0-dev \
+		libpcap0 libpcap-dev \
+		libtool docbook-to-man groff python2.2-dev wget
+
+MacOS/X - Fink:
+----------------
+Run the following command to install the Fink packages require to compile
+and execute this package:
+	apt-get install \
+		dlcompat zlib glib2-dev libpcap libpcap-shlibs \
+		libtool docbook-bundle groff python wget 
 
 =============================================================================
+		   	    MISCELLANEOUS NOTES
+
+To force the regeneration of intermediate files from SGML, Bison, and Flex run 
+the following command:
+	make reallyclean
+
+To run the regression tests:
+	make test
+
+To only see warning output (less verbose):
+	make warn
+	
+=============================================================================
 See http://smacq.sourceforge.net/ for more information.
-
-
-
 
