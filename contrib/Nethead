@@ -1,6 +1,6 @@
 #!/bin/sh -x
 IFACE=${IFACE:-eth1}
-OUTPUT=${OUTPUT:-/huge1/mfisk/flatland/sessions}
+OUTPUT=${OUTPUT:-/n/home/mfisk/flatland/sessions}
 FILTER="'net 204.121.0.0/16'"
 FILTER="ip"
 
