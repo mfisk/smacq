@@ -81,7 +81,8 @@ static void emit_last(gpointer key, gpointer value, gpointer userdata) {
   dts_object * d = value;
   struct state * state = userdata;
   struct obj_list * newo = g_new(struct obj_list, 1);
-  
+ 
+  //fprintf(stderr, "last enqueue %p\n", d);
   dts_incref(d, 1);
   newo->next = state->outputq;
   newo->obj = d;
@@ -92,17 +93,18 @@ static void emit_all(struct state * state) {
   // Build LIFO stack of objects to send
 
   // Last entry to be sent is a refresh message:
-  struct obj_list * newo = g_new(struct obj_list, 1);
-  dts_object * timefield;
   if (state->fieldset.num) {
+  	struct obj_list * newo = g_new(struct obj_list, 1);
   	newo->obj = smacq_dts_construct(state->env, state->refreshtype, NULL);
   	if (state->hasinterval) {
+  		dts_object * timefield;
   		timefield = smacq_dts_construct(state->env, state->timevaltype, &state->nextinterval);
   		dts_attach_field(newo->obj, state->timeseries, timefield);
   	}
   	newo->next = NULL;
   	assert (!state->outputq);
   	state->outputq = newo;
+	//fprintf(stderr, "last enqueue refresh %p\n", newo->obj);
   }
 
   bytes_hash_table_foreach(state->last, emit_last, state);
@@ -151,6 +153,7 @@ static smacq_result last_consume(struct state * state, const dts_object * datum,
 
   	dts_incref(datum, 1);
   	old = bytes_hash_table_replacev(state->last, domainv, state->fieldset.num, (gpointer)datum);
+	//fprintf(stderr, "last saving %p, releasing %p\n", datum, old);
 	if (old) 
 	  dts_decref(old);
   }
@@ -211,6 +214,7 @@ static smacq_result last_produce(struct state * state, const dts_object ** datum
     return SMACQ_END;
   }
 
+  //fprintf(stderr, "last producing %p\n", *datum);
   return(SMACQ_PASS|(state->outputq ? SMACQ_PRODUCE : 0));
 }
 
