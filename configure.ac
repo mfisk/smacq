@@ -27,32 +27,36 @@ AC_PROG_LIBTOOL
 AC_CHECK_LIB([c], [printf])
 AC_CHECK_LIB([dl], [dlopen])
 AC_CHECK_LIB([fl], [yylex])
-AC_CHECK_LIB([glib], [g_new])
+AC_CHECK_LIB([glib-2.0], [g_new]) 
 AC_CHECK_LIB([m], [pow])
 AC_CHECK_LIB([pcap], [pcap_open_live])
-AC_CHECK_LIB([pthread], [pthread_exit])
+#AC_CHECK_LIB([pthread], [pthread_exit])
 AC_CHECK_LIB([z], [gzopen])
 
 ##
 ## Platform specific compiler flag defaults
+## (this is done early so they can be overridden later)
 ##
 if test -n "$GCC"; then
-	case $host in
-	sparc-sun-solaris*)
-		CO="-fast"
-		;;
-	powerpc-apple-darwin*)
-		CO="-fast -mcpu="`machine | sed 's/ppc//'`
-		;;
+	case $build in
+		sparc-sun-solaris*)
+			CO="-fast"
+			;;
+		powerpc-apple-darwin*)
+			CO="-fast -fPIC -mcpu="`machine | sed 's/ppc//'`
+			;;
     esac
 fi
 
 ##
 ## pkg-config libraries
 ##
-PKG_CHECK_MODULES(DEPS, glib-2.0 gmodule-2.0)
-CPPFLAGS="$CPPFLAGS ${DEPS_CFLAGS}"
-LIBS="$LIBS ${DEPS_LIBS}"
+PKG_CHECK_MODULES(GLIB, glib-2.0 gmodule-2.0)
+	# Pretty much everybody needs the include files, thanks to smacq.h,
+	# so don't make it specific to targets that use GLIB_CFLAGS
+CPPFLAGS="$CPPFLAGS ${GLIB_CFLAGS}"
+GLIB_CFLAGS=
+AC_SUBST(GLIB_CFLAGS GLIB_LIBS)
 
 ##
 ## Checks for header files.
