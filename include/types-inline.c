@@ -27,7 +27,7 @@ static void dts_decref(const dts_object * d_const) {
   dts_object * d = (dts_object*)d_const;
   int i;
 
-  //fprintf(stderr, "deref called for %p\n", d);
+  //fprintf(stdout, "deref called for %p\n", d);
 
   assert(d->refcount > 0);
 

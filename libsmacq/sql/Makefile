@@ -28,7 +28,7 @@ gram.o:	gram.c
 
 scan.c: scan.l gram.c 
 #	flex -d -i -o$@ $<
-	flex -i -o$@ $<
+	-flex -i -o$@ $<
 
 scan.o:	scan.c
 #	gcc -o $@ -c -DYYDEBUG $(CFLAGS) $<

@@ -62,6 +62,9 @@ static smacq_result groupby_consume(struct state * state, const dts_object * dat
 
     if (! (more&SMACQ_END)) {
       more = flow_sched_iterative(bucket->graph, NULL, &state->product, &bucket->runq, 0);
+      if (more & SMACQ_END) {
+	assert(0); // Not expected
+      }
     } else {
       state->product = NULL;
     }
@@ -79,6 +82,7 @@ static smacq_result groupby_consume(struct state * state, const dts_object * dat
   }
   
   if (more & SMACQ_END) {
+    assert(!bucket->runq);
     free(bucket);
   } else {
     state->cont = bucket;
@@ -148,7 +152,11 @@ static smacq_result groupby_produce(struct state * state, const dts_object ** da
     *datump = state->product;
 
     if (state->cont) {
-      if (!flow_sched_iterative(state->cont->graph, NULL, &state->product, &state->cont->runq, 0)) {
+      int more;
+      more = flow_sched_iterative(state->cont->graph, NULL, &state->product, &state->cont->runq, 0);
+      if (more & SMACQ_END) {
+	assert(!state->cont->runq);
+	free(state->cont);
 	state->cont = NULL;
       }
     } else {

@@ -53,7 +53,7 @@ void check_for_shutdown(struct runq ** runqp, struct filter *f) {
     if (f->next[i]) return;
   }
 
-  /* No more active children */
+  /* No more active children.  Clean-up self and parents. */
   do_shutdown(runqp, f);
 }
 
@@ -64,6 +64,21 @@ void do_shutdown(struct runq ** runqp, struct filter *f) {
     f->shutdown(f->state);
   }
 
+  /* Propagate to children */
+  for (i=0; i < f->numchildren; i++) {
+    /* Enqueue a terminate record */
+    runable(runqp, f->next[i], NULL);
+
+    for (j=0; j < f->next[i]->numparents; j++) {
+      if (f->next[i]->parent[j] == f) {
+	f->next[i]->parent[j] = NULL;
+      }
+    }
+
+    f->next[i] = NULL;
+  }
+
+  /* Propagate to parents */
   for (i=0; i< f->numparents; i++) {
     for (j=0; j < f->parent[i]->numchildren; j++) {
       if (f->parent[i]->next[j] == f) {
@@ -113,7 +128,7 @@ int flow_sched_iterative(struct filter * startf, const dts_object * din, const d
       queue_children(runqp, startf, d, outchan);
       
       if (retval & SMACQ_END) {
-	/* Enqueue a terminate recorde */
+	/* Enqueue a terminate record */
 	runable(runqp, startf, NULL);
       }
     }
@@ -127,19 +142,17 @@ int flow_sched_iterative(struct filter * startf, const dts_object * din, const d
       int outchan = -1;
       int pretval = 0;
 
+      pop_runable(runqp);
+      
       if (!d) {
-	/* Must terminate */
-	/* They shouldn't try again, but just in case, we'll leave the terminate record on the queue,
-	   but won't shutdown the graph again on subsequent calls */
+	/* Must terminate.  Not illegal to call scheduler again. */
 	if (f) do_shutdown(runqp, f);
-	(*runqp)->f = NULL;
+	//(*runqp)->f = NULL;
 	*dout = NULL;
 	return SMACQ_END;
       }
 
       //fprintf(stderr, "Pulled %p off queue for module %p\n", d, f);
-      
-      pop_runable(runqp);
       
       if (!f) {
 	/* Datum fell off end of data-flow graph */
