@@ -8,9 +8,7 @@
 #include <smacq.h>
 
 static int smacqtype_ip_get_string(const dts_object * datum, dts_object * data) {
-  data->len = 16;
-  data->free_data = 1;
-  data->data = malloc(16);
+  dts_setsize(data, 16);
   strncpy(data->data, inet_ntoa(dts_data_as(datum, struct in_addr)), 16);
 
   return 1;
