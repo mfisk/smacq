@@ -80,12 +80,18 @@ static inline void add_parent(struct filter * newo, struct filter * parent) {
   newo->parent[newo->numparents - 1] = parent;
 }		
 
-void smacq_free_module(struct filter * f) {
-  free(f->q);
-  free(f->parent);
-  free(f->next);
-  free(f);
+void smacq_destroy_graph(struct filter *f) {
+  int i;
+
+  /* XXX: Need to handle cycles without double freeing */
+  for (i=0; i<f->numchildren; i++) {
+    if (f->next[i]) {
+      smacq_destroy_graph(f->next[i]);
+    }
+  }
+  smacq_free_module(f);
 }
+
 
 /*
  * Add the module specified by argv[0] as a child of parent.
@@ -111,6 +117,17 @@ struct filter * smacq_new_module(int argc, char ** argv){
   }
   
   return newo;
+}
+
+void smacq_free_module(struct filter * f) {
+  pthread_mutex_destroy(&f->qlock);
+  pthread_cond_destroy(&f->ring_notfull);
+  pthread_cond_destroy(&f->ring_notempty);
+
+  free(f->q);
+  free(f->parent);
+  free(f->next);
+  free(f);
 }
 
 int smacq_add_child(struct filter * parent, struct filter * newo) {
