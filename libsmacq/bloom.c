@@ -42,7 +42,7 @@ unsigned long long prime_greater_than(unsigned long long x) {
   if (!p[1]) 
 	  	fprintf(stderr, "Warning: requested size too big!\n");
 
- fprintf(stderr, "Using prime %d, %llu < %llu\n", (p - prime_list) / sizeof(unsigned long), x, p[0]);
+ fprintf(stderr, "Using prime %d, %llu < %llu\n", (p - prime_list) / (int)sizeof(unsigned long), x, p[0]);
   return p[0];
 }
 

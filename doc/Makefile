@@ -3,15 +3,14 @@ DOCDSTS=$(patsubst %,$(SRCDIR)/%,$(DOCS))
 DOCTXTS=$(patsubst %,$(SRCDIR)/%.txt,$(DOCS))
 DOCPDFS=$(patsubst %,$(SRCDIR)/%.pdf,$(DOCS))
 
-PRODUCTS=$(DOCTXTS) $(DOCPDFS)
 
 all: $(DOCDSTS) $(PRODUCTS)
 
 reallyclean: clean
-	rm -f smacq-embed.3 dts-types.3 smacqq.1 smacqp.1
+	rm -f $(DOCDSTS) 
 
 clean:
-	rm -f $(PRODUCTS)
+	rm -f $(DOCTXTS) $(DOCPDFS)
 
 publish:
 	rsync -e ssh -av *.pdf *.png *.html smacq.sourceforge.net:smacqweb/

@@ -94,7 +94,7 @@ static void print_extent(gpointer key, gpointer value, gpointer userdata) {
     }
 
   }
-  fprintf(state->printfd, "\t%lu -\t%lu\t%u\n", stats->starttime.tv_sec, stats->lasttime.tv_sec, stats->count);
+  fprintf(state->printfd, "\t%lu -\t%lu\t%u\n", (unsigned long)stats->starttime.tv_sec, (unsigned long)stats->lasttime.tv_sec, stats->count);
 }
 
 
