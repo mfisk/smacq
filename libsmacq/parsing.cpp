@@ -15,6 +15,7 @@ extern int yyfilterparse();
 extern int yyexprparse();
 extern int yysmacql_parse();
 extern struct yy_buffer_state * yysmacql_scan_string(const char *);
+char * ParsedString;
 
 void graph_join(SmacqGraph ** oldg, SmacqGraph * newg) {
 	assert(oldg);
@@ -615,15 +616,14 @@ char * expression2fieldname(struct dts_operand * expr) {
     return expr_str;
 }
 
-
-
 dts_comparison * DTS::parse_tests(int argc, char ** argv) {
   dts_comparison * retval;
   int size = 1;
   int i;
   char * qstr;
 
-  /* LOCK */
+  /* XXX LOCK */
+
   parse_dts = this;
 
   for (i=0; i<argc; i++) {
@@ -638,12 +638,18 @@ dts_comparison * DTS::parse_tests(int argc, char ** argv) {
   	strcatn(qstr, size, argv[i]);
   	strcatn(qstr, size, " ");
   }
+
   yysmacql_scan_string(qstr);
   //fprintf(stderr, "parsing filter buffer: %s\n", qstr); 
 
-  if (yyfilterparse()) {
+  char * oldParsedString = ParsedString;
+  ParsedString = qstr;
+  int res = yyfilterparse();
+  ParsedString = oldParsedString;
+
+  if (res) {
   	/* Should free the comparisons? */
-        fprintf(stderr, "got nonzero return parsing boolean %s\n", qstr); 
+        //fprintf(stderr, "got nonzero return parsing boolean %s\n", qstr); 
   	return NULL;
   }
 
@@ -727,8 +733,12 @@ struct dts_operand * DTS::parse_expr(int argc, char ** argv) {
   yysmacql_scan_string(qstr);
   //fprintf(stderr, "parsing expr buffer: %s\n", qstr); 
 
-  if (yyexprparse()) {
-        fprintf(stderr, "got nonzero return parsing expression %s\n", qstr); 
+  char * oldParsedString = ParsedString;
+  ParsedString = qstr;
+  int res = yyexprparse();
+  ParsedString = oldParsedString;
+
+  if (res) {
   	return NULL;
   }
 
@@ -765,18 +775,18 @@ SmacqGraph * SmacqGraph::newQuery(DTS * tenv, int argc, char ** argv) {
   /* LOCK */
   smacq_pthread_mutex_lock(&local_lock);
 
+  char * oldParsedString = ParsedString;
+  ParsedString = qstr;
   yysmacql_scan_string(qstr);
-  //fprintf(stderr, "parsing buffer: %s\n", qstr); 
-
   res = yysmacql_parse();
+  ParsedString = oldParsedString;
 
   graph = Graph;
 
   /* UNLOCK */
- smacq_pthread_mutex_unlock(&local_lock);
+  smacq_pthread_mutex_unlock(&local_lock);
 
   if (res) {
-    fprintf(stderr, "SmacqGraph::newQuery: error parsing query: %s\n", qstr);
     return NULL;
   }
 
@@ -787,7 +797,7 @@ SmacqGraph * SmacqGraph::newQuery(DTS * tenv, int argc, char ** argv) {
   return graph;
 }
 
-SmacqGraph * newjoin(joinlist * joinlist, SmacqGraph * where) {
+SmacqGraph * joinlist2graph(joinlist * joinlist, SmacqGraph * where) {
   /*
    * This function violates some abstractions by knowing the 
    * calling syntax for "join" and constructing arguments for it.
@@ -825,9 +835,15 @@ SmacqGraph * newjoin(joinlist * joinlist, SmacqGraph * where) {
 	}
 
 	arglist = arglist_append(arglist, newarg(joinlist->name, (argtype)0, NULL));
+
+	// Add UNTIL clause pointer
+  	sprintf(gp, "%p", joinlist->until);
+  	arglist = arglist_append(arglist, newarg(strdup(gp), (argtype)0, NULL));
+
 	joinlist = joinlist->next;
   }
 
+  // Add WHERE clause pointer
   sprintf(gp, "%p", where);
   arglist = arglist_append(arglist, newarg(strdup(gp), (argtype)0, NULL));
  
@@ -835,5 +851,13 @@ SmacqGraph * newjoin(joinlist * joinlist, SmacqGraph * where) {
   g->join(jg);
  
   return g;
+}
+
+void yyerror(char * msg) {
+  if (yytext[0] != '\0') {
+        fprintf(stderr, "Error: %s near %s in line: %s\n", msg, yytext, ParsedString);
+  } else {
+        fprintf(stderr, "Error: Unexpected end of statement: %s\n", ParsedString);
+  }
 }
 
