@@ -3,8 +3,6 @@
 
 #include <stdint.h>
 #include <stdio.h>
-#include <gmodule.h>
-#include <glib.h>
 #include <sys/time.h>
 
 /* Turn on performance optimizations: */

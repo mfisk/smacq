@@ -1,6 +1,8 @@
 #ifndef DTS_H
 #define DTS_H
 
+#include <gmodule.h>
+
 //struct dts_type;
 
 typedef struct _dts_object dts_object;
