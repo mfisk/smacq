@@ -12,7 +12,7 @@
       <firstname>Mike</firstname>
       <surname>Fisk</surname>
     </author>
-    <date>$Date: 2002/12/28 17:54:52 $</date>
+    <date>$Date: 2002/12/29 02:32:01 $</date>
   </refentryinfo>
   <refmeta>
     <refentrytitle>smacqq</refentrytitle>
@@ -58,6 +58,12 @@
 
       <computeroutput>
 	print dstip from pcapfile("/tmp/dump") where srcip = 128.129.1.2
+      </computeroutput>
+
+      Aliasing with "as" is supported:
+      
+      <computeroutput>
+	print dstip, totalbytes from select dstip, sum(len) as totalbytes from pcapfile("/tmp/dump")
       </computeroutput>
 
       Extended relational algebra provides aggregate functions and the

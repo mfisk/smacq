@@ -84,6 +84,10 @@ Nested queries are also supported.  For example:
  
 \f(CW	print dstip from pcapfile("/tmp/dump") where srcip = 128.129.1.2 
 \fP  
+Aliasing with "as" is supported: 
+ 
+\f(CW	print dstip, totalbytes from select dstip, sum(len) as totalbytes from pcapfile("/tmp/dump") 
+\fP  
 Extended relational algebra provides aggregate functions and the 
 "group by" and "having" terms.  This syntax is supported, but with slightly 
 different semantics.  For example, the following query would 
@@ -123,4 +127,4 @@ Joins are not yet supported.  They will be supported in multiple
 forms:  joins within a buffer window, joins between 
 nondecreasing streams, etc. 
  
-...\" created by instant / docbook-to-man, Sat 28 Dec 2002, 19:30 
+...\" created by instant / docbook-to-man, Sun 29 Dec 2002, 14:44 
