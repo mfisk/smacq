@@ -193,32 +193,25 @@ dts_field type_requirefield(dts_environment * tenv, char * name) {
   while (1) {
 	f = realloc(f, (i+1) * sizeof(dts_field_element));
 
+	if (!name) {
+		//fprintf(stderr, "No more field components\n");
+		f[i] = 0;
+		return f;
+	}
+	
 	p = strchr(name, '.');
 	if (p) {
 		p[0] = '\0';
 	}
 
-	if (!name) {
-		//fprintf(stderr, "No more field components\n");
-		f[i] = 0;
-	} else {
-		f[i] = type_requirefield_single(tenv, name);
-		//fprintf(stderr, "component (%d) %s is %d\n", i, name, f[i]);
-	}
+	f[i] = type_requirefield_single(tenv, name);
+	//fprintf(stderr, "component (%d) %s is %d\n", i, name, f[i]);
 
-	if (!p) {
-		/*
-		int j;
-		fprintf(stderr, "returning field ");
-		for (j=0; j<i; j++) {
-			fprintf(stderr, "%d.", f[j]);
-		}
-		fprintf(stderr, "\n");
-		*/
-		return f;
-	} else {
+	if (p) {
 		p[0] = '.';
 		name = p+1;
+	} else {
+		name = NULL;
 	}
 	i++;
   }
