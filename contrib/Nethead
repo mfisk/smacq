@@ -1,7 +1,12 @@
 #!/bin/sh -x
-exec bin/smacqq "print -d,;,-B, flowid, bytes, packets, srcip, srcport, dstport,
+exec bin/smacqq "\
+print -d,;,-B, flowid, bytes, packets, srcip, srcport, dstport, \
                 dstip, packetsback, bytesback, start, finish \
-        from (flowid -r, -t, 10, srcip, dstip, srcport, dstport \
-        from pcaplive(-i,eth0))" > /scratch/smacq.out
+        from (fifodelay -t, 5, -i, start, from \
+		(flowid -r, -t, 10, srcip, dstip, srcport, dstport \
+        		from pcaplive(-i,eth0) \
+		) \
+	) \
+	" > /scratch/smacq.out
 
 
