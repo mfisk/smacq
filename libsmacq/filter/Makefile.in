@@ -59,29 +59,33 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 host_alias = @host_alias@
 host_triplet = @host@
+AR = @AR@
 AS = @AS@
 CC = @CC@
 CXX = @CXX@
+CXXCPP = @CXXCPP@
 DLLTOOL = @DLLTOOL@
 ECHO = @ECHO@
+EGREP = @EGREP@
 ETHEREAL_DIR = @ETHEREAL_DIR@
 ETHEREAL_LIBRARY = @ETHEREAL_LIBRARY@
 EXEEXT = @EXEEXT@
+F77 = @F77@
+GCJ = @GCJ@
+GCJFLAGS = @GCJFLAGS@
 GLOBAL_INCLUDES = @GLOBAL_INCLUDES@
-HAVE_LIB = @HAVE_LIB@
 LEX = @LEX@
-LIB = @LIB@
 LIBS_MODULES_ALL = @LIBS_MODULES_ALL@
 LIBS_MODULES_SHARED = @LIBS_MODULES_SHARED@
 LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
-LTLIB = @LTLIB@
 MAKEINFO = @MAKEINFO@
 OBJDUMP = @OBJDUMP@
 OBJECTS_MODULES_BUILTIN = @OBJECTS_MODULES_BUILTIN@
 OBJEXT = @OBJEXT@
 PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
+RC = @RC@
 SOURCES_MODULES_BUILTIN = @SOURCES_MODULES_BUILTIN@
 SOURCES_TYPES_BUILTIN = @SOURCES_TYPES_BUILTIN@
 STRIP = @STRIP@
@@ -93,7 +97,7 @@ INCLUDES = @GLOBAL_INCLUDES@ -I$(top_srcdir)/include
 SUFFIXES = .y .ym
 noinst_LTLIBRARIES = libfilter.la
 BUILT_SOURCES = filter-parser.c expr-parser.c
-libfilter_la_SOURCES = filter-parser.c expr-parser.c
+libfilter_la_SOURCES = filter-parser.y expr-parser.y
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = ../../config.h
 CONFIG_CLEAN_FILES = 
@@ -107,12 +111,13 @@ LIBS = @LIBS@
 libfilter_la_LDFLAGS = 
 libfilter_la_LIBADD = 
 libfilter_la_OBJECTS =  filter-parser.lo expr-parser.lo
+YLWRAP = $(srcdir)/ylwrap
 CFLAGS = @CFLAGS@
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 CCLD = $(CC)
 LINK = $(LIBTOOL) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(LDFLAGS) -o $@
-DIST_COMMON =  Makefile.am Makefile.in
+DIST_COMMON =  Makefile.am Makefile.in expr-parser.c filter-parser.c
 
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
@@ -183,6 +188,11 @@ maintainer-clean-libtool:
 
 libfilter.la: $(libfilter_la_OBJECTS) $(libfilter_la_DEPENDENCIES)
 	$(LINK)  $(libfilter_la_LDFLAGS) $(libfilter_la_OBJECTS) $(libfilter_la_LIBADD) $(LIBS)
+.y.c:
+	$(SHELL) $(YLWRAP) "$(YACC)" $< y.tab.c $*.c y.tab.h $*.h -- $(AM_YFLAGS) $(YFLAGS)
+expr-parser.h: expr-parser.c
+filter-parser.h: filter-parser.c
+
 
 tags: TAGS
 
@@ -300,7 +310,7 @@ distclean-generic:
 	-rm -f config.cache config.log stamp-h stamp-h[0-9]*
 
 maintainer-clean-generic:
-	-test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
+	-test -z "expr-parserhexpr-parsercfilter-parserhfilter-parserc$(BUILT_SOURCES)" || rm -f expr-parserh expr-parserc filter-parserh filter-parserc $(BUILT_SOURCES)
 mostlyclean-am:  mostlyclean-noinstLTLIBRARIES mostlyclean-compile \
 		mostlyclean-libtool mostlyclean-tags mostlyclean-depend \
 		mostlyclean-generic
@@ -347,13 +357,13 @@ mostlyclean distclean maintainer-clean
 #libfilter.la: $(OBJS)
 #	$(LIBTOOL) $(CCLD) -export-symbols-regex '^smacq_.*' -o $@ $+ $(LIBS)
 
-%.y: %.ym $(SQLSRC)/grammer.y
-	$(M4) -I$(SQLSRC) -P < $< > $@
+$(srcdir)/%.y: $(srcdir)/%.ym $(SQLSRC)/grammer.y
+	m4 -I$(SQLSRC) -P -DBUILDDATE=\"`date`\" < $< > $(srcdir)/$@
 
-filter-%.c: filter-%.y
+$(srcdir)/filter-%.c: $(srcdir)/filter-%.y
 	$(YACC) -v -p yyfilter -d -o $@ $<
 
-expr-%.c: expr-%.y
+$(srcdir)/expr-%.c: $(srcdir)/expr-%.y
 	$(YACC) -v -p yyexpr -d -o $@ $<
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

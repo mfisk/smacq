@@ -8,6 +8,8 @@ extern char * yysmacql_text;
 #define yyexprlex yysmacql_lex
 %}
 
+/* grammer.y included by m4 at "2003-11-15" */
+
 /*
  * BUGS:
  *

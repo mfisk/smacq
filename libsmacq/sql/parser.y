@@ -14,6 +14,8 @@ static smacq_graph * Graph;
 %type <group> group
 %type <comp> having
 
+/* grammer.y included by m4 at "2003-11-15" */
+
 /*
  * BUGS:
  *
@@ -221,7 +223,7 @@ barequery : verbphrase from where group
 	   	$$ = $1;
 		graph_join(&($$), $2);
 	   }
-	| verbphrase 	{ $$ = newmodule($1.verb, $1.args) }
+	| verbphrase 	{ $$ = newmodule($1.verb, $1.args); }
 	| where 
 	;
 
