@@ -34,7 +34,7 @@ while(<>) {
   if ($action ne "alert") { next; }
 
   @tests = ();
-  &notany("proto = 'ARG'", $proto);
+  &notany("ipprotocol = 'ARG'", $proto);
   &notany("mask(srcip, 'ARG')", $srcip);
   &notany("mask(dstip, 'ARG')", $dstip);
   &notany("srcport = 'ARG'", $srcport);
@@ -60,16 +60,16 @@ while(<>) {
       $content =~ s/\|([^|]*)\|/&hex2octalstr($1)/eg;
 
       &notany("substr(payload, \"%ARG%\")", $content);
-    } elsif ($op eq "msg" || $op eq "reference" || $op eq "classtype" || $op eq "rev" || $op eq "depth") {
+    } elsif ($op eq "msg" || $op eq "reference" || $op eq "classtype" || $op eq "rev" || $op eq "depth" || $op eq "nocase") {
       
     } else {
-      #print "[$op:$arg]";
+      print stderr "$_: [$op:$arg]\n";
     }
   }
 
-  $q = "select '$sid' as sid, srcip, dstip, ts from pcapfile(/hog/traces/aa.80) where ";
+  $q = "print sid, srcip, dstip, ts from (const('$sid', sid) from pcapfile(/hog/traces/aa.80) where ";
   $q .= join(' and ', @tests);
 
-  print "$q\n";
+  print "$q)\n";
 }
 	  
