@@ -71,6 +71,7 @@ open(SET, ">/tmp/set.cq") || die;
 print SET "pcapfile from $SMACQ_INPUT where ";
 
 while(<>) {
+  $snortrule = '';
   $srcip = '';
   $dstip = '';
   $srcport = '';
@@ -91,17 +92,14 @@ while(<>) {
   s|\$SMTP|any|g;
 
   ($action,$proto,$srcip,$srcport,$dir,$dstip,$dstport,$criteria) = split(/\s+/, $_, 8);
-  
+ 
+  $ipproto = $proto; 
   if ($action ne "alert") { next; }
 
   #This is a rule, but do we want it?
   if (rand() > $prob) { next; }
 
   @tests = ();
-
-  if ($proto ne "ip") {
-  	&notany("ipprotocol = 'ARG'", $proto);
-  }
 
   $srcip =~ s|\[([^,]+),.*\]|$1|;
   $dstip =~ s|\[([^,]+),.*\]|$1|;
@@ -113,8 +111,6 @@ while(<>) {
   $criteria =~ s|([^\\]);|$1 ;|g;
   @crits = split(/[^\\];/, $criteria);
   
-  $snortrule = "alert $proto $srcip $srcport -> $dstip $dstport (";
-
   foreach $test (@crits) {
     $test =~ s|^\s+||;
     $test =~ s|\s+$||;
@@ -152,12 +148,21 @@ while(<>) {
     } elsif ($op eq "seq") {
       #$snortrule .= "seq:\"$arg\"; ";
       #$seq = $arg;
+    } elsif ($op eq "ip_proto") {
+      $snortrule .= "ip_proto:$arg; ";
+      $ipproto = $arg;
     } elsif ($op eq "msg" || $op eq "reference" || $op eq "classtype" || $op eq "rev" || $op eq "depth" || $op eq "nocase" || $op eq "flow" ) {
       
     } else {
       print stderr "[$op:$arg] in $_\n";
     }
   }
+
+  if ($ipproto ne "ip") {
+  	&notany("ipprotocol = 'ARG'", $ipproto);
+  }
+
+  $snortrule = "alert $proto $srcip $srcport -> $dstip $dstport ($snortrule";
 
   if (! (@contents || @uricontents || $ipid || $seq)) {
   	#Skip trivial rules
