@@ -8,7 +8,7 @@ CFLAGS = -ggdb -Wall -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include $(INCLU
 
 LIBS = -lfl
 
-all: libsql.la
+all: libsql.la grammer.c scanner.c
 
 libsql.la: $(OBJS)
 	$(LIBTOOL) $(CC) -export-symbols-regex '^smacq_.*' -o $@ $+ $(LIBS)
