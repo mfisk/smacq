@@ -125,10 +125,19 @@ static smacq_result count_init(struct smacq_init * context) {
 
 static smacq_result count_shutdown(struct state * state) {
   //fprintf(stderr, "count_shutdown!\n");
+  //
+  if (state->prob) {
+  	dts_field_free(state->probfield);
+  } else {
+  	dts_field_free(state->countfield);
+  }
+
   if (state->fieldset.num) 
   	bytes_hash_table_destroy(state->counters);
+
+  fieldset_destroy(&state->fieldset);
   free(state);
-  // Print counters
+
   return 0;
 }
 
