@@ -37,7 +37,7 @@
       not stored in preloaded tables, but is instead produced by data
       source modules.  Also, the select operation does not
       automatically print fields.  If printable output is desired, use
-      the <command>print</command>.
+      the <command>print</command> command.
     </para>
 
     <para>
