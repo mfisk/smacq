@@ -1,5 +1,4 @@
 #include <stdlib.h>
-#include <math.h>
 #include <assert.h>
 #include <SmacqModule.h>
 #include <FieldVec.h>
@@ -14,20 +13,14 @@ SMACQ_MODULE(project,
 ); 
  
 smacq_result projectModule::consume(DtsObject datum, int & outchan) {
-  DtsObject newo;
+  DtsObject newo = dts->construct(empty_type, NULL);
+
   FieldVec::iterator i;
-
-  newo = dts->construct(empty_type, NULL);
-  assert(newo);
-
   for (i = fieldvec.begin(); i != fieldvec.end(); i++) {
-	DtsObject newf;
-
-  	if (!(newf = datum->getfield((*i)->num))) {
-	  fprintf(stderr, "project: no %s field\n", (*i)->name);
-		continue;
+	DtsObject newf = datum->getfield((*i)->num);
+	if (newf) {
+    	  newo->attach_field((*i)->num, newf); 
 	}
-    	newo->attach_field((*i)->num, newf); 
   }
   enqueue(newo);
   return SMACQ_FREE;
