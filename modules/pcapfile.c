@@ -175,10 +175,13 @@ static inline void * read_current_file(struct state * state, void * buf, int len
 	retval = gzread(state->gzfh, buf, len);
 	//fprintf(stderr, "gzread returned %d\n", retval);
 	return( (retval==1) ? buf : NULL );
-      } else {
+      } else if (state->fh) {
 	retval = fread(buf, len, 1, state->fh);
 	//fprintf(stderr, "fread returned %d on length %u\n", retval, len);
 	return( (retval==1) ? buf : NULL );
+      } else {
+	assert(!"pcapfile lost filehandle");
+	return(NULL);
       }
     }
 }
