@@ -1,5 +1,3 @@
 #!/bin/sh
 
-bin/smacqq -m -O <<EOF 2>/dev/null
-print ts from pcapfile(test/0325@1112-snort.pcap)
-EOF
+bin/smacqq "print ts from pcapfile($TEST/0325@1112-snort.pcap)" 
