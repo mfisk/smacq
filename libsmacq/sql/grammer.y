@@ -18,11 +18,7 @@
  */
  
 %{
-
 #include <smacq-parser.h>
-//static struct graph nullgraph = { head: NULL, tail: NULL };
-//static smacq_graph * Graph;
-
 %}
 
 %token WHERE
