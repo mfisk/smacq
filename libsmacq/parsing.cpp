@@ -387,8 +387,7 @@ SmacqGraph * optimize_bools(dts_comparison * c) {
       dts_comparison * p;
       SmacqGraph * uniq;
 
-      arglist = arglist_append(arglist, newarg("-o", (argtype)0, NULL));
-      uniq = newmodule("uniq", arglist); 
+      uniq = newmodule("uniqobj", NULL); 
 
       for (p=c->group; p; p=p->next) {
         SmacqGraph * newg = optimize_bools(p);
