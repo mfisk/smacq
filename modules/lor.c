@@ -21,14 +21,20 @@ struct state {
 struct clause {
   struct runq * runq;
   smacq_graph * graph;
+  int not;
 };
 
 int build_clause(struct state * state, char ** argv, int num) {
 		  /* End of query */
 		  smacq_graph * g;
+		  int not = 0;
 
 		  //fprintf(stderr, "Build clause from %s(%p)+%d ... %s\n", argv[0], argv, num, argv[num-1]);
 
+		  if (num >= 1 && !strcmp(argv[0], "not")) {
+			  not = 1;
+			  num--, argv++;
+		  }
 		  if (num < 1) {
 			  fprintf(stderr, "OR: empty clause\n");
 			  return 0;
@@ -43,6 +49,7 @@ int build_clause(struct state * state, char ** argv, int num) {
 
 		  state->clause[state->num_clauses-1].graph = g;
 		  state->clause[state->num_clauses-1].runq = NULL;
+		  state->clause[state->num_clauses-1].not = not;
 
 		  smacq_sched_iterative_init(g, &state->clause[state->num_clauses-1].runq, 0);
 
@@ -77,10 +84,17 @@ static smacq_result or_consume(struct state * state, const dts_object * datum, i
 
 
 	if (output == datum) {
-		status = SMACQ_PASS;
-		break;
+		if (state->clause[i].not) {
+			status = SMACQ_FREE;
+		} else {
+			status = SMACQ_PASS;
+			break;
+		}
 	} else if (output) {
 		fprintf(stderr, "Error OR called on non-boolean function!\n");
+	} else if (state->clause[i].not) {
+		status = SMACQ_PASS;
+		break;
 	}
   }
 
@@ -118,7 +132,7 @@ static smacq_result or_init(struct smacq_init * context) {
 	  }
 	}
 	if (start < argc) {
-		build_clause(state, argv+start, argc - start - 1);
+		build_clause(state, argv+start, argc - start);
 	}
   }
 
