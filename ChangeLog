@@ -1,8 +1,11 @@
 VERSION 2.2 - unreleased
 ========================
+2005-01 - SmacqModule::usesfield() wraps DTS::requirefield() but facilitates join optimization
+2005-01 - join optimization: early evaluation of per-alias invariant predicates
+2005-01 - timeval,time,ntime types: string parser now uses GNU get_date (like CVS dates)
 2005-01 - sv4 type: start and stop times are now timevals instead of time_t
 2005-01 - print module: --boulder (Boulder output format) added
-2004-12 - changes module: detects(/filters for) changes in dynamics
+2004-12 - changes module added: detects(/filters for) changes in dynamics
 2004-12 - print module: '*' removed; specifying no fields now prints all fields
 2004-12 - bugfix: DtsObject reference counting now handles uses cycles (memory leak)
 2004-12 - SmacqModule::enqueue() is now a callback to the scheduler:
