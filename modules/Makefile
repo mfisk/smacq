@@ -6,7 +6,7 @@ CFLAGS=-g -Wall -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I../include
 SO_LDFLAGS=-L../libsmacq -lsmacq -lpcap -lz -lglib-2.0 -lpython2.2 -lgmodule-2.0
 STATIC_LDFLAGS=-L../contrib -L/usr/lib/python2.2/config -lpython2.2 -lpcap -lz
 
-BUILTIN_MODULES=pcaplive pcapfile print socket uniq counter last top head intervals filter msgtest entropy derivative split encrypt warden pdf active fifo delta tabularinput sync rusage
+BUILTIN_MODULES=pcaplive pcapfile print socket uniq counter last top head intervals filter msgtest entropy derivative split encrypt warden pdf fifo delta tabularinput sync rusage groupby flowid
 MODULES=$(BUILTIN_MODULES) reassemble python
 
 MODULES_SHOBJS=$(patsubst %,smacq_%.so,$(MODULES))
