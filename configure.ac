@@ -86,6 +86,12 @@ if test -n "$GCC"; then
 	CFLAGS="$CFLAGS -Wall -O9"
 fi
 
+AC_ARG_ENABLE(profile,
+	AC_HELP_STRING([--enable-profile],[enable gprof profiling]),
+		CFLAGS="$CFLAGS -pg"
+		LDFLAGS="$LDFLAGS -pg"
+	fi],)
+
 AC_ARG_ENABLE(debug,
 	AC_HELP_STRING([--enable-debug],[enable debugging options]),
 	[if test -n "$GCC"; then
