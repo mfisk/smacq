@@ -109,7 +109,21 @@ class SmacqGraph : private SmacqGraphNode {
 
   double count_nodes();
   int print(FILE * fh, int indent);
+
+  /// @name Invariant Optimization
+  /// @{
+
+  /// Callback function is called for each downstream filter.	
   void downstream_filters(smacq_filter_callback_fn callback, void * data);
+
+  /// Return a subgraph containing only invariants over the specified field.
+  /// The subgraph will contain only stateless filters that are applied to
+  /// all objects in the graph (e.g. not within an OR) and that do NOT use 
+  /// the specified field.
+  SmacqGraph * get_invariants_over_field(DtsField field);
+
+  /// @}
+
   void optimize();
 
  private:
@@ -446,6 +460,23 @@ inline void SmacqGraph::replace(SmacqGraph * g) {
     parent[i] = NULL;
   }
   numparents = 0;
+}
+
+inline SmacqGraph * SmacqGraph::get_invariants_over_field(DtsField field) {
+ SmacqGraph * more;
+ if (algebra.stateless && children.size() == 1 && children[0].size() == 1) {
+    more = children[0][0]->get_invariants_over_field(field);
+ } else {
+    more = NULL;
+ }
+
+ if (algebra.stateless && !instance->usesOtherFields(field)) {
+    SmacqGraph * result = new_child(argc, argv);
+    if (more) result->add_child(more);
+    return result;
+ } else {
+	return more;
+ }
 }
 
 #endif
