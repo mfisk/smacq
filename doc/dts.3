@@ -1,4 +1,4 @@
-.TH dts 3 "$Date: 2003/08/26 22:50:20 $" "LANL"
+.TH dts 3 "$Date: 2003/10/20 19:51:52 $" "LANL"
 .SH NAME
 dts  \- Dynamic Type System API
 .SH SYNOPSIS
@@ -29,6 +29,11 @@ works for fixed-size objects.
 Return a new, empty data object large enough to hold \fIdatasize\fP bytes.  
 Use \fIsmacq_requiretype()\fP to get a
 type number.
+
+.TP
+.BI "const dts_object * dts_dup(dts_environment *, const dts_object * obj)"
+Return a new data object containing a copy of the data in the original
+object.
 
 .TP
 .BI "int smacq_fromstring(smacq_environment * env, int type, char * value, dts_object * data)"

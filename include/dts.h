@@ -159,6 +159,7 @@ static void dts_decref(const dts_object * d_const);
 int dts_comparefields(dts_field a, dts_field b);
 
 const dts_object* dts_alloc(dts_environment * tenv, int size, int type);
+const dts_object* dts_dup(dts_environment * tenv, const dts_object * datum);
 
 #define dts_data_as(datum,type) (*((type*)((datum)->data)))
 #define dts_set(datum,type,val) dts_setsize((datum), sizeof(type)) , (*((type*)((datum)->data))) = (val), 1 

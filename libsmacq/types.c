@@ -277,3 +277,10 @@ dts_environment * dts_init() {
   return tenv;
 }
 
+const dts_object * dts_dup(dts_environment * tenv, const dts_object * datum) {
+	const dts_object * copy = dts_alloc(tenv, datum->len, datum->type);
+	if (copy) 
+		memcpy(dts_getdata(copy), dts_getdata(datum), datum->len);
+	return copy;
+}
+
