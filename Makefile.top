@@ -1,4 +1,4 @@
-DIRS=libsmacq contrib types modules bin doc #reloc test
+DIRS=libsmacq contrib types modules bin doc reloc #test
 
 include config.mk
 
