@@ -1,0 +1,7 @@
+#!/bin/sh
+
+TESTFILE=$TEST/0325@1112-snort.pcap
+
+bin/smacqq -m -O <<EOF 2>/dev/null
+print srcip, ipid, payload from pcapfile($TESTFILE) where ipid > 1000 or (mask(srcip, 192.168.0.54/32) and ipid < 400)
+EOF
