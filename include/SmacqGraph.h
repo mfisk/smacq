@@ -3,6 +3,8 @@
 
 #include <SmacqGraphNode.h>
 #include <DynamicArray.h>
+#include <set>
+#include <vector>
 
 #define FOREACH_CHILD(x, y)					    \
   for (unsigned int i = 0; i < (x)->children.size(); i ++)	    \
@@ -12,6 +14,7 @@
     }
 
 class DTS;
+class SmacqGraph;
 
 typedef void smacq_filter_callback_fn(char * operation, int argc, char ** argv, void * data);
 
@@ -20,14 +23,17 @@ typedef void smacq_filter_callback_fn(char * operation, int argc, char ** argv, 
 class SmacqGraphCallback {
  public:
   virtual void callback(SmacqGraph *g) = 0;
+  virtual ~SmacqGraphCallback() {}
 };
 
 class joincallback : public SmacqGraphCallback {
  public:
   joincallback(SmacqGraph * g) : newg(g) {}
   void callback(SmacqGraph * g);
+
  private:
   SmacqGraph * newg;
+  std::set<SmacqGraph*> seen;
 };
 
 /// A graph of SmacqGraphNode nodes. 
@@ -118,7 +124,6 @@ class SmacqGraph : private SmacqGraphNode {
   void optimize_tree();
 
   /// Iff a module node:
-  SmacqGraphNode node;
   SmacqGraph * next_graph;
 
   std::vector<std::vector<SmacqGraph *> > children;
@@ -153,7 +158,6 @@ inline SmacqGraph * SmacqGraph::find_branch() {
 
 typedef void foreach_graph_fn(SmacqGraph *);
 
-
 /* Return a list of all the tails in the given graph (list=NULL initially) */
 inline void SmacqGraph::foreach_tail(SmacqGraphCallback & cb) {
   /* A tail is the highest point in the tree that only has linear (fanout = 1) children */
@@ -169,26 +173,25 @@ inline void SmacqGraph::foreach_tail(SmacqGraphCallback & cb) {
 }
 
 inline void joincallback::callback(SmacqGraph * g) {
-  g->join_tail(newg);
+  // Find end of tail
+  while(g->children[0].size()) {
+    assert(g->children[0].size() == 1);
+    g = g->children[0][0];
+
+    // Tails may share some children, so make sure we haven't already done this one
+    if (! seen.insert(g).second) {
+	return;
+    }
+  }
+
+  for(SmacqGraph * sg = newg; sg; sg=sg->next_graph) {
+    g->add_child(sg); 
+  }
 }
 
 inline void SmacqGraph::join(SmacqGraph * newg) {
   joincallback j(newg);
   foreach_tail(j);
-}
-
-inline void SmacqGraph::join_tail(SmacqGraph * newg) {
-  SmacqGraph * sg, *g = this;
-
-  // Find end of tail
-  while(g->children[0].size()) {
-    assert(g->children[0].size() == 1);
-    g = g->children[0][0];
-  }
-
-  for(sg = newg; sg; sg=sg->next_graph) {
-    g->add_child(sg); 
-  }
 }
 
 
@@ -201,11 +204,9 @@ inline void SmacqGraph::add_graph(SmacqGraph * b) {
 
 /// Recursively initalize nodes in graph.
 inline void SmacqGraph::init(DTS * dts, SmacqScheduler * sched) {
-  init_node_one(dts, sched);
-
-  FOREACH_CHILD(this, child->init(dts,sched));
-
-  return;
+  for (SmacqGraph * g = this; g; g=g->next_graph) {
+	g->init_node_one(dts, sched);
+  }
 }
 
 inline void SmacqGraph::init_node_one(DTS * dts, SmacqScheduler * sched) {
@@ -218,6 +219,8 @@ inline void SmacqGraph::init_node_one(DTS * dts, SmacqScheduler * sched) {
   context.scheduler = sched;
 
   this->SmacqGraphNode::init(context);
+
+  FOREACH_CHILD(this, child->init(dts,sched));
 }
   
 
@@ -400,6 +403,8 @@ inline SmacqGraph * SmacqGraph::children_as_heads() {
 
 /// Modify parent(s) and children to replace myself with the specified graph.
 inline void SmacqGraph::replace(SmacqGraph * g) {
+  parent[0]->print(stderr, 0);
+
   if (children[0].size()) {
     assert(children.size() == 1);
 
@@ -418,6 +423,7 @@ inline void SmacqGraph::replace(SmacqGraph * g) {
   
   for (int i = 0; i < numparents; i++) {
     parent[i]->replace_child(this, g);
+    parent[i]->print(stderr, 4);
     parent[i] = NULL;
   }
   numparents = 0;
