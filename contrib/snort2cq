@@ -50,7 +50,10 @@ while(<>) {
   if (rand() > $prob) { next; }
 
   @tests = ();
-  &notany("ipprotocol = 'ARG'", $proto);
+
+  if ($proto ne "ip") {
+  	&notany("ipprotocol = 'ARG'", $proto);
+  }
 
   $srcip =~ s|\[([^,]+),.*\]|$1|;
   $dstip =~ s|\[([^,]+),.*\]|$1|;
