@@ -95,9 +95,11 @@ having|HAVING	return HAVING;
 .	{ fprintf(stderr, "Unexpected character \"%s\"\n", yytext); return -1; }
 
 %%
+#ifdef linux
 /* gcc will warn that yyunput is declared, but unused, so fool it unto thinking it's used.   blech! */
 void no_unused_warning() {
 	yyunput(0, '\0');
 	no_unused_warning();
 }
+#endif
 
