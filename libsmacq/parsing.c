@@ -236,7 +236,7 @@ char * print_operand(struct dts_operand * op) {
 
 char * print_comparison(dts_comparison * comp) {
   int size = 30;
-  char * buf;
+  char * buf = NULL;
   dts_comparison * c;
   char * b;
   char * op1, * op2;
@@ -294,6 +294,7 @@ char * print_comparison(dts_comparison * comp) {
 		break;
   }
 
+  fprintf(stderr, "parse_comparison output: %s\n", buf);
   return(buf);
 }
 
