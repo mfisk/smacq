@@ -55,16 +55,19 @@ common tasks with a DtsObject.
 #ifndef SMACQ_NO_OPT_DTS
 # define SMACQ_OPT_NOPTHREADS
 # define SMACQ_OPT_NOMSGS
-# define SMACQ_OPT_FORCEFIELDCACHE
 # define SMACQ_OPT_RUNRING
 # define SMACQ_OPT_DTS_FREELIST
 #endif
 
-#ifndef SMACQ_NO_OPT_DATAFLOW
-# define SMACQ_OPT_VECTORS
-# define SMACQ_OPT_CHILDREN
-# define SMACQ_OPT_HEADS
-# define SMACQ_OPT_TAILS
+#ifdef SMACQ_NO_OPT_DTS
+# define SMACQ_OPT_NOFIELDCACHE
+#endif
+
+#ifdef SMACQ_NO_OPT_DATAFLOW
+# define SMACQ_OPT_NOVECTORS
+# define SMACQ_OPT_NOCHILDREN
+# define SMACQ_OPT_NOHEADS
+# define SMACQ_OPT_NOTAILS
 #endif
 
 #if defined(WIN32) && !defined(inline)       
@@ -152,6 +155,26 @@ static inline void smacq_log(char * name, enum smacq_log_level level, char * msg
 BEGIN_C_DECLS
 
 void * smacq_find_module(GModule ** gmodulep, char * envvar, char * envdefault, char * modformat, char * symformat, char * sym);
+
+static inline char * argv2str(int argc, char ** argv) {
+  char * qstr;
+  int i;
+  int size = 1;
+
+  for (i=0; i<argc; i++) {
+    size += strlen(argv[i]);
+  }
+  size += argc;
+  
+  qstr = (char*)malloc(size);
+  qstr[0] = '\0';
+    
+  for (i=0; i<argc; i++) {
+    strcatn(qstr, size, argv[i]);
+    strcatn(qstr, size, " ");
+  }
+  return qstr;
+}
 
 END_C_DECLS
 
