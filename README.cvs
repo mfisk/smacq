@@ -1,0 +1,26 @@
+=============================================================================
+			SMACQ CVS BUILD INSTRUCTIONS
+
+Quick & Dirty:
+--------------
+Type "make".
+
+This will make a build directory and a subdirectory for the platform
+you are building in.  In that directory, configure will be run and SMACQ
+will be built.
+
+Why not run ./configure like a normal package?
+----------------------------------------------
+You can, but the results will be built in the source tree (as you
+probably expect).  This prevents you from using the same directory 
+tree to build on multiple platforms.  We automate the "vpath trick" 
+so you don't have to.
+
+How do I pass configure options?
+--------------------------------
+Set them in the CONFIG environment variable before running make:
+	CONFIG="--with-ethereal" make
+	CONFIG="--enable-debug" make
+	CONFIG="--enable-profile --enable-debug" make
+
+
