@@ -132,7 +132,7 @@ static char * filelist_stdin(struct strucio * r, void * user) {
     fprintf(stderr, "Error reading next filename from STDIN\n");
     return NULL;
   } else {
-    return filename;
+    return strdup(filename);
   }
 }
 
