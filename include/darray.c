@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
 
 struct darray {
   unsigned long * array;
