@@ -25,6 +25,7 @@ static smacq_result rename_consume(struct state * state, const dts_object * datu
 	}
 
     	dts_attach_field(datum, state->fieldset.fields[i+1].num, newf); 
+	dts_incref(newf, 1);
   }
 
   return SMACQ_PASS;
