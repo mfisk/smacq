@@ -7,8 +7,8 @@ all: dirs
 test: warn test.RECURSE
 	@true
 
-smacq.iso: #reloc.RECURSE
-	./misc/mkiso
+smacq.iso: .ALWAYS #reloc.RECURSE
+	TOPSRCDIR=$(TOPSRCDIR) TOPBINDIR=$(TOPBINDIR) $(SRCDIR)/misc/mkiso
 
 warn: 
 	$(MAKE) dirs >/dev/null
@@ -26,4 +26,6 @@ binclean:
 dist: clean
 	tar czplf smacq.tgz build/*/bin/smacqq doc/*.pdf doc/*.txt doc/*.1 doc/*.3
 	(cd /tmp; cvs -q -d cj:/home/cvs co flow); tar -C /tmp -czlf flow-src.tgz flow
+
+.ALWAYS:
 

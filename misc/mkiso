@@ -1,17 +1,31 @@
-#!/bin/sh -x
+#!/bin/sh 
 
-	rm -Rf build/iso
-	mkdir -p build/iso/doc/
-	mkdir -p build/iso/.bin/
+DSTDIR="$TOPSRCDIR/build/iso/"
 
-	cp misc/smacq.ico misc/autorun.inf build/iso/
-	cp doc/*.pdf build/iso/doc/
-	cp $BINDIR/bin/smacqq misc/reloc build/iso/.bin
-	(cd build/iso; ln -f .bin/reloc smacqq)
+rm -Rf "$DSTDIR"
+mkdir -p "$DSTDIR/doc/"
+mkdir -p "$DSTDIR/.bin/"
 
-	cp -rpf misc/SMACQ.app build/iso/ #For MacOS
-	cp $BINDIR/bin/smacqq build/iso/SMACQ.app/Contents/Resources/
+cd $TOPSRCDIR
+
+	cp misc/smacq.ico misc/autorun.inf "$DSTDIR"
+	cp doc/*.txt doc/*.pdf "$DSTDIR/doc/"
+	platforms=`cd build; echo *-*`
+
+	for p in $platforms; do
+		mkdir "$DSTDIR/.bin/$p"
+		cp "build/$p/bin/smacqq" "$DSTDIR/.bin/$p/"
+	done	
+
+	(cd "$DSTDIR"; cvs -d :pserver:cvs.sourceforge.net:/cvsroot/smacq co -P smacq; mv smacq src)
+
+	cp misc/reloc "$DSTDIR/.bin"
+	(cd "$DSTDIR"; ln -f .bin/reloc smacqq)
+
+	cp -rpf misc/SMACQ.app "$DSTDIR/" #For MacOS
+	cp build/Darwin-Power-Macintosh/bin/smacqq "$DSTDIR/SMACQ.app/Contents/Resources/"
 
 	# -hidden removes from Unix and requires /A on DOS, but shows on MacOS
 	# -hide-joliet only hides from DOS/MacOSX
-	mkisofs -hfs -hide-joliet '.*' -hide-hfs autorun.inf -hidden 'autorun.inf' -hide-hfs '*.ico' -hide-hfs 'smacqq' -hidden SMACQ.app -hidden '*.ico' -V SMACQ -hfs-volid "SMACQ for Mac" --osx-double -R build/iso > smacq.iso
+	mkisofs -hfs -hide-joliet '.*' -hide-hfs autorun.inf -hidden 'autorun.inf' -hide-hfs '*.ico'  -hide-joliet SMACQ.app -hide SMACQ.app -hidden '*.ico' -V SMACQ -hfs-volid "SMACQ for Mac" -R "$DSTDIR" > smacq.iso
+	# --osx-double

@@ -13,4 +13,10 @@ auto: all
 	@echo $(MAKE) -f GNUmakefile $@ 
 	@$(MAKE) -f GNUmakefile $@ 
 
+Makefile:
+	@true
+
+%: .ALWAYS
+	@echo $(MAKE) -C $(BUILDDIR) $@ 
+	@$(MAKE) -C $(BUILDDIR) $@ 
 

@@ -1,6 +1,7 @@
 #!/bin/sh
 
 RUNDIR=`echo $0 | sed 's/\/[^/]*$//'`
+PLAT=`uname -sm | sed 's/ /-/g'`/
 CMD=`basename $0`
-LD_LIBRARY_PATH=${RUNDIR}/.lib:${LD_LIBRARY_PATH} exec -a "$0" ${RUNDIR}/.bin/${CMD} "$@"
+LD_LIBRARY_PATH=${RUNDIR}/.lib/${PLAT}:${LD_LIBRARY_PATH} exec -a "$0" "${RUNDIR}/.bin/$PLAT${CMD}" "$@"
 #LD_LIBRARY_PATH=${RUNDIR}/.lib:${LD_LIBRARY_PATH} ${RUNDIR}/.bin/${CMD} "$@"
