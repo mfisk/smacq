@@ -8,14 +8,6 @@
   EXTERN char * yytext;
   EXTERN char * yystring;
   EXTERN void yyerror(char*);
-  //EXTERN void yy_scan_string(char*);
-
-#ifdef PTHREAD_MUTEX_INITIALIZER
-  pthread_mutex_t local_lock = PTHREAD_MUTEX_INITIALIZER;
-#else
-  pthread_mutex_t local_lock;
-  #warning "No PTHREAD_MUTEX_INITIALIZER"
-#endif
 
 struct arglist {
     char * arg;
