@@ -158,7 +158,7 @@ static inline int runq_empty(struct runq * runq) {
 #endif
 
 void queue_children(struct runq * runq, smacq_graph * f, const dts_object * d, int outchan) {
-  if (outchan >= 0) {
+  if (outchan >= 0 && f->numchildren) {
     assert(outchan < f->numchildren);
     runable(runq, f->child[outchan], d);
   } else if (f->numchildren) {
