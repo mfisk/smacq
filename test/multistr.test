@@ -1,6 +1,6 @@
 #!/bin/sh
 
-${BINDIR}smacqq -m -O <<EOF 
+${BINDIR}smacqq -m <<EOF 
 print cmd from tabularinput(-f, $TEST/multistr.test, cmd, arg) where substr(cmd, "print")
 print cmd from tabularinput(-d, " ", -f, $TEST/multistr.test, cmd, arg) where substr(cmd, "bin")
 EOF
