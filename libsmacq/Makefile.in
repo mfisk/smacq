@@ -162,8 +162,6 @@ sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 INCLUDES = @GLOBAL_INCLUDES@ -I$(top_srcdir)/include
 EXTRA_DIST = parser.h
-BUILT_SOURCES = scanner.cpp parser.cpp expr-parser.cpp filter-parser.cpp
-#BUILT_SOURCES = 	filter-parser.c expr-parser.c expr-parser.y filter-parser.y
 SUFFIXES = .ypp .ym
 
 noinst_LTLIBRARIES = libsmacq.la @ETHEREAL_LIBRARY@
@@ -228,8 +226,7 @@ DIST_COMMON = Makefile.am Makefile.in expr-parser.cpp filter-parser.cpp \
 	parser.cpp scanner.cpp ylwrap
 SOURCES = $(libsmacq_la_SOURCES)
 
-all: $(BUILT_SOURCES)
-	$(MAKE) $(AM_MAKEFLAGS) all-am
+all: all-am
 
 .SUFFIXES:
 .SUFFIXES: .ypp .ym .c .cpp .lo .lpp .o .obj
@@ -447,13 +444,11 @@ distdir: $(DISTFILES)
 	  fi; \
 	done
 check-am: all-am
-check: $(BUILT_SOURCES)
-	$(MAKE) $(AM_MAKEFLAGS) check-am
+check: check-am
 all-am: Makefile $(LTLIBRARIES)
 
 installdirs:
-install: $(BUILT_SOURCES)
-	$(MAKE) $(AM_MAKEFLAGS) install-am
+install: install-am
 install-exec: install-exec-am
 install-data: install-data-am
 uninstall: uninstall-am
@@ -478,10 +473,9 @@ maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
 	-rm -f expr-parser.cpp
+	-rm -f scanner.cpp
 	-rm -f filter-parser.cpp
 	-rm -f parser.cpp
-	-test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
-	-rm -f scanner.cpp
 clean: clean-am
 
 clean-am: clean-generic clean-libtool clean-noinstLTLIBRARIES \
@@ -541,6 +535,12 @@ uninstall-am: uninstall-info-am
 	mostlyclean-libtool pdf pdf-am ps ps-am tags uninstall \
 	uninstall-am uninstall-info-am
 
+
+filter-parser.ypp: grammer.ypp
+
+exper-parser.ypp: grammer.ypp
+
+parser.ypp: grammer.ypp
 
 .ym.ypp:  grammer.ypp
 	cd $(srcdir) && m4 -I$(srcdir) -P -DBUILDDATE="`date`" < $< > $@

@@ -18,24 +18,25 @@ typedef union {
 # define YYSTYPE_IS_TRIVIAL 1
 #endif
 # define	WHERE	257
-# define	GROUP	258
-# define	BY	259
-# define	FROM	260
-# define	SELECT	261
-# define	AS	262
-# define	HAVING	263
-# define	UNION	264
-# define	YYSTRING	265
-# define	YYID	266
-# define	YYNUMBER	267
-# define	YYNEQ	268
-# define	YYLEQ	269
-# define	YYGEQ	270
-# define	YYSTOP	271
-# define	YYLIKE	272
-# define	YYOR	273
-# define	YYAND	274
-# define	YYNOT	275
+# define	UNTIL	258
+# define	GROUP	259
+# define	BY	260
+# define	FROM	261
+# define	SELECT	262
+# define	AS	263
+# define	HAVING	264
+# define	UNION	265
+# define	YYSTRING	266
+# define	YYID	267
+# define	YYNUMBER	268
+# define	YYNEQ	269
+# define	YYLEQ	270
+# define	YYGEQ	271
+# define	YYSTOP	272
+# define	YYLIKE	273
+# define	YYOR	274
+# define	YYAND	275
+# define	YYNOT	276
 
 
 extern YYSTYPE yylval;

@@ -5,7 +5,7 @@ void yysmacql_error(char*);
      #define    yymaxdepth yysmacql_maxdepth
      #define    yyparse yysmacql_parse
      #define    yylex   yysmacql_lex
-     #define    yyerror yysmacql_error
+     //#define    yyerror yysmacql_error
      #define    yylval  yysmacql_lval
      #define    yychar  yysmacql_char
      #define    yydebug yysmacql_debug
@@ -52,10 +52,10 @@ extern int yylex();
 %}
 %defines
 
-%type <graph> query from0 from where action fromwhere parenquery moreparenquery
+%type <graph> query from0 from where action fromwhere parenquery moreparenquery joinuntil
 %type <group> group
 %type <comp> having
-%type <join_list> joins
+%type <join_list> newjoin join joins
 
 /*
  * BUGS:
@@ -88,6 +88,7 @@ extern int yylex();
 %token AS
 %token HAVING
 %token UNION
+%token UNTIL
 %token YYSTRING YYID YYNUMBER
 %token YYNEQ YYLEQ YYGEQ
 
@@ -144,12 +145,10 @@ arg: argument
 	;
 
 argument : word 			{ $$ = newarg($1, WORD, NULL); } 
-	| function '(' args ')' 	{ $$ = newarg($1, FUNCTION, $3); }
-	| '[' expression ']'	        
-           { 
-		$$ = newarg("expr", FUNCTION, 
-		newarg(print_operand($2), WORD, NULL)); 
-	   }
+	| function '(' args ')' 	                  { $$ = newarg($1, FUNCTION, $3); }
+	| '[' expression ']'	                  { $$ = newarg("expr", FUNCTION, 
+					       newarg(print_operand($2), WORD, NULL)); 
+			                  }
 	;
 
 function : id 
@@ -271,38 +270,39 @@ fromwhere:
 		$$=$1; 
 		graph_join(&($$), $2); 
 	   }
-	| FROM parenquery word ',' joins where 
+	| FROM newjoin ',' joins WHERE boolean 
 	   {
-		struct joinlist * jl = new joinlist($3, $2);
-		jl->append($5);
-		$$ = newjoin(jl, $6);
+		$2->append($4);
+		$$ = joinlist2graph($2, optimize_bools($6));
 	   }
 	;
 
+newjoin:
+	parenquery word joinuntil 	{ $$ = new joinlist($2, $1, $3); }
+	;
+
+joinuntil:
+	null 				{ $$ = nullgraph; }
+	| UNTIL boolean 		{ $$ = optimize_bools($2); }
+	;
+
+join:
+	newjoin
+	| word joinuntil 	{ $$ = new joinlist($1, nullgraph, $2); }
+	;
+
 joins:
-	word				
+	join
+ 	| join ',' joins 
 	   { 
-		$$ = new joinlist($1, nullgraph);
-	   }
-	| parenquery word		
-	   { 
-		$$ = new joinlist($2, $1);
-	   }
- 	| word ',' joins		
-	   { 
-		$$ = new joinlist($1, nullgraph);
+		$$ = $1;
 		$$->append($3); 
-	   }
-	| parenquery word ',' joins	
-	   { 
-		$$ = new joinlist($2, $1);
-		$$->append($4); 
 	   }
 	;
 
 from0: 
 	from
-	| null		{ $$ = nullgraph; }
+	| null			{ $$ = nullgraph; }
 	;
 
 from:
@@ -314,8 +314,8 @@ from:
 	;
 
 where: 
-	null 		{ $$ = nullgraph; }
-        | WHERE boolean { $$ = optimize_bools($2); }
+	null 			{ $$ = nullgraph; }
+        | WHERE boolean 	{ $$ = optimize_bools($2); }
 	;
 
 group: 
