@@ -1,14 +1,13 @@
-#                                               -*- Autoconf -*-
+
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.57)
-AC_INIT(SMACQ, , mfisk@lanl.gov)
+AC_INIT(SMACQ, 1.0, mfisk@lanl.gov)
 AM_CONFIG_HEADER(config.h)
-AM_INIT_AUTOMAKE(SMACQ,)
+AM_INIT_AUTOMAKE
 AM_PROG_CC_STDC
 AC_CONFIG_SRCDIR([bin])
-AC_CONFIG_HEADERS
-
+#AC_CONFIG_HEADERS()
 AC_LIBTOOL_DLOPEN
 
 # Checks for programs.
@@ -19,7 +18,6 @@ AM_PROG_LEX
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
 AC_PROG_LIBTOOL
-AC_PROG_RANLIB
 
 # Checks for libraries.
 # FIXME: Replace `main' with a function in `-lc':
@@ -59,14 +57,12 @@ AC_FUNC_STRFTIME
 AC_FUNC_STRTOD
 AC_CHECK_FUNCS([floor gethostbyname gettimeofday inet_ntoa localtime_r memmove memset pow select socket strchr strdup strerror strtol])
 
-PKG_CHECK_MODULES(DEPS, libgda glib-2.0 )
-#AC_SUBST(DEPS_CFLAGS)
-#AC_SUBST(DEPS_LIBS)
+PKG_CHECK_MODULES(DEPS, glib-2.0 gmodule-2.0)
 
-LDFLAGS=${DEPS_LIBS}
-
+LDADDS=${DEPS_LIBS}
 GLOBAL_INCLUDES="${DEPS_CFLAGS} -D_GNU_SOURCE -D_ISOC99_SOURCE"
 AC_SUBST(GLOBAL_INCLUDES)
+AC_SUBST(LDADDS)
 
 SHAREDONLY_MODULES="test_dynamic" #python #reassemble
 BUILTIN_MODULES="print pcaplive pcapfile socket uniq count last top head filter msgtest entropy derivative split encrypt warden pdf fifo delta tabularinput sync rusage groupby flowid sum fifodelay project rename join substr bench_field mask const ndjoin lor counter_loop dfa noop expr equals cflow clock"
@@ -87,21 +83,36 @@ AC_SUBST(OBJECTS_MODULES_BUILTIN)
 LIBS_MODULES_SHARED=`for f in $SHAREDONLY_MODULES; do echo -n " smacq_$f.la "; done`
 AC_SUBST(LIBS_MODULES_SHARED)
 
+PKG_CHECK_MODULES(GDA, libgda,
+	[LDFLAGS=${GDA_LIBS}
+	GLOBAL_INCLUDES="${GDA_CFLAGS} ${GLOBAL_INCLUDES}"
+	EXTRA_MODULE_SOURCES="${EXTRA_MODULE_SOURCES} sqlinsert.c"
+	OPTIONAL_TESTS="${OPTIONAL_TESTS} sqlinsert.test.opt"
+	],[echo "$GDA_PKG_ERRORS"
+	echo "Building without sqlinsert module"])
+
+AC_SUBST(EXTRA_MODULE_SOURCES)
+AC_SUBST(OPTIONAL_TESTS)
 AC_ARG_ENABLE(profile,
 	AC_HELP_STRING([--enable-profile],[enable gprof profiling]),
 		CFLAGS="$CFLAGS -pg"
 		LDFLAGS="$LDFLAGS -pg"
-	fi],)
+	],)
 
 AC_ARG_ENABLE(debug,
 	AC_HELP_STRING([--enable-debug],[enable debugging options]),
 	[if test -n "$GCC"; then
 		CO="-O0"
-		CFLAGS="$CFLAGS -ggdb"
+		CFLAGS="$CFLAGS -fno-inline -ggdb"
 	else
 		CO="-O0"
 		CFLAGS="$CFLAGS -g"
-	fi],)
+	fi],
+	[if test -n "$GCC"; then
+		CFLAGS="$CFLAGS -fast -g"
+	fi
+	CO="-O9"
+	])
 
 AC_ARG_WITH([ethereal], 
 	AC_HELP_STRING([--with-ethereal],[Include Ethereal packet decoding]),
@@ -140,3 +151,4 @@ AC_CONFIG_FILES([Makefile
                  test/Makefile
                  types/Makefile])
 AC_OUTPUT
+
