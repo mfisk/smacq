@@ -48,7 +48,7 @@ config() {
 	echo "USR=$USR"
 	echo "LDOPTS=$LDOPTS"
 	#echo "COPTS=$COPTS"
-	echo "CFLAGS=$COPTS"
+	echo "COPTS=$COPTS"
 	echo "MAKEINCLUDES=$PWD/misc/include.mk"
 	echo "TOPSRCDIR=${TOPSRCDIR:-$PWD}"
 	echo "SRCDIR=$PWD"
