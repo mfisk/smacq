@@ -27,13 +27,15 @@ class IterativeScheduler {
   /// Run until an output object is ready.
   smacq_result get(DtsObject &dout);
 
+  /// Process a single action or object
+  smacq_result element(DtsObject &dout);
+
   /// Run to completion.
   bool busy_loop();
 
  private:
   bool graphs_alive (SmacqGraph *f);
 
-  smacq_result element(DtsObject &dout);
   void do_shutdown(SmacqGraph *f);
   void queue_children(SmacqGraph * f, DtsObject d, int outchan);
   void check_for_shutdown(SmacqGraph *f);
