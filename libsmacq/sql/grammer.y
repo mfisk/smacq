@@ -33,9 +33,8 @@
 
 %token YYSTOP YYLIKE YYOR YYAND YYNOT
 
-%right YYNOT
 %left YYAND YYOR
-%right FROM
+%right YYNOT
 
 %left '+' '-'
 %left '*' '/'
@@ -125,22 +124,27 @@ operand : id			{ $$ = comp_operand(FIELD, $1); }
 	;
 
 
-expression :   '(' expression ')' {	  $$ = $2;  } 
-                   | subexpression arithop subexpression  {
+expression :   
+	'(' expression ')' 
+				{	  
+				  $$ = $2;  
+				} 
+	| subexpression arithop subexpression  
+				{
 				  $$ = comp_arith(parse_tenv, $2, $1, $3); 
 				}
 	;
 
-subexpression : expression
-                  | operand
-                  ;
+subexpression : 
+	expression
+	| operand
+	;
 
-test : operand			{ $$ = comp_new(EXIST, $1, $1); }
+test : 	
+	operand		{  $$ = comp_new(EXIST, $1, $1); }
 	| subexpression op subexpression      { $$ = comp_new($2, $1, $3); }
 	| verb '(' args ')'	{ 
 				  int argc; char ** argv;
-				  struct dts_operand op;
-
 				  arglist2argv($3, &argc, &argv);
 				  $$ = comp_new_func($1, argc, argv, $3);
 				}
