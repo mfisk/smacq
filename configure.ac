@@ -123,6 +123,7 @@ AC_CONFIG_FILES([Makefile
                  misc/Makefile
                  modules/Makefile
                  modules/substr/Makefile
+                 modules/patricia/Makefile
                  test/Makefile
                  types/Makefile])
 AC_OUTPUT
