@@ -40,7 +40,6 @@ class SmacqGraphNode{
 
   struct smacq_module_ops ops;
 
-
   GModule * module;
 
   struct smacq_options * options;

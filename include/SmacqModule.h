@@ -79,6 +79,7 @@ inline smacq_result SmacqModule::dequeue(DtsObject & d, int & outchan) {
   if (outputq.empty()) {
     return SMACQ_PASS;
   } else {
+    //fprintf(stderr, "returning SMACQ_PASS|SMACQ_PRODUCE\n");
     return SMACQ_PASS|SMACQ_PRODUCE;
   }
 }
