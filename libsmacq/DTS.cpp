@@ -58,7 +58,7 @@ char * DTS::field_getname(DtsField &f) {
 }
 
 dts_field_element DTS::requirefield_single(char * name) {
-  std::map<const char*, int>::iterator i = fields_byname.find(name); 
+  std::map<const char*, int, ltstr>::iterator i = fields_byname.find(name); 
   if (i != fields_byname.end()) {
 	return ((*i).second);
   } else {
