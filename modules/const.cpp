@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
+
+#define SMACQ_MODULE_IS_STATELESS 1
+
 #include <SmacqModule.h>
 
 SMACQ_MODULE(const,
