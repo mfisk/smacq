@@ -7,16 +7,23 @@
 #include <sys/time.h>
 
 /* Turn on performance optimizations: */
-#define SMACQ_OPT_NOPTHREADS
-#define SMACQ_OPT_NOMSGS
-#define SMACQ_OPT_FORCEFIELDCACHE
-#define SMACQ_OPT_RUNRING
+#ifdef SMACQ_NO_OPT
+# define SMACQ_NO_OPT_DTS
+# define SMACQ_NO_OPT_DATAFLOW
+#endif
 
-#ifndef SMACQ_NO_OPT
-#define SMACQ_OPT_VECTORS
-#define SMACQ_OPT_CHILDREN
-#define SMACQ_OPT_HEADS
-#define SMACQ_OPT_TAILS
+#ifndef SMACQ_NO_OPT_DTS
+# define SMACQ_OPT_NOPTHREADS
+# define SMACQ_OPT_NOMSGS
+# define SMACQ_OPT_FORCEFIELDCACHE
+# define SMACQ_OPT_RUNRING
+#endif
+
+#ifndef SMACQ_NO_OPT_DATAFLOW
+# define SMACQ_OPT_VECTORS
+# define SMACQ_OPT_CHILDREN
+# define SMACQ_OPT_HEADS
+# define SMACQ_OPT_TAILS
 #endif
 
 #ifdef __cplusplus
