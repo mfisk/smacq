@@ -30,7 +30,7 @@ AC_CHECK_LIB([fl], [yylex])
 AC_CHECK_LIB([glib-2.0], [g_new]) 
 AC_CHECK_LIB([m], [pow])
 AC_CHECK_LIB([pcap], [pcap_open_live])
-#AC_CHECK_LIB([pthread], [pthread_exit])
+AC_CHECK_LIB([pthread], [pthread_exit])
 AC_CHECK_LIB([z], [gzopen])
 
 ##
@@ -38,11 +38,12 @@ AC_CHECK_LIB([z], [gzopen])
 ## (this is done early so they can be overridden later)
 ##
 if test -n "$GCC"; then
-	case $build in
+	case $host in  #This breaks cross-compiling
 		sparc-sun-solaris*)
 			CO="-fast"
 			;;
 		powerpc-apple-darwin*)
+			ADDCFLAGS="$ADDCFLAGS -force_flat_namespace"
 			CO="-fast -fPIC -mcpu="`machine | sed 's/ppc//'`
 			;;
     esac
