@@ -1,11 +1,8 @@
-#include <assert.h>
-#include <stdio.h>
-#include <string.h>
-#include <arpa/inet.h>
-#include <sys/socket.h>
 #include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
 #include <netinet/in.h>
-#include <stdlib.h>
+#include <arpa/inet.h>
 #include <smacq.h>
 
 static int smacqtype_ip_get_string(const dts_object * datum, dts_object * data) {
@@ -15,7 +12,24 @@ static int smacqtype_ip_get_string(const dts_object * datum, dts_object * data) 
 
 static int parse_ip(char * buf,  const dts_object * d) {
   dts_setsize(d, sizeof(struct in_addr));
-  return inet_pton(AF_INET, buf, d->data);
+  if (inet_pton(AF_INET, buf, d->data) == 1) {
+	fprintf(stderr, "pton ok on %s\n", buf);
+	return 1;
+  } else {
+	/* error, try DNS */
+ 	struct addrinfo * resp;
+	int res = getaddrinfo(buf, NULL, NULL, &resp);
+	if (res == 0) {
+		struct sockaddr_in * sin = (struct sockaddr_in *)resp->ai_addr;
+		assert(resp->ai_family == AF_INET);
+		assert(resp->ai_addr);
+		memcpy(d->data, &sin->sin_addr, sizeof(struct in_addr));
+		freeaddrinfo(resp);
+		return 1;
+	} else {
+		return 0;
+	}
+  }
 }
 
 struct dts_field_spec dts_type_ip_fields[] = {
