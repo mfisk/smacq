@@ -11,6 +11,7 @@
 #define KEYBYTES 128
 
 static struct smacq_options options[] = {
+  {"p", {uint32_t:0}, "pointer to per-partition graph", SMACQ_OPT_TYPE_UINT32},
   {NULL, {string_t:NULL}, NULL, 0}
 };
 
@@ -19,8 +20,6 @@ struct state {
   struct fieldset fieldset;
   smacq_graph * self;
   smacq_graph * mastergraph;
-  int queryargc;
-  char ** queryargv;
   struct smacq_outputq * outputq;
 
   struct iovec_hash * hashtable;
@@ -107,11 +106,7 @@ static inline struct output * get_partition(struct state * state, struct iovec *
     partition =  g_new0(struct output, 1);
     partition->graph = smacq_graph_clone(state->env, state->mastergraph);
     /*
-    fprintf(stderr, "New partition %p (graph = %p) running %s %s (%d)\n", partition, partition->graph, state->queryargv[0], state->queryargv[1], state->queryargc);
-
-    fprintf(stderr,"New partition:\n");
-    smacq_graph_print(stderr, partition->graph, 1);
-    fprintf(stderr,":\n");
+    fprintf(stderr, "New partition %p (graph = %p)\n", partition, partition->graph);
     */
 
     smacq_start(partition->graph, ITERATIVE, state->env->types);
@@ -184,44 +179,24 @@ static smacq_result groupby_consume(struct state * state, const dts_object * dat
 static smacq_result groupby_init(struct smacq_init * context) {
   int argc = 0;
   char ** argv;
-  int i;
+
   struct state * state = context->state = g_new0(struct state, 1);
   state->env = context->env;
   state->self = context->self;
-  argc=context->argc-1;
-  argv=context->argv+1;
 
-  for (i=0; i<argc; i++) {
-    if (!strcmp(argv[i], "\\|")) {
-      argv[i] = "|";
-    }
-  }
-
-  state->queryargc = 0;
-  for (i=0; i<argc; i++) {
-    if (!strcmp(argv[i], "--")) {
-      state->queryargv = argv+(i+1);
-      state->queryargc = argc-(i+1);
-      break;
-    }
-  }
-
-  if (!state->queryargc) {
-	  fprintf(stderr, "Warning: groupby called with no aggregates to execute!\n");
-	  assert(0);
-  }
-  argc -= (state->queryargc +1);
-
-  // Consume rest of arguments as fieldnames
-  assert(argc > 0);
 
   {
+  	smacq_opt ptr;
   	struct smacq_optval optvals[] = {
+		{"p", &ptr},
     		{NULL, NULL}
   	};
-  	smacq_getoptsbyname(argc, argv,
+  	smacq_getoptsbyname(context->argc-1, context->argv+1,
 			       &argc, &argv,
 			       options, optvals);
+	if (ptr.uint32_t) {
+		state->mastergraph = (smacq_graph*)ptr.uint32_t;
+	}
 
   }
 
@@ -229,8 +204,10 @@ static smacq_result groupby_init(struct smacq_init * context) {
   state->hashtable = bytes_hash_table_new(KEYBYTES, CHAIN|NOFREE);
 
   state->refresh_type = smacq_requiretype(state->env, "refresh");
-
-  state->mastergraph = smacq_build_query(state->env->types, state->queryargc, state->queryargv);
+  if (!state->mastergraph) {
+	  fprintf(stderr, "groupby: error: called without any action to take\n");
+	  assert(state->mastergraph);
+  }
 
   return 0;
 }

@@ -77,7 +77,13 @@ void graph_join(struct graph * graph, struct graph newg) {
 	/* Splice them together */
 	assert(graph->tail);
 
-	smacq_add_child(graph->tail, newg.head); 
+	if (graph->head->next_graph) {
+		/* Existing graph may have multiple tails */
+		fprintf(stderr, "Using bag of graphs as a source is not yet supported\n");
+		smacq_add_child(graph->tail, newg.head); 
+	} else {
+		smacq_add_child(graph->tail, newg.head); 
+	}
 
 	if (newg.head->next_graph) {
 		/* This graph has multiple heads that should all become children */
@@ -102,48 +108,57 @@ void graph_append(struct graph * graph, smacq_graph * newmod) {
 }
 
 struct arglist * arglist_append(struct arglist * tail, struct arglist * addition) {
-	for (; tail->next; tail=tail->next) ;
-	tail->next = addition;
-	for (; tail->next; tail=tail->next) ;
+	struct arglist * start;
 
-	return tail;
+	if (tail) {
+		start = tail;
+	} else {
+		start = addition;
+		addition = NULL;
+	}
+
+	if (!start) {
+		return NULL;
+	}
+
+	for (tail=start; tail->next; tail=tail->next) ;
+
+	tail->next = addition;
+
+	return start;
 }
-	
-struct graph newgroup(struct group group, struct vphrase vphrase) {
+
+struct graph newgroup(struct group group, struct graph vphrase) {
   /*
    * This function violates some abstractions by knowing the 
    * calling syntax for "groupby" and constructing arguments for it.
    */
-  struct arglist * atail;
   struct graph g = { NULL, NULL};
-  int argcont = 0;
+  char gp[32];
+  struct arglist * arglist;
   
   if (!group.args) { 
     /* Do nothing if this was "group by" NULL */
-    return newmodule(vphrase.verb, vphrase.args);
+    return vphrase;
   }
   
-  atail = arglist_append(group.args, newarg("--", 0, NULL));
- 
   if (group.having) { 
-    if (argcont) 
-	atail = arglist_append(atail, newarg("|", 0, NULL));
-    atail = arglist_append(atail, newarg("where", 0, NULL));
-    atail = arglist_append(atail, newarg(print_comparison(group.having), 0, NULL));
-    argcont = 1;
+    struct graph having = optimize_bools(group.having);
+    graph_join(&having, vphrase);
+    vphrase = having;
   }
 
-  if (argcont) 
-	atail = arglist_append(atail, newarg("|", 0, NULL));
+  sprintf(gp, "%lu", (unsigned long)vphrase.head);
+  smacq_graph_print(stderr, vphrase.head, 0);
 
-  atail = arglist_append(atail, newarg(vphrase.verb, 0, NULL));
-  atail = arglist_append(atail, newarg(arglist2str(vphrase.args), 0, NULL));
-
-  g = newmodule("groupby", group.args);
+  arglist = newarg("-p", 0, NULL);
+  arglist_append(arglist, newarg(strdup(gp), 0, NULL));
+  arglist_append(arglist, group.args);
+ 
+  g = newmodule("groupby", arglist);
  
   return g;
 }
-
 
 struct graph newmodule(char * module, struct arglist * alist) {
      struct arglist * anew;
@@ -381,12 +396,6 @@ char * print_comparison(dts_comparison * comp) {
   return(buf);
 }
 
-static inline struct arglist * arglist_append2(struct arglist * old, struct arglist * append) {
-	if (!old) return append;
-	arglist_append(old, append);
-	return old;
-}
-
 struct graph optimize_bools(dts_comparison * c) {
   struct arglist * arglist = NULL;
   struct graph g;
@@ -409,7 +418,7 @@ struct graph optimize_bools(dts_comparison * c) {
 
       subg.head = NULL, subg.tail = NULL;
 
-      arglist = arglist_append2(arglist, newarg("-o", 0, NULL));
+      arglist = arglist_append(arglist, newarg("-o", 0, NULL));
       uniq = newmodule("uniq", arglist); 
 
       for (p=c->group; p; p=p->next) {
@@ -430,18 +439,18 @@ struct graph optimize_bools(dts_comparison * c) {
       graph_join(&g, subg);
 
     } else if (c->op == NOT) {
-      arglist = arglist_append2(arglist, newarg("not", 0, NULL));
+      arglist = arglist_append(arglist, newarg("not", 0, NULL));
       if (c->group && c->group->op != FUNC) {
-	arglist = arglist_append2(arglist, newarg("where", 0, NULL));
+	arglist = arglist_append(arglist, newarg("where", 0, NULL));
       }
-      arglist = arglist_append2(arglist, newarg(print_comparison(c->group), 0, NULL));
+      arglist = arglist_append(arglist, newarg(print_comparison(c->group), 0, NULL));
 				
       graph_join(&g, newmodule("lor", arglist));
 
     } else if (c->op == EQ && c->op1->type == FIELD && c->op2->type == CONST) {
 
       arglist = newarg(c->op1->origin.literal.str, 0, NULL);
-      arglist = arglist_append2(arglist, newarg(c->op2->origin.literal.str, 0, NULL));
+      arglist = arglist_append(arglist, newarg(c->op2->origin.literal.str, 0, NULL));
       graph_join(&g, newmodule("equals", arglist));
 
     } else {
