@@ -4,6 +4,9 @@
 #include <stdlib.h>
 #include <assert.h>
 
+int type_match_andor(dts_environment * tenv, const dts_object * datum, 
+	   dts_comparison * comps, int same_types, int op);
+
 int type_parsetest (dts_environment * tenv, dts_comparison * comp, 
 		    char * test) {
     int offset = strcspn(test,  "=<>!");
@@ -31,15 +34,12 @@ int type_parsetest (dts_environment * tenv, dts_comparison * comp,
     return 1;
 }
 
-int type_match(dts_environment * tenv, const dts_object * datum, 
-	   dts_comparison * comps, int same_types) {
+int type_match_one(dts_environment * tenv, const dts_object * datum, 
+	   dts_comparison * c, int same_types) {
   dts_object test_data;
-  dts_comparison * c;
   int dtype;
 
-  for (c = comps; c; c = c->next) {
-    int match = 0; // by default
-
+  if ((c->op != AND) && (c->op != OR)) {
     if ((!same_types) && c->valstr) {
       /* The types of these fields may have changed, 
 	 reinitialize the values we're matching against */
@@ -64,34 +64,26 @@ int type_match(dts_environment * tenv, const dts_object * datum,
 	}
       }
     }
+  }
 
       switch (c->op) {
       case EQUALITY:
-	/*
-	{
-	  char * str;
-	  tenv->presentdata(tenv, &c->field_data, dts_transform(tenv, "string"), (void**)&str, &slen);
-	  printf("%.20s = %s (%hu) =? %hu \n", c->field, str, *(ushort*)c->field_data.data, *(ushort*)test_data.data);
-	  free(str);
-	}
-	*/
-
 	if ((c->field_data.type == test_data.type) && 
 	    (c->field_data.len == test_data.len) && 
 	    (!memcmp(c->field_data.data, test_data.data, test_data.len)))  
-	  match = 1;
+	  return 1;
 	break;
 
       case INEQUALITY:
 	if ((c->field_data.type == test_data.type) &&
 	    ((c->field_data.len != test_data.len) || (memcmp(c->field_data.data, test_data.data, test_data.len))))  
-	  match = 1;
+	  return 1;
 	break;
 
       case LT:
 	if ((c->field_data.type == test_data.type) && 
 	    (dts_lt(tenv, c->field_data.type, test_data.data, test_data.len, c->field_data.data, c->field_data.len)))  
-	  match = 1;
+	  return 1;
 	// fprintf(stderr, "%d <? %d: %d\n", *(ushort*)test_data.data, *(ushort*)c->field_data.data, match);
 	break;
 
@@ -99,24 +91,55 @@ int type_match(dts_environment * tenv, const dts_object * datum,
 	if ((c->field_data.type == test_data.type) && 
 	    (!dts_lt(tenv, c->field_data.type, test_data.data, test_data.len, c->field_data.data, c->field_data.len)) &&  
 	    ((c->field_data.len != test_data.len) || (memcmp(c->field_data.data, test_data.data, test_data.len))))  
-	  match = 1;
+	  return 1;
 	break;
 
       case EXIST:
-	match = 1;
+	return 1;
+	break;
+
+      case LIKE:
+	assert("LIKE not supported yet" && 0);
+	break;
+
+      case AND:
+      case OR:
+        // fprintf(stderr, "criterion check %s\n", c->op == AND ? "and" : "or");
+	return type_match_andor(tenv, datum, c->group, same_types, c->op);
 	break;
       }
 
       
-    if (!match) 
-      return 0;
-
-    // fprintf(stderr, "criterion match, checking next...\n");
+    return 0;
+}
       
+
+int type_match_andor(dts_environment * tenv, const dts_object * datum, 
+	   dts_comparison * comps, int same_types, int op) {
+  dts_comparison * c;
+
+  for (c = comps; c; c = c->next) {
+	if (!type_match_one(tenv, datum, c, same_types)) {
+		// fprintf(stderr,"no\n");
+		if (op == AND) 
+		  	return 0;
+	} else {
+		// fprintf(stderr,"yes\n");
+		if (op == OR)
+			return 1;
+	}
   }
 
-
   // fprintf(stderr, "total match\n");
-  return 1;
+  if (op == AND) 
+	  return 1;
+  else
+	  return 0;
+}
+
+int type_match(dts_environment * tenv, const dts_object * datum, 
+	   dts_comparison * comps, int same_types) {
+
+  return type_match_andor(tenv, datum, comps, same_types, AND);
 }
 

@@ -1,7 +1,7 @@
 %{
 #define YY_NO_UNPUT
-#include "smacq-parser.h"
-#include "grammer.h"
+#include "filter.h"
+#include "filter-parser.h"
 #include <string.h>
 #define MAX_STR_CONST 1024
 
@@ -14,30 +14,29 @@ char *yystring;
 
 %option noyywrap
 
+
 space		[ \t\n\r\f]
 quote		\'
 dquote		\"
-number		-?[0-9.]+
-id		[a-zA-Z\-][a-zA-Z0-9\-_\.\:]*
+id		[a-zA-Z0-9\-_\.\:]+
 
 %x xdquote
 %x xquote
 
 %%
 
-where|WHERE	return WHERE;
-from|FROM	return FROM;
-group|GROUP	return GROUP;
-by|BY		return BY;
-as|AS		return AS;
-having|HAVING	return HAVING;
+like		return YYLIKE;
+and		return YYAND;
+"&&"		return YYAND;
+or		return YYOR;
+"||"		return YYOR;
 
 {quote}		BEGIN(xquote);
 <xquote>{
 	{quote}	BEGIN(0);
 	[^']+	{
 			yystring = strdup(yytext);
-			return STRING;
+			return YYSTRING;
 		}
 
 	}
@@ -53,21 +52,23 @@ having|HAVING	return HAVING;
 				*yystring = '\0'; 
 			 	yystring = strdup(string_buf);
 			 	BEGIN(0); 
-				return STRING;
+				return YYSTRING;
 			}
 	.		*yystring++ = yytext[0];
 	}
 
 [\ \n\t]	{ ; }
 
-[,>()]    	return yytext[0];
+[\!\<\>\(\)]    	return yytext[0];
+
+=+		{ return yytext[0]; }
 
 {id}		{ 
 			yystring = strdup((char *)yytext); 
-			return ID; 
+			return YYID; 
 		}
 
-<<EOF>>		{ return STOP; }
+<<EOF>>		{ return YYSTOP; }
 
 .		{ yyerror("Unexpected character"); }
 

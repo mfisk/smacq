@@ -2,33 +2,33 @@ LIBTOOL=libtool
 BISON=bison
 FLEX=flex
 
-OBJS = scanner.lo grammer.lo
+OBJS = filter-scanner.lo filter-parser.lo
 
 CFLAGS = -ggdb -Wall -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include $(INCLUDES) -I../../include
 
 LIBS = -lfl
 
-all: libsql.la
+all: libfilter.la
 
-libsql.la: $(OBJS)
+libfilter.la: $(OBJS)
 	$(LIBTOOL) $(CC) -export-symbols-regex '^smacq_.*' -o $@ $+ $(LIBS)
 
 %.lo: %.c
 	$(LIBTOOL) $(CC) -c $(CFLAGS) $<
 
-scanner.c:: grammer.h
+filter-scanner.c: filter-parser.h
 
 %.c: %.y
-	$(BISON) -d -o $@ $<
+	$(BISON) -p yyfilter -d -o $@ $<
 
 %.h: %.c
 	@true
 
 %.c: %.l 
-	$(FLEX) -i -o$@ $<
+	$(FLEX) -i -Pyyfilter -o$@ $<
 
 clean: distclean
-	rm -Rf scanner.c grammer.c grammer.h scan.c gram.c gram.h
+	rm -Rf filter-scanner.c filter-parser.c filter-parser.h 
 
 distclean:
 	rm -Rf *.lo *.la *.o *.a .libs
