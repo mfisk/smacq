@@ -19,21 +19,25 @@ void fields_init(smacq_environment * env, struct fieldset * fieldset, int argc, 
     }
   }
 
-  fieldset->currentdata = g_new(dts_object, fieldset->num);
+  fieldset->currentdata = g_new0(dts_object*, fieldset->num);
 }
 
-dts_object * fields2data(smacq_environment * env,
+static const dts_object ** fields2data(smacq_environment * env,
 			  const dts_object * datum, 
 			  struct fieldset * fieldset) {
-  dts_object * datalist = fieldset->currentdata;
+  const dts_object ** datalist = fieldset->currentdata;
   int i;
 
   for (i = 0; i < fieldset->num; i++) {
     struct field * f = &fieldset->fields[i];
 
-    if (! smacq_getfield(env, datum, f->num, &datalist[i])) {
+    // Free old field data
+    if (datalist[i]) 
+      dts_decref(datalist[i]);
+
+    if (! (datalist[i] = smacq_getfield(env, datum, f->num, NULL))) {
       //fprintf(stderr, "Debug: uniq: no %s field in this datum of type %s\n", f->name, env->typename_bynum(datum->type));
-      return 0;
+      return NULL;
     }
 
     //fprintf(stderr, "Field %s len %d\n", f->name, f->len);
@@ -49,7 +53,7 @@ struct iovec * fields2vec(smacq_environment * env,
   int i;
 
   if (!fields2data(env, datum, fieldset)) 
-	  return 0;
+	  return NULL;
 
   if (!fieldset->currentvecs) 
   	fieldset->currentvecs = g_new(struct iovec, fieldset->num);
@@ -57,8 +61,8 @@ struct iovec * fields2vec(smacq_environment * env,
   exlist = fieldset->currentvecs;
 
   for (i = 0; i < fieldset->num; i++) {
-    exlist[i].iov_len = fieldset->currentdata[i].len;
-    exlist[i].iov_base = fieldset->currentdata[i].data;
+    exlist[i].iov_len = fieldset->currentdata[i]->len;
+    exlist[i].iov_base = fieldset->currentdata[i]->data;
   }
 
   return exlist;
