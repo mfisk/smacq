@@ -20,9 +20,8 @@ struct substr_search_resume {
   int offset;
   struct trie * trie;
   
-  /* Set: */
-  int left;
-  int len;
+  int left; /* Used by singleton algs */
+  unsigned char * endp;  /* Used by set algs */
 };
 
 struct substr_search_result {

@@ -16,7 +16,7 @@
 ** Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
-/* $Id: substr.c,v 1.1 2002/04/05 15:15:24 chrisgreen Exp $ */
+/* $Id: substr.c,v 1.1 2003/01/18 17:40:19 mfisk Exp $ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -27,11 +27,13 @@
 #include "trie.h"
 
 #define DEBUG_SS(a)  
-// #define MALLOC(a) (a*)malloc(sizeof(a))
-#define MALLOC(a) (a*)calloc(sizeof(a),1)
+#define CALLOC(a) (a*)calloc(sizeof(a),1)
 #define MIN(a,b) ( (a) < (b) ? (a) : (b) )
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
 #define ALPHABETSIZE 256
+#ifndef MAXINT
+  #define MAXINT 2147483647
+#endif
 
 int totalshifts = 0;
 int totalshiftby = 0;
@@ -225,8 +227,12 @@ substr_add(substr_object * rs, int len, unsigned char * str, int nocase, void * 
   if (offset < rs->minoffset)
     rs->minoffset = offset;
 
-  if (depth+offset > rs->maxdepth) // maxdepth is measured from beginning of buffer, not offset
+  if (!depth) {
+    rs->maxdepth = MAXINT;
+  } else if (depth+offset > rs->maxdepth) {
+    // maxdepth is measured from beginning of buffer, not offset
     rs->maxdepth = depth + offset;
+  }
 
   return(1);
 }
@@ -234,6 +240,12 @@ substr_add(substr_object * rs, int len, unsigned char * str, int nocase, void * 
 int 
 substr_compile(substr_object * rs) 
 {
+  if (rs->minoffset == MAXINT) {
+	  rs->minoffset = 0;
+  }
+  if (rs->maxdepth == -1) {
+	  rs->maxdepth = 0;
+  }
   return(rs->compile(rs));
 }
 
@@ -454,7 +466,7 @@ set_search(substr_object * obj, unsigned char * hay, int len,
   stop = hay + len - 1;
   mtries = obj->trie->mtries;
 
-  if ((hp = endp = (unsigned char *)stat->resume.len)) {
+  if ((hp = endp = stat->resume.endp)) {
   	t = stat->resume.trie;
   } else {
   	hp = endp = hay + obj->shortest - 1;
@@ -479,8 +491,7 @@ set_search(substr_object * obj, unsigned char * hay, int len,
 				t = t->branch[*hp];
 			}
 			/* added cast -- cmg */
-			// stat->resume.len = (int) endp;
-			stat->resume.len = endp;
+			stat->resume.endp = endp;
 			stat->resume.trie = t; 
 			return 1;
                     }
@@ -523,7 +534,7 @@ ac_search(substr_object * obj, unsigned char * hay, int len,
   stop = hay + len;
   mtries = obj->trie->mtries;
 
-  if ((hp = (unsigned char *)stat->resume.len)) {
+  if ((hp = stat->resume.endp)) {
 	if (hp >= stop) return 0;
 
   	t = stat->resume.trie;
@@ -551,8 +562,7 @@ ac_search(substr_object * obj, unsigned char * hay, int len,
                 		t = t->fail;
 
 			/* added cast -- cmg */
-			//stat->resume.len = (int) hp;
-			stat->resume.len =  hp;
+			stat->resume.endp =  hp;
 			stat->resume.trie = t; 
 			return 1;
 		}
@@ -677,7 +687,7 @@ fast_compile(substr_object * set)
 substr_object *
 substr_new(enum substr_type searchtype)
 {
-  substr_object * rs = MALLOC(substr_object);
+  substr_object * rs = CALLOC(substr_object);
   if (!rs) return 0;
 
   rs->patterns = NULL;
@@ -702,6 +712,9 @@ substr_new(enum substr_type searchtype)
     return NULL;
   }
 
+  rs->minoffset = MAXINT;
+  rs->maxdepth = -1;
+
   return(rs);
 }
 
@@ -722,8 +735,10 @@ main(int argc, char ** argv) {
   struct timeval tv;
   int alg;
   unsigned char * aname[numalg];
-  int totalh[numalg], totall[numalg];
   int correct = 0;
+#ifdef SUBSTR_PERFMON
+  int totalh[numalg], totall[numalg];
+#endif
 
   aname[SUBSTR_HORSPOOL] = "BMH";
   aname[SUBSTR_AC] = "A-C";
@@ -742,7 +757,9 @@ main(int argc, char ** argv) {
 
   for (alg=0; alg<numalg; alg++)  {
      search[alg] = substr_new(alg);
+#ifdef SUBSTR_PERFMON
      totall[alg] = totalh[alg] = 0;
+#endif
   }
 
   while ((pat = fgets(buf, 8192, stdin))) {
@@ -811,7 +828,9 @@ main(int argc, char ** argv) {
        memset(&res, 0, sizeof(res));
        found = 0;
 
+#ifdef SUBSTR_PERFMON
        rdtsc(low,high);
+#endif
        do {
          ret = substr_search(search[alg], str, len, &res);
          if (ret) {
@@ -825,10 +844,12 @@ main(int argc, char ** argv) {
 	   found++;
          }
        } while (ret);
+#ifdef SUBSTR_PERFMON
        rdtsc(el,eh);
      
        totall[alg] += el - low;
        totalh[alg] += eh - high;
+#endif
 
        if (alg == 0) {
           fprintf(stderr, "\n%d matches\n", found);
@@ -841,8 +862,10 @@ main(int argc, char ** argv) {
     }
   }
 
+#ifdef SUBSTR_PERFMON
   for (alg=0; alg<numalg; alg++) 
 	fprintf(stderr, "%s Time %ld,%ld\n" , aname[alg], totalh[alg], totall[alg]);
+#endif
 
   return 0;
 }
