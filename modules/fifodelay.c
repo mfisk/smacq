@@ -137,10 +137,6 @@ static smacq_result fifodelay_init(struct smacq_init * context) {
   return 0;
 }
 
-static smacq_result fifodelay_shutdown(struct state * state) {
-  return 0;
-}
-
 static smacq_result fifodelay_produce(struct state * state, const dts_object ** datum, int * outchan) {
   if (state->fifo) {
     struct obj_list * old = state->fifo;
@@ -169,10 +165,8 @@ static smacq_result fifodelay_produce(struct state * state, const dts_object ** 
   }
 }
 
-/* Right now this serves mainly for type checking at compile time: */
 struct smacq_functions smacq_fifodelay_table = {
-  &fifodelay_produce, 
-  &fifodelay_consume,
-  &fifodelay_init,
-  &fifodelay_shutdown
+  produce: &fifodelay_produce, 
+  consume: &fifodelay_consume,
+  init: &fifodelay_init
 };

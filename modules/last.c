@@ -187,11 +187,6 @@ static smacq_result last_init(struct smacq_init * context) {
   return 0;
 }
 
-static smacq_result last_shutdown(struct state * state) {
-  return 0;
-}
-
-
 static smacq_result last_produce(struct state * state, const dts_object ** datum, int * outchan) {
   if (!state->outputq) {
     emit_all(state);
@@ -200,10 +195,8 @@ static smacq_result last_produce(struct state * state, const dts_object ** datum
   return smacq_produce_dequeue(&state->outputq, datum, outchan);
 }
 
-/* Right now this serves mainly for type checking at compile time: */
 struct smacq_functions smacq_last_table = {
-  &last_produce, 
-  &last_consume,
-  &last_init,
-  &last_shutdown
+  produce: &last_produce, 
+  consume: &last_consume,
+  init: &last_init,
 };

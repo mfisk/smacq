@@ -141,18 +141,7 @@ static smacq_result top_init(struct smacq_init * context) {
   return 0;
 }
 
-static smacq_result top_shutdown(struct state * state) {
-  return 0;
-}
-
-static smacq_result top_produce(struct state * state, const dts_object ** datum, int * outchan) {
-  return SMACQ_ERROR;
-}
-
-/* Right now this serves mainly for type checking at compile time: */
 struct smacq_functions smacq_top_table = {
-  &top_produce, 
-  &top_consume,
-  &top_init,
-  &top_shutdown
+  consume: &top_consume,
+  init: &top_init,
 };

@@ -66,13 +66,10 @@ static smacq_result msgtest_init(struct smacq_init * context) {
   return 0;
 }
 
-
-/* Right now this serves mainly for type checking at compile time: */
 struct smacq_functions smacq_msgtest_table = {
-  &msgtest_produce, 
-  &msgtest_consume,
-  &msgtest_init,
-  NULL
+  produce: &msgtest_produce, 
+  consume: &msgtest_consume,
+  init: &msgtest_init,
 };
 
 

@@ -86,11 +86,6 @@ static smacq_result entropy_init(struct smacq_init * context) {
   return 0;
 }
 
-static smacq_result entropy_shutdown(struct state * state) {
-  return 0;
-}
-
-
 static smacq_result entropy_produce(struct state * state, const dts_object ** datum, int * outchan) {
   double total = state->total;
   if (!state->total) total = state->prev_total;
@@ -117,8 +112,7 @@ static smacq_result entropy_produce(struct state * state, const dts_object ** da
 
 /* Right now this serves mainly for type checking at compile time: */
 struct smacq_functions smacq_entropy_table = {
-  &entropy_produce, 
-  &entropy_consume,
-  &entropy_init,
-  &entropy_shutdown
+  produce: &entropy_produce, 
+  consume: &entropy_consume,
+  init: &entropy_init,
 };

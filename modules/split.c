@@ -111,19 +111,7 @@ static smacq_result split_init(struct smacq_init * context) {
   return 0;
 }
 
-static smacq_result split_shutdown(struct state * state) {
-  return SMACQ_END;
-}
-
-
-static smacq_result split_produce(struct state * state, const dts_object ** datump, int * outchan) {
-  return SMACQ_END;
-}
-
-/* Right now this serves mainly for type checking at compile time: */
 struct smacq_functions smacq_split_table = {
-  &split_produce, 
-  &split_consume,
-  &split_init,
-  &split_shutdown
+  consume: &split_consume,
+  init: &split_init
 };

@@ -104,19 +104,7 @@ static smacq_result rusage_init(struct smacq_init * context) {
   return 0;
 }
 
-static smacq_result rusage_shutdown(struct state * state) {
-  return 0;
-}
-
-
-static smacq_result rusage_produce(struct state * state, const dts_object ** datum, int * outchan) {
-  return SMACQ_ERROR;
-}
-
-/* Right now this serves mainly for type checking at compile time: */
 struct smacq_functions smacq_rusage_table = {
-  &rusage_produce, 
-  &rusage_consume,
-  &rusage_init,
-  &rusage_shutdown
+  consume: &rusage_consume,
+  init: &rusage_init,
 };

@@ -242,9 +242,9 @@ static smacq_result socket_init(struct smacq_init * context) {
 }
 
 struct smacq_functions smacq_socket_table = {
-  &socket_produce, 
-  &socket_consume,
-  &socket_init,
-  &socket_shutdown
+  produce: &socket_produce, 
+  consume: &socket_consume,
+  init: &socket_init,
+  shutdown: &socket_shutdown
 };
 

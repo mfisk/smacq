@@ -113,11 +113,6 @@ static smacq_result encrypt_init(struct smacq_init * context) {
   return 0;
 }
 
-static smacq_result encrypt_shutdown(struct state * state) {
-  return SMACQ_END;
-}
-
-
 static smacq_result encrypt_produce(struct state * state, const dts_object ** datump, int * outchan) {
   if (state->datum) {
     *datump = state->datum;
@@ -128,10 +123,8 @@ static smacq_result encrypt_produce(struct state * state, const dts_object ** da
   }
 }
 
-/* Right now this serves mainly for type checking at compile time: */
 struct smacq_functions smacq_encrypt_table = {
-  &encrypt_produce, 
-  &encrypt_consume,
-  &encrypt_init,
-  &encrypt_shutdown
+  produce: &encrypt_produce, 
+  consume: &encrypt_consume,
+  init: &encrypt_init,
 };

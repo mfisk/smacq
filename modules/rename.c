@@ -50,19 +50,8 @@ static smacq_result rename_init(struct smacq_init * context) {
   return 0;
 }
 
-static smacq_result rename_shutdown(struct state * state) {
-  return 0;
-}
-
-
-static smacq_result rename_produce(struct state * state, const dts_object ** datum, int * outchan) {
-  return SMACQ_END;
-}
-
 /* Right now this serves mainly for type checking at compile time: */
 struct smacq_functions smacq_rename_table = {
-  &rename_produce, 
-  &rename_consume,
-  &rename_init,
-  &rename_shutdown
+  consume: &rename_consume,
+  init: &rename_init
 };

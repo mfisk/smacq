@@ -122,11 +122,6 @@ static smacq_result warden_init(struct smacq_init * context) {
   return 0;
 }
 
-static smacq_result warden_shutdown(struct state * state) {
-  return SMACQ_END;
-}
-
-
 static smacq_result warden_produce(struct state * state, const dts_object ** datump, int * outchan) {
   if (state->datum) {
     *datump = state->datum;
@@ -137,10 +132,8 @@ static smacq_result warden_produce(struct state * state, const dts_object ** dat
   }
 }
 
-/* Right now this serves mainly for type checking at compile time: */
 struct smacq_functions smacq_warden_table = {
-  &warden_produce, 
-  &warden_consume,
-  &warden_init,
-  &warden_shutdown
+  produce: &warden_produce, 
+  consume: &warden_consume,
+  init: &warden_init,
 };

@@ -108,11 +108,6 @@ static smacq_result join_init(struct smacq_init * context) {
   return 0;
 }
 
-static smacq_result join_shutdown(struct state * state) {
-  return SMACQ_END;
-}
-
-
 static smacq_result join_produce(struct state * state, const dts_object ** datump, int * outchan) {
   int status;
 
@@ -126,10 +121,8 @@ static smacq_result join_produce(struct state * state, const dts_object ** datum
   return status | (state->product ? SMACQ_PRODUCE : 0);
 }
 
-/* Right now this serves mainly for type checking at compile time: */
 struct smacq_functions smacq_join_table = {
-  &join_produce, 
-  &join_consume,
-  &join_init,
-  &join_shutdown
+  produce: &join_produce, 
+  consume: &join_consume,
+  init: &join_init
 };

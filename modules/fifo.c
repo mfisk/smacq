@@ -51,10 +51,6 @@ static smacq_result fifo_init(struct smacq_init * context) {
   return 0;
 }
 
-static smacq_result fifo_shutdown(struct state * state) {
-  return 0;
-}
-
 static smacq_result fifo_produce(struct state * state, const dts_object ** datum, int * outchan) {
   if (state->fifo) {
     struct obj_list * old = state->fifo;
@@ -68,10 +64,8 @@ static smacq_result fifo_produce(struct state * state, const dts_object ** datum
   return(SMACQ_PASS|(state->fifo ? SMACQ_CANPRODUCE : 0));
 }
 
-/* Right now this serves mainly for type checking at compile time: */
 struct smacq_functions smacq_fifo_table = {
-  &fifo_produce, 
-  &fifo_consume,
-  &fifo_init,
-  &fifo_shutdown
+  produce: &fifo_produce, 
+  consume: &fifo_consume,
+  init: &fifo_init,
 };

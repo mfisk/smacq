@@ -74,11 +74,6 @@ static smacq_result sync_init(struct smacq_init * context) {
   return 0;
 }
 
-static smacq_result sync_shutdown(struct state * state) {
-  return SMACQ_END;
-}
-
-
 static smacq_result sync_produce(struct state * state, const dts_object ** datump, int * outchan) {
   if (state->isfirst && !state->product) {
 	sync_consume(state, NULL, outchan);
@@ -96,10 +91,8 @@ static smacq_result sync_produce(struct state * state, const dts_object ** datum
   }
 }
 
-/* Right now this serves mainly for type checking at compile time: */
 struct smacq_functions smacq_sync_table = {
-  &sync_produce, 
-  &sync_consume,
-  &sync_init,
-  &sync_shutdown
+  produce: &sync_produce, 
+  consume: &sync_consume,
+  init: &sync_init
 };

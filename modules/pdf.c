@@ -113,11 +113,6 @@ static smacq_result pdf_init(struct smacq_init * context) {
   return 0;
 }
 
-static smacq_result pdf_shutdown(struct state * state) {
-  return 0;
-}
-
-
 static smacq_result pdf_produce(struct state * state, const dts_object ** datum, int * outchan) {
   if (!state->outputq) {
     compute_all(state);
@@ -134,10 +129,8 @@ static smacq_result pdf_produce(struct state * state, const dts_object ** datum,
   return(SMACQ_PASS|(state->outputq ? SMACQ_PRODUCE : 0));
 }
 
-/* Right now this serves mainly for type checking at compile time: */
 struct smacq_functions smacq_pdf_table = {
-  &pdf_produce, 
-  &pdf_consume,
-  &pdf_init,
-  &pdf_shutdown
+  produce: &pdf_produce, 
+  consume: &pdf_consume,
+  init: &pdf_init
 };
