@@ -145,12 +145,13 @@ static smacq_result count_shutdown(struct state * state) {
 
 static smacq_result count_produce(struct state * state, const dts_object ** datump, int * outchan) {
   int c;
-  struct iovec * domainv = fields2vec(state->env, state->lastin, &state->fieldset);
+  struct iovec * domainv;
 
   if (!state->lastin) {
 	return SMACQ_FREE;
   }
 
+  domainv = fields2vec(state->env, state->lastin, &state->fieldset);
   *datump = state->lastin;
   state->lastin = NULL;
 
