@@ -191,7 +191,9 @@ EXTERN int flow_start(struct filter *, enum flow_scheduler, dts_environment *);
 void flow_init_modules(struct filter *, smacq_environment *);
 EXTERN struct filter * smacq_build_pipeline(int argc, char ** argv);
 struct filter * smacq_build_query(int argc, char ** argv);
-struct filter * smacq_add_child(struct filter * parent, int argc, char ** argv);
+struct filter * smacq_add_new_child(struct filter * parent, int argc, char ** argv);
+int smacq_add_child(struct filter * parent, struct filter * newo);
+struct filter * smacq_new_module(int argc, char ** argv);
 struct filter * smacq_clone_child(struct filter * parent, int child);
 struct filter * smacq_clone_tree(struct filter * donorParent, struct filter * newParent, int child);
 
