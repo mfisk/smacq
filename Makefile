@@ -1,4 +1,4 @@
-DIRS=libsmacq types modules bin doc reloc
+DIRS=libsmacq types modules bin doc #reloc
 CFLAGS=-O9 -Winline 			# Optimized for normal use
 CFLAGS=-ggdb -O0 -fno-inline -Winline	# For debugging
 COPTS+=$(CFLAGS)

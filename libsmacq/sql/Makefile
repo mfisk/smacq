@@ -8,7 +8,7 @@ CFLAGS = -Wall -I$(SRCDIR) -I$(USR)/include/glib-2.0 -I$(USR)/lib/glib-2.0/inclu
 
 LIBS = -lfl
 
-all: libsql.la grammer.c scanner.c
+all: libsql.la 
 
 libsql.la: $(OBJS)
 	$(LIBTOOL) $(CC) -export-symbols-regex '^smacq_.*' -o $@ $+ $(LIBS)
@@ -16,7 +16,7 @@ libsql.la: $(OBJS)
 %.lo: %.c
 	$(LIBTOOL) $(CC) -c $(CFLAGS) $<
 
-scanner.c:: grammer.h
+#scanner.lo:: grammer.h
 
 %.c: %.y
 	$(BISON) -d -o $@ $<

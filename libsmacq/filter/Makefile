@@ -16,7 +16,7 @@ libfilter.la: $(OBJS)
 %.lo: %.c
 	$(LIBTOOL) $(CC) -c $(CFLAGS) $<
 
-filter-scanner.c: filter-parser.h
+#filter-scanner.c: filter-parser.h
 
 %.c: %.y
 	$(BISON) -p yyfilter -d -o $@ $<
