@@ -277,6 +277,18 @@ void bytes_hash_table_foreach(GHashTableofBytes * ht, GHFunc func, gpointer user
   g_hash_table_foreach(ht->ht, func, user_data);
 }
 
+int bytes_hash_table_remove(GHashTableofBytes * ht, struct bytedata * s) {
+  int res;
+
+  s->expired = 1;
+  res = g_hash_table_remove(ht->ht, s);
+
+  // Garbage collect since g_hash_table_remove doesn't seem to work
+  bytes_hash_table_gc(ht);
+
+  return res;
+}
+
 int bytes_hash_table_removev(GHashTableofBytes * ht, struct iovec * vecs, int nvecs) {
   struct bytedata * s;
   int res;
@@ -287,12 +299,7 @@ int bytes_hash_table_removev(GHashTableofBytes * ht, struct iovec * vecs, int nv
   assert(s);
   s->expired = 1;
 
-  res = g_hash_table_remove(ht->ht, s);
-
-  // Garbage collect since g_hash_table_remove doesn't seem to work
-  bytes_hash_table_gc(ht);
-
-  return res;
+  return bytes_hash_table_remove(ht, s);
 }
 
 void bytes_hash_table_destroy(GHashTableofBytes * ht) {
