@@ -67,15 +67,68 @@ included with the system by default.
 These modules are used by SMACQ's command-line utilities 
 \fBsmacqp(1)\fP  and \fBsmacqp(1)\fP       as well as a C API described in \fBsmacq-embed(3)\fP. 
  
-.SH "STANDARD INPUT/OUTPUT MODULES" 
+.PP 
+The function modules included in the system are described in the 
+following sections:  I/O, Boolean, Annotation, and Miscellaneous  
+Analysis functions. 
+ 
+.SH "QUERY SYNTAX" 
+.PP 
+Smacq queries are specified using the following SQL-like grammer: 
+ 
+.PP 
+.nf 
+.ta 8n 16n 24n 32n 40n 48n 56n 64n 72n 
+query : action from [WHERE boolean] [GROUP BY args [HAVING boolean]] 
+| action [WHERE boolean] 
+| WHERE boolean 
+| query '|' action [WHERE boolean] [GROUP BY args [HAVING boolean]] 
+ 
+action : function args 
+| function ( args ) 
+| ( query ) 
+| ( parenquery + parenquery ) 
+ 
+parenquery : ( query ) 
+| function ( args ) 
+| function 
+ 
+from : FROM action [from] 
+ 
+.fi 
+.PP 
+Arguments can be given in a space separated list or a comma separated list. 
+Any argument can be followed by the phrase "AS alias" to be 
+given the specified alias. 
+ 
+.PP 
+.nf 
+.ta 8n 16n 24n 32n 40n 48n 56n 64n 72n 
+argument: word  
+| function ( args )  
+| '[' expression ']' 
+ 
+boolean : ( boolean ) 
+| boolean AND boolean 
+| boolean OR boolean 
+| NOT boolean 
+| operand 
+| subexpression op subexpression 
+| function ( args ) 
+;  
+ 
+.fi 
+.SH "INPUT/OUTPUT FUNCTIONS" 
 .SS "Print" 
 .PP 
-\fBprint\fP [-v]  [-B]  [-d \fIdelimiter\fP] fields \&...  
+\fBprint\fP [-x]  [-v]  [-B]  [-d \fIdelimiter\fP] fields \&...  
 .PP 
 Print the specified fields for every record that has them If 
 the \fB-v\fP option is given, then warnings are 
 printed when fields aren't present, and field values are 
-preceded by the field name.  If the \fB-B\fP option 
+preceded by the field name.  If \fB-x\fP option 
+is given, fields are surrounded with XML-style tags.  
+If the \fB-B\fP option 
 is specified, then output is not buffered (output is flushed 
 after each record).  Fields are separated by a delimiter 
 string which can be specified by \fB-d\fP and 
@@ -185,7 +238,25 @@ connections forever and will never exit.  Without this option,
 the server will accept a single connection, process it until 
 it closes, and then terminate. 
  
-.SH "FILTER MODULES (BOOLEAN FUNCTIONS)" 
+.SH "BOOLEAN FUNCTIONS" 
+.SS "" 
+.PP 
+Boolean functions immediately either filter-out or pass-on each 
+data object they are given. 
+ 
+.SS "IP Address Mask Lookup" 
+.PP 
+\fBiplookup\fP\fIfield\fP  
+.PP 
+The "addr/cidr" argument is a CIDR netmask.  
+An object is filtered out if 
+and only if the specified field does not exist or does not 
+match the given netmask. 
+ 
+.PP 
+Unlike the mask module, this module uses an efficient Patricia Trie 
+to efficiently lookups in large vectors of masks. 
+ 
 .SS "IP Address Mask" 
 .PP 
 \fBmask\fP\fIfield\fP [!]\fIaddr/cidr\fP  
@@ -195,7 +266,10 @@ is not specified, 32 is assumed.  An object is filtered out if
 and only if the specified field does not exist or does not 
 match the given netmask.  If the address begins with a '!', 
 then the logic is reversed and the object is filtered out if 
-the field does match the netmask. 
+the field does match the netmask.   
+ 
+.PP 
+See also the iplookup module. 
  
 .SS "Substring" 
 .PP 
@@ -206,27 +280,6 @@ whole data object if no field is given.  If multiple strings
 are given, then each string corresponds to an output channel, 
 and the object will be output only on the channel(s) that 
 match. 
- 
-.SS "Last" 
-.PP 
-\fBlast\fP [-t \fItime\fP]  [\fIfields\fP \&...]  
-.PP 
-If any fields are specified, treat those fields as a tuple and keep track of the last object seen  
-with that tuple value.  After there is no more data, output the objet for each tuple value. 
- 
-.PP 
-The \fB-t\fP option specifies, as a real number, 
-the number of seconds between periodic updates.  After the specified 
-amount of time, the last object seen for each tuple value will be emitted  
-(just as is done at the end of the data stream).  At the end of the update, an 
-object of type "\fBrefresh\fP" will be sent with a  
-"\fBtimeseries\fP" field of type "\fBtimeval\fP" 
-containing the time. 
-Note: Time is not the wall-clock time, but is instead the 
-time stored in the record in the 
-"\fBtimeseries\fP" field of type 
-"\fBtimeval\fP".  The \fB-t\fP cannot 
-be used with records that do not have this field. 
  
 .SS "Filter" 
 .PP 
@@ -287,7 +340,24 @@ and then end the pipeline.  Those records will be processed by
 all subsequent modules in the pipeline and the program will 
 then terminate. 
  
-.SH "ANALYSIS MODULES" 
+.SH "ANNOTATION FUNCTIONS" 
+.SS "" 
+.PP 
+An annotation function always adds a field to every data object and 
+the name of that field is identical to the name of the function. 
+ 
+.SS "Clock" 
+.PP 
+\fBclock\fP [ -t \fIseconds\fP]  \fIfield\fP  
+.PP 
+The clock module is used to bin input data into discrete 
+clock periods.  Each object is annotated with a clock field 
+containing the numerical value of the current clock.  The current  
+clock value is determined by keeping track of the largest value 
+seen for the specified field (presumably a time) and dividing 
+that value by the optional time period, which defaults to 1.  
+The input is assumed to be sorted in increasing order. 
+ 
 .SS "Constant Annotation" 
 .PP 
 \fBconst\fP \fIstring\fP  [\fIfield\fP]  
@@ -296,6 +366,46 @@ Annotate each object with a field containing the specified string constant.
 If a field name is specified, it will be used.  Otherwise, the name will be the same 
 as the value string. 
  
+.SS "Delta" 
+.PP 
+\fBdelta\fP \fIxfield\fP  
+.PP 
+For each data object seen, compute the delta from the previous x field to this current xfield. 
+The data object is annotate with a "\fBdelta\fP" 
+field of type "\fBdouble\fP" containing the result.  The x field must be convertable to doubles as well. 
+ 
+.SS "Derivative" 
+.PP 
+\fBderivative\fP \fIyfield\fP \fIxfield\fP  
+.PP 
+For each data object seen, compute the derivative of the y field with respect to the x field 
+between this point and the last object seen.  The data object is annotate with a "\fBderivative\fP" 
+field of type "\fBdouble\fP" containing the result.  The x and y fields must be convertable 
+to doubles as well. 
+ 
+.SS "Flow ID" 
+.PP 
+\fBflowid\fP [-t \fItime\fP]  [-r ]  \fIfields\fP \&...  
+.PP 
+Treat the specified field(s) as a tuple and assign a unique 
+flow id number to each object based on the typle value.  The 
+annotated field is called "flowid".  All but the first packet 
+will be filtered out. 
+ 
+.PP 
+The \fB-r\fP option specifies that the same flow id 
+should be assigned to packets in the reverse direction. 
+Separate flow statistics will be kept for each direction. 
+ 
+.PP 
+The \fB-t\fP option specifies a number of seconds 
+idle time before a flow is timed out.  When it times out a 
+REFRESH record with the flows identifying fields (as specified 
+in the arguments), the current time (timeseries) and the 
+packet and byte counters ("packets", "packetsback", "bytes", 
+"bytesout") and the "start" and "finish" times. 
+ 
+.SH "MISCELLANEOUS ANALYSIS FUNCTIONS" 
 .SS "Counter" 
 .PP 
 \fBcount\fP [-a]  [-f \fIcountname\fP]  [-p]  [\fIfields\fP \&...]  
@@ -343,6 +453,27 @@ existing machines can use the input, then transitions from the
 START state are checked.  If the START state can be left, then 
 a new machine is created. 
  
+.SS "Last" 
+.PP 
+\fBlast\fP [-t \fItime\fP]  [\fIfields\fP \&...]  
+.PP 
+If any fields are specified, treat those fields as a tuple and keep track of the last object seen  
+with that tuple value.  After there is no more data, output the objet for each tuple value. 
+ 
+.PP 
+The \fB-t\fP option specifies, as a real number, 
+the number of seconds between periodic updates.  After the specified 
+amount of time, the last object seen for each tuple value will be emitted  
+(just as is done at the end of the data stream).  At the end of the update, an 
+object of type "\fBrefresh\fP" will be sent with a  
+"\fBtimeseries\fP" field of type "\fBtimeval\fP" 
+containing the time. 
+Note: Time is not the wall-clock time, but is instead the 
+time stored in the record in the 
+"\fBtimeseries\fP" field of type 
+"\fBtimeval\fP".  The \fB-t\fP cannot 
+be used with records that do not have this field. 
+ 
 .SS "Discrete Probability Density Function" 
 .PP 
 \fBpdf\fP 
@@ -370,23 +501,6 @@ Given a list of alternating old and new field names, make a copy of the old fiel
 Combined with the Project module, this can implement the rename (rho) 
 operation from relational algebra ("as" in SQL). 
  
-.SS "Delta" 
-.PP 
-\fBdelta\fP \fIxfield\fP  
-.PP 
-For each data object seen, compute the delta from the previous x field to this current xfield. 
-The data object is annotate with a "\fBdelta\fP" 
-field of type "\fBdouble\fP" containing the result.  The x field must be convertable to doubles as well. 
- 
-.SS "Derivative" 
-.PP 
-\fBderivative\fP \fIyfield\fP \fIxfield\fP  
-.PP 
-For each data object seen, compute the derivative of the y field with respect to the x field 
-between this point and the last object seen.  The data object is annotate with a "\fBderivative\fP" 
-field of type "\fBdouble\fP" containing the result.  The x and y fields must be convertable 
-to doubles as well. 
- 
 .SS "Entropy" 
 .PP 
 \fBentropy\fP 
@@ -397,28 +511,6 @@ When the data stream ends or a "\fBrefresh\fP" object is seen, it is assumed
 that every ocurring value has been seen and the entropy for the series is calculated 
 and added as an annotation of type \fBdouble\fP to a refresh object.   
 See the "\fBlast\fP" module for more information on \fBrefresh\fP objects. 
- 
-.SS "Flow ID" 
-.PP 
-\fBflowid\fP [-t \fItime\fP]  [-r ]  \fIfields\fP \&...  
-.PP 
-Treat the specified field(s) as a tuple and assign a unique 
-flow id number to each object based on the typle value.  The 
-annotated field is called "flowid".  All but the first packet 
-will be filtered out. 
- 
-.PP 
-The \fB-r\fP option specifies that the same flow id 
-should be assigned to packets in the reverse direction. 
-Separate flow statistics will be kept for each direction. 
- 
-.PP 
-The \fB-t\fP option specifies a number of seconds 
-idle time before a flow is timed out.  When it times out a 
-REFRESH record with the flows identifying fields (as specified 
-in the arguments), the current time (timeseries) and the 
-packet and byte counters ("packets", "packetsback", "bytes", 
-"bytesout") and the "start" and "finish" times. 
  
 .SS "Group-By" 
 .PP 
@@ -450,4 +542,4 @@ a time delay which is specified with the \fB-t\fP 	option which defaults to 0 se
 \fBsmacq-modules\fP(3), 
 \fBsmacq-embed\fP(3) 
  
-...\" created by instant / docbook-to-man, Mon 20 Oct 2003, 16:48 
+...\" created by instant / docbook-to-man, Mon 15 Mar 2004, 13:50 
