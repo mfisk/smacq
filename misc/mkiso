@@ -9,23 +9,6 @@ mkdir -p "$DSTDIR/.bin"
 
 cd $TOPSRCDIR
 
-dylibs() {
-	if [ -f /usr/bin/otool ]; then
-	   	otool -L "$1" | grep -v : | sed 's/ .*//g'
-	else
-	   	ldd "$1" | grep = | cut -d\  -f3
-	fi
-}
-
-deps() {
-		for f in `dylibs "$1"`; do
-			echo $f 
-			if [ "$f" != "$1" ]; then
-				deps $f
-			fi
-		done
-}
-
 Get_CVS() {
 	echo "$REPOSITORY A" > /tmp/cvs.$$
 	(cd "$DSTDIR"; CVS_PASSFILE=/tmp/cvs.$$ cvs -q -d $REPOSITORY co -P smacq; mv smacq src)
@@ -46,9 +29,7 @@ MacApp() {
 
 	set -x
 	for p in $platforms; do
-		DEPS=`deps "build/$p/bin/smacqq" | sort | uniq || true` 
-		mkdir "$DSTDIR/.bin/$p"
-		cp "build/$p/bin/smacqq" $DEPS "$DSTDIR/.bin/$p/"
+		cp "build/$p/reloc/*" $DEPS "$DSTDIR/.bin/$p/"
 	done	
 	
 	cp misc/reloc "$DSTDIR/.bin"
