@@ -1,0 +1,237 @@
+<!doctype refentry PUBLIC "-//OASIS//DTD DocBook V4.1//EN" [
+  <!ENTITY docbook "<productname>DocBook</productname>">
+  <!ENTITY sgml    "<abbrev>SGML</abbrev>">
+]>
+
+<refentry>
+  <refentryinfo>
+    <address>
+      <email>mfisk@lanl.gov</email>
+    </address>
+    <author>
+      <firstname>Mike</firstname>
+      <surname>Fisk</surname>
+    </author>
+    <date>$Date: 2003/04/07 18:37:34 $</date>
+  </refentryinfo>
+  <refmeta>
+    <refentrytitle>strucio</refentrytitle>
+    <manvolnum>3</manvolnum>
+  </refmeta>
+  <refnamediv>
+    <refname>strucio</refname>
+    <refpurpose>Reading/writing (sets of) structured files</refpurpose>
+  </refnamediv>
+  
+  <refsynopsisdiv>
+    <funcsynopsis>
+      <funcsynopsisinfo>
+	#include &lt;strucio.h&gt;
+      </funcsynopsisinfo>
+    </funcsynopsis>
+    <funcsynopsis>
+      <funcsynopsisinfo>
+	-l smacq
+      </funcsynopsisinfo>
+    </funcsynopsis>
+  </refsynopsisdiv>
+  
+  <refsect1>
+    <title>DESCRIPTION</title>
+
+    <para>
+      The strucio library provides read or write access to sequences
+      of files.  Callback functions can be registered to produce
+      sequences of file names ot use, and to handle per-file headers.
+    </para>
+
+    <funcsynopsis>
+      <funcprototype>
+	<funcdef>struct strucio * <function>strucio_init</function></funcdef>
+      </funcprototype>
+    </funcsynopsis>
+
+      <para>
+	Return an initialized strucio.
+      </para>
+
+    <funcsynopsis>
+      <funcprototype>
+	<funcdef>void <function>strucio_close</function></funcdef>
+	<paramdef>       struct strucio *</paramdef>
+      </funcprototype>
+    </funcsynopsis>
+
+      <para>
+	Close all open files and free the struct strucio.
+      </para>
+
+    <funcsynopsis>
+      <funcprototype>
+	<funcdef>void <function>strucio_register_file</function></funcdef>
+	<paramdef>       struct strucio *</paramdef>
+	<paramdef>       char * filename</paramdef>
+      </funcprototype>
+    </funcsynopsis>
+
+      <para>
+	Register a single file to read or write.  Other register_file
+	functions are provided below to specify sequences of files to
+	read.
+      </para>
+
+    <funcsynopsis>
+      <funcprototype>
+	<funcdef>void <function>strucio_register_newfile</function></funcdef>
+	<paramdef>       struct strucio *</paramdef>
+	<paramdef>       strucio_newfile_fn *</paramdef>
+	<paramdef>       void * user</paramdef>
+      </funcprototype>
+    </funcsynopsis>
+
+      <para>
+	Register a function that is to be called any time a new file is opened.
+                   The user pointer will be passed as an argument when the callback is made.
+                   The function can read or write file headers as needed.
+      </para>
+
+
+  </refsect1>
+  <refsect1>
+    <title>READING</title>
+
+    <funcsynopsis>
+      <funcprototype>
+	<funcdef>void <function>strucio_set_read_type</function></funcdef>
+	<paramdef>       struct strucio *</paramdef>
+	<paramdef>       enum file_read_type read_type</paramdef>
+      </funcprototype>
+    </funcsynopsis>
+
+      <para>
+	Set the read type to COPY, MMAP, or EITHER (default).
+      </para>
+
+    <funcsynopsis>
+      <funcprototype>
+	<funcdef>void * <function>strucio_read</function></funcdef>
+	<paramdef>       struct strucio *</paramdef>
+	<paramdef>       void * buf</paramdef>
+	<paramdef>       int len</paramdef>
+      </funcprototype>
+    </funcsynopsis>
+
+      <para>
+	Return a pointer to a buffer containing len bytes of new data.
+	The buf pointer must be large enough to hold len bytes.
+	The return value, however, may not be buf if the data could
+	be more efficiently provided elsewhere (e.g. memory-mapped I/O).
+                   NULL is returned on failure (end of data).
+      </para>
+
+    <funcsynopsis>
+      <funcprototype>
+	<funcdef>void * <function>strucio_read_mmap</function></funcdef>
+	<paramdef>       struct strucio *</paramdef>
+	<paramdef>       int len</paramdef>
+      </funcprototype>
+    </funcsynopsis>
+
+      <para>
+	Return a pointer to a buffer containing len bytes of new data.
+                   Returns buf on success and NULL on failure (end of data).
+      </para>
+
+    <funcsynopsis>
+      <funcprototype>
+	<funcdef>void * <function>strucio_read_copy</function></funcdef>
+	<paramdef>       struct strucio *</paramdef>
+	<paramdef>       void * buf</paramdef>
+	<paramdef>       int len</paramdef>
+      </funcprototype>
+    </funcsynopsis>
+
+      <para>
+	Fill the given buffer with len bytes of new data.
+                   Returns buf on success and NULL on failure (end of data).
+      </para>
+
+    <funcsynopsis>
+      <funcprototype>
+	<funcdef>void <function>strucio_register_filelist</function></funcdef>
+	<paramdef>       struct strucio *</paramdef>
+	<paramdef>       strucio_filelist_fn *</paramdef>
+	<paramdef>       void * user</paramdef>
+      </funcprototype>
+    </funcsynopsis>
+
+      <para>
+	Register a function that returns new filenames, one per call.
+                   The user pointer will be passed as an argument when the callback is made.
+      </para>
+
+    <funcsynopsis>
+      <funcprototype>
+	<funcdef>void <function>strucio_register_filelist_args</function></funcdef>
+	<paramdef>       struct strucio *</paramdef>
+	<paramdef>       int argc</paramdef>
+	<paramdef>       char ** argv</paramdef>
+      </funcprototype>
+    </funcsynopsis>
+
+      <para>
+	Register a builtin function that returns new filenames, one per call from the
+                   given argument vector.
+      </para>
+
+    <funcsynopsis>
+      <funcprototype>
+	<funcdef>void <function>strucio_register_filelist_stdin</function></funcdef>
+	<paramdef>       struct strucio *</paramdef>
+      </funcprototype>
+    </funcsynopsis>
+
+      <para>
+	Register a builtin function that returns new filenames, one
+	per call from standard input.
+      </para>
+
+  </refsect1>
+  <refsect1>
+    <title>WRIITNG</title>
+
+    <funcsynopsis>
+      <funcprototype>
+	<funcdef>int <function>strucio_write</function></funcdef>
+	<paramdef>       struct strucio *</paramdef>
+	<paramdef>       void * buf</paramdef>
+	<paramdef>       int len</paramdef>
+      </funcprototype>
+    </funcsynopsis>
+
+      <para>
+	Write-out the given buffer.  Returns 0 on success.
+      </para>
+
+    <funcsynopsis>
+      <funcprototype>
+	<funcdef>void <function>strucio_set_rotate</function></funcdef>
+	<paramdef>       struct strucio *</paramdef>
+	<paramdef>       long long size</paramdef>
+      </funcprototype>
+    </funcsynopsis>
+
+      <para>
+	Set an upper-bound on the size of output files.  Files will be
+                   created with numerical, increasing, sufix.
+      </para>
+
+  </refsect1>
+  <refsect1>
+    <title>SEE ALSO</title>
+
+    <para>bytehash(3), smacq-modules(3)</para>
+
+  </refsect1>
+  
+</refentry>
