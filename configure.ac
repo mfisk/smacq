@@ -46,6 +46,7 @@ if test -n "$GCC"; then
 			ADDCFLAGS="$ADDCFLAGS -force_flat_namespace"
 			LIBGNU_CFLAGS="-Wno-long-double"
 			CO="-fast -fPIC -mcpu="`machine | sed 's/ppc//'`
+			DEBUG_LDFLAGS="-lMallocDebug"
 			;;
     esac
 fi
@@ -150,6 +151,7 @@ AC_ARG_ENABLE(debug,
 		CO="-O0"
 		# Hard to debug when everything is inlined
 		ADDCFLAGS="$ADDCFLAGS -g -fno-inline"
+		LDFLAGS="$LDFLAGS ${DEBUG_LDFLAGS}"
 	else
 		CO="-O0"
 		ADDCFLAGS="$ADDCFLAGS -g"
