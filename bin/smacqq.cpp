@@ -113,11 +113,12 @@ int main(int argc, char ** argv) {
     graphs->optimize();
   }
 
+  SmacqScheduler * s = new SmacqScheduler(&dts, graphs, true);
+
   if (showgraph.boolean_t) {
       graphs->print(stderr, 8);
   }
 
-  SmacqScheduler * s = new SmacqScheduler(&dts, graphs, true);
   return (! s->busy_loop());
 }
 
