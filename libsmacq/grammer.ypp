@@ -29,6 +29,7 @@
 %token AS
 %token HAVING
 %token UNION
+%token UNTIL
 %token YYSTRING YYID YYNUMBER
 %token YYNEQ YYLEQ YYGEQ
 
@@ -57,6 +58,7 @@
   enum dts_arith_operand_type arithop;
   dts_comparison * comp;
   struct dts_operand * operand;
+  joinlist * join_list;
 }
 %%
 

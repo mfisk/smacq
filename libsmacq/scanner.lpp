@@ -30,6 +30,7 @@ id		[^\!\'\"\,\=\<\>\(\)[:space:]\|]+
 %%
 
 where|WHERE	return WHERE;
+until|UNTIL	return UNTIL;
 union|UNION	return UNION;
 from|FROM	return FROM;
 group|GROUP	return GROUP;
