@@ -28,11 +28,11 @@ bootstrap:
 
 cvsinterforce: cvsinter
 		# Have to force timestamp update even if contents unchanged
-	cvs commit -m 'update timestamp' -f stamp-h.in aclocal.m4 *.in `find * -name \*.in` configure
+	cvs commit -m 'update timestamp' -f stamp-h.in aclocal.m4 *.in `find * -maxdepth 2 -name \*.in` configure
 
 cvsinter:
 		# All the intermediate files that may change
-	cvs commit -m 'intermediate file' *.in `find * -name \*.in` aclocal.m4 configure stamp-h.in config doc/smacq.1* doc/smacqq.1* #libsmacq/parser.h libsmacq/*parser.[yc]pp libsmacq/scanner.cpp
+	cvs commit -m 'intermediate file' *.in `find * -maxdepth 2 -name \*.in` aclocal.m4 configure stamp-h.in config doc/smacq.1* doc/smacqq.1* #libsmacq/parser.h libsmacq/*parser.[yc]pp libsmacq/scanner.cpp
 
 %:
 	misc/buildarch $@
