@@ -8,15 +8,16 @@ SMACQ_MODULE(expr,
   int argc;
   char ** argv;
 
-  dts_field expr_field;
-  dts_field as_field;
+  DtsField expr_field;
+  DtsField as_field;
+  bool use_as_field;
   struct dts_operand * expr;
 
   int double_type;
 );
 
 exprModule::exprModule(struct SmacqModule::smacq_init * context)
- : SmacqModule(context), as_field(NULL)
+ : SmacqModule(context)
 {
   int argc = context->argc-1;
   char ** argv = context->argv+1;
@@ -26,8 +27,10 @@ exprModule::exprModule(struct SmacqModule::smacq_init * context)
   if ((argc > 2) && (!strcmp(argv[argc-2], "as"))) {
     fprintf(stderr, "expr got as %s\n", argv[argc-1]);
     as_field = dts->requirefield(argv[argc-1]);
-    assert(as_field);
+    use_as_field = true;
     argc -= 2;
+  } else {
+    use_as_field = false;
   }
 
   expr = dts->parse_expr(argc, argv);
@@ -36,7 +39,6 @@ exprModule::exprModule(struct SmacqModule::smacq_init * context)
 
   char * expr_str = "expr";
   expr_field = dts->requirefield(expr_str);
-  assert(expr_field);
 }
 
 smacq_result exprModule::consume(DtsObject datum, int & outchan) {
@@ -53,8 +55,8 @@ smacq_result exprModule::consume(DtsObject datum, int & outchan) {
 
   datum->attach_field(expr_field, msgdata);
 
-  if (as_field) {
-    datum->attach_field(as_field, msgdata);
+  if (use_as_field) {
+    datum->attach_field(as_field, msgdata); 
   }
 
   return SMACQ_PASS;
