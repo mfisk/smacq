@@ -23,6 +23,7 @@ struct dts_type {
 
 void msg_send(dts_environment *, dts_field_element, dts_object *, dts_comparison *);
 dts_object * dts_construct(dts_environment * tenv, int type, void * data);
+static void dts_decref(const dts_object * d_const);
 
 static inline void * memdup(void * buf, int size) {
   void * copy = malloc(size);
@@ -78,6 +79,17 @@ static inline void dts_incref(const dts_object * d_const, int i) {
 #endif
 }
 
+static inline void dts_fieldcache_flush(const dts_object * datum, dts_field_element fnum) {
+  dts_object * cached = darray_get((struct darray*)&datum->fields, fnum);
+  dts_decref(cached); //Can't inline this (recursive)
+  darray_set((struct darray*)&datum->fields, fnum, NULL);
+  /*
+  fprintf(stderr, "flushing child %p from cache of %p: %p\n", cached, datum,
+  			darray_get((struct darray*)&datum->fields, fnum)
+		  );
+  */
+}
+
 static void dts_decref(const dts_object * d_const) {
   dts_object * d = (dts_object*)d_const;
   int i;
@@ -95,12 +107,14 @@ static void dts_decref(const dts_object * d_const) {
     pthread_mutex_unlock(&d->mutex);
 #endif
 
-    // Deref children too then
+    //fprintf(stderr, "Final decref of %p\n", d);
+    
+    // Flush field cache too then
     for (i=0; i<=d->fields.max; i++) {
-      if (d->fields.array[i]) {
-	//fprintf(stderr, "child: %p... ", d->fields.array[i]);
-	dts_decref(darray_get(&d->fields, i));
-	darray_set(&d->fields, i, NULL);
+      if (darray_get(&d->fields, i)) {
+	dts_fieldcache_flush(d, i);
+	//dts_decref(darray_get(&d->fields, i));
+	//darray_set(&d->fields, i, NULL);
       }
     }
 
@@ -135,7 +149,10 @@ static inline dts_field dts_field_next(dts_field field) {
 }
 
 static inline void dts_attach_field_single(const dts_object * d, dts_field_element field, const dts_object * field_data) {
+  const dts_object * old = darray_get( (struct darray *)&d->fields, field);
+  //fprintf(stderr, "Attaching %p to %p field %d\n", field_data, d, field);
   darray_set( (struct darray *)&d->fields, field, (dts_object*)field_data);
+  if (old) dts_decref(old);
 }
 
 static inline void dts_attach_field(const dts_object * d, dts_field field, const dts_object * field_data) {
@@ -266,21 +283,15 @@ static inline struct dts_type * dts_type_bynum(dts_environment * tenv, int num) 
 }
 
 
-static inline void dts_fieldcache_flush(dts_environment * tenv, const dts_object * datum, dts_field_element fnum, dts_object * data) {
-  dts_object * cached = darray_get((struct darray*)&datum->fields, fnum);
-  dts_decref(cached);
-  darray_set((struct darray*)&datum->fields, fnum, NULL);
-}
-
 static inline const dts_object * dts_getfield_single(dts_environment * tenv, const dts_object * datum, dts_field_element fnum, dts_object * scratch) {
   dts_object * cached;
+  int offset;
 
   cached = darray_get((struct darray*)&datum->fields, fnum);
   if (cached) {
     dts_incref(cached, 1);
     return cached;
   } else {
-    int offset = 0;
     struct smacq_engine_field * d;
     struct dts_type * t = dts_type_bynum(tenv, dts_gettype(datum));
     assert(t);
@@ -288,18 +299,21 @@ static inline const dts_object * dts_getfield_single(dts_environment * tenv, con
     d = darray_get(&t->fields, fnum);
 
   if (d) {
-#ifndef SMACQ_OPT_FORCEFIELDCACHE
+   int size = dts_type_bynum(tenv, d->type)->info.size;
+   dts_object * field;
    offset = d->offset;
+#ifndef SMACQ_OPT_FORCEFIELDCACHE
    if (!scratch) {
 #endif 
-    dts_object * field;
-    int size = dts_type_bynum(tenv, d->type)->info.size;
 
-    if (offset >= 0) {
+    if (!d->desc.getfunc) {  
+      assert(offset >= 0);
+      //fprintf(stderr, "getfield has offset %d\n", offset);
       field = (dts_object*)dts_alloc(tenv, 0, d->type);
       field->len = size;
       field->data = datum->data+offset;
     } else {
+      //fprintf(stderr, "getfield has helper func\n");
       field = (dts_object*)dts_alloc(tenv, size, d->type);
       if (!d->desc.getfunc(datum, field)) {
 	/* getfunc failed, release memory */
@@ -309,15 +323,15 @@ static inline const dts_object * dts_getfield_single(dts_environment * tenv, con
     }
 #ifdef SMACQ_OPT_FORCEFIELDCACHE
     if (field) {
-      darray_set(&((dts_object*)datum)->fields, fnum, field);
       dts_incref(field, 1);
+      darray_set(&((dts_object*)datum)->fields, fnum, field);
     }
 #endif
     return field;
 #ifndef SMACQ_OPT_FORCEFIELDCACHE
    } else {
     scratch->type = d->type;
-    scratch->len = dts_type_bynum(tenv, d->type)->info.size;
+    scratch->len = size;
     
     if (offset >= 0) {
       //fprintf(stderr, "%s offset %d (constant), len = %d\n", name, offset, *len);
@@ -348,17 +362,21 @@ static inline const dts_object * dts_getfield_single(dts_environment * tenv, con
 #define SMACQ_OPT_NOSCRATCHFIELD
 
 static inline const dts_object* dts_getfield(dts_environment * tenv, const dts_object * datum, dts_field fieldv, dts_object * scratch) {
-  const dts_object * parent = datum;
+  const dts_object * parent;
   const dts_object * f;
 
-  parent = dts_getfield_single(tenv, parent, dts_field_first(fieldv), scratch);
+  parent = dts_getfield_single(tenv, datum, dts_field_first(fieldv), scratch);
+  //fprintf(stderr, "Get field %d in %p from %p, next is %d\n", dts_field_first(fieldv), parent, datum, fieldv[1]);
   fieldv = dts_field_next(fieldv); 
 
   if (!dts_field_first(fieldv)) return parent;
 
   /* Must go deeper */
   while (1) {
+    if (!parent) return parent;
+
     f = dts_getfield_single(tenv, parent, dts_field_first(fieldv), scratch);
+    //fprintf(stderr, "Got field %d in %p from %p, next is %d\n", dts_field_first(fieldv), f, parent, fieldv[1]);
 
     /* Get rid of intermediate field */
     dts_decref(parent);
