@@ -12,7 +12,7 @@
       <firstname>Mike</firstname>
       <surname>Fisk</surname>
     </author>
-    <date>$Date: 2002/11/13 01:15:48 $</date>
+    <date>$Date: 2002/11/13 04:35:23 $</date>
   </refentryinfo>
   <refmeta>
     <refentrytitle>smacqp</refentrytitle>
@@ -88,15 +88,19 @@
 	<command>print</command>
 	<arg choice=opt>-v</arg>
 	<arg choice=opt>-B</arg>
+	<arg choice=opt>-d <replaceable>delimiter</replaceable></arg>
 	<arg choice=req rep=repeat>fields</arg>
       </cmdsynopsis>
 
       <para>
-	Print the specified fields for every record that has them
-      If the <option>-v</option> option is given, then warnings are printed when fields 
-      aren't present,  and field  values  are  preceded by the field name.  
-      If the <option>-B</option> option is specified, then output is not  buffered  
-      (output is flushed after each record).
+	Print the specified fields for every record that has them If
+	the <option>-v</option> option is given, then warnings are
+	printed when fields aren't present, and field values are
+	preceded by the field name.  If the <option>-B</option> option
+	is specified, then output is not buffered (output is flushed
+	after each record).  Fields are separated by a delimiter
+	string which can be specified by <option>-d</option> and
+	defaults to TAB.
       </para>
     </refsect2>
 
@@ -378,18 +382,30 @@
       <cmdsynopsis>
 	<command>flowid</command>
 	<arg>-t <replaceable>time</replaceable></arg>
+	<arg>-r </arg>
 	<arg choice=req rep=repeat> <replaceable>fields</replaceable></arg>
       </cmdsynopsis>
 
       <para>
 	Treat the specified field(s) as a tuple and assign a unique
 	flow id number to each object based on the typle value.  The
-	annotated field is called "flowid".
+	annotated field is called "flowid".  All but the first packet
+	will be filtered out.
+      </para>
+
+      <para>
+	The <option>-r</option> option specifies that the same flow id
+	should be assigned to packets in the reverse direction.
+	Separate flow statistics will be kept for each direction.
       </para>
 
       <para>
 	The <option>-t</option> option specifies a number of seconds
-	idle time before a flow is timed out.
+	idle time before a flow is timed out.  When it times out a
+	REFRESH record with the flows identifying fields (as specified
+	in the arguments), the current time (timeseries) and the
+	packet and byte counters ("packets", "packetsback", "bytes",
+	"bytesout") and the "start" and "finish" times.
       </para>
       
     </refsect2>
@@ -424,6 +440,27 @@
 	and then end the pipeline.  Those records will be processed by
 	all subsequent modules in the pipeline and the program will
 	then terminate.
+      </para>
+    </refsect2>
+
+    <refsect2>
+      <title>Time Sort</title>
+      <cmdsynopsis>
+	<command>fifodelay</command>
+	<arg>-t <replaceable>time</replaceable></arg>
+	<arg>-i <replaceable>input-time-field</replaceable></arg>
+	<arg>-o <replaceable>output-time-field</replaceable></arg>
+      </cmdsynopsis>
+
+      <para>
+	Sort a series of input records and output them sorted by an
+	output time field that is specified with the
+	<option>-o</option> option and defaults to "timeseries".  All records
+	that are past the edge time are immediately updated.  The edge
+	time is determined by the input time field (specified with the
+	<option>-i</option> option and defaullting to "timseries") and
+	a time delay which is specified with the <option>-t</option>
+	option which defaults to 0 seconds.
       </para>
     </refsect2>
 
