@@ -97,8 +97,11 @@ To generate documentation:
 =============================================================================
 				BUGS
 
+The following version dependencies exist for developers.  If you are
+just building a tarball, you shouldn't care:
+
 The grammer builds but doesn't seem to work correctly with Bison 1.35.  
-Bison 1.75 does work
+Bison 1.75 does work.  If automake 1.4 is used, the build will not succeed.  Automake 1.7 and 1.9 are known to work.
 	
 =============================================================================
 See http://smacq.sf.net/ for more information.
