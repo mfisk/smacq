@@ -12,6 +12,7 @@ config() {
 	CFLAGS="-D_ISOC99_SOURCE -D_GNU_SOURCE" #To get NAN, among other things
 	CFLAGS="${CFLAGS} -DSMACQ_BUILD_DATE='\"`date --iso-8601`\"'"
 	CC=cc
+	CXX=c++
 
 	if [ `uname -s` = "Darwin" ]; then 
 		echo 'MAKE=gnumake'
@@ -29,8 +30,8 @@ config() {
 	elif [ `uname -s` = "Linux" ]; then
 		# Red Hat 8.0: 
 		if has g++296; then 
-			LDXX="--mode=link g++296"
-			echo 'CXX=--mode=compile g++296'
+			LDXX="g++296"
+			echo 'CXX=g++296'
 		fi 
 		if has gcc296; then 
 			echo 'CC=gcc296'
@@ -61,6 +62,10 @@ config() {
 			fi
 		fi
 
+		if libtool --version | grep -q ' 1\.5'; then
+			LIBTOOL="$LIBTOOL --tag CC"
+		fi
+
 		# Red Hat 7.3: 
 		if [ -d /usr/include/pcap ]; then 
 			CFLAGS="${CFLAGS}-I/usr/include/pcap "
@@ -78,11 +83,14 @@ config() {
 	PWD=`pwd`
 
 	echo "DOCBOOK2MAN=$DOCBOOK2MAN"
-	echo "LIBTOOL=$LIBTOOL"
-	echo "LDXX=$LDXX"
+	echo "LIBTOOL="
+	echo "CC=$LIBTOOL --mode=compile $CC"
+	echo "CXX=$LIBTOOL --mode=compile $CXX"
+	echo "CCLD=$LIBTOOL --mode=link $CC"
+	echo "LD=$LIBTOOL --mode=link ld"
+	echo "LDXX=$LIBTOOL --mode=link $LDXX"
 	echo "USR=$USR"
 	echo "LDOPTS=$LDOPTS"
-	echo "CC=$CC"
 	echo "CFLAGS=$CFLAGS"
 	echo "MAKEINCLUDES=$PWD/misc/include.mk"
 	echo "TOPSRCDIR=${TOPSRCDIR:-$PWD}"

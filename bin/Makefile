@@ -16,7 +16,7 @@ LIBSMACQ=$(TOPBINDIR)/libsmacq/libsmacq.la
 	-$(LIBTOOL) $(LDXX) -o $@ -export-dynamic -all-static $< $(BUILTIN_FLAGS) $(LDFLAGS) 
 
 %-dynamic: %.lo ../include/smacq.h $(LIBSMACQ)  
-	$(LIBTOOL) $(CC) -o $@ -export-dynamic -dynamic $< $(LDFLAGS) 
+	$(LIBTOOL) $(CCLD) -o $@ -export-dynamic -dynamic $< $(LDFLAGS) 
 
 %.lo: %.c ../include/smacq.h 
 	$(LIBTOOL) $(CC) -c $(CFLAGS) $< 

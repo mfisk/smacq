@@ -22,25 +22,25 @@ clean:
 # Per module link requirements
 # 
 libsubstr.la: substr-main.lo $(BINDIR)/substr/libsubstr.la
-	$(LIBTOOL) $(CC) -o $@ $(LDFLAGS) $+
+	$(LIBTOOL) $(CCLD) -o $@ $(LDFLAGS) $+
 
 libbench_field.la: bench_field-main.lo bench_field-virtual.lo 
-	$(LIBTOOL) $(CC) -o $@ $(LDFLAGS) $+
+	$(LIBTOOL) $(CCLD) -o $@ $(LDFLAGS) $+
 
 lib%.la: %.lo
-	$(LIBTOOL) $(CC) -o $@ $(LDFLAGS) $+
+	$(LIBTOOL) $(CCLD) -o $@ $(LDFLAGS) $+
 
 libpcapfile.la: pcapfile.lo
-	$(LIBTOOL) $(CC) -o $@ $(LDFLAGS) $+ -lz -lpcap
+	$(LIBTOOL) $(CCLD) -o $@ $(LDFLAGS) $+ -lz -lpcap
 
 libpcaplive.la: pcaplive.lo
-	$(LIBTOOL) $(CC) -o $@ $(LDFLAGS) $+ -lpcap
+	$(LIBTOOL) $(CCLD) -o $@ $(LDFLAGS) $+ -lpcap
 
 libpython.la: python.lo
-	$(LIBTOOL) $(CC) -o $@ $(LDFLAGS) $+ -L/usr/lib/python2.2/config -lpython2.2 -lpthread -lutil 
+	$(LIBTOOL) $(CCLD) -o $@ $(LDFLAGS) $+ -L/usr/lib/python2.2/config -lpython2.2 -lpthread -lutil 
 
 libreassemble.la: reassemble.lo spp_export_pkt.lo  
-	$(CC) -o $@ -c $(CFLAGS) -I$(SNORT_HOME) -I. $+ 
+	$(CCLD) -o $@ -c $(CFLAGS) -I$(SNORT_HOME) -I. $+ 
 
 libepan_filter.o: epan_filter.o 
 	$(LD) -r -o $@ $< -L$(TOPBINDIR)/contrib -L. -lpacket-ethereal
@@ -63,7 +63,7 @@ python.lo: python.c $(TOPSRCDIR)/include/smacq.h
 # we can preopen
 
 libsmacq-modules.la: $(LIBS_BUILTIN) 
-	$(LIBTOOL) $(CC) -static -rpath /CONVIENCE -o $@ $+
+	$(LIBTOOL) $(CCLD) -static -rpath /CONVIENCE -o $@ $+
 
 #
 # This is how we make a dynamic library for a module
@@ -71,7 +71,7 @@ libsmacq-modules.la: $(LIBS_BUILTIN)
 RPATH=-rpath /usr/local/lib/smacq
 
 smacq_%.la: lib%.la
-	$(LIBTOOL) $(CC) -module $(LDFLAGS) -o $@ $+
+	$(LIBTOOL) $(CCLD) -module $(LDFLAGS) -o $@ $+
 
 #
 # Extra Snort module stuff:
@@ -83,8 +83,8 @@ $(SNORT_HOME):
 	$(MAKE) -C ../contrib $(SNORT_VERSION)
 
 libsnort.la: $(SNORT_HOME)
-	$(LIBTOOL) $(CC) -static -o $@ $</[a-r]*.o
-	$(LIBTOOL) $(CC) -dynamic -r -L/sw/lib -o $@ $</*.o -lpcap -lm
+	$(LIBTOOL) $(CCLD) -static -o $@ $</[a-r]*.o
+	$(LIBTOOL) $(CCLD) -dynamic -r -L/sw/lib -o $@ $</*.o -lpcap -lm
 
 spp_export_pkt.lo: spp_export_pkt.c spp_export_pkt.h $(SNORT_HOME)
 	$(CC) $(CFLAGS) -DHAVE_CONFIG_H -I$(SNORT_HOME) -I. -g -O2 -Wall -ggdb -c $<

@@ -3,7 +3,7 @@ include config.mk
 all: libsubstr.la
 
 libsubstr.la: substr.lo trie.lo 
-	$(LIBTOOL) $(CC) -o $@ $+ 
+	$(LIBTOOL) $(CCLD) -o $@ $+ 
 
 %.lo: %.c
 	$(LIBTOOL) $(CC) -c $(CFLAGS) $<

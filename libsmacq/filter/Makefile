@@ -11,7 +11,7 @@ LIBS = -lfl
 all: libfilter.la $(SRCDIR)/filter-parser.c $(SRCDIR)/expr-parser.c $(SRCDIR)/expr-parser.h $(SRCDIR)/filter-parser.h
 
 libfilter.la: $(OBJS)
-	$(LIBTOOL) $(CC) -export-symbols-regex '^smacq_.*' -o $@ $+ $(LIBS)
+	$(LIBTOOL) $(CCLD) -export-symbols-regex '^smacq_.*' -o $@ $+ $(LIBS)
 
 %.lo: $(SRCDIR)/%.c
 	$(LIBTOOL) $(CC) -c $(CFLAGS) $<

@@ -20,5 +20,5 @@ reallyclean:
 	$(LIBTOOL) $(CC) -c -o $@ $(CFLAGS) $<
 
 libsmacq.la: $(OBJS)
-	$(LIBTOOL) $(CC) -o $@ $+ $(LDFLAGS)
+	$(LIBTOOL) $(CCLD) -o $@ $+ $(LDFLAGS)
 

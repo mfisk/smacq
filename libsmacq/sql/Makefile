@@ -9,7 +9,7 @@ LIBS = -lfl
 all: libsql.la $(SRCDIR)/parser.c $(SRCDIR)/scanner.c
 
 libsql.la: $(OBJS)
-	$(LIBTOOL) $(CC) -export-symbols-regex '^smacq_.*' -o $@ $+ $(LIBS)
+	$(LIBTOOL) $(CCLD) -export-symbols-regex '^smacq_.*' -o $@ $+ $(LIBS)
 
 # We refer explicitly to SRCDIR/%.c so that the bison/flex output will be placed in SRCDIR
 %.lo: $(SRCDIR)/%.c

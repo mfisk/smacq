@@ -20,27 +20,27 @@ clean:
 # on convenience libraries, so we make libtool think this is a module that
 # we can preopen
 libdts-modules.la: $(LIBS_BUILTIN)
-	$(LIBTOOL) $(CC) -static -rpath /CONVENIENCE -o $@ $+
+	$(LIBTOOL) $(CCLD) -static -rpath /CONVENIENCE -o $@ $+
 
 lib%.al lib%.la: %.lo
-	$(LIBTOOL) $(CC) -o $@ $(LDFLAGS) $<
+	$(LIBTOOL) $(CCLD) -o $@ $(LDFLAGS) $<
 
 lib%.a: %.lo
-	$(LIBTOOL) $(CC) -o $@ $(LDFLAGS) $<
+	$(LIBTOOL) $(CCLD) -o $@ $(LDFLAGS) $<
 
 packet.lo packet.o: ../include/dts_packet.h
 packet.o: packet.c
 	$(CC) -c $(CFLAGS) $< 
 
 libpacket-ethereal.la: packet-ethereal.lo
-	$(LIBTOOL) $(CC) -o $@ $<
+	$(LIBTOOL) $(CCLD) -o $@ $<
 
 libpacket.la: packet.lo libpacket-ethereal.la 
 	#$(LIBTOOL) $(CC) -rpath /CONVENIENCE -L$(TOPBINDIR)/contrib -L.  -lpacket-ethereal -o $@ $< 
 	@set -x; if [ "$$WITH" = "ethereal" ]; then \
 		PREFIX="$(TOPBINDIR)/contrib/"; \
 	fi; \
-	$(LIBTOOL) $(CC) -o $@ $${PREFIX}libpacket-ethereal.la -o $@ $< 
+	$(LIBTOOL) $(CCLD) -o $@ $${PREFIX}libpacket-ethereal.la -o $@ $< 
 
 %.o: %.c
 	$(CC) -c $(CFLAGS) $<
@@ -49,5 +49,5 @@ libpacket.la: packet.lo libpacket-ethereal.la
 	$(LIBTOOL) $(CC) -c $(CFLAGS) $<
 
 dts_%.la: %.lo 
-	$(LIBTOOL) $(CC) -module -rpath /usr/local/lib -o $@ $(LDFLAGS) -lc $<
+	$(LIBTOOL) $(CCLD) -module -rpath /usr/local/lib -o $@ $(LDFLAGS) -lc $<
 
