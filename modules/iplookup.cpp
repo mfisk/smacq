@@ -37,7 +37,7 @@ static struct smacq_options options[] = {
 struct batch * iplookupModule::get_batch(char * field) {
 	struct batch * mybatch;
 	int i;
-	DtsField f = dts->requirefield(field);
+	DtsField f = usesfield(field);
 
 	for (i = 0; i < num_batches; i++) {
 		if (dts_comparefields(f, batch[i].field)) {
@@ -49,7 +49,7 @@ struct batch * iplookupModule::get_batch(char * field) {
 	batch = (struct batch*)realloc(batch, num_batches * sizeof(struct batch));
 	mybatch = &batch[num_batches-1];
 
- 	mybatch->field = dts->requirefield(field);
+ 	mybatch->field = usesfield(field);
 	mybatch->fieldname = field;
   	mybatch->trie = New_Patricia(32);
 

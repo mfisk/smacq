@@ -88,7 +88,7 @@ void substrModule::add_entry(char * field, char * needle, int output) {
   if (field) {
 	int i;
 	int found = 0;
-	DtsField f = dts->requirefield(field);
+	DtsField f = usesfield(field);
 
 	for (i = 0; i < num_batches; i++) {
 		if (dts_comparefields(f, batch[i].field)) {
@@ -102,7 +102,7 @@ void substrModule::add_entry(char * field, char * needle, int output) {
 		batch = (struct batch*)realloc(batch, num_batches * sizeof(struct batch));
 		mybatch = &batch[num_batches-1];
 
-    		mybatch->field = dts->requirefield(field);
+    		mybatch->field = usesfield(field);
 		mybatch->fieldname = field;
   		mybatch->set = substr_new(SUBSTR_FAST);
 	}

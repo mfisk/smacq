@@ -80,7 +80,7 @@ equalsModule::equalsModule(struct SmacqModule::smacq_init * context)
 {
   assert(context->argc > 2);
 
-  field = dts->requirefield(context->argv[1]);
+  field = usesfield(context->argv[1]);
 
   argv.reserve(context->argc/2);
 

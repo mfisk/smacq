@@ -54,7 +54,7 @@ maskModule::maskModule(struct SmacqModule::smacq_init * context) : SmacqModule(c
   int argc = context->argc-1;
   char ** argv = context->argv+1;
 
-  field = dts->requirefield(argv[0]);
+  field = usesfield(argv[0]);
   //fprintf(stderr, "Mask on field %s, %d (env %p)\n", argv[0], field[0], env);
 
   ip_type = dts->requiretype("ip");
