@@ -1,5 +1,6 @@
 VERSION 2.2 - unreleased
 ========================
+2005-01 - print module: --boulder (Boulder output format) added
 2004-12 - changes module: detects(/filters for) changes in dynamics
 2004-12 - print module: '*' removed; specifying no fields now prints all fields
 2004-12 - bugfix: DtsObject reference counting now handles uses cycles (memory leak)

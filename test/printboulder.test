@@ -1,0 +1,5 @@
+#!/bin/sh
+
+${BINDIR}smacqq -m -g -O <<EOF 
+print --boulder from pcapfile($TEST/0325@1112-snort.pcap)
+EOF

@@ -10,13 +10,10 @@ SMACQ_MODULE(print,
 
    	char ** argv;
    	int argc;
-	bool verbose;
-	bool tagged;
-	bool flush;
-	bool internals;
+	bool verbose, tagged, flush, internals, boulder;
    	std::vector<DtsField> fields;
 	DtsField string_transform;
-	char * delimiter;
+	char * delimiter, * record_delimiter;
 	
 	int print_field(DtsObject field, char * fname, int printed, int column);
 );
@@ -26,6 +23,8 @@ static struct smacq_options options[] = {
   {"v", {boolean_t:0}, "Verbose mode: print field names", SMACQ_OPT_TYPE_BOOLEAN},
   {"i", {boolean_t:0}, "Print internal debugging info", SMACQ_OPT_TYPE_BOOLEAN},
   {"d", {string_t:"\t"}, "Delimiter", SMACQ_OPT_TYPE_STRING},
+  {"r", {string_t:"\n"}, "Delimiter between records", SMACQ_OPT_TYPE_STRING},
+  {"boulder", {boolean_t:0}, "Print records in Boulder format", SMACQ_OPT_TYPE_BOOLEAN},
   {"B", {boolean_t:0}, "Disable buffering: flush output after each line", SMACQ_OPT_TYPE_BOOLEAN},
   END_SMACQ_OPTIONS
 };
@@ -43,6 +42,8 @@ int printModule::print_field(DtsObject field, char * fname, int printed, int col
 
 	if (tagged) {
 		printf("<%s>%s</%s>", fname, (char *)field->getdata(),fname);
+	} else if (boulder) {
+		printf("%s=%s", fname, (char *)field->getdata());
 	} else if (verbose) {
 		printf("%.20s = %s", fname, (char *)field->getdata());
 	} else {
@@ -103,7 +104,7 @@ smacq_result printModule::consume(DtsObject datum, int & outchan) {
 	}
   }
   if (printed) {
- 		printf("\n");
+ 		printf(record_delimiter);
   }
   if (flush) {
 		fflush(stdout); 
@@ -112,15 +113,18 @@ smacq_result printModule::consume(DtsObject datum, int & outchan) {
 }
 
 printModule::printModule(struct smacq_init * context) : SmacqModule(context) {
-  smacq_opt tagged_opt, verbose_opt, flush_opt, delimiter_opt, internals_opt;
+  smacq_opt boulder_opt, record_delimiter_opt, tagged_opt, verbose_opt, 
+		flush_opt, delimiter_opt, internals_opt;
   int i;
 
   {
     struct smacq_optval optvals[] = {
       {"x", &tagged_opt},
       {"v", &verbose_opt},
+      {"r", &record_delimiter_opt},
       {"d", &delimiter_opt},
       {"B", &flush_opt},
+      {"boulder", &boulder_opt},
       {"i", &internals_opt},
       {NULL, NULL}
     };
@@ -133,8 +137,15 @@ printModule::printModule(struct smacq_init * context) : SmacqModule(context) {
   internals = internals_opt.boolean_t;
   flush = flush_opt.boolean_t;
   delimiter = delimiter_opt.string_t;
+  record_delimiter = record_delimiter_opt.string_t;
   verbose = verbose_opt.boolean_t;
+  boulder = boulder_opt.boolean_t;
   tagged = tagged_opt.boolean_t;
+  if (boulder) {
+	delimiter = "\n";
+	record_delimiter = "\n=\n";
+  }
+
   fields.resize(argc);
 
   //fprintf(stderr, "creating 1.75 print module, argc=%d, dts=%p\n", argc, dts);
