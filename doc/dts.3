@@ -1,4 +1,4 @@
-.TH dts 3 "$Date: 2003/01/23 01:47:35 $" "LANL"
+.TH dts 3 "$Date: 2003/03/19 03:25:49 $" "LANL"
 .SH NAME
 dts  \- Dynamic Type System API
 .SH SYNOPSIS
@@ -138,6 +138,10 @@ Free the given dts_field data structure.
 .BI "char * dts_fieldname_append(const char * base, const char * addition)"
 Return a newly allocated string containing the addition string appended to the 
 base string and separated by a period.
+
+.TP
+.BI "int dts_comparefields(dts_field, dts_field)"
+Compare the two field specifications and return 0 unless they are the same.
 
 .TP
 .BI "int smacq_requiretype(smacq_environment * env, char * type_name)"
