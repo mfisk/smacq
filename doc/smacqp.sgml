@@ -12,7 +12,7 @@
       <firstname>Mike</firstname>
       <surname>Fisk</surname>
     </author>
-    <date>$Date: 2002/11/21 23:13:30 $</date>
+    <date>$Date: 2002/12/17 04:25:51 $</date>
   </refentryinfo>
   <refmeta>
     <refentrytitle>smacqp</refentrytitle>
@@ -332,6 +332,21 @@
       <para>
         Replace all objects in the input stream with new objects
         containing only the specified fields.  This is the project (Pi)
+        operation from relational algebra.
+      </para>
+    </refsect2>
+
+
+    <refsect2>
+      <title>Rename</title>
+      <cmdsynopsis>
+	<command>rename</command>
+	<arg choice=req rep=repeat> <replaceable>oldfield newfield</replaceable></arg>
+      </cmdsynopsis>
+
+      <para>
+        Given a list of alternating old and new field names, make a copy of the old field with the new name.
+        Combined with the Project module, this can implement the rename (rho)
         operation from relational algebra.
       </para>
     </refsect2>
