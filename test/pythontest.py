@@ -6,6 +6,9 @@ class Dumper:
         self.smacq = smacq
         self.buf = []
 
+    def __del__(self):
+        print ('del', len(self.buf))
+
     def consume(self, datum):
         for i in 'srcip', 'dstip', 'ipprotocol', 'len':
             v = datum[i].value

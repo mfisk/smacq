@@ -43,7 +43,7 @@ static PyObject *pydts_create(DtsObject datum, DTS *dts);
 static char PyDts_doc[] =
 ("A DTS object.\n"
  "\n"
- "This object contains data, perhaps hierarchically so.\n"
+ "This object contains (possibly heirarchical) data.\n"
  "It can be accessed like a dictionary, and supports methods\n"
  "to return the data it represents.\n");
 
@@ -488,7 +488,6 @@ pythonModule::pythonModule(struct smacq_init *context)
   PyObject *pObj    = NULL;
   int       passed  = 0;
 
-  //DUMP();
   if (context->argc < 2) {
     fprintf(stderr, "No module name provided");
     /* XXX: there's got to be a better way to raise an error... */
@@ -553,7 +552,7 @@ pythonModule::pythonModule(struct smacq_init *context)
     }
 
     /* Create the args tuple for the init function */
-    pArgs = PyTuple_New(context->argc);
+    pArgs = PyTuple_New(context->argc - 1);
     if (! pArgs) {
       PyErr_Print();
       break;
@@ -574,7 +573,7 @@ pythonModule::pythonModule(struct smacq_init *context)
     }
 
     /* Populate pArgs with the strings */
-    for (i = 1; i < context->argc; i += 1) {
+    for (i = 2; i < context->argc; i += 1) {
       PyObject *pObj;
       int       ret;
 
@@ -585,7 +584,7 @@ pythonModule::pythonModule(struct smacq_init *context)
       }
 
       /* Leave the first one for the smacq object */
-      ret = PyTuple_SetItem(pArgs, i, pObj);
+      ret = PyTuple_SetItem(pArgs, i - 1, pObj);
       if (ret) {
         PyErr_Print();
         Py_XDECREF(pObj);
@@ -701,6 +700,7 @@ smacq_result pythonModule::consume(DtsObject datum, int &outchan)
 
 pythonModule::~pythonModule()
 {
+  Py_XDECREF(this->pConsume);
   if (-1 == init_count) {
     /* Don't touch it */
   } else {

@@ -1,4 +1,4 @@
-('init', ('pythontest.Dumper',))
+('init', ('foobar',))
 ('srcip', 'ip', <type 'str'>, '192.168.0.54')
 ('dstip', 'ip', <type 'str'>, '192.168.0.210')
 ('ipprotocol', 'ipproto', <type 'str'>, '\x06')
@@ -452,3 +452,4 @@
 ('dstip', 'ip', <type 'str'>, '192.168.0.200')
 ('ipprotocol', 'ipproto', <type 'str'>, '\x06')
 ('len', 'uint32', <type 'long'>, 60L)
+('del', 3)
