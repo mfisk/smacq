@@ -1,0 +1,70 @@
+%start exprline
+%type <operand> exprline
+
+%{
+#include <smacq.h>
+static struct dts_operand * Expr;
+extern char * yysmacql_text;
+#define yyexprlex yysmacql_lex
+%}
+
+m4_include(grammer.y)
+
+exprline: expression YYSTOP 	{
+					Expr = $1;
+					return 0;
+			}
+			;		
+
+%%
+
+static dts_environment * tenv;
+extern void yysmacql_scan_string(char *);
+
+#ifdef PTHREAD_MUTEX_INITIALIZER
+  static pthread_mutex_t local_lock = PTHREAD_MUTEX_INITIALIZER;
+#else
+  static pthread_mutex_t local_lock;
+  #warning "No PTHREAD_MUTEX_INITIALIZER"
+#endif
+
+struct dts_operand * dts_parse_expr(dts_environment * localtenv, int argc, char ** argv) {
+  struct dts_operand * retval;
+  int size = 1;
+  int i;
+  char * qstr;
+
+  /* LOCK */
+  tenv = localtenv;
+
+  for (i=0; i<argc; i++) {
+  	size += strlen(argv[i]);
+  }
+  size += argc;
+
+  qstr = (char*)malloc(size);
+  qstr[0] = '\0';
+  	
+  for (i=0; i<argc; i++) {
+  	strcatn(qstr, size, argv[i]);
+  	strcatn(qstr, size, " ");
+  }
+  yysmacql_scan_string(qstr);
+  //fprintf(stderr, "parsing expr buffer: %s\n", qstr); 
+
+  if (yyexprparse()) {
+        fprintf(stderr, "got nonzero return parsing expression %s\n", qstr); 
+  	return NULL;
+  }
+
+  retval = Expr;
+
+  /* UNLOCK */
+
+  return retval;
+}
+
+void yyexprerror(char * msg) {
+  fprintf(stderr, "Error: %s near %s\n", msg, yysmacql_text);
+  //exit(-1);
+}
