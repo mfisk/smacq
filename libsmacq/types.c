@@ -6,7 +6,7 @@
 #include <dlfcn.h>
 #include "smacq-internal.h"
 
-struct flow_engine_field {
+struct smacq_engine_field {
   int type;
   struct dts_field_descriptor desc;
   int offset;
@@ -17,7 +17,7 @@ struct dts_type {
   GHashTable * transform_names;
   int num_transforms;
   struct dts_transform_descriptor ** transforms;
-  struct flow_engine_field ** field_cache;
+  struct smacq_engine_field ** field_cache;
   int max_field_cache;
   char * name;
   int num;
@@ -66,7 +66,7 @@ dts_object * dts_construct(dts_environment * tenv, int type, void * data) {
 
 int type_getfieldoffset(dts_environment * tenv, const dts_object * datum, int fnum, int * dtype, int * offset, int * len) {
   struct dts_type * t = dts_type_bynum(tenv, dts_gettype(datum));
-  struct flow_engine_field * d;
+  struct smacq_engine_field * d;
 
   if (!t) return 0;
 
@@ -90,7 +90,7 @@ static int field_byname(dts_environment * tenv, char * fname) {
 int type_getfield_virtual(dts_environment * tenv, const dts_object * datum, int fnum, dts_object * data) {
   struct dts_type * t = dts_type_bynum(tenv, dts_gettype(datum));
   int offset;
-  struct flow_engine_field * d;
+  struct smacq_engine_field * d;
 
   assert(t);
 
@@ -231,7 +231,7 @@ int type_requiretype(dts_environment * tenv, char * name) {
 
     for (d=t->description; (d && d->type != END); d++) {
       int dnum = type_requirefield(tenv, d->name);
-      struct flow_engine_field * f = g_new(struct flow_engine_field, 1);
+      struct smacq_engine_field * f = g_new(struct smacq_engine_field, 1);
       // fprintf(stderr,"\tAdding %s (%s) to %s structure\n", d->name, d->type, t->name);
       f->offset = offset;
       f->type = type_requiretype(tenv, d->type);

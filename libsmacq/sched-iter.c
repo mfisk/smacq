@@ -64,7 +64,7 @@ void check_for_shutdown(struct runq ** runqp, struct filter *f) {
   /* No more active children.  Clean-up self and parents. */
   for (i=0; i < f->numchildren; i++) {
     if (f->next[i] && (! (f->next[i]->status & SMACQ_END))) 
-      flow_sched_iterative_shutdown(f->next[i], (void**)runqp);
+      smacq_sched_iterative_shutdown(f->next[i], (void**)runqp);
   }
   //do_shutdown(runqp, f);
 }
@@ -83,7 +83,7 @@ void do_shutdown(struct runq ** runqp, struct filter *f) {
   for (i=0; i < f->numchildren; i++) {
     /* Enqueue a terminate record */
     if (! (f->next[i]->status & SMACQ_END)) {
-      flow_sched_iterative_shutdown(f->next[i], (void**)runqp);
+      smacq_sched_iterative_shutdown(f->next[i], (void**)runqp);
     }
   }
 
@@ -93,7 +93,7 @@ void do_shutdown(struct runq ** runqp, struct filter *f) {
   }
 }
 
-static int flow_sched_iterative_graph_alive (struct filter *f) {
+static int smacq_sched_iterative_graph_alive (struct filter *f) {
   int i;
 
   if (! (f->status & SMACQ_END)) {
@@ -102,7 +102,7 @@ static int flow_sched_iterative_graph_alive (struct filter *f) {
 
   for (i=0; i<f->numchildren; i++) {
     if (f->next[i]) {
-      if (flow_sched_iterative_graph_alive(f->next[i])) {
+      if (smacq_sched_iterative_graph_alive(f->next[i])) {
 	return 1;
       }
     }
@@ -111,7 +111,7 @@ static int flow_sched_iterative_graph_alive (struct filter *f) {
   return 0;
 }
 
-void flow_sched_iterative_shutdown(struct filter * startf, void ** state) {
+void smacq_sched_iterative_shutdown(struct filter * startf, void ** state) {
   struct runq ** runqp = (struct runq **)state;
 
   struct runq * entry = malloc(sizeof(struct runq));
@@ -143,7 +143,7 @@ void flow_sched_iterative_shutdown(struct filter * startf, void ** state) {
  *      SMACQ_PASS  -  dout was set
  *      SMACQ_END  -  do not call again
  */
-int flow_sched_iterative(struct filter * startf, const dts_object * din, const dts_object ** dout , void ** state, int produce_first) {
+int smacq_sched_iterative(struct filter * startf, const dts_object * din, const dts_object ** dout , void ** state, int produce_first) {
   int retval;
   struct runq ** runqp = (struct runq **)state;
 
@@ -164,7 +164,7 @@ int flow_sched_iterative(struct filter * startf, const dts_object * din, const d
       
       if (retval & SMACQ_END) {
 	/* Enqueue a terminate record */
-	flow_sched_iterative_shutdown(startf, (void**)runqp);
+	smacq_sched_iterative_shutdown(startf, (void**)runqp);
       }
     }
     
@@ -197,7 +197,7 @@ int flow_sched_iterative(struct filter * startf, const dts_object * din, const d
 	  do_shutdown(runqp, f);
 	  //(*runqp)->f = NULL;
 	  *dout = NULL;
-	  if (*runqp || flow_sched_iterative_graph_alive(startf)) {
+	  if (*runqp || smacq_sched_iterative_graph_alive(startf)) {
 	    return SMACQ_FREE;
 	  } else {
 	    assert(!*runqp);

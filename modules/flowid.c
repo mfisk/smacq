@@ -100,19 +100,19 @@ static int timeval_past(struct timeval x, struct timeval y) {
 void attach_stats(struct state * state, struct srcstat * s, const dts_object * datum) {
   dts_object * msgdata;
 
-  msgdata = flow_dts_construct(state->env, state->timeval_type, &s->starttime);
+  msgdata = smacq_dts_construct(state->env, state->timeval_type, &s->starttime);
   dts_attach_field(datum, state->start_field, msgdata);
   
-  msgdata = flow_dts_construct(state->env, state->len_type, &s->byte_count);
+  msgdata = smacq_dts_construct(state->env, state->len_type, &s->byte_count);
   dts_attach_field(datum, state->byte_count_field, msgdata);
   
-  msgdata = flow_dts_construct(state->env, state->len_type, &s->byte_count_back);
+  msgdata = smacq_dts_construct(state->env, state->len_type, &s->byte_count_back);
   dts_attach_field(datum, state->byte_count_back_field, msgdata);
   
-  msgdata = flow_dts_construct(state->env, state->len_type, &s->packet_count);
+  msgdata = smacq_dts_construct(state->env, state->len_type, &s->packet_count);
   dts_attach_field(datum, state->packet_count_field, msgdata);
   
-  msgdata = flow_dts_construct(state->env, state->len_type, &s->packet_count_back);
+  msgdata = smacq_dts_construct(state->env, state->len_type, &s->packet_count_back);
   dts_attach_field(datum, state->packet_count_back_field, msgdata);
 
 }
@@ -123,9 +123,9 @@ static inline int output(struct state * state, struct iovec * domainv, struct sr
     // Output refresh record
       dts_object * msgdata;
 
-      dts_object * refresh = flow_dts_construct(state->env, state->refresh_type, NULL);
+      dts_object * refresh = smacq_dts_construct(state->env, state->refresh_type, NULL);
 
-      msgdata = flow_dts_construct(state->env, state->id_type, &s->id);
+      msgdata = smacq_dts_construct(state->env, state->id_type, &s->id);
       dts_attach_field(refresh, state->flowid_field, msgdata);
 
       g_queue_push_tail(state->outputq, refresh);
@@ -135,7 +135,7 @@ static inline int output(struct state * state, struct iovec * domainv, struct sr
 	dts_incref(s->fields[i], 1);
       }
 
-      msgdata = flow_dts_construct(state->env, state->timeval_type, &s->lasttime);
+      msgdata = smacq_dts_construct(state->env, state->timeval_type, &s->lasttime);
       dts_attach_field(refresh, state->finish_field, msgdata);
 
       dts_attach_field(refresh, state->ts_field, msgdata);
@@ -206,7 +206,7 @@ static smacq_result flowid_consume(struct state * state, const dts_object * datu
   int size, swapped;
 
   // Get current time
-  if (!flow_getfield(state->env, datum, state->ts_field, &field)) {
+  if (!smacq_getfield(state->env, datum, state->ts_field, &field)) {
     fprintf(stderr, "error: timeseries not available\n");
     return SMACQ_PASS;
   } else {
@@ -215,7 +215,7 @@ static smacq_result flowid_consume(struct state * state, const dts_object * datu
   }
 
   // Get current size
-  if (!flow_getfield(state->env, datum, state->len_field, &field)) {
+  if (!smacq_getfield(state->env, datum, state->len_field, &field)) {
     fprintf(stderr, "error: len not available\n");
     return SMACQ_PASS;
   } else {
@@ -254,7 +254,7 @@ static smacq_result flowid_consume(struct state * state, const dts_object * datu
       for (i = 0; i<state->fieldset.num; i++) {
 	int res;
 	s->fields[i] = smacq_alloc(state->env, 0, 0);
-	res = flow_getfield_copy(state->env, datum, state->fieldset.fields[i].num, (dts_object*)s->fields[i]);
+	res = smacq_getfield_copy(state->env, datum, state->fieldset.fields[i].num, (dts_object*)s->fields[i]);
 	assert (res);
 	assert(s->fields[i]);
 	dts_incref(s->fields[i], 1);
@@ -280,7 +280,7 @@ static smacq_result flowid_consume(struct state * state, const dts_object * datu
 
   if (status & SMACQ_PASS) {
     // Attach flowid to this datum
-    msgdata = flow_dts_construct(state->env, state->id_type, &s->id);
+    msgdata = smacq_dts_construct(state->env, state->id_type, &s->id);
     dts_attach_field(datum, state->flowid_field, msgdata);
     attach_stats(state, s, datum);
   }
@@ -301,25 +301,25 @@ static int flowid_init(struct smacq_init * context) {
   struct state * state = context->state = g_new0(struct state, 1);
   state->env = context->env;
 
-  state->refresh_type = flow_requiretype(state->env, "refresh");
+  state->refresh_type = smacq_requiretype(state->env, "refresh");
 
-  state->flowid_field = flow_requirefield(state->env, "flowid");
-  state->id_type = flow_requiretype(state->env, "int");
+  state->flowid_field = smacq_requirefield(state->env, "flowid");
+  state->id_type = smacq_requiretype(state->env, "int");
 
-  state->len_type = flow_requiretype(state->env, "uint32");
+  state->len_type = smacq_requiretype(state->env, "uint32");
 
-  state->byte_count_field = flow_requirefield(state->env, "bytes");
-  state->byte_count_back_field = flow_requirefield(state->env, "bytesback");
+  state->byte_count_field = smacq_requirefield(state->env, "bytes");
+  state->byte_count_back_field = smacq_requirefield(state->env, "bytesback");
 
-  state->packet_count_field = flow_requirefield(state->env, "packets");
-  state->packet_count_back_field = flow_requirefield(state->env, "packetsback");
+  state->packet_count_field = smacq_requirefield(state->env, "packets");
+  state->packet_count_back_field = smacq_requirefield(state->env, "packetsback");
 
-  state->ts_field = flow_requirefield(state->env, "timeseries");
-  state->timeval_type = flow_requiretype(state->env, "timeval");
+  state->ts_field = smacq_requirefield(state->env, "timeseries");
+  state->timeval_type = smacq_requiretype(state->env, "timeval");
 
-  state->start_field = flow_requirefield(state->env, "start");
-  state->finish_field = flow_requirefield(state->env, "finish");
-  state->len_field = flow_requirefield(state->env, "len");
+  state->start_field = smacq_requirefield(state->env, "start");
+  state->finish_field = smacq_requirefield(state->env, "finish");
+  state->len_field = smacq_requirefield(state->env, "len");
 
   {
 	smacq_opt interval, reverse;

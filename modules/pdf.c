@@ -47,12 +47,12 @@ static void compute_all(struct state * state) {
   state->list = NULL;
 
   for (n = state->outputq; n; n = n->next) {
-  	if (!flow_getfield(state->env, n->obj, state->countfield, &count)) {
+  	if (!smacq_getfield(state->env, n->obj, state->countfield, &count)) {
 		assert(0);
 	}
 	p = (double)(*(int*)(count.data)) / (double)(state->total);
 	//fprintf(stderr, "%d / %lld = %g\n", *(int*)(count.data), state->total, p);
-	pfield = flow_dts_construct(state->env, state->probtype, &p);
+	pfield = smacq_dts_construct(state->env, state->probtype, &p);
 	dts_incref(pfield, 1);
 	dts_attach_field(n->obj, state->probfield, pfield); 
   }
@@ -64,7 +64,7 @@ static smacq_result pdf_consume(struct state * state, const dts_object * datum, 
   dts_object count; 
   smacq_result res = SMACQ_FREE;
 
-  if (!flow_getfield(state->env, datum, state->countfield, &count)) {
+  if (!smacq_getfield(state->env, datum, state->countfield, &count)) {
       if (dts_gettype(datum) == state->refreshtype) {
           compute_all(state);
 	  res = SMACQ_PASS;
@@ -104,10 +104,10 @@ static int pdf_init(struct smacq_init * context) {
 
   }
 
-  state->countfield = flow_requirefield(state->env, "count");
-  state->probfield = flow_requirefield(state->env, "probability");
-  state->probtype = flow_requiretype(state->env, "double");
-  state->refreshtype = flow_requiretype(state->env, "refresh");
+  state->countfield = smacq_requirefield(state->env, "count");
+  state->probfield = smacq_requirefield(state->env, "probability");
+  state->probtype = smacq_requiretype(state->env, "double");
+  state->refreshtype = smacq_requiretype(state->env, "refresh");
 
   return 0;
 }

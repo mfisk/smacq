@@ -20,7 +20,7 @@ static inline int sched_force_produce(struct filter * f) {
   if (retval & SMACQ_CANPRODUCE) f->status |= SMACQ_CANPRODUCE;
   else f->status &= (~SMACQ_CANPRODUCE);
 
-  flow_passalong(f, d == NULL ? RING_EOF : d, output);
+  smacq_passalong(f, d == NULL ? RING_EOF : d, output);
 
   return (f->status & (SMACQ_CANPRODUCE|SMACQ_PRODUCE));
   //return !(retval & SMACQ_PASS);
@@ -81,7 +81,7 @@ void thread_sched(struct filter * f) {
 
       while (sched_force_produce(f)) {}
       
-      flow_passalong(f,d,-1);
+      smacq_passalong(f,d,-1);
       return;
     }
    
@@ -94,13 +94,13 @@ void thread_sched(struct filter * f) {
     }
  
     if (f->status & SMACQ_PASS) 
-      flow_passalong(f, d, outchan);
+      smacq_passalong(f, d, outchan);
 
     dts_decref(d);
 
     if (f->status & SMACQ_END) {
-      flow_passalong(f, RING_EOF, -1);
-      flow_cancelupstream(f);
+      smacq_passalong(f, RING_EOF, -1);
+      smacq_cancelupstream(f);
       return;
     }
 
@@ -131,12 +131,12 @@ void * thread_init(void * a) {
  * Recursively traverse the module tree and spawn a thread for each module.
  * Thread will run thread_init to initialize the module.
  */
-void flow_start_threads(struct filter * f) {
+void smacq_start_threads(struct filter * f) {
   int i;
   struct thread_args * a = g_new0(struct thread_args, 1);
   a->f = f;
   pthread_create(&f->thread, NULL, thread_init, a);
 
   for (i = 0; i < f->numchildren; i++ ) 
-    flow_start_threads(f->next[i]);
+    smacq_start_threads(f->next[i]);
 }

@@ -49,18 +49,18 @@ static smacq_result groupby_consume(struct state * state, const dts_object * dat
     bucket->runq = NULL;
     //fprintf(stderr, "Cloning %d\n", state->bucket);
     bucket->graph = smacq_build_pipeline(state->queryargc, state->queryargv);
-    flow_start(bucket->graph, ITERATIVE, state->env->types);
+    smacq_start(bucket->graph, ITERATIVE, state->env->types);
     bytes_hash_table_insertv(state->hashtable, partitionv, state->fieldset.num, bucket);
   } 
 
-  more = flow_sched_iterative(bucket->graph, datum, &state->product, &bucket->runq, 0);
+  more = smacq_sched_iterative(bucket->graph, datum, &state->product, &bucket->runq, 0);
   
   // Handle refresh (kill-off child)
   if (dts_gettype(datum) == state->refresh_type) {
     int res = bytes_hash_table_removev(state->hashtable, partitionv, state->fieldset.num);
     assert(res);
     //fprintf(stderr, "groupby remove from %p\n", state->hashtable);
-    flow_sched_iterative_shutdown(bucket->graph, &bucket->runq);
+    smacq_sched_iterative_shutdown(bucket->graph, &bucket->runq);
 
   }
   
@@ -69,7 +69,7 @@ static smacq_result groupby_consume(struct state * state, const dts_object * dat
     status = SMACQ_PASS;
 
     if (! (more&SMACQ_END)) {
-      more = flow_sched_iterative(bucket->graph, NULL, &state->product, &bucket->runq, 0);
+      more = smacq_sched_iterative(bucket->graph, NULL, &state->product, &bucket->runq, 0);
       if (more & SMACQ_END) {
 	assert(0); // Not expected
       }
@@ -80,7 +80,7 @@ static smacq_result groupby_consume(struct state * state, const dts_object * dat
 
   if ((dts_gettype(datum) == state->refresh_type) && (!state->product)) {
     // Null datum is EOF
-    more = flow_sched_iterative(bucket->graph, NULL, &state->product, &bucket->runq, 0);
+    more = smacq_sched_iterative(bucket->graph, NULL, &state->product, &bucket->runq, 0);
   }
 
   
@@ -142,7 +142,7 @@ static int groupby_init(struct smacq_init * context) {
   fields_init(state->env, &state->fieldset, argc, argv);
   state->hashtable = bytes_hash_table_new(KEYBYTES, CHAIN, NOFREE);
 
-  state->refresh_type = flow_requiretype(state->env, "refresh");
+  state->refresh_type = smacq_requiretype(state->env, "refresh");
 
   return 0;
 }
@@ -164,7 +164,7 @@ static smacq_result groupby_produce(struct state * state, const dts_object ** da
 
   if (state->cont) {
     int more;
-    more = flow_sched_iterative(state->cont->graph, NULL, &state->product, &state->cont->runq, 0);
+    more = smacq_sched_iterative(state->cont->graph, NULL, &state->product, &state->cont->runq, 0);
     if (more & SMACQ_END) {
       assert(!state->cont->runq);
       smacq_destroy_graph(state->cont->graph);

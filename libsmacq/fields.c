@@ -14,7 +14,7 @@ void fields_init(smacq_environment * env, struct fieldset * fieldset, int argc, 
       continue;
     } else {
       fieldset->fields[fieldset->num].name = argv[0];
-      fieldset->fields[fieldset->num++].num = flow_requirefield(env, argv[0]);
+      fieldset->fields[fieldset->num++].num = smacq_requirefield(env, argv[0]);
       argv++;
     }
   }
@@ -31,7 +31,7 @@ dts_object * fields2data(smacq_environment * env,
   for (i = 0; i < fieldset->num; i++) {
     struct field * f = &fieldset->fields[i];
 
-    if (! flow_getfield(env, datum, f->num, &datalist[i])) {
+    if (! smacq_getfield(env, datum, f->num, &datalist[i])) {
       //fprintf(stderr, "Debug: uniq: no %s field in this datum of type %s\n", f->name, env->typename_bynum(datum->type));
       return 0;
     }

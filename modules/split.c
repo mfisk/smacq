@@ -47,7 +47,7 @@ static smacq_result split_consume(struct state * state, const dts_object * datum
 	bucket = state->bucket++;
 	//fprintf(stderr, "Cloning %d\n", state->bucket);
         newClone = smacq_clone_tree(state->self, state->self, 0);
-	flow_init_modules(newClone, state->env);
+	smacq_init_modules(newClone, state->env);
 
 	// 0 return value is error, so everything is inflated by 1
     	bytes_hash_table_insertv(state->hashtable, partitionv, state->fieldset.num, (gpointer)state->bucket);

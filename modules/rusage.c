@@ -62,11 +62,11 @@ static smacq_result rusage_consume(struct state * state, const dts_object * datu
   getrusage(RUSAGE_SELF, &rusage);
 
   if (state->idrss) {
-    dts_object * msgdata = flow_dts_construct(state->env, state->longtype, &rusage.ru_idrss);
+    dts_object * msgdata = smacq_dts_construct(state->env, state->longtype, &rusage.ru_idrss);
     dts_attach_field(datum, state->idrss_field, msgdata); 
   }
   if (state->rss) {
-    dts_object * msgdata = flow_dts_construct(state->env, state->longtype, &rusage.ru_maxrss);
+    dts_object * msgdata = smacq_dts_construct(state->env, state->longtype, &rusage.ru_maxrss);
     dts_attach_field(datum, state->rss_field, msgdata); 
   }
  
@@ -95,11 +95,11 @@ static int rusage_init(struct smacq_init * context) {
   }
 
   if (state->idrss) 
-  	state->idrss_field = flow_requirefield(state->env, "idrss");
+  	state->idrss_field = smacq_requirefield(state->env, "idrss");
   if (state->rss) 
-  	state->rss_field = flow_requirefield(state->env, "rss");
+  	state->rss_field = smacq_requirefield(state->env, "rss");
 
-  state->longtype = flow_requiretype(state->env, "uint32");
+  state->longtype = smacq_requiretype(state->env, "uint32");
 
   return 0;
 }

@@ -29,6 +29,6 @@ int main(int argc, char ** argv) {
   else {
     objs = smacq_build_pipeline(argc-1, argv+1);
   }
-  return flow_start(objs, RECURSIVE, NULL);
+  return smacq_start(objs, RECURSIVE, NULL);
 }
 

@@ -1,4 +1,4 @@
-.TH smacq-modules 3 "$Date: 2002/12/01 03:27:53 $" "LANL"
+.TH smacq-modules 3 "$Date: 2002/12/01 03:30:01 $" "LANL"
 .SH NAME
 smacq-modules - pipeline module programming guide
 .SH SYNOPSIS
@@ -7,13 +7,13 @@ smacq-modules - pipeline module programming guide
 .sp 
 Each module must provide the following functions and global variables:
 .sp
-.BI "static smacq_result flow_init(struct smacq_init * context);"
+.BI "static smacq_result smacq_init(struct smacq_init * context);"
 .sp
-.BI "static smacq_result flow_consume(void * state, const dts_object *, int * outchan);"
+.BI "static smacq_result smacq_consume(void * state, const dts_object *, int * outchan);"
 .sp
-.BI "static smacq_result flow_produce(void * state, const dts_object **, int * outchan);"
+.BI "static smacq_result smacq_produce(void * state, const dts_object **, int * outchan);"
 .sp
-.BI "static smacq_result flow_shutdown(void * state);"
+.BI "static smacq_result smacq_shutdown(void * state);"
 .sp
 .BI "static struct smacq_options smacq_options[];"
 .sp
@@ -22,10 +22,10 @@ Each module must provide the following functions and global variables:
 .ne 7
 .ta 8n 16n 32n
 {
-	produce: &flow_produce,
-	consume: &flow_consume,
-	init: &flow_init,
-	shutdown: &flow_shutdown
+	produce: &smacq_produce,
+	consume: &smacq_consume,
+	init: &smacq_init,
+	shutdown: &smacq_shutdown
 };
 .ta
 .fi
@@ -44,10 +44,10 @@ dataflow modules.  These modules are dynamically loaded and may be
 instantiated multiple times.  Global and static variables are therefore
 deprecated for most cases.
 .sp
-Each module must declare a \fBflow_\fP\fImodule\fP\fB_table\fP structure of type
+Each module must declare a \fBsmacq_\fP\fImodule\fP\fB_table\fP structure of type
 \fBstruct smacq_functions\fP referring to static functions described below:
 .sp
-The \fBflow_init()\fP function is called to initialize a new instantiate
+The \fBsmacq_init()\fP function is called to initialize a new instantiate
 of a module.  The return value is a module exit code, with 0 indicating no error.
 All parameters are passed in a single structure:  
 .sp
@@ -69,14 +69,14 @@ struct smacq_init {
 .RE
 .sp
 If any per-instantiation storage is required, it should
-be allocated in \fBflow_init()\fP and returned in the state parameter.  
+be allocated in \fBsmacq_init()\fP and returned in the state parameter.  
 The \fBenv\fP element should be saved and passed to any library functions
 that require an argument of type \fBsmacq_environment\fP.
 Arguments to the module are passed in standard argv, argc form.
-This structure will be reused after flow_init() returns, so anything you
+This structure will be reused after smacq_init() returns, so anything you
 wish to save out of it must be copied.
 .sp
-The \fBflow_produce()\fP function is called to output data from the
+The \fBsmacq_produce()\fP function is called to output data from the
 module.  It is passed the instantiation's state variable and a pointer
 in which to store a pointer to a new datum.  The return code should be
 SMACQ_PASS for success, SMACQ_END if there is no more data to be
@@ -84,28 +84,28 @@ produced (ever), or SMACQ_ERROR in case of error.  If there is more
 data to be produced, the result should be SMACQ_PASS|SMACQ_PRODUCE.
 Produce is called for the first module in a pipeline, as well as right
 before a shutdown.  Other than that, it is only called if the previous call 
-to the mdoule (flow_consume() or flow_produce()) returned SMACQ_PRODUCE or SMACQ_CANPRODUCE.
-SMACQ_PRODUCE requires that flow_produce() be called before another consume, while
-SMACQ_CANPRODUCE may or may not trigger an immediate call to flow_produce().
+to the mdoule (smacq_consume() or smacq_produce()) returned SMACQ_PRODUCE or SMACQ_CANPRODUCE.
+SMACQ_PRODUCE requires that smacq_produce() be called before another consume, while
+SMACQ_CANPRODUCE may or may not trigger an immediate call to smacq_produce().
 .sp
-The \fBflow_consume()\fP function is called when there is new data for
+The \fBsmacq_consume()\fP function is called when there is new data for
 a module to process.  The return value signals what should be done
 with the data.  The SMACQ_FREE value says that the datum is no longer
 needed.  SMACQ_PASS specifies that the structure should also be passed
 to the next module (if there is one) in the pipeline.  SMACQ_ERROR
 specifies that there was a fatal error consuming the packet.
-SMACQ_PRODUCE signals that flow_produce() must be called before
-flow_consume() can be called again.  SMACQ_CANPRODUCE says that
-flow_produce() will return data, but does not have to be called for
-flow_consume() (presumably your module is doing some kind of buffering
+SMACQ_PRODUCE signals that smacq_produce() must be called before
+smacq_consume() can be called again.  SMACQ_CANPRODUCE says that
+smacq_produce() will return data, but does not have to be called for
+smacq_consume() (presumably your module is doing some kind of buffering
 in this case).
 .sp
-Both \fBflow_consume\fP and \fBflow_produce()\fP may fill in the 
+Both \fBsmacq_consume\fP and \fBsmacq_produce()\fP may fill in the 
 outchan parameter if they wish to limit the flow of data to a specific
 child in the data-flow graph.  Otherwise, the default value of -1 will 
 cause data to go to all children.
 .sp
-The \fBflow_shutdown()\fP function is called when there is no more data
+The \fBsmacq_shutdown()\fP function is called when there is no more data
 to process.  It is responsible for freeing and resources used by the
 module.  The return value is an exit code, with 0 indicating no error.
 
@@ -115,14 +115,14 @@ module.  The return value is an exit code, with 0 indicating no error.
 The following routines provide access to datum records:
 
 .TP
-.BI "const dts_object * flow_dts_construct(smacq_environment * env, int type, void * data)"
+.BI "const dts_object * smacq_dts_construct(smacq_environment * env, int type, void * data)"
 Return a new data object with contents copied from data.  This call only
 works for fixed-size objects.
 
 .TP
 .BI "const dts_object * smacq_alloc(smacq_environment * env, int datasize, int type)"
 Return a new, empty data object large enough to hold \fIdatasize\fP bytes.  
-Use \fIflow_requiretype()\fP to get a
+Use \fIsmacq_requiretype()\fP to get a
 type number.
 
 .TP
@@ -132,7 +132,7 @@ type number.
 	be used any further and should not be passed on to other modules.
 
 .TP
-.BI "int flow_datum_size(const dts_object * datum)"
+.BI "int smacq_datum_size(const dts_object * datum)"
 	Return the size of the data
 
 .TP
@@ -156,18 +156,18 @@ type number.
 Data records are composed of named fields that can be accessed with the following functions:
 
 .TP
-.BI "int flow_getfield(smacq_environment * env, const dts_object * datum, int field, dts_object * data)"
+.BI "int smacq_getfield(smacq_environment * env, const dts_object * datum, int field, dts_object * data)"
 .TP
 .BI "int dts_getfield(dts_environment * env, const dts_object * datum, int field, dts_object * data)"
 	Initialize the data object to point to the specified field of the datum.  The data object
 	is only valid for the life of this datum.  A zero is returned on failure.
 
 .TP
-.BI "int flow_getfield_copy(smacq_environment * env, const dts_object * datum, int field, dts_object * field_data)
+.BI "int smacq_getfield_copy(smacq_environment * env, const dts_object * datum, int field, dts_object * field_data)
 	Same as above, but return a copy of the field that must be freed, but that will outlive the datum.
 
 .TP
-.BI "int flow_requirefield(smacq_environment * env, char * tname)"
+.BI "int smacq_requirefield(smacq_environment * env, char * tname)"
 .TP
 .BI "int dts_requirefield(dts_environment * env, char * tname)"
 	Return the dynamically assigned numeric identifier for the given field name.
@@ -176,11 +176,11 @@ Data records are composed of named fields that can be accessed with the followin
 Data records and fields are dynamically typed objects (\fIdts_object\fP).  The following routines interface with the type system:
 
 .TP
-.BI "int flow_fromstring(smacq_environment * env, int type, char * value, dts_object * data)"
+.BI "int smacq_fromstring(smacq_environment * env, int type, char * value, dts_object * data)"
 	Convert the string-form value into a typed data object of the specified type. 
 
 .TP
-.BI "int flow_presentdata(smacq_environment * env, dts_object * data, char * transform_type, void ** transform_ptr, int * transform_size)"
+.BI "int smacq_presentdata(smacq_environment * env, dts_object * data, char * transform_type, void ** transform_ptr, int * transform_size)"
 .TP
 .BI "int dts_presentdata(dts_environment * env, dts_object * data, char * transform_type, void ** transform_ptr, int * transform_size)"
 	Transform the data object to the specified transform.  All types should
@@ -189,7 +189,7 @@ Data records and fields are dynamically typed objects (\fIdts_object\fP).  The f
 	It is the responsibility of the caller to free transforms when done.
 
 .TP
-.BI "int flow_requiretype(smacq_environment * env, char * type_name)"
+.BI "int smacq_requiretype(smacq_environment * env, char * type_name)"
 .TP
 .BI "int dts_requiretype(dts_environment * env, char * type_name)"
 	Types are dynamically loaded classes.  Load the specified type module
@@ -212,12 +212,12 @@ Data records and fields are dynamically typed objects (\fIdts_object\fP).  The f
 The system knows how to compare typed objects using the following routines:
 
 .TP
-.BI "int flow_match(smacq_environment * env, const dts_object * datum, dts_comparison * comps, int same_types)"
+.BI "int smacq_match(smacq_environment * env, const dts_object * datum, dts_comparison * comps, int same_types)"
 	Compares the specified datum with the specified list of comparisions.
 	Returns non-zero iff all of the comparisons are true.
 
 .TP
-.BI "int flow_parsetest(smacq_environment * env, dts_comparison * comparison, char * test)"
+.BI "int smacq_parsetest(smacq_environment * env, dts_comparison * comparison, char * test)"
 	Initialize the comparison based on the given comparison string of one
 	of the following forms:
 
@@ -265,7 +265,7 @@ Valid types are: \fI SMACQ_TYPE_STRING, SMACQ_TYPE_INT, SMACQ_TYPE_DOUBLE, SMACQ
 Fields can also be sent to other data records:
 
 .TP
-.BI "void flow_msg_send(smacq_environment * env, int field, dts_object * data, dts_comparison * comparisonList)"
+.BI "void smacq_msg_send(smacq_environment * env, int field, dts_object * data, dts_comparison * comparisonList)"
 	Send a specified field with value specified by data to any data records described
 	by the criteria in the comparison list.
 

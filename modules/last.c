@@ -95,9 +95,9 @@ static void emit_all(struct state * state) {
   struct obj_list * newo = g_new(struct obj_list, 1);
   dts_object * timefield;
   if (state->fieldset.num) {
-  	newo->obj = flow_dts_construct(state->env, state->refreshtype, NULL);
+  	newo->obj = smacq_dts_construct(state->env, state->refreshtype, NULL);
   	if (state->hasinterval) {
-  		timefield = flow_dts_construct(state->env, state->timevaltype, &state->nextinterval);
+  		timefield = smacq_dts_construct(state->env, state->timevaltype, &state->nextinterval);
   		dts_attach_field(newo->obj, state->timeseries, timefield);
   	}
   	newo->next = NULL;
@@ -115,7 +115,7 @@ static smacq_result last_consume(struct state * state, const dts_object * datum,
   if (state->hasinterval) {
     dts_object field_data;
 
-    if (!flow_getfield(state->env, datum, state->timeseries, &field_data)) {
+    if (!smacq_getfield(state->env, datum, state->timeseries, &field_data)) {
       fprintf(stderr, "error: timeseries not available\n");
     } else {
       struct timeval * tv = (struct timeval *)field_data.data;
@@ -186,9 +186,9 @@ static int last_init(struct smacq_init * context) {
   // Consume rest of arguments as fieldnames
   fields_init(state->env, &state->fieldset, argc, argv);
 
-  state->timeseries = flow_requirefield(state->env, "timeseries");
-  state->refreshtype = flow_requiretype(state->env, "refresh");
-  state->timevaltype = flow_requiretype(state->env, "timeval");
+  state->timeseries = smacq_requirefield(state->env, "timeseries");
+  state->refreshtype = smacq_requiretype(state->env, "refresh");
+  state->timevaltype = smacq_requiretype(state->env, "timeval");
   state->last = bytes_hash_table_new(KEYBYTES, CHAIN, NOFREE);
 
   return 0;

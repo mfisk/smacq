@@ -32,7 +32,7 @@ static void ProcessPacket(struct state * state, struct old_pcap_pkthdr * hdr,
   struct dts_pkthdr * pkt;
 
   state->datum = (dts_object*)smacq_alloc(state->env, hdr->len + sizeof(struct dts_pkthdr), 0);
-  flow_datum_settype(state->datum, state->dts_pkthdr_type);
+  smacq_datum_settype(state->datum, state->dts_pkthdr_type);
   pkt = (struct dts_pkthdr*)dts_getdata(state->datum);
 
   pkt->pcap_pkthdr = *hdr;
@@ -170,7 +170,7 @@ static int pcaplive_init(struct smacq_init * context) {
 	exit(-1);
   }
 
-  flow_requiretype(context->env, "packet");
+  smacq_requiretype(context->env, "packet");
   state->dts_pkthdr_type = smacq_opt_typenum_byname(state->env, "packet");
 
   return 0;

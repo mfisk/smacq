@@ -81,7 +81,7 @@ typedef struct _type_env {
 } dts_environment;
 
 
-typedef struct _flow_env {
+typedef struct _smacq_env {
   dts_environment * types;
 
   const dts_object * (*alloc)(int, int);
@@ -130,19 +130,19 @@ typedef struct _dts_msg {
 
 struct state; // Private to modules
 
-typedef smacq_result flow_produce_fn(struct state * state, const dts_object **, int * outchan);
-typedef smacq_result flow_consume_fn(struct state * state, const dts_object *, int * outchan);
-typedef smacq_result flow_init_fn(struct smacq_init *);
-typedef smacq_result flow_shutdown_fn(struct state *);
+typedef smacq_result smacq_produce_fn(struct state * state, const dts_object **, int * outchan);
+typedef smacq_result smacq_consume_fn(struct state * state, const dts_object *, int * outchan);
+typedef smacq_result smacq_init_fn(struct smacq_init *);
+typedef smacq_result smacq_shutdown_fn(struct state *);
 
 /*
  * Interrogation structures
  */
 struct smacq_functions {
-  flow_produce_fn * produce;
-  flow_consume_fn * consume;
-  flow_init_fn * init;
-  flow_shutdown_fn * shutdown;
+  smacq_produce_fn * produce;
+  smacq_consume_fn * consume;
+  smacq_init_fn * init;
+  smacq_shutdown_fn * shutdown;
   smacq_thread_fn * thread;
 };
 
@@ -186,9 +186,9 @@ extern void  smacq_flush(struct smacq_init * context);
  */
 struct filter;
 
-enum flow_scheduler { ITERATIVE, RECURSIVE, THREADED, LOOP };
-EXTERN int flow_start(struct filter *, enum flow_scheduler, dts_environment *);
-void flow_init_modules(struct filter *, smacq_environment *);
+enum smacq_scheduler { ITERATIVE, RECURSIVE, THREADED, LOOP };
+EXTERN int smacq_start(struct filter *, enum smacq_scheduler, dts_environment *);
+void smacq_init_modules(struct filter *, smacq_environment *);
 EXTERN struct filter * smacq_build_pipeline(int argc, char ** argv);
 struct filter * smacq_build_query(int argc, char ** argv);
 struct filter * smacq_add_new_child(struct filter * parent, int argc, char ** argv);

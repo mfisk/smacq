@@ -33,7 +33,7 @@ static smacq_result filter_consume(struct state * state, const dts_object * datu
     same_types = 1;
   }
 
-  if (flow_match(state->env, datum, state->comp, same_types)) 
+  if (smacq_match(state->env, datum, state->comp, same_types)) 
     return SMACQ_PASS;
   else
     return SMACQ_FREE;
@@ -63,7 +63,7 @@ static int filter_init(struct smacq_init * context) {
     // Make array a linked list too
     if (i) state->comp[i-1].next = state->comp+i;
 
-    flow_parsetest(state->env, state->comp+i, state->argv[i]);
+    smacq_parsetest(state->env, state->comp+i, state->argv[i]);
   }
 
   return 0;

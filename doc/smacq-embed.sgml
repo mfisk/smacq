@@ -12,7 +12,7 @@
       <firstname>Mike</firstname>
       <surname>Fisk</surname>
     </author>
-    <date>$Date: 2002/10/30 23:23:14 $</date>
+    <date>$Date: 2002/10/31 01:00:59 $</date>
   </refentryinfo>
   <refmeta>
     <refentrytitle>libsmacq-embed</refentrytitle>
@@ -56,9 +56,9 @@
 
     <funcsynopsis>
       <funcprototype>
-	<funcdef>struct filter * <function>flow_start</function></funcdef>
+	<funcdef>struct filter * <function>smacq_start</function></funcdef>
 	<paramdef>       struct filter * graph</paramdef>
-	<paramdef>       enum flow_scheduler</paramdef>
+	<paramdef>       enum smacq_scheduler</paramdef>
 	<paramdef>       dts_environment * tenv</paramdef>
 	</funcprototype>
     </funcsynopsis>
@@ -67,9 +67,9 @@
 	Given the specified data-flow graph, instantiate the modules and
 	begin the scheduler.  Possible scheduler values are ITERATIVE,
 	RECURSIVE, and THREADED.   In the case of RECURSIVE or
-	THREADED, flow_start() will never return.  In the case of
+	THREADED, smacq_start() will never return.  In the case of
 	ITERATIVE, the scheduler must be repeatedl;y called using the
-	following flow_sched_iterative() function.
+	following smacq_sched_iterative() function.
       </para>
 
       <para>
@@ -80,7 +80,7 @@
 
     <funcsynopsis>
       <funcprototype>
-	<funcdef>int <function>flow_sched_iterative</function></funcdef>
+	<funcdef>int <function>smacq_sched_iterative</function></funcdef>
 	<paramdef>        struct filter * graph</paramdef>
 	<paramdef>        const 	dts_object * data_in</paramdef>
 	<paramdef>        dts_object ** data_out</paramdef>
@@ -96,7 +96,7 @@
 
       <para>
 	If data is produced, a pointer to it will be stored in
-	data_out.  If the return value is 0, then flow_sched_iterative() 
+	data_out.  If the return value is 0, then smacq_sched_iterative() 
 	should not be called again.
       </para>
 

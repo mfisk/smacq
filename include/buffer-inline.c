@@ -35,7 +35,7 @@ static inline dts_object * ring_dequeue(struct filter * f) {
   return d;
 }
 
-static void flow_passalong(struct filter * f, dts_object * d, int outchan) {
+static void smacq_passalong(struct filter * f, dts_object * d, int outchan) {
   int i;
 
   if (!f->next) return;
@@ -55,31 +55,31 @@ static void flow_passalong(struct filter * f, dts_object * d, int outchan) {
 }
 
 
-static inline void flow_passall(struct filter * f, dts_object * d) {
+static inline void smacq_passall(struct filter * f, dts_object * d) {
   struct filter * top = f;
   while(top->previous) top = top->previous;
   
-  flow_passalong(top, d, -1);
+  smacq_passalong(top, d, -1);
 }
 
-static void flow_canceldownto(struct filter * f, struct filter * until) {
+static void smacq_canceldownto(struct filter * f, struct filter * until) {
   int i;
 
   if (f == until) return;
 
   for (i=0; i < f->numchildren; i++) {
-      flow_canceldownto(f->next[i], until);
+      smacq_canceldownto(f->next[i], until);
   }
 
   pthread_cancel(f->thread);
 }
 
-static inline void flow_cancelupstream(struct filter * f) {
+static inline void smacq_cancelupstream(struct filter * f) {
   struct filter * top = f;
 
   while(top->previous) top = top->previous;
 
-  flow_canceldownto(top, f);
+  smacq_canceldownto(top, f);
 }
 
 #endif

@@ -88,7 +88,7 @@ static smacq_result fifodelay_consume(struct state * state, const dts_object * d
   int res;
 
   /* Add this entry to the queue */
-  res = flow_getfield(state->env, datum, state->ts_field, &dtime);
+  res = smacq_getfield(state->env, datum, state->ts_field, &dtime);
   if (!res) {
     fprintf(stderr, "Passing field without time\n");
     return SMACQ_PASS;
@@ -98,7 +98,7 @@ static smacq_result fifodelay_consume(struct state * state, const dts_object * d
   fifo_insert(state, datum,  *(struct timeval *)dtime.data);
 
   /* Update the edge time, if given in this packet */
-  res = flow_getfield(state->env, datum, state->edge_field, &dtime);
+  res = smacq_getfield(state->env, datum, state->edge_field, &dtime);
   if (res) {
     assert(dtime.len == sizeof (struct timeval));
     timeval_minus(  *(struct timeval*)dtime.data, state->interval, &state->edge);
@@ -128,8 +128,8 @@ static int fifodelay_init(struct smacq_init * context) {
 		       options, optvals);
 
     state->interval = interval.timeval_t;
-    state->edge_field = flow_requirefield(state->env, ifieldname.string_t);
-    state->ts_field = flow_requirefield(state->env, ofieldname.string_t);
+    state->edge_field = smacq_requirefield(state->env, ifieldname.string_t);
+    state->ts_field = smacq_requirefield(state->env, ofieldname.string_t);
     assert(state->ts_field);
 
     assert(argc==0);

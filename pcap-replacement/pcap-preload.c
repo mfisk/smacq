@@ -15,7 +15,7 @@
  */
 
 /* These should be in per-instantiation state, but we don't have an easy way to pass them 
- * into the flow_init() function, plus this library isn't designed to be poly-instantiated anyway
+ * into the smacq_init() function, plus this library isn't designed to be poly-instantiated anyway
  */
 static pcap_handler callback = NULL;
 static void * closure = NULL;
@@ -44,26 +44,26 @@ int pcap_loop(pcap_t * p, int foo, pcap_handler handler, u_char * user) {
 	dts_init();
 	f = smacq_build_pipeline(argc, argv);
 
-	return flow_start(f, 0, NULL);
+	return smacq_start(f, 0, NULL);
 }
 
-static smacq_result flow_consume(struct state * state, const dts_object * datum, int * outchan) {
+static smacq_result smacq_consume(struct state * state, const dts_object * datum, int * outchan) {
 	struct dts_pkthdr * p;
 	p = datum->data;
 	callback(closure, (struct pcap_pkthdr*)&p->pcap_pkthdr, (u_char*)(p+1));
 
 	return SMACQ_PASS;
 }
-static smacq_result flow_produce(struct state * state, const dts_object **datump, int * outchan) {
+static smacq_result smacq_produce(struct state * state, const dts_object **datump, int * outchan) {
 	return SMACQ_END;
 }
-static smacq_result flow_init(struct smacq_init * context) {
+static smacq_result smacq_init(struct smacq_init * context) {
 	return SMACQ_PASS;
 }
 struct smacq_functions smacq_pcap_preload_table = {
-	produce: &flow_produce,
-	consume: &flow_consume,
-	init: &flow_init,
+	produce: &smacq_produce,
+	consume: &smacq_consume,
+	init: &smacq_init,
 	shutdown: NULL
 };
 

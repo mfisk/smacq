@@ -23,10 +23,10 @@ struct state {
   int empty_type;
 };
 
-static inline const dts_object * flow_construct_fromstring(smacq_environment * env, int type, void * data) {
+static inline const dts_object * smacq_construct_fromstring(smacq_environment * env, int type, void * data) {
   const dts_object * o = smacq_alloc(env, 0, type);
   dts_incref(o, 1);
-  if (flow_fromstring(env, type, data, (dts_object*)o)) {
+  if (smacq_fromstring(env, type, data, (dts_object*)o)) {
     return o;
   } else {
     dts_decref(o);
@@ -73,13 +73,13 @@ static smacq_result tabularinput_produce(struct state* state, const dts_object *
     }
    
     if (i >= state->fields || !state->field_type[i] ||
-	!(msgdata = flow_construct_fromstring(state->env, state->field_type[i], strdup(startp))))  {
+	!(msgdata = smacq_construct_fromstring(state->env, state->field_type[i], strdup(startp))))  {
       double d = strtod(startp, &badp);
       if (badp && badp != endp) {
 	//fprintf(stderr, "Double test failed, '%s' remains\n", badp);
-	msgdata = flow_construct_fromstring(state->env, state->string_type, strdup(startp));
+	msgdata = smacq_construct_fromstring(state->env, state->string_type, strdup(startp));
       } else {
-	msgdata = flow_dts_construct(state->env, state->double_type, &d);
+	msgdata = smacq_dts_construct(state->env, state->double_type, &d);
       }
     }
 
@@ -89,7 +89,7 @@ static smacq_result tabularinput_produce(struct state* state, const dts_object *
     if (i >= state->fields) {
       char buf[1024];
       sprintf(buf, "%d", i+1);
-      dts_attach_field(datum, flow_requirefield(state->env, buf), msgdata); 
+      dts_attach_field(datum, smacq_requirefield(state->env, buf), msgdata); 
     } else {
       dts_attach_field(datum, state->field_name[i], msgdata); 
     }
@@ -154,12 +154,12 @@ static int tabularinput_init(struct smacq_init * context) {
     type = index(name, ':');
     if (!type) {
       state->field_type[i] = 0;
-      state->field_name[i] = flow_requirefield(state->env, name);
+      state->field_name[i] = smacq_requirefield(state->env, name);
     } else {
       type[0] = '\0';
       //fprintf(stderr, "Added field %s type %s\n", name, type+1);
-      state->field_name[i] = flow_requirefield(state->env, name);
-      state->field_type[i] = flow_requiretype(state->env, type+1);
+      state->field_name[i] = smacq_requirefield(state->env, name);
+      state->field_type[i] = smacq_requiretype(state->env, type+1);
     }
 
     free(name);
@@ -170,9 +170,9 @@ static int tabularinput_init(struct smacq_init * context) {
     assert(0);
   }
 
-  state->double_type = flow_requiretype(state->env, "double");
-  state->string_type = flow_requiretype(state->env, "string");
-  state->empty_type = flow_requiretype(state->env, "empty");
+  state->double_type = smacq_requiretype(state->env, "double");
+  state->string_type = smacq_requiretype(state->env, "string");
+  state->empty_type = smacq_requiretype(state->env, "empty");
 
   return 0;
 }

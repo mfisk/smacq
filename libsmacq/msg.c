@@ -1,7 +1,7 @@
 #include <smacq-internal.h>
 #include <stdio.h>
 
-static inline const dts_object * flow_datum_fieldobj(const dts_object * d, int field) {
+static inline const dts_object * smacq_datum_fieldobj(const dts_object * d, int field) {
   if (field >= d->numfields) {
     return NULL;
   }
@@ -28,7 +28,7 @@ void msg_send(dts_environment * tenv, int fieldnum, dts_object * data, dts_compa
 const dts_object * msg_check(dts_environment * tenv, const dts_object * d, 
 			 int field, dts_object * data) {
   dts_message * m;
-  const dts_object * field_data = flow_datum_fieldobj(d, field);
+  const dts_object * field_data = smacq_datum_fieldobj(d, field);
 
   if (field_data) {
     return field_data;

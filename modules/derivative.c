@@ -34,20 +34,20 @@ static smacq_result derivative_consume(struct state * state, const dts_object * 
   double * newxp, * newyp;
   int newxpsize, newypsize;
 
-  if (!flow_getfield(state->env, datum, state->xfield, &newx)) {
+  if (!smacq_getfield(state->env, datum, state->xfield, &newx)) {
 	fprintf(stderr, "derivative: no %s field\n", state->xfieldname);
 	return SMACQ_PASS;
   }
-  if (!flow_getfield(state->env, datum, state->yfield, &newy)) {
+  if (!smacq_getfield(state->env, datum, state->yfield, &newy)) {
 	fprintf(stderr, "derivative: no %s field\n", state->yfieldname);
 	return SMACQ_PASS;
   }
 
-  if (1 > flow_presentdata(state->env, &newx, state->doubletransform, (void*)&newxp, &newxpsize)) {
+  if (1 > smacq_presentdata(state->env, &newx, state->doubletransform, (void*)&newxp, &newxpsize)) {
 	fprintf(stderr, "derivative: can't convert field %s to double\n", state->xfieldname);
 	return SMACQ_PASS;
   }
-  if (1 > flow_presentdata(state->env, &newy, state->doubletransform, (void*)&newyp, &newypsize)) {
+  if (1 > smacq_presentdata(state->env, &newy, state->doubletransform, (void*)&newyp, &newypsize)) {
 	fprintf(stderr, "derivative: can't convert field %s to double\n", state->yfieldname);
 	//free(*newxp);
 	return SMACQ_PASS;
@@ -58,7 +58,7 @@ static smacq_result derivative_consume(struct state * state, const dts_object * 
 
   if (state->started) {
 	double dydx = (*newyp - state->lasty) / (*newxp - state->lastx);
-    	dts_object * msgdata = flow_dts_construct(state->env, state->derivtype, &dydx);
+    	dts_object * msgdata = smacq_dts_construct(state->env, state->derivtype, &dydx);
     	dts_attach_field(datum, state->derivfield, msgdata); 
 	//fprintf(stderr, "%g - %g / %g - %g\n", *newyp, state->lasty, *newxp, state->lastx);
   } else {
@@ -92,16 +92,16 @@ static int derivative_init(struct smacq_init * context) {
 
   assert(argc==2);
 
-  state->derivtype = flow_requiretype(state->env, "double");
-  state->derivfield = flow_requirefield(state->env, "derivative");
+  state->derivtype = smacq_requiretype(state->env, "double");
+  state->derivfield = smacq_requirefield(state->env, "derivative");
   
   state->xfieldname = argv[1];
   state->yfieldname = argv[0];
 
-  state->xfield = flow_requirefield(state->env, state->xfieldname);
-  state->yfield = flow_requirefield(state->env, state->yfieldname);
+  state->xfield = smacq_requirefield(state->env, state->xfieldname);
+  state->yfield = smacq_requirefield(state->env, state->yfieldname);
 
-  state->doubletransform = flow_transform(state->env, "double");
+  state->doubletransform = smacq_transform(state->env, "double");
 
   return 0;
 }

@@ -192,7 +192,7 @@ static int pcapfile_init(struct smacq_init * context) {
   struct state * state;
 
   //fprintf(stderr, "Loading pcapfile (%d,%d)\n", context->isfirst, context->islast);
-  flow_requiretype(context->env, "packet");
+  smacq_requiretype(context->env, "packet");
 
   context->state = state = (struct state*) calloc(sizeof(struct state),1);
   assert(state);

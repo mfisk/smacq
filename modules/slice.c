@@ -55,7 +55,7 @@ static smacq_result slice_consume(struct state * state, const dts_object * datum
     int len, type;
     struct timeval * value;
 
-    if (!flow_getfield(state->env, datum, "timeseries", &type, (void**)&value, &len)) {
+    if (!smacq_getfield(state->env, datum, "timeseries", &type, (void**)&value, &len)) {
       fprintf(stderr, "error: timeseries not available\n");
     } else {
       assert(len == sizeof(struct timeval));

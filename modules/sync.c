@@ -27,7 +27,7 @@ struct state {
 }; 
 
 static smacq_result sync_consume(struct state * state, const dts_object * datum, int * outchan) {
- int more = flow_sched_iterative(state->graph, datum, &state->product, 
+ int more = smacq_sched_iterative(state->graph, datum, &state->product, 
 			     &state->runq, state->isfirst);
 
  more = (more ? 0 : SMACQ_END);
@@ -69,7 +69,7 @@ static int sync_init(struct smacq_init * context) {
   }
 
   state->graph = smacq_build_pipeline(argc, argv);
-  flow_start(state->graph, ITERATIVE, state->env->types);
+  smacq_start(state->graph, ITERATIVE, state->env->types);
   
   return 0;
 }

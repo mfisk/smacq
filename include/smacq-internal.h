@@ -29,10 +29,10 @@ struct filter {
   void * state;
   int status;
 
-  flow_init_fn * init;
-  flow_shutdown_fn * shutdown;
-  flow_consume_fn * consume;
-  flow_produce_fn * produce;
+  smacq_init_fn * init;
+  smacq_shutdown_fn * shutdown;
+  smacq_consume_fn * consume;
+  smacq_produce_fn * produce;
   smacq_thread_fn * thread_fn;
   struct smacq_options * options;
 
@@ -78,11 +78,11 @@ const dts_object * msg_check(dts_environment * tenv, const dts_object * d, int f
  * Scheduler intefaces 
  */
 void sched_mono(struct filter *);
-EXTERN int flow_sched_iterative(struct filter * startf, const dts_object * din, const dts_object ** dout , void ** state, int produce_first);
-EXTERN void flow_sched_iterative_shutdown(struct filter * startf, void ** state);
+EXTERN int smacq_sched_iterative(struct filter * startf, const dts_object * din, const dts_object ** dout , void ** state, int produce_first);
+EXTERN void smacq_sched_iterative_shutdown(struct filter * startf, void ** state);
 
 
-void flow_start_threads(struct filter *);
+void smacq_start_threads(struct filter *);
 
 /*
  * Interace to buffer system 

@@ -15,7 +15,7 @@
          * everytime we return to the dataflow engine.
 	 *
 	 * The Dynamic Type System will be interfaced with an extension class
-	 * whose __getattr__() method does flow_getfield() calls.
+	 * whose __getattr__() method does smacq_getfield() calls.
 	 *
 	 */
 
@@ -147,8 +147,8 @@ static PyObject * DTS_getattr(DTSObject * self, char * name) {
 	((DTSObject *)(pyAttr))->state = self->state;
 	((DTSObject *)(pyAttr))->ob_name = strdup(name);
 
-	if (flow_getfield(self->state->env, self->ob_datum,
-		flow_requirefield(self->state->env, name), field) == 0) {
+	if (smacq_getfield(self->state->env, self->ob_datum,
+		smacq_requirefield(self->state->env, name), field) == 0) {
 //		printf("# %s field not found\n", name);
 		((DTSObject *)(pyAttr))->ob_datum = NULL;
 	} else {
@@ -176,8 +176,8 @@ static PyObject * DTS_repr(DTSObject * self) {
 	if (self->ob_datum == NULL) {
 		str = strdup("datum doesn't exist");
 	} else {
-		flow_presentdata(self->state->env, self->ob_datum, 
-			flow_transform(self->state->env, "string"),
+		smacq_presentdata(self->state->env, self->ob_datum, 
+			smacq_transform(self->state->env, "string"),
 			(void *)&str, &len);
 	}
 

@@ -75,7 +75,7 @@ static smacq_result top_consume(struct state * state, const dts_object * datum, 
   val++;
 
   if (state->do_count) {
-    dts_object * msgdata = flow_dts_construct(state->env, state->int_type, &val);
+    dts_object * msgdata = smacq_dts_construct(state->env, state->int_type, &val);
     dts_attach_field(datum, state->count_field, msgdata);   
   }
 
@@ -132,8 +132,8 @@ static int top_init(struct smacq_init * context) {
   state->do_filter = (state->threshold == 0);
 
   if (strcmp(pcount.string_t,  "")) {
-    state->count_field = flow_requirefield(state->env, pcount.string_t);
-    state->int_type = flow_requiretype(state->env, "int");
+    state->count_field = smacq_requirefield(state->env, pcount.string_t);
+    state->int_type = smacq_requiretype(state->env, "int");
     state->do_count = 1;
   } else {
     state->do_count = 0;

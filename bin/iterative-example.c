@@ -24,16 +24,16 @@ int main(int argc, char ** argv) {
   dts_environment * tenv = dts_init();
 
   objs = smacq_build_pipeline(argc-1, argv+1);
-  flow_start(objs, ITERATIVE, tenv);
+  smacq_start(objs, ITERATIVE, tenv);
 
   printer = smacq_build_pipeline(2, printer_args);
-  flow_start(printer, ITERATIVE, tenv);
+  smacq_start(printer, ITERATIVE, tenv);
 
-  while (! (SMACQ_END & flow_sched_iterative(objs, NULL, &record, &runq, 1))) {
+  while (! (SMACQ_END & smacq_sched_iterative(objs, NULL, &record, &runq, 1))) {
 	const dts_object * ignore = NULL;
 	assert(record);
 	fprintf(stderr, "Got object %p; printing it's count field\n", record);
-	flow_sched_iterative(printer, record, &ignore, &printq, 0);
+	smacq_sched_iterative(printer, record, &ignore, &printq, 0);
 	dts_decref(record);
   }
 

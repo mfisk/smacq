@@ -11,7 +11,7 @@ static inline void read_module(struct filter * module, struct smacq_functions * 
 		module->thread_fn = modtable->thread;
 }
 
-int flow_load_module(struct filter * module) {
+int smacq_load_module(struct filter * module) {
     struct smacq_functions * modtable;
 
     assert(module);
@@ -63,7 +63,7 @@ struct filter * smacq_new_module(int argc, char ** argv){
   pthread_cond_init(&newo->ring_notempty, NULL);
 
   assert(newo);
-  if (!flow_load_module(newo)) {
+  if (!smacq_load_module(newo)) {
 	exit(-1);
   }
   
@@ -242,7 +242,7 @@ struct filter * smacq_build_query(int argc, char ** argv) {
 }
 
 
-void flow_init_modules(struct filter * f, smacq_environment * env) {
+void smacq_init_modules(struct filter * f, smacq_environment * env) {
   struct smacq_init * context = g_new0(struct smacq_init, 1);
   int i;
 
@@ -262,7 +262,7 @@ void flow_init_modules(struct filter * f, smacq_environment * env) {
   free(context);
 
   for (i = 0; i < f->numchildren; i++ ) 
-    flow_init_modules(f->next[i], env);
+    smacq_init_modules(f->next[i], env);
   return;
 }
 

@@ -38,12 +38,12 @@ static smacq_result sum_consume(struct state * state, const dts_object * datum, 
   int newxpsize;
   
   if (dts_gettype(datum) != state->refreshtype) {
-    if (!flow_getfield(state->env, datum, state->xfield, &newx)) {
+    if (!smacq_getfield(state->env, datum, state->xfield, &newx)) {
       fprintf(stderr, "sum: no %s field\n", state->xfieldname);
       return SMACQ_PASS;
     }
     
-    if (1 > flow_presentdata(state->env, &newx, flow_transform(state->env, "double"), (void*)&newxp, &newxpsize)) {
+    if (1 > smacq_presentdata(state->env, &newx, smacq_transform(state->env, "double"), (void*)&newxp, &newxpsize)) {
       fprintf(stderr, "sum: can't convert field %s to double\n", state->xfieldname);
       return SMACQ_PASS;
     }
@@ -56,7 +56,7 @@ static smacq_result sum_consume(struct state * state, const dts_object * datum, 
   }
 
   if ( (!state->refreshonly) || (dts_gettype(datum) == state->refreshtype)) {
-    msgdata = flow_dts_construct(state->env, state->sumtype, &state->total);
+    msgdata = smacq_dts_construct(state->env, state->sumtype, &state->total);
     dts_attach_field(datum, state->sumfield, msgdata); 
 	
     return SMACQ_PASS;
@@ -90,12 +90,12 @@ static int sum_init(struct smacq_init * context) {
 
   assert(argc==1);
 
-  state->refreshtype = flow_requiretype(state->env, "refresh");
-  state->sumtype = flow_requiretype(state->env, "double");
-  state->sumfield = flow_requirefield(state->env, "sum");
+  state->refreshtype = smacq_requiretype(state->env, "refresh");
+  state->sumtype = smacq_requiretype(state->env, "double");
+  state->sumfield = smacq_requirefield(state->env, "sum");
   
   state->xfieldname = argv[0];
-  state->xfield = flow_requirefield(state->env, state->xfieldname);
+  state->xfield = smacq_requirefield(state->env, state->xfieldname);
 
   return 0;
 }

@@ -36,7 +36,7 @@ static smacq_result encrypt_consume(struct state * state, const dts_object * dat
   struct iovec * keyv;
   unsigned long hval;
 
-  if (! flow_getfield(state->env, datum, state->changefield, &field)) {
+  if (! smacq_getfield(state->env, datum, state->changefield, &field)) {
     fprintf(stderr, "Skipping packet without field\n");
     return SMACQ_PASS;
   }
@@ -49,7 +49,7 @@ static smacq_result encrypt_consume(struct state * state, const dts_object * dat
   
  state->datum = dts_writable(state->env, datum);
 
-  if (! flow_getfield(state->env, state->datum, state->changefield, &field)) {
+  if (! smacq_getfield(state->env, state->datum, state->changefield, &field)) {
     fprintf(stderr, "Skipping packet without field\n");
     return SMACQ_PASS;
   }
@@ -92,7 +92,7 @@ static int encrypt_init(struct smacq_init * context) {
 
   // Consume rest of arguments as fieldnames
   if (argc) {
-    state->changefield = flow_requirefield(state->env, argv[0]);
+    state->changefield = smacq_requirefield(state->env, argv[0]);
     if (!state->changefield) {
       fprintf(stderr, "No field to modify\n");
       return SMACQ_END;

@@ -15,7 +15,7 @@ struct fieldset {
   int lasttype;
 };
 
-static inline int flow_nextfielddata(struct fieldset * fieldset, dts_object *d, int i) {
+static inline int smacq_nextfielddata(struct fieldset * fieldset, dts_object *d, int i) {
      if (i >= fieldset->num) 
 	     	return 0;
 

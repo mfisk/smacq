@@ -72,8 +72,8 @@ static void print_extent(gpointer key, gpointer value, gpointer userdata) {
   if (key == NULL) { // We're talking about the current value, not a table lookup
       dts_object d;
       i = 0;
-      while((i = flow_nextfielddata(&state->fieldset, &d, i))) {
-	flow_presentdata(state->env, &d, flow_transform(state->env, "string"), (void*)&str, &slen);
+      while((i = smacq_nextfielddata(&state->fieldset, &d, i))) {
+	smacq_presentdata(state->env, &d, smacq_transform(state->env, "string"), (void*)&str, &slen);
 	fprintf(state->printfd, "%s ", str);
       }
   } else {
@@ -82,13 +82,13 @@ static void print_extent(gpointer key, gpointer value, gpointer userdata) {
     dts_object lastd;
     i=0;
 
-    while((i = flow_nextfielddata(&state->fieldset, &lastd, i))) {
+    while((i = smacq_nextfielddata(&state->fieldset, &lastd, i))) {
         dts_object d = lastd;
         assert(offset < b->len);
         d.data = b->bytes+offset;
         offset += d.len;
 
-        flow_presentdata(state->env, &d, flow_transform(state->env, "string"), (void*)&str, &slen);
+        smacq_presentdata(state->env, &d, smacq_transform(state->env, "string"), (void*)&str, &slen);
         fprintf(state->printfd, "%s ", str);
     }
 
@@ -154,7 +154,7 @@ static smacq_result intervals_consume(struct state * state, const dts_object * d
   dts_object field;
   struct timeval * value;
 
-  if (!flow_getfield(state->env, datum, state->timeseries, &field)) {
+  if (!smacq_getfield(state->env, datum, state->timeseries, &field)) {
     fprintf(stderr, "error: timeseries not available\n");
   } else {
     value = (struct timeval*)field.data;
@@ -267,7 +267,7 @@ static int intervals_init(struct smacq_init * context) {
 	  state->hasupdateinterval = 0;
 	}
 
-	state->timeseries = flow_requirefield(state->env, "timeseries");
+	state->timeseries = smacq_requirefield(state->env, "timeseries");
   }
 
   // Consume rest of arguments as fieldnames

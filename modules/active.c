@@ -96,7 +96,7 @@ static smacq_result active_consume(struct state * state, const dts_object * datu
   struct timeval * value;
 
   // Get current time
-  if (!flow_getfield(state->env, datum, state->timeseries, &field)) {
+  if (!smacq_getfield(state->env, datum, state->timeseries, &field)) {
     fprintf(stderr, "error: timeseries not available\n");
     return SMACQ_PASS;
   } else {
@@ -155,7 +155,7 @@ static smacq_result active_consume(struct state * state, const dts_object * datu
   s->lasttime = *value;
 
   // Attach active count to this datum
-  activefielddata = flow_dts_construct(state->env, state->activetype, &state->active);
+  activefielddata = smacq_dts_construct(state->env, state->activetype, &state->active);
   dts_attach_field(datum, state->activefield, activefielddata);
 
   //fprintf(stderr, "Expires list length %d\n", g_list_length(state->expires));
@@ -182,9 +182,9 @@ static int active_init(struct smacq_init * context) {
 	state->interval = interval.timeval_t;
 	state->hasinterval = (state->interval.tv_usec || state->interval.tv_sec); 
 
-	state->timeseries = flow_requirefield(state->env, "timeseries");
-	state->activefield = flow_requirefield(state->env, "active");
-	state->activetype = flow_requiretype(state->env, "int");
+	state->timeseries = smacq_requirefield(state->env, "timeseries");
+	state->activefield = smacq_requirefield(state->env, "active");
+	state->activetype = smacq_requiretype(state->env, "int");
   }
 
   // Consume rest of arguments as field names

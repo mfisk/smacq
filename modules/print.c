@@ -37,8 +37,8 @@ static smacq_result print_consume(struct state * state, const dts_object * datum
   for (i = 0; i < state->argc; i++) {
     if (i>0)
       printf(state->delimiter);
-    if (flow_getfield(state->env, datum, state->fields[i], &field_data)) {
-      int r = flow_presentdata(state->env, &field_data, state->string_transform, (void*)&str, &slen);
+    if (smacq_getfield(state->env, datum, state->fields[i], &field_data)) {
+      int r = smacq_presentdata(state->env, &field_data, state->string_transform, (void*)&str, &slen);
       if (r == -1) {
 	fprintf(stderr, "No string transform for field %s\n", state->argv[i]);
       } else if (r == 0) {
@@ -88,10 +88,10 @@ static int print_init(struct smacq_init * context) {
   state->delimiter = delimiter.string_t;
   state->verbose = verbose.boolean_t;
   state->fields = malloc(state->argc * sizeof(int));
-  state->string_transform = flow_transform(state->env, "string");
+  state->string_transform = smacq_transform(state->env, "string");
 
   for (i = 0; i < state->argc; i++) 
-	  state->fields[i] = flow_requirefield(state->env, state->argv[i]); 
+	  state->fields[i] = smacq_requirefield(state->env, state->argv[i]); 
   return 0;
 }
 

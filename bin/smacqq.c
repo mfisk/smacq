@@ -19,6 +19,6 @@ int main(int argc, char ** argv) {
   struct filter * objs;
   dts_init();
   objs = smacq_build_query(argc-1, argv+1);
-  return flow_start(objs, multiproc, NULL);
+  return smacq_start(objs, multiproc, NULL);
 }
 

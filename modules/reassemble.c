@@ -124,7 +124,7 @@ int reassemble_init(struct smacq_init * context) {
 
   signal(SIGQUIT, CleanExit);
 
-  flow_requiretype(context->env, "packet");
+  smacq_requiretype(context->env, "packet");
   state->env = context->env;
 
   state->produce = 1;
