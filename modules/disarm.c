@@ -61,7 +61,7 @@ static unsigned char hex2val[256] = {
     XX,XX,XX,XX, XX,XX,XX,XX, XX,XX,XX,XX, XX,XX,XX,XX, /* 240 - 255 */
 };
 
-#define GETLINEBUFSIZE 4096
+#define GETLINEBUFSIZE MAX_LINE
 
 void init_get_line(struct get_line * s, FILE * fh) {
 	s->fh = fh;
@@ -98,6 +98,8 @@ int get_line(char * buf, int buflen, struct get_line * s) {
 		if (s->buffer_used == s->buffer_size) {
 			/* Not a whole line, but buffer is full */
 			memcpy(buf, s->read_buffer, s->buffer_used);
+			s->leading = 0;
+			s->buffer_used = 0;
 			return s->buffer_size; 
 		}
 		got = fread(s->read_buffer + s->buffer_used, 1, s->buffer_size - s->buffer_used, s->fh);
@@ -138,11 +140,6 @@ static smacq_result disarm_produce(struct state * state, const dts_object ** dat
 	len -= 49;
   	datum = (dts_object*)smacq_alloc(state->env, len+2, state->sv4_type);
 	decode = dts_getdata(datum);
-
-	/* SMACQ uses a uint64 for the leading ID field even though sv4 is really a uint48 */
-	decode[0] = '\0';
-	decode[1] = '\0';
-	decode += 2;
 
 	for (i=0; i<49; i++) {
 	 	unsigned char c = hex2val[(unsigned int)hex[i*2]];	
