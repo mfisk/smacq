@@ -11,10 +11,17 @@ config() {
 	if [ `uname -s` = "Darwin" ]; then 
 		echo 'MAKE=gnumake'
 		LIBTOOL=glibtool
-		LDOPTS="${LDOPTS}-L/sw/lib "
+		LDOPTS="${LDOPTS}-L/sw/lib -ldl"
 		COPTS="${COPTS}-I/sw/include "
 		USR="/sw/"
-	else 
+
+	elif [ `uname -s` = "FreeBSD" ]; then
+		echo 'MAKE=gmake'
+		USR="/usr/local/"
+		LDOPTS="${LDOPTS}-L/usr/local/lib -liconv -lintl"
+		echo 'M4=gm4'
+
+	elif [ `uname -s` = "Linux" ]; then
 		# Red Hat 8.0: 
 		if has g++296; then 
 			echo 'CXX="--mode=compile g++296"'
@@ -27,6 +34,8 @@ config() {
 		if [ -d /usr/include/pcap ]; then 
 			COPTS="${COPTS}-I/usr/include/pcap "
 		fi 
+		LDOPTS="${LDOPTS}-ldl"
+		
 	fi 
 	#export MAKE COPTS LIBTOOL LDOPTS CC CXX 
 

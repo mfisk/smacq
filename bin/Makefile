@@ -1,6 +1,6 @@
 include config.mk
 
-LDFLAGS=$(LDOPTS) ../libsmacq/libsmacq.la -ldl
+LDFLAGS=$(LDOPTS) ../libsmacq/libsmacq.la 
 BUILTINS=../modules/libsmacq-modules.la ../types/libdts-modules.la 
 PRODUCTS=smacqp smacqq iterative-example smacqq-static smacqq-dynamic
 BUILTIN_FLAGS=-dlopen self $(patsubst %,-dlopen %,$(BUILTINS))

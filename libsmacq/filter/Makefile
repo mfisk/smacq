@@ -1,4 +1,5 @@
 BISON=bison
+M4=m4
 
 include config.mk
 
@@ -18,7 +19,7 @@ libfilter.la: $(OBJS)
 $(SRCDIR)/filter-scanner.c: $(SRCDIR)/filter-parser.h
 
 %.y: %.ym $(SQLSRC)/grammer.y
-	m4 -I$(SQLSRC) -P < $< > $@
+	$(M4) -I$(SQLSRC) -P < $< > $@
 
 %.c: %.y
 	$(BISON) -v -p yyfilter -d -o $@ $<

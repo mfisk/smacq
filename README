@@ -3,7 +3,7 @@
 
 On supported systems (Linux, MacOS/X + Fink), simply run "make" to build.
 If you do not have all of the prerequisits (see below), you may encounter
-an error.
+an error.  On FreeBSD use "gmake".
 
 Global configuration options are in config.mk.  The primary reason to edit
 this file is to enable/disable debugging options.
@@ -58,6 +58,12 @@ and execute this package:
 	apt-get install \
 		dlcompat zlib glib2-dev libpcap libpcap-shlibs \
 		libtool groff #python  
+
+FreeBSD:
+--------
+Run the following commands to install the necessary packages:
+	pkg_add -r gmake libtool bison
+	make -C /usr/ports/devel/glib20 install
 
 =============================================================================
 		   	    MISCELLANEOUS NOTES
