@@ -5,11 +5,6 @@
  *
 */
 
-/* 
- * XXX: Never deletes things from hash table.  Uses horribly inefficient list operations.
- * Need to use different data structures.
- */
-
 #include <stdlib.h>
 #include <netdb.h>
 #include <sys/socket.h>
@@ -122,20 +117,10 @@ void attach_stats(struct state * state, struct srcstat * s, const dts_object * d
 
 }
 
-int expired(struct state * state, struct iovec * domainv, struct srcstat * s) {
-  int i;
-  if (!state->hasinterval) return 0;
+static inline int output(struct state * state, struct iovec * domainv, struct srcstat * s) {
+    int i;
 
-  if (s->expired) {
-    //assert(0); //Shouldn't happen
-    return 1;
-  }
-
-  if (!timeval_past(s->lasttime, state->edge)) {
-    s->expired = 1 ;
-    
     // Output refresh record
-    {
       dts_object * msgdata;
 
       dts_object * refresh = flow_dts_construct(state->env, state->refresh_type, NULL);
@@ -157,9 +142,8 @@ int expired(struct state * state, struct iovec * domainv, struct srcstat * s) {
       dts_incref(msgdata, 1);
   
       attach_stats(state, s, refresh);
-    }
 
-    // Cealnup
+    // Cleanup
     for (i = 0; i<state->fieldset.num; i++) {
 	dts_decref(s->fields[i]);
     }
@@ -169,10 +153,30 @@ int expired(struct state * state, struct iovec * domainv, struct srcstat * s) {
       bytes_hash_table_removev(state->stats, domainv, state->fieldset.num);
 
     return 1;
+}
+
+static int expired(struct state * state, struct iovec * domainv, struct srcstat * s) {
+  if (!state->hasinterval) return 0;
+
+  if (s->expired) {
+    //assert(0); //Shouldn't happen
+    return 1;
   }
 
+  if (!timeval_past(s->lasttime, state->edge)) {
+    s->expired = 1 ;
+
+    output(state, domainv, s);
+  }
   
   return 0;
+}
+
+static void output_all(gpointer key, gpointer val, gpointer user_data) {
+  struct srcstat * s = val;
+  struct state * state = user_data;
+
+  output(state, NULL, s);
 }
 
 static inline int test_expired(gpointer key, gpointer val, gpointer user_data) {
@@ -375,10 +379,16 @@ static smacq_result flowid_produce(struct state * state, const dts_object ** dat
   if (! g_queue_is_empty(state->outputq) )
       status |= SMACQ_PRODUCE;
     
-  if (*datum) 
+  if (*datum) {
     status |= SMACQ_PASS;
-  else
-    status |= SMACQ_FREE;
+  } else {
+    fprintf(stderr, "flowid: produce called with nothing in queue.  Outputing everything in current table!\n");
+
+    bytes_hash_table_foreach(state->stats, output_all, state);
+
+    return flowid_produce(state, datum, outchan);
+    //status |= SMACQ_FREE;
+  }
 
   return status;
 }
