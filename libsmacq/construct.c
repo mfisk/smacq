@@ -265,6 +265,33 @@ smacq_graph * smacq_build_pipeline(int argc, char ** argv) {
   return(objs);
 }
 
+void downstream_filters(smacq_graph * mod, smacq_filter_callback_fn callback, void * data) {
+  if (!strcmp(mod->name, "where") || !strcmp(mod->name, "equals")) {
+	  fprintf(stderr, "downstream_filters got a known op: %s\n", mod->name);
+	  callback(mod->name, mod->argc, mod->argv, data);
+  } else {
+	  fprintf(stderr, "don't know anything about %s\n", mod->name);
+	  return;
+  }
+
+  /* Now do children */
+  if (mod->numchildren > 1) {
+	  /* XXX: Lazy for now.  should look for invariants across children */
+	  return;
+  }
+  if (mod->numchildren == 0) {
+	  return;
+  }
+  downstream_filters(mod->child[0], callback, data);
+}
+
+void smacq_downstream_filters(smacq_graph * mod, smacq_filter_callback_fn callback, void * data) {
+  /* XXX: Lazy for now.  should look for invariants across children */
+  if (mod->numchildren == 1) {
+  	downstream_filters(mod->child[0], callback, data);
+  }
+}
+
 void smacq_init_modules(smacq_graph * f, smacq_environment * env) {
   struct smacq_init context;
   int i;

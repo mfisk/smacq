@@ -175,4 +175,7 @@ void dts_free(const dts_object*);
 EXTERN int dts_requiretype(dts_environment *, char * name);
 void dts_prime_all_fields(dts_environment * tenv, const dts_object * o);
 
+typedef void smacq_filter_callback_fn(char * operation, int argc, char ** argv, void * data);
+void smacq_downstream_filters(smacq_graph * mod, smacq_filter_callback_fn callback, void * data);
+
 #endif

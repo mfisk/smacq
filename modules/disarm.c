@@ -26,6 +26,7 @@ struct state {
   unsigned long lineno;
   int sv4_type;
   struct get_line linebuf;
+  char * date_string, * srcip_string, * dstip_string, * srcport_string, * dstport_string;
 };
 
 static struct smacq_options options[] = {
@@ -240,15 +241,31 @@ static int client_init(struct state * state, int port, char * hostname, char ** 
   return(client_fd);
 }
 
+void filter_callback(char * op, int argc, char ** argv, void * data) {
+  struct state * state = data;
+  if (!strcmp(op, "equals") && argc == 3) {
+	  if (!strcmp(argv[1], "srcip")) {
+		  state->srcip_string = strdup(argv[2]);
+		  //fprintf(stderr, "Desired srcip is %s\n", argv[2]);
+ 	  } else if (!strcmp(argv[1], "date")) {
+		  state->date_string = strdup(argv[2]);
+	          //fprintf(stderr, "Desired date is %s\n", argv[2]);
+  	  }
+  } else {
+  	fprintf(stderr, "Unknown filter callback: %s + %d args\n", op, argc);
+  }
+}
+
 static smacq_result disarm_init(struct smacq_init * context) {
   struct state * state;
-  smacq_opt infile, date, srcip, dstip, dstport, srcport, port, hostname;
+  smacq_opt infile, port, hostname;
   char * end_date;
   context->state = state = (struct state*) calloc(sizeof(struct state),1);
   assert(state);
   
   state->env = context->env;
   {
+    smacq_opt date, srcip, dstip, dstport, srcport;
     struct smacq_optval optvals[] = {
       { "f", &infile},
       { "date", &date},
@@ -265,14 +282,32 @@ static smacq_result disarm_init(struct smacq_init * context) {
 				 NULL, NULL,
 				 options, optvals);
 
+  	if (strcmp("", date.string_t)) {
+		state->date_string = date.string_t;
+  	}
+  	if (strcmp("", srcip.string_t)) {
+		state->srcip_string = srcip.string_t;
+  	}
+  	if (strcmp("", dstip.string_t)) {
+		state->dstip_string = dstip.string_t;
+  	}
+  	if (strcmp("", srcport.string_t)) {
+		state->srcport_string = srcport.string_t;
+  	}
+  	if (strcmp("", dstport.string_t)) {
+		state->dstport_string = dstport.string_t;
+  	}
   }
 
-  if (!strcmp("", date.string_t) && !strcmp("", infile.string_t)) {
-		fprintf(stderr, "disarm: -date is mandatory!\n");
+  /* Get downstream filters before we apply args */
+  smacq_downstream_filters(context->self, filter_callback, state);
+
+  if (!state->date_string && !strcmp("", infile.string_t)) {
+		fprintf(stderr, "disarm: date must be specified!\n");
 		exit(-1);
   }
 
-  end_date = index(date.string_t, '~');
+  end_date = index(state->date_string, '~');
   if (end_date) {
 		end_date[0] = '\0';
 		end_date++;
@@ -296,16 +331,16 @@ static smacq_result disarm_init(struct smacq_init * context) {
 	fh = fdopen(fd, "w");
 	fprintf(fh, "<Query");
 
-	if (strcmp("", srcport.string_t)) 
-		fprintf(fh, " srcport=\"%s\"", srcport.string_t);
-	if (strcmp("", dstport.string_t)) 
-		fprintf(fh, " dstport=\"%s\"", dstport.string_t);
-	if (strcmp("", srcip.string_t)) 
-		fprintf(fh, " srcip=\"%s\"", srcip.string_t);
-	if (strcmp("", dstip.string_t)) 
-		fprintf(fh, " dstip=\"%s\"", dstip.string_t);
+	if (state->srcport_string)
+		fprintf(fh, " srcport=\"%s\"", state->srcport_string);
+	if (state->dstport_string)
+		fprintf(fh, " dstport=\"%s\"", state->dstport_string);
+	if (state->srcip_string)
+		fprintf(fh, " srcip=\"%s\"", state->srcip_string);
+	if (state->dstip_string)
+		fprintf(fh, " dstip=\"%s\"", state->dstip_string);
 
-	fprintf(fh, "><Date start=\"%s\"", date.string_t);
+	fprintf(fh, "><Date start=\"%s\"", state->date_string);
 	if (end_date && strcmp("", end_date)) { 
 		fprintf(fh, " end=\"%s\"", end_date);
 	}
