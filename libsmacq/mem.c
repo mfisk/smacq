@@ -49,11 +49,15 @@ static inline const dts_object* dts_alloc_slow(dts_environment * tenv, int size,
 }
 
 const dts_object* dts_alloc(dts_environment * tenv, int size, int type) {
-  const dts_object * o = *tenv->freelist.p;
-
+  const dts_object * o;
+  
   SDEBUG(dts_object_virtual_count++);
 
-  if (o) {
+  if (tenv->freelist.p >= tenv->freelist.start) {
+    o = *tenv->freelist.p;
+    tenv->freelist.p--;
+    //fprintf(stderr, "dts_alloc reusing %p\n", o);
+
     if (size > o->max_size) {
 	    o = realloc((void*)o, size + sizeof(dts_object));
 	    ((dts_object*)o)->max_size = size;
@@ -63,28 +67,22 @@ const dts_object* dts_alloc(dts_environment * tenv, int size, int type) {
     ((dts_object*)o)->type = type;
     ((dts_object*)o)->len = size;
 
-    //fprintf(stderr, "dts_alloc reusing %p\n", o);
-
-    if (tenv->freelist.p > tenv->freelist.start) {
-      tenv->freelist.p--;
-    } else {
-      *tenv->freelist.p = NULL;
-    }
   } else {
     o = dts_alloc_slow(tenv, size, type);
+    //fprintf(stderr, "dts_alloc creating %p\n", o);
   }
   return o;
 }
 
 void dts_free(const dts_object * d) {
   if (d->tenv->freelist.p < d->tenv->freelist.end) {
-	if (*d->tenv->freelist.p != NULL)
-  		d->tenv->freelist.p++;
+    	//fprintf(stderr, "dts_free saving %p at %p between %p and %p\n", d, d->tenv->freelist.p+1, d->tenv->freelist.start, d->tenv->freelist.end);
+  	d->tenv->freelist.p++;
   	*d->tenv->freelist.p = d;
   } else {
+	//fprintf(stderr,"dts_free freeing %p\n", d);
   	darray_free((struct darray *)(&d->fields));
 	free((void*)d);
-	//fprintf(stderr,"freeing empty o %p\n", d);
 	SDEBUG(dts_object_count--);
   }
 }
