@@ -9,6 +9,7 @@ config() {
 	USR=${USR:-/usr}
 	LDXX=${LDXX:-g++}
 	DOCBOOK2MAN=${DOCBOOK2MAN:-docbook-to-man}
+	COPTS="-D_ISOC99_SOURCE -D_GNU_SOURCE" #To get NAN, among other things
 
 	if [ `uname -s` = "Darwin" ]; then 
 		echo 'MAKE=gnumake'
@@ -72,7 +73,6 @@ config() {
 	echo "LDXX=$LDXX"
 	echo "USR=$USR"
 	echo "LDOPTS=$LDOPTS"
-	#echo "COPTS=$COPTS"
 	echo "COPTS=$COPTS"
 	echo "MAKEINCLUDES=$PWD/misc/include.mk"
 	echo "TOPSRCDIR=${TOPSRCDIR:-$PWD}"
