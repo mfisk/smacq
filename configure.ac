@@ -210,7 +210,7 @@ EOF
 	AC_MSG_RESULT($LDFLAGS_PYTHON)
 
 	AC_MSG_CHECKING([LIBS_PYTHON])
-	LDFLAGS_PYTHON=`$PYTHON $PYCONF LIBS BLDLIBRARY`
+	LIBS_PYTHON=`$PYTHON $PYCONF LIBS BLDLIBRARY`
 	if test $? -ne 0; then
 		rm -f $PYCONF
 		AC_MSG_FAILURE([Python config script failed])
@@ -238,7 +238,7 @@ AM_CONDITIONAL(USE_PYTHON, test x$with_python = xyes)
 ##
 ##
 
-AC_CONFIG_FILES([Makefile
+AC_CONFIG_FILES([makefile
                  include/Makefile
                  bin/Makefile
                  doc/Makefile
