@@ -141,10 +141,10 @@ AC_SUBST(ETHEREAL_LIBRARY)
 AC_SUBST(ETHEREAL_DIR)
 
 AC_CONFIG_FILES([Makefile
+                 include/Makefile
                  bin/Makefile
                  doc/Makefile
                  libsmacq/Makefile
-                 misc/Makefile
                  modules/Makefile
                  modules/substr/Makefile
                  modules/patricia/Makefile

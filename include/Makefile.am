@@ -1,0 +1,1 @@
+noinst_HEADERS = smacq.h bloom.h buffer-inline.c bytehash.h cmalloc.h darray.c dllist.h dts.h dts_packet.h fields.h getfield.c iov_bhash.h pickle.h produceq.c smacq-internal.h smacq-parser.h smacq.h smacq_args.h strucio.h types-inline.c util.c
