@@ -458,7 +458,8 @@ static inline smacq_result smacq_produce_dequeue(struct smacq_outputq ** qp, con
   *outchan = head->outchan;
 
   *qp = head->next;
-  (*qp)->end = head->end;
+  if (*qp)
+  	(*qp)->end = head->end;
 
   free(head);
 
