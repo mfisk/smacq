@@ -1,5 +1,5 @@
 #!/bin/sh
 
-bin/smacqq -m <<EOF 
+${BINDIR}smacqq -m <<EOF 
 print -v ts from pcapfile($TEST/0325@1112-snort.pcap) where (ts>0 || ts < 0) 
 EOF

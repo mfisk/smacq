@@ -2,6 +2,6 @@
 
 TESTFILE=$TEST/0325@1112-snort.pcap
 
-bin/smacqq -m -O <<EOF
+${BINDIR}smacqq -m -O <<EOF
 print srcip dstip from uniq(srcip dstip) from pcapfile($TESTFILE)
 EOF

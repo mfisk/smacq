@@ -1,5 +1,5 @@
 #!/bin/sh
 
-bin/smacqq -m -O <<EOF | sort -n
+${BINDIR}smacqq -m -O <<EOF | sort -n
 print ts, srcip, dstip from (last srcip, dstip from pcapfile($TEST/0325@1112-snort.pcap))
 EOF

@@ -1,5 +1,5 @@
 #!/bin/sh
 
-bin/smacqq -g -m -O <<EOF 
+${BINDIR}smacqq -g -m -O <<EOF 
 print -v srcip from (pcapfile($TEST/0325@1112-snort.pcap) + pcapfile($TEST/0325@1112-snort.pcap))
 EOF

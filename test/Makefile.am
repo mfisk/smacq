@@ -3,4 +3,4 @@ EXTRA_TESTS = sqlinsert.test
 
 #Disabled tests: pcapfile.test (false alarm on big-endian platforms)
 
-TESTS_ENVIRONMENT = SRCDIR=$(srcdir) TOP_BUILDDIR=$(top_builddir) $(top_srcdir)/misc/runtest
+TESTS_ENVIRONMENT = SRCDIR=$(srcdir) TOP_SRCDIR=$(top_srcdir) BINDIR=$(top_builddir)/bin/ $(top_srcdir)/misc/runtest

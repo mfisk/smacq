@@ -1,5 +1,5 @@
 #!/bin/sh
 
-bin/smacqq -m -O <<EOF 
+${BINDIR}smacqq -m -O <<EOF 
 print flowid, srcip, dstip, packets, packetsback, start, finish from (flowid -r, srcip, dstip from pcapfile($TEST/0325@1112-snort.pcap))
 EOF
