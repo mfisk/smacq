@@ -266,10 +266,10 @@ inline bool operator== (DtsObject_&a, DtsObject_&b) {
 inline bool DtsObject_::operator== (DtsObject_& b) const { 
   if ( (getsize() == b.getsize()) && 
        (!memcmp(getdata(), b.getdata(), getsize()))) {
-    fprintf(stderr, "DtsObject %p == %p\n", this, &b);
+    //fprintf(stderr, "DtsObject %p == %p\n", this, &b);
     return true;
   } else {
-    fprintf(stderr, "DtsObject %p != %p\n", this, &b);
+    //fprintf(stderr, "DtsObject %p != %p\n", this, &b);
     return false;
   }
 }
