@@ -43,6 +43,10 @@ static struct list * list_tails(struct list * list, smacq_graph * g, smacq_graph
   }
 }
 
+static int compare_element_names(smacq_graph * a, smacq_graph * b) {
+  return !strcmp(a->argv[0], b->argv[0]);
+}
+  
 static int compare_elements(smacq_graph * a, smacq_graph * b) {
   int i;
 
@@ -148,6 +152,8 @@ static int merge_demuxs(smacq_graph * a, smacq_graph * b) {
 	int match = 1;
 	int i;
 
+	if (!compare_elements(a,b)) return 0;
+
 	/*
 	 * For demuxs, we can only merge the nodes if 
 	 * their immediate children are also identical and in same order 
@@ -173,10 +179,12 @@ static int merge_demuxs(smacq_graph * a, smacq_graph * b) {
 static int merge_vectors(smacq_graph * a, smacq_graph * b) {
 	int i;
 
-	if (merge_demuxs(a,b)) {
-		/* Tell caller to completely replace B with A */
-		return 1;
-	}
+#ifndef SMACQ_OPT_VECTORS
+	return 0;
+#endif 
+
+	if (!a->alg.vector || !b->alg.vector || !compare_element_names(a,b))
+		return 0;
 
 	/* Move all children (including arguments) from B to A */
 	/* XXX: We could look at each arg in vector and treat as set instead of bag */
@@ -195,7 +203,7 @@ static int merge_vectors(smacq_graph * a, smacq_graph * b) {
 	return 1;
 }
 
-static int merge_tree(smacq_graph * a, smacq_graph * b);
+static int merge_trees(smacq_graph * a, smacq_graph * b);
 
 static int merge_fanouts(smacq_graph * a, smacq_graph * b) {
 	/*
@@ -205,11 +213,13 @@ static int merge_fanouts(smacq_graph * a, smacq_graph * b) {
 	 */
 	int i, j;
 
+	if (!compare_elements(a,b)) return 0;
+
 	/* Move children selectively */
 	for (i = 0; i < b->numchildren; i++) {
 		/* If any of our twins children are twins of our children, just use that child */
 		for (j = 0; j < a->numchildren; j++) {
-			if (merge_tree(a->child[j], b->child[i])) {
+			if (merge_trees(a->child[j], b->child[i])) {
 				//fprintf(stderr, "%p will be handled by %p\n", b->child[i], a->child[j]);
 				b->child[i] = NULL;
 				break;
@@ -229,25 +239,15 @@ static int merge_fanouts(smacq_graph * a, smacq_graph * b) {
 	return 1;
 }
 
-static int mergable_vectors(smacq_graph * a, smacq_graph * b) {
-	if ((! a->alg.vector) || (! b->alg.vector)) return 0;
-	if (strcmp(a->argv[0], b->argv[0])) return 0;
-
-	return 1;
-}
-
-static int merge_tree(smacq_graph * a, smacq_graph * b) {
+static int merge_trees(smacq_graph * a, smacq_graph * b) {
 	int retval;
 
-	if ((a==b) || (! compare_elements(a,b)))
+	if (a==b)
 		return 0;
 
-	/* Merging vectors and demuxs is different */
-	if (a->alg.demux) {
-		assert(b->alg.demux);
-		retval = merge_demuxs(a,b);
-	} else if (a->alg.vector) { 
-		assert(b->alg.vector);
+	if (0 && merge_demuxs(a,b)) {
+		retval = 1;
+        } else if (a->alg.vector) { 
 		retval = merge_vectors(a,b);
 	} else {
 		retval = merge_fanouts(a, b);
@@ -260,34 +260,30 @@ static int merge_tree(smacq_graph * a, smacq_graph * b) {
 	return retval;
 }
 
-static void vectorize(smacq_graph * g) {
-	int i, j;
-	smacq_graph * ichild, * jchild;
+static void optimize_tree(smacq_graph * g) {
+	int an, bn;
+	smacq_graph * a, * b;
 
 	if (!g) return;
 
-	if (!g->alg.vector && !g->alg.demux) { /* Can't vectorize children of a vector */
-	  for (i = 0; i < g->numchildren; i++) {
-		ichild = g->child[i];
+	if (!g->alg.vector && !g->alg.demux) { /* Can't rewrite children of a vector */
+	  for (an = 0; an < g->numchildren; an++) {
+		a = g->child[an];
 
-		for (j=1; j < g->numchildren; j++) {
-			jchild = g->child[j];
+		for (bn=1; bn < g->numchildren; bn++) {
+			b = g->child[bn];
 
-			if (jchild == ichild) continue;
-
-			if (mergable_vectors(ichild, jchild)) {
-				merge_vectors(ichild, jchild);
-
-				//fprintf(stderr, "removed %p from %p\n", jchild, g);
-				smacq_remove_child(g, j);
-				j--; /* remove_child will reset g->child[j] to something new */
+			if (merge_trees(a, b)) {
+				//fprintf(stderr, "removed %p from %p\n", b, g);
+				smacq_remove_child(g, bn);
+				bn--; /* remove_child will reset g->child[j] to something new */
 			}
 		}
 	  }
 	}
 
-	for (i = 0; i < g->numchildren; i++) {
-		vectorize(g->child[i]);
+	for (an = 0; an < g->numchildren; an++) {
+		optimize_tree(g->child[an]);
 	}
 }
 
@@ -313,7 +309,7 @@ smacq_graph * smacq_merge_graphs(smacq_graph * g) {
     smacq_graph * next = candidate->next_graph;
     
     for (ap = g; ap; ap=ap->next_graph) {
-      merged = merge_tree(ap, candidate);
+      merged = merge_trees(ap, candidate);
 
       if (merged) {
 	break;
@@ -330,7 +326,7 @@ smacq_graph * smacq_merge_graphs(smacq_graph * g) {
   }
 
 #ifdef SMACQ_DEBUG
-  fprintf(stderr, "--- optimized heads to ---\n");
+  fprintf(stderr, "--- merged heads to ---\n");
   smacq_graphs_print(stderr, g, 8);
 #endif
 
@@ -342,15 +338,12 @@ smacq_graph * smacq_merge_graphs(smacq_graph * g) {
   smacq_graphs_print(stderr, g, 8);
 #endif
 
-#ifdef SMACQ_OPT_DEMUX
-  vectorize(g);
+  optimize_tree(g);
 
 #ifdef SMACQ_DEBUG
-  fprintf(stderr, "--- optimized vectors to ---\n");
+  fprintf(stderr, "--- optimized trees to ---\n");
   smacq_graphs_print(stderr, g, 8);
 #endif
-
-#endif /*ifdef SMACQ_OPT_DEMUX */
 
 #ifdef SMACQ_DEBUG
   fprintf(stderr, "--- final is ---\n");

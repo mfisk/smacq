@@ -5,7 +5,7 @@
 #define SMACQ_OPT_NOPTHREADS
 #define SMACQ_OPT_NOMSGS
 #define SMACQ_OPT_FORCEFIELDCACHE
-#define SMACQ_OPT_DEMUX
+#define SMACQ_OPT_VECTORS
 #define SMACQ_OPT_RUNRING
 
 #include <stdio.h>
