@@ -107,27 +107,23 @@ void attach_stats(struct state * state, struct srcstat * s, const dts_object * d
 
   msgdata = flow_dts_construct(state->env, state->timeval_type, &s->starttime);
   dts_attach_field(datum, state->start_field, msgdata);
-  dts_incref(msgdata, 1);
   
   msgdata = flow_dts_construct(state->env, state->len_type, &s->byte_count);
   dts_attach_field(datum, state->byte_count_field, msgdata);
-  dts_incref(msgdata, 1);
   
   msgdata = flow_dts_construct(state->env, state->len_type, &s->byte_count_back);
   dts_attach_field(datum, state->byte_count_back_field, msgdata);
-  dts_incref(msgdata, 1);
   
   msgdata = flow_dts_construct(state->env, state->len_type, &s->packet_count);
   dts_attach_field(datum, state->packet_count_field, msgdata);
-  dts_incref(msgdata, 1);
   
   msgdata = flow_dts_construct(state->env, state->len_type, &s->packet_count_back);
   dts_attach_field(datum, state->packet_count_back_field, msgdata);
-  dts_incref(msgdata, 1);
 
 }
 
 int expired(struct state * state, struct iovec * domainv, struct srcstat * s) {
+  int i;
   if (!state->hasinterval) return 0;
 
   if (s->expired) {
@@ -140,31 +136,29 @@ int expired(struct state * state, struct iovec * domainv, struct srcstat * s) {
     
     // Output refresh record
     {
-      int i;
       dts_object * msgdata;
 
       dts_object * refresh = flow_dts_construct(state->env, state->refresh_type, NULL);
-      dts_incref(refresh, 1);
 
       msgdata = flow_dts_construct(state->env, state->id_type, &s->id);
       dts_attach_field(refresh, state->flowid_field, msgdata);
-      dts_incref(msgdata, 1);
 
       g_queue_push_tail(state->outputq, refresh);
 
       for (i = 0; i<state->fieldset.num; i++) {
 	dts_attach_field(refresh, state->fieldset.fields[i].num, s->fields[i]);
-	dts_incref(s->fields[i], 1);
       }
 
       msgdata = flow_dts_construct(state->env, state->timeval_type, &s->lasttime);
       dts_attach_field(refresh, state->finish_field, msgdata);
-      dts_incref(msgdata, 1);
   
       attach_stats(state, s, refresh);
     }
 
     // Cealnup
+    for (i = 0; i<state->fieldset.num; i++) {
+	dts_decref(s->fields[i]);
+    }
     free(s->fields);
 
     if (domainv) 
@@ -352,6 +346,7 @@ static int flowid_init(struct flow_init * context) {
       }
     }
     fields_init(state->env, &state->fieldset2, argc, rargv);
+    free(rargv);
   }
 
   state->stats = bytes_hash_table_new(KEYBYTES, CHAIN, FREE);
@@ -362,6 +357,8 @@ static int flowid_init(struct flow_init * context) {
 }
 
 static int flowid_shutdown(struct state * state) {
+  g_queue_free(state->outputq);
+  free(state);
   return SMACQ_END;
 }
 
@@ -378,8 +375,6 @@ static smacq_result flowid_produce(struct state * state, const dts_object ** dat
     status |= SMACQ_PASS;
   else
     status |= SMACQ_FREE;
-
-  dts_incref(*datum, 1);
 
   return status;
 }
