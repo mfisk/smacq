@@ -179,6 +179,7 @@ typedef smacq_result smacq_shutdown_fn(struct state *);
 struct smacq_module_alg {
   unsigned int vector:1;
   unsigned int boolean:1;
+  unsigned int demux:1;
 };
 
 struct smacq_functions {
