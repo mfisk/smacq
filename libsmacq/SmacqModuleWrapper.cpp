@@ -1,11 +1,11 @@
 #include <SmacqModuleWrapper.h>
 #include <smacq-dataflow.h>
 
-smacq_result SmacqModuleWrapper::produce(DtsObject ** datum, int * outchan) {
+smacq_result SmacqModuleWrapper::produce(DtsObject datum, int * outchan) {
      return ops.produce(state, datum, outchan);
 }
 
-smacq_result SmacqModuleWrapper::consume(DtsObject * datum, int * outchan) {
+smacq_result SmacqModuleWrapper::consume(DtsObject datum, int * outchan) {
      return ops.consume(state, datum, outchan);
 }
 
