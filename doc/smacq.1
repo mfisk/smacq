@@ -159,7 +159,7 @@ arguments, can be separated with commas or spaces:
 .SH "INPUT/OUTPUT FUNCTIONS" 
 .SS "Print" 
 .PP 
-\fBprint\fR [-x]  [-v]  [-B]  [-d \fIdelimiter\fR] fields \&...  
+\fBprint\fR [-x]  [-v]  [-B]  [-d \fIdelimiter\fR]  [fields \&...]  
 .PP 
 Print the specified fields for every record that has them If 
 the \fB\-v\fP option is given, then warnings are 
@@ -170,7 +170,8 @@ If the \fB\-B\fP option
 is specified, then output is not buffered (output is flushed 
 after each record).  Fields are separated by a delimiter 
 string which can be specified by \fB\-d\fP and 
-defaults to TAB. 
+defaults to TAB.  If no fields are specified, then all fields 
+are printed. 
  
 .SS "Tabular Input" 
 .PP 
@@ -631,4 +632,4 @@ boolean:
 \fBDTS\fR(3),  
 \fBSmacqGraph\fR(3) 
  
-.\" created by instant / docbook-to-man, Sun 12 Dec 2004, 16:40 
+.\" created by instant / docbook-to-man, Thu 30 Dec 2004, 16:12 
