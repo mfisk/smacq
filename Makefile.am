@@ -1,4 +1,4 @@
-SUBDIRS = libsmacq types modules bin test
+SUBDIRS = libsmacq types modules bin test doc
 
 test: check
 
