@@ -1,18 +1,19 @@
-
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.57)
 AC_INIT(SMACQ, 2.1, mfisk@lanl.gov)
 AC_CONFIG_AUX_DIR([config])
-AM_CONFIG_HEADER(config.h)
+AM_CONFIG_HEADER(include/config.h)
 AM_INIT_AUTOMAKE(1.7)
-AM_PROG_CC_STDC
 AC_CONFIG_SRCDIR([bin])
-#AC_CONFIG_HEADERS()
 AC_LIBTOOL_DLOPEN
 
-# Checks for programs.
+##
+## Checks for programs
+##
 AC_PROG_CC
+gl_EARLY # gnulib wants to start early
+AM_PROG_CC_STDC
 AC_PROG_CXX
 AM_PROG_LEX
 AC_PROG_YACC
@@ -20,10 +21,9 @@ AC_PROG_LN_S
 AC_PROG_MAKE_SET
 AC_PROG_LIBTOOL
 
-AC_ARG_VAR(PYTHON, [Python 2.3 interpreter command])
-AC_CHECK_PROGS([PYTHON], [python2.3 python], :)
-
-# Checks for libraries.
+##
+## Standard libraries
+##
 AC_CHECK_LIB([c], [printf])
 AC_CHECK_LIB([dl], [dlopen])
 AC_CHECK_LIB([fl], [yylex])
@@ -31,16 +31,41 @@ AC_CHECK_LIB([glib], [g_new])
 AC_CHECK_LIB([m], [pow])
 AC_CHECK_LIB([pcap], [pcap_open_live])
 AC_CHECK_LIB([pthread], [pthread_exit])
-# FIXME: Replace `main' with a function in `-lutil':
-AC_CHECK_LIB([util], [main])
 AC_CHECK_LIB([z], [gzopen])
 
-# Checks for header files.
+##
+## Platform specific compiler flag defaults
+##
+if test -n "$GCC"; then
+	case $host in
+	sparc-sun-solaris*)
+		CO="-fast"
+		;;
+	powerpc-apple-darwin*)
+		CO="-fast -mcpu="`machine | sed 's/ppc//'`
+		;;
+    esac
+fi
+
+##
+## pkg-config libraries
+##
+PKG_CHECK_MODULES(DEPS, glib-2.0 gmodule-2.0)
+CPPFLAGS="$CPPFLAGS ${DEPS_CFLAGS}"
+LIBS="$LIBS ${DEPS_LIBS}"
+
+##
+## Checks for header files.
+##
 AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
 AC_CHECK_HEADERS([arpa/inet.h inttypes.h netdb.h netinet/in.h stddef.h stdint.h stdlib.h string.h sys/socket.h sys/time.h unistd.h])
+	# Thank you Red Hat (version 8 or something):
+AC_CHECK_HEADER(pcap/pcap.h, CPPFLAGS="$CPPFLAGS -I/usr/include/pcap")
 
-# Checks for typedefs, structures, and compiler characteristics.
+##
+## Checks for typedefs, structures, and compiler characteristics.
+##
 AC_C_CONST
 AC_HEADER_STDBOOL
 AC_C_INLINE
@@ -48,24 +73,21 @@ AC_TYPE_SIZE_T
 AC_HEADER_TIME
 AC_STRUCT_TM
 
-# Checks for library functions.
+##
+## Checks for library functions.
+##
 AC_FUNC_MALLOC
 AC_FUNC_MEMCMP
 AC_FUNC_MMAP
 AC_FUNC_REALLOC
 AC_FUNC_SELECT_ARGTYPES
-AC_TYPE_SIGNAL
 AC_FUNC_STRFTIME
 AC_FUNC_STRTOD
 AC_CHECK_FUNCS([floor gethostbyname gettimeofday inet_ntoa localtime_r memmove memset pow select socket strchr strdup strerror strtol])
 
-PKG_CHECK_MODULES(DEPS, glib-2.0 gmodule-2.0)
-
-LDADDS=${DEPS_LIBS}
-GLOBAL_INCLUDES="${DEPS_CFLAGS} -D_GNU_SOURCE -D_ISOC99_SOURCE"
-AC_SUBST(GLOBAL_INCLUDES)
-AC_SUBST(LDADDS)
-
+##
+## module manifest
+##
 SHAREDONLY_MODULES="test_dynamic" #reassemble
 BUILTIN_MODULES="print pcaplive pcapfile socket uniq count last top head filter msgtest entropy derivative split encrypt warden pdf fifo delta tabularinput sync rusage groupby flowid sum fifodelay project rename join substr bench_field mask const ndjoin lor counter_loop dfa noop expr equals cflow clock"
 BUILTIN_TYPES="int ushort ubyte timeval uint32 bytes netlong ip nushort nuint32 macaddr string double refresh empty ipproto packet cflow time ntime"
@@ -85,9 +107,11 @@ AC_SUBST(OBJECTS_MODULES_BUILTIN)
 LIBS_MODULES_SHARED=`for f in $SHAREDONLY_MODULES; do echo -n " smacq_$f.la "; done`
 AC_SUBST(LIBS_MODULES_SHARED)
 
+##
+## libgda
+##
 PKG_CHECK_MODULES(GDA, libgda,
 	[LDFLAGS=${GDA_LIBS}
-	GLOBAL_INCLUDES="${GDA_CFLAGS} ${GLOBAL_INCLUDES}"
 	SQLINSERT_LIBS="${EXTRA_MODULE_SOURCES} sqlinsert.lo"
 	OPTIONAL_TESTS="${OPTIONAL_TESTS} sqlinsert.test"
 	],[echo "$GDA_PKG_ERRORS"
@@ -97,6 +121,9 @@ AC_SUBST(SQLINSERT_LIBADD, $SQLINSERT_LIBS)
 AC_SUBST(SQLINSERT_DEPENDENCIES, $SQLINSERT_LIBS)
 AC_SUBST(OPTIONAL_TESTS)
 
+##
+## Profiling
+##
 AC_ARG_ENABLE(profile,
 	AS_HELP_STRING([--enable-profile],
 			[enable gprof profiling]),
@@ -104,33 +131,48 @@ AC_ARG_ENABLE(profile,
 		LDFLAGS="$LDFLAGS -pg"
 	],)
 
+##
+## Debug
+##	
 AC_ARG_ENABLE(debug,
 	AS_HELP_STRING([--enable-debug],
 			[enable debugging options]),
-	[if test -n "$GCC"; then
+	[CPPFLAGS="$CPPFLAGS -D_GLIBCXX_DEBUG";
+	 if test -n "$GCC"; then
 		CO="-O0"
-		ADDCFLAGS="$ADDCFLAGS -fno-inline -g -Wall -Werror"
+		# Hard to debug when everything is inlined
+		ADDCFLAGS="$ADDCFLAGS -g -fno-inline"
 	else
 		CO="-O0"
 		ADDCFLAGS="$ADDCFLAGS -g"
 	fi],
-	[if test -n "$GCC"; then
-		ADDCFLAGS="$ADDCFLAGS -g" # -fast on MacOS
-	fi
-	CO="-O9"
-	])
+	[CO="-O9"])
 
+##
+## Electric Fence
+##
 AC_ARG_ENABLE(efence,
 	AS_HELP_STRING([--enable-efence],
 		       [Enable electric-fence memory debugging]),
 		       [LDFLAGS="$LDFLAGS -lefence"])
 
+##
+## Ethereal
+##
 AC_ARG_WITH([ethereal], 
 	AS_HELP_STRING([--with-ethereal],
 			[Include Ethereal packet decoding]),
 	[with_ethereal="$withval"],
 	[with_ethereal=no])
 
+if test "X$with_ethereal" = "Xno"; then
+	ETHEREAL_LIBRARY=
+	ETHEREAL_DIR=
+else
+	ETHEREAL_LIBRARY=libethereal.la
+	ETHEREAL_DIR=${with_ethereal}
+	CPPFLAGS="$CPPFLAGS -DWITH_ETHEREAL -I$ETHEREAL_DIR"
+fi
 
 AC_SUBST(ETHEREAL_LIBRARY)
 AC_SUBST(ETHEREAL_DIR)
@@ -139,6 +181,8 @@ AC_SUBST(ETHEREAL_DIR)
 ##
 ## Python
 ##
+AC_ARG_VAR(PYTHON, [Python 2.3 interpreter command])
+AC_CHECK_PROGS([PYTHON], [python2.3 python], :)
 
 AC_ARG_WITH([python],
 	AS_HELP_STRING([--with-python], 
@@ -146,30 +190,10 @@ AC_ARG_WITH([python],
 	[with_python="$withval"],
 	[with_python=auto])
 
-if test -n "$GCC"; then
-	ADDCFLAGS="$ADDCFLAGS -Wall"
-fi
-
-if test -z "$CO"; then
- 	CO="-O9"
-fi
-
-CFLAGS="$CFLAGS $ADDCFLAGS $CO"
-CXXFLAGS="$CXXFLAGS $ADDCFLAGS $CO"
-
-if test "X$with_ethereal" = "Xno"; then
-	ETHEREAL_LIBRARY=
-	ETHEREAL_DIR=
-else
-	ETHEREAL_LIBRARY=libethereal.la
-	ETHEREAL_DIR=${with_ethereal}
-	CFLAGS="$CFLAGS -DWITH_ETHEREAL -I$ETHEREAL_DIR"
-fi
-
 # Try to detect whether or not to build with python
 if test "X$with_python" = "Xauto"; then
 	if test "X$PYTHON" = "X:"; then
-		AC_MSG_NOTICE([Building without Python (use PYTHON=/path/to/python2.3 to include it])
+		AC_MSG_NOTICE([Building without Python; use PYTHON=/path/to/python2.3 to include it])
 		with_python=no
 	else
 		with_python=yes
@@ -247,10 +271,37 @@ AM_CONDITIONAL(USE_PYTHON, test x$with_python = xyes)
 
 
 ##
+## gnulib
 ##
-##
+gl_SOURCE_BASE(libgnu)
+gl_M4_BASE(libgnu/m4)
+CPPFLAGS="${CPPFLAGS} -I\${top_srcdir}/libgnu"
+gl_MODULES(gettime getdate)
+gl_INIT
 
+
+##
+## Compiler flags
+##
+CPPFLAGS="$CPPFLAGS -I\${top_srcdir}/include -D_GNU_SOURCE -D_ISOC99_SOURCE"
+if test -n "$GCC"; then
+	ADDCFLAGS="$ADDCFLAGS -Wall -Werror"
+fi
+
+##
+## Final CFLAGS stuff
+##
+if test -z "$CO"; then
+ 	CO="-O9"
+fi
+CFLAGS="$CFLAGS $ADDCFLAGS $CO"
+CXXFLAGS="$CXXFLAGS $ADDCFLAGS $CO"
+
+##
+## Doit
+##
 AC_CONFIG_FILES([Makefile
+				 libgnu/Makefile
                  include/Makefile
                  bin/Makefile
                  doc/Makefile
@@ -262,4 +313,3 @@ AC_CONFIG_FILES([Makefile
                  test/Makefile
                  types/Makefile])
 AC_OUTPUT
-
