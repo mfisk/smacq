@@ -1,7 +1,7 @@
 DIRS=substr
 CFLAGS=-Wall -I$(SRCDIR) -I$(USR)/include/glib-2.0 -I$(USR)/lib/glib-2.0/include -I$(SRCDIR)/../include $(COPTS)
 LIBSMACQ=-L$(BINDIR)/../libsmacq -lsmacq
-LDFLAGS=$(LDOPTS) $(LIBSMACQ)
+LDFLAGS=$(LDOPTS) #$(LIBSMACQ)
 LIBTOOL=libtool
 
 SHAREDONLY_MODULES=test_dynamic #python #reassemble
@@ -67,7 +67,7 @@ python.lo: python.c $(SRCDIR)/../include/smacq.h
 # we can preopen
 
 libsmacq-modules.la: $(LIBS_BUILTIN) 
-	$(LIBTOOL) $(CC) -rpath /CONVIENCE -o $@ $+
+	$(LIBTOOL) $(CC) -static -rpath /CONVIENCE -o $@ $+
 
 #
 # This is how we make a dynamic library for a module
@@ -75,7 +75,7 @@ libsmacq-modules.la: $(LIBS_BUILTIN)
 RPATH=-rpath /usr/local/lib/smacq
 
 smacq_%.la: lib%.la
-	$(LIBTOOL) $(CC) -module $(RPATH) $(LDFLAGS) -o $@ $+
+	$(LIBTOOL) $(CC) -module $(LDFLAGS) -o $@ $+
 
 #
 # Extra Snort module stuff:
