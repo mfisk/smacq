@@ -1,7 +1,7 @@
 /*
 
 We have a really nasty dependency problem here:
-  SmacqGraph -> SmacqGraphNode -> SmacqModule -> SmacqScheduler
+SmacqGraph -> SmacqGraphNode -> SmacqModule -> SmacqScheduler
 
 SmacqScheduler depends on SmacqGraph, but only later in the file.  To avoid
 a dependency loop, we therefore have to include SmacqScheduler before anything
@@ -20,11 +20,11 @@ else in that chain.
 
 #include <SmacqGraphNode.h>
 
-#define FOREACH_CHILD(x, y)					    \
-  for (unsigned int i = 0; i < (x)->children.size(); i ++)	    \
-    for (unsigned int j = 0; j < (x)->children[i].size(); j ++) {   \
-      SmacqGraph *& child = (x)->children[i][j];		    \
-      y;							    \
+#define FOREACH_CHILD(x, y)						\
+  for (unsigned int i = 0; i < (x)->children.size(); i ++)		\
+    for (unsigned int j = 0; j < (x)->children[i].size(); j ++) {	\
+      SmacqGraph *& child = (x)->children[i][j];			\
+      y;								\
     }
 
 class DTS;
@@ -43,11 +43,11 @@ class SmacqGraphCallback {
 class joincallback : public SmacqGraphCallback {
  public:
   joincallback(SmacqGraph * g) : newg(g) {}
-  void callback(SmacqGraph * g);
+    void callback(SmacqGraph * g);
 
  private:
-  SmacqGraph * newg;
-  std::set<SmacqGraph*> seen;
+    SmacqGraph * newg;
+    std::set<SmacqGraph*> seen;
 };
 
 /// A graph of SmacqGraphNode nodes. 
@@ -89,8 +89,8 @@ class SmacqGraph : private SmacqGraphNode {
   /// Get the next graph head.
   SmacqGraph * nextGraph() const { return next_graph; }
 
-  /// Return a multi-headed graph consisting of my children.
-  SmacqGraph * children_as_heads();
+  /// Children of the specified graph will also become children of this
+  void share_children_of(SmacqGraph *);
 
   /// @}
 
@@ -168,11 +168,11 @@ class fanout : public DynamicArray<SmacqGraph *> {};
 
 /// Return current number of children a graph has
 inline int SmacqGraph::numchildren() const {
-	int total = 0;
-	for (unsigned int i = 0; i < children.size(); i++) {
-		total += children[i].size();
-	}
-	return total;
+  int total = 0;
+  for (unsigned int i = 0; i < children.size(); i++) {
+    total += children[i].size();
+  }
+  return total;
 }
 
 /// Establish a parent/child relationship with the specified child.
@@ -222,7 +222,7 @@ inline void joincallback::callback(SmacqGraph * g) {
 
     // Tails may share some children, so make sure we haven't already done this one
     if (! seen.insert(g).second) {
-	return;
+      return;
     }
   }
 
@@ -232,9 +232,11 @@ inline void joincallback::callback(SmacqGraph * g) {
 }
 
 inline void SmacqGraph::join(SmacqGraph * newg) {
+  if (!newg) { return; }
+
   joincallback j(newg);
   for(SmacqGraph *g = this; g; g=g->next_graph) {
-  	g->foreach_tail(j);
+    g->foreach_tail(j);
   }
 }
 
@@ -249,7 +251,7 @@ inline void SmacqGraph::add_graph(SmacqGraph * b) {
 /// Recursively initalize nodes in graph.
 inline void SmacqGraph::init(DTS * dts, SmacqScheduler * sched) {
   for (SmacqGraph * g = this; g; g=g->next_graph) {
-	g->init_node_one(dts, sched);
+    g->init_node_one(dts, sched);
   }
 }
 
@@ -324,7 +326,7 @@ inline void SmacqGraph::replace_child(SmacqGraph * oldchild,
 
   FOREACH_CHILD(this, {
       if (child == oldchild) {
-			replace_child(i, j, newchild);
+	replace_child(i, j, newchild);
       }
     });
 }
@@ -357,7 +359,7 @@ inline double SmacqGraph::count_nodes() {
   FOREACH_CHILD(this, count+= child->count_nodes());
 
   if (numparents) {
-	  return count / numparents;
+    return count / numparents;
   }
   return count;
 }
@@ -408,11 +410,11 @@ inline SmacqGraph::~SmacqGraph() {
 
 inline void SmacqGraph::downstream_filter_one(smacq_filter_callback_fn callback, void * data) {
   if (!strcmp(name, "where") || !strcmp(name, "equals")) {
-	  //fprintf(stderr, "downstream_filters got a known op: %s\n", name);
-	  callback(name, argc, argv, data);
+    //fprintf(stderr, "downstream_filters got a known op: %s\n", name);
+    callback(name, argc, argv, data);
   } else {
-	  //fprintf(stderr, "don't know anything about %s\n", name);
-	  return;
+    //fprintf(stderr, "don't know anything about %s\n", name);
+    return;
   }
 
   /* Now do children */
@@ -431,22 +433,13 @@ inline void SmacqGraph::downstream_filters(smacq_filter_callback_fn callback, vo
   }
 }
 
-inline SmacqGraph * SmacqGraph::children_as_heads() {
-  // This works only because next_graph isn't used anywhere else 
-  // inside a graph.  
-  assert(children.size() == 1);
+inline void SmacqGraph::share_children_of(SmacqGraph * g) {
+  assert(g->children.size() == 1);
+  if (!g->children[0].size()) return;
 
-  if (!children[0].size()) return NULL;
-
-  SmacqGraph * g = children[0][0];
-  for (unsigned int i = 1; i < children[0].size(); i++) {
-    g->next_graph = children[0][i];
-    g = g->next_graph;
+  for (unsigned int i = 0; i < g->children[0].size(); i++) {
+    join(g->children[0][i]);
   }
-
-  g->next_graph = NULL;
-
-  return children[0][0];
 }
 
 /// Modify parent(s) and children to replace myself with the specified graph.
@@ -478,20 +471,26 @@ inline void SmacqGraph::replace(SmacqGraph * g) {
 }
 
 inline SmacqGraph * SmacqGraph::get_invariants_over_field(DtsField field) {
- SmacqGraph * more;
- if (algebra.stateless && children.size() == 1 && children[0].size() == 1) {
-    more = children[0][0]->get_invariants_over_field(field);
- } else {
-    more = NULL;
- }
+  SmacqGraph * more;
+  if (!algebra.stateless) {
+    fprintf(stderr, "%s is not stateless, so stopping invariant search\n", argv[0]);
+    return NULL;
+  }
 
- if (algebra.stateless && !instance->usesOtherFields(field)) {
+  if (children.size() == 1 && children[0].size() == 1) {
+    more = children[0][0]->get_invariants_over_field(field);
+  } else {
+    more = NULL;
+  }
+
+  if (!instance->usesOtherFields(field)) {
     SmacqGraph * result = new_child(argc, argv);
     if (more) result->add_child(more);
     return result;
- } else {
-	return more;
- }
+  } else {
+    fprintf(stderr, "%s uses other field, can't optimize\n", argv[0]);
+    return more;
+  }
 }
 
 #endif
