@@ -8,7 +8,7 @@ config() {
 	LIBTOOL=${LIBTOOL:-libtool}
 	USR=${USR:-/usr}
 
-	if [ `uname -s` == "Darwin" ]; then 
+	if [ `uname -s` = "Darwin" ]; then 
 		echo 'MAKE=gnumake'
 		LIBTOOL=glibtool
 		LDOPTS="${LDOPTS}-L/sw/lib "
