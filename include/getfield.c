@@ -105,14 +105,12 @@ static inline const dts_object * smacq_getfield(smacq_environment * env, const d
 }
 
 /* Same as above, but return a new copy of the data */
-static inline const dts_object * smacq_getfield_copy(smacq_environment * env, const dts_object * datum, dts_field field, dts_object * field_data) {
-	/* XXX: Should construct a new object rather than using memdup */
-	dts_object * retval = (dts_object*)smacq_getfield(env, datum, field, field_data);
-	if (retval && !retval->free_data) {
-		retval->data = memdup(retval->data, retval->len);
-		retval->free_data = 1;
-	}
-	return retval;
+static inline const dts_object * smacq_getfield_copy(smacq_environment * env, const dts_object * datum, dts_field fieldspec, dts_object * field_data) {
+	dts_object * field = (dts_object*)smacq_getfield(env, datum, fieldspec, field_data);
+	dts_object * fieldcopy = (dts_object*)dts_alloc(env->types, field->len, field->type);
+	memcpy(dts_getdata(fieldcopy), dts_getdata(field), field->len);
+	dts_decref(field);
+	return fieldcopy;
 }
 
 #endif
