@@ -79,19 +79,9 @@ static smacq_result delta_init(struct smacq_init * context) {
   return 0;
 }
 
-static smacq_result delta_shutdown(struct state * state) {
-  return 0;
-}
-
-
-static smacq_result delta_produce(struct state * state, const dts_object ** datum, int * outchan) {
-  return SMACQ_END;
-}
-
 /* Right now this serves mainly for type checking at compile time: */
 struct smacq_functions smacq_delta_table = {
-  &delta_produce, 
-  &delta_consume,
-  &delta_init,
-  &delta_shutdown
+  consume: &delta_consume,
+  init: &delta_init,
+  algebra: { nesting: 1}
 };

@@ -191,7 +191,6 @@ static smacq_result pcaplive_init(struct smacq_init * context) {
 /* Right now this serves mainly for type checking at compile time: */
 struct smacq_functions smacq_pcaplive_table = {
   produce: &pcaplive_produce, 
-  consume: NULL,
   init: &pcaplive_init,
   shutdown: &pcaplive_shutdown
 };

@@ -52,9 +52,9 @@ static smacq_result head_init(struct smacq_init * context) {
 
 /* Right now this serves mainly for type checking at compile time: */
 struct smacq_functions smacq_head_table = {
-  &head_produce, 
-  &head_consume,
-  &head_init,
-  NULL
+  produce: &head_produce, 
+  consume: &head_consume,
+  init: &head_init,
+  algebra: { nesting: 1},
 };
 

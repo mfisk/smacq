@@ -263,14 +263,8 @@ static smacq_result dfa_init(struct smacq_init * context) {
   return 0;
 }
 
-static smacq_result dfa_shutdown(struct state * state) {
-  return SMACQ_END;
-}
-
-
 /* Right now this serves mainly for type checking at compile time: */
 struct smacq_functions smacq_dfa_table = {
   consume: &dfa_consume,
   init: &dfa_init,
-  shutdown: &dfa_shutdown
 };

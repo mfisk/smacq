@@ -431,6 +431,7 @@ struct smacq_functions smacq_flowid_table = {
   &flowid_produce, 
   &flowid_consume,
   &flowid_init,
-  &flowid_shutdown
+  &flowid_shutdown,
+  algebra: { nesting: 1},
 };
 

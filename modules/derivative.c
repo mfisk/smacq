@@ -89,19 +89,9 @@ static smacq_result derivative_init(struct smacq_init * context) {
   return 0;
 }
 
-static smacq_result derivative_shutdown(struct state * state) {
-  return 0;
-}
-
-
-static smacq_result derivative_produce(struct state * state, const dts_object ** datum, int * outchan) {
-  return SMACQ_END;
-}
-
 /* Right now this serves mainly for type checking at compile time: */
 struct smacq_functions smacq_derivative_table = {
-  &derivative_produce, 
-  &derivative_consume,
-  &derivative_init,
-  &derivative_shutdown
+  consume: &derivative_consume,
+  init: &derivative_init,
+  algebra: { nesting: 1},
 };

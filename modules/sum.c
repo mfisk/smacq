@@ -120,5 +120,6 @@ struct smacq_functions smacq_sum_table = {
   produce: &sum_produce, 
   consume: &sum_consume,
   init: &sum_init,
-  shutdown: &sum_shutdown
+  shutdown: &sum_shutdown,
+  algebra: { nesting: 1},
 };

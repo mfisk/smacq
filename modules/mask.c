@@ -123,5 +123,6 @@ struct smacq_functions smacq_mask_table = {
 	consume: &mask_consume,
 	init: &mask_init,
 	shutdown: &mask_shutdown,
+	algebra: { boolean: 1},
 };
 

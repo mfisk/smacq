@@ -56,6 +56,7 @@ static smacq_result filter_init(struct smacq_init * context) {
 /* Right now this serves mainly for type checking at compile time: */
 struct smacq_functions smacq_filter_table = {
   consume: &filter_consume,
-  init: &filter_init
+  init: &filter_init,
+  algebra: { boolean: 1},
 };
 

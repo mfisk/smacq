@@ -110,8 +110,9 @@ static smacq_result clock_produce(struct state * state, const dts_object ** datu
 
 /* Right now this serves mainly for type checking at compile time: */
 struct smacq_functions smacq_clock_table = {
-  &clock_produce, 
-  &clock_consume,
-  &clock_init,
-  &clock_shutdown
+  produce: &clock_produce, 
+  consume: &clock_consume,
+  init: &clock_init,
+  shutdown: &clock_shutdown,
+  algebra: { nesting: 1},
 };
