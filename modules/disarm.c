@@ -150,8 +150,9 @@ static smacq_result disarm_produce(struct state * state, const dts_object ** dat
 	 	unsigned char c = hex2val[(unsigned int)hex[i*2]];	
 		//fprintf(stderr, "char %c has value %d\n", hex[i*2], c);
 		if (c == XX) {
-			fprintf(stderr, "line %ld character %d invalid: %c\n", state->lineno, i*2, hex[i*2]);
-			exit(-1);
+			fprintf(stderr, "Skipping invalid %d char sv4 record on line %lu: %.*s\n", len, state->lineno, len, hex);
+			//fprintf(stderr, "line %ld character %d invalid: %c\n", state->lineno, i*2, hex[i*2]);
+			return disarm_produce(state, datump, outchan);
 		}
 		decode[i] = c << 4;
 		c = hex2val[(unsigned int)hex[i*2+1]];
