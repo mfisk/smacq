@@ -29,6 +29,21 @@ static inline void read_module(smacq_graph * graph, struct smacq_functions * mod
 		graph->algebra = modtable->algebra;
 }
 
+double smacq_graph_count_nodes(smacq_graph * f) {
+  int i;
+  double count = 1;
+  if (!f) return 0;
+
+  for (i=0; i<f->numchildren; i++) {
+    count += smacq_graph_count_nodes(f->child[i]);
+  }
+
+  if (f->numparents) {
+	  return count / f->numparents;
+  }
+  return count;
+}
+
 int smacq_graph_print(FILE * fh, smacq_graph * f, int indent) {
   int i;
   int count = 1;

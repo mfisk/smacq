@@ -239,6 +239,8 @@ static int merge_fanouts(smacq_graph * a, smacq_graph * b) {
 	return 1;
 }
 
+/* Merge the tops of these two trees as much as possible */
+/* Return 1 iff graph b was completely merged into a */
 static int merge_trees(smacq_graph * a, smacq_graph * b) {
 	int retval;
 
@@ -260,6 +262,7 @@ static int merge_trees(smacq_graph * a, smacq_graph * b) {
 	return retval;
 }
 
+/* Search for mergable children anywhere in tree */
 static void optimize_tree(smacq_graph * g) {
 	int an, bn;
 	smacq_graph * a, * b;
@@ -285,15 +288,18 @@ static void optimize_tree(smacq_graph * g) {
 	for (an = 0; an < g->numchildren; an++) {
 		optimize_tree(g->child[an]);
 	}
+
+	optimize_tree(g->next_graph);
 }
 
 int smacq_graphs_print(FILE * fh, smacq_graph * g, int indent) {
-  int count = 0;
+  double count = 0;
   smacq_graph * ap;
   for (ap = g; ap; ap=ap->next_graph) {
-    count += smacq_graph_print(fh, ap, indent);
+    smacq_graph_print(fh, ap, indent);
+    count += smacq_graph_count_nodes(ap);
   }
-  fprintf(fh, "Total number of nodes = %d\n", count);
+  fprintf(fh, "Total number of nodes = %g\n", count);
   return count;
 }
 
@@ -329,7 +335,15 @@ smacq_graph * smacq_merge_graphs(smacq_graph * g) {
   }
 
 #ifdef SMACQ_DEBUG
-  fprintf(stderr, "--- merged heads to ---\n");
+  fprintf(stderr, "--- merged heads (including vectors, demux, etc.) to ---\n");
+  smacq_graphs_print(stderr, g, 8);
+#endif
+
+  /* Now look for common leading subexpressions within trees */
+  optimize_tree(g);
+
+#ifdef SMACQ_DEBUG
+  fprintf(stderr, "--- optimized internal heads to ---\n");
   smacq_graphs_print(stderr, g, 8);
 #endif
 
@@ -338,13 +352,6 @@ smacq_graph * smacq_merge_graphs(smacq_graph * g) {
 
 #ifdef SMACQ_DEBUG
   fprintf(stderr, "--- optimized tails to ---\n");
-  smacq_graphs_print(stderr, g, 8);
-#endif
-
-  optimize_tree(g);
-
-#ifdef SMACQ_DEBUG
-  fprintf(stderr, "--- optimized trees to ---\n");
   smacq_graphs_print(stderr, g, 8);
 #endif
 
