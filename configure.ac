@@ -3,6 +3,7 @@
 
 AC_PREREQ(2.57)
 AC_INIT(SMACQ, 2.1, mfisk@lanl.gov)
+AC_CONFIG_AUX_DIR([config])
 AM_CONFIG_HEADER(config.h)
 AM_INIT_AUTOMAKE(1.7)
 AM_PROG_CC_STDC
