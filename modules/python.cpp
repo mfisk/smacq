@@ -216,14 +216,25 @@ static void PyDts_dealloc(PyObject *p)
   PyObject_Del(p);
 }
 
-static PyObject *PyDts_getattr(PyObject *p, char *name)
+static int PyDts_length(PyObject *p)
+{
+  return 0;
+}
+
+static PyObject *PyDts_subscript(PyObject *p, PyObject *pName)
 {
   PyDtsObject *self   = (PyDtsObject *)p;
+  char        *name;
   PyObject    *pDts   = NULL;
   DtsObject    d;
   int          passed = 0;
 
   do {
+    name = PyString_AsString(pName);
+    if (! name) {
+      break;
+    }
+
     d = self->d->getfield(self->dts->requirefield(name));
     if (! d) {
       PyErr_SetString(PyExc_AttributeError, "General Failure");
@@ -246,12 +257,18 @@ static PyObject *PyDts_getattr(PyObject *p, char *name)
   return (PyObject *)pDts;
 }
 
-static int PyDts_setattr(PyObject *p, char *name, PyObject *value)
+static int PyDts_ass_sub(PyObject *p,
+                         PyObject *pName, PyObject *pValue)
 {
   PyErr_SetNone(PyExc_NotImplementedError);
   return -1;
 }
 
+static PyMappingMethods PyDts_as_mapping = {
+  PyDts_length,                 /* mp_length            */
+  PyDts_subscript,              /* mp_subscript         */
+  PyDts_ass_sub,                /* mp_ass_subscript     */
+};
 
 static PyTypeObject PyDtsType = {
   PyObject_HEAD_INIT(NULL)
@@ -261,13 +278,13 @@ static PyTypeObject PyDtsType = {
   0,                            /* tp_itemsize		*/
   PyDts_dealloc,                /* tp_dealloc		*/
   0,                            /* tp_print		*/
-  PyDts_getattr,                /* tp_getattr		*/
-  PyDts_setattr,                /* tp_setattr		*/
+  0,                            /* tp_getattr		*/
+  0,                            /* tp_setattr		*/
   0,                            /* tp_compare		*/
   0,                            /* tp_repr		*/
   0,                            /* tp_as_number		*/
   0,                            /* tp_as_sequence	*/
-  0,                            /* tp_as_mapping	*/
+  &PyDts_as_mapping,            /* tp_as_mapping	*/
   0,                            /* tp_hash		*/
   0,                            /* tp_call		*/
   0,                            /* tp_str		*/
