@@ -63,6 +63,7 @@ static struct element * make_element(struct iovec_hash * b, struct iovec * iovec
     s->iovecs[i].iov_base = cm_new(b->cm_bytes, char, iovecs[i].iov_len);
     s->iovecs[i].iov_len = iovecs[i].iov_len;
     memcpy(s->iovecs[i].iov_base, iovecs[i].iov_base, iovecs[i].iov_len);
+    assert(s->iovecs[i].iov_base);
   }
 
   s->table = b;
@@ -70,12 +71,11 @@ static struct element * make_element(struct iovec_hash * b, struct iovec * iovec
   return s;
 }
 
-static void free_element(void * k) {
-  struct element * s = k;
+static void free_element(struct element * s) {
   int i;
   assert(s);
 
-  for (i=0; i<s->nvecs; i++) {
+  for (i=0; i < s->nvecs; i++) {
     cmfree(s->table->cm_bytes, s->iovecs[i].iov_base);
   }
   cmfree(s->table->cm_iovecs, s->iovecs);
