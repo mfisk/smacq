@@ -47,14 +47,14 @@ AUTOMAKE = ${SHELL} /home/neale/src/smacq/missing --run automake-1.7
 AWK = mawk
 CC = gcc
 CCDEPMODE = depmode=gcc3
-CFLAGS = -g -O2  -g -Wall -O9
+CFLAGS = -g -O2  -fno-inline -ggdb -Wall -O0
 CFLAGS_PYTHON = -I /usr/include/python2.3
 CPP = gcc -E
 CPPFLAGS = 
 CXX = g++
 CXXCPP = g++ -E
 CXXDEPMODE = depmode=gcc3
-CXXFLAGS = -g -O2  -g -Wall -O9
+CXXFLAGS = -g -O2  -fno-inline -ggdb -Wall -O0
 CYGPATH_W = echo
 DEFS = -DHAVE_CONFIG_H
 DEPDIR = .deps
@@ -110,7 +110,7 @@ PYTHON_LIBADD = -lpthread -ldl  -lutil -L. -lpython2.3 python.lo
 PYTHON_TESTS = python.test
 RANLIB = ranlib
 SET_MAKE = 
-SHELL = /bin/sh
+SHELL = /bin/bash
 SOURCES_MODULES_BUILTIN =  print.c  pcaplive.c  pcapfile.c  socket.c  uniq.c  count.c  last.c  top.c  head.c  filter.c  msgtest.c  entropy.c  derivative.c  split.c  encrypt.c  warden.c  pdf.c  fifo.c  delta.c  tabularinput.c  sync.c  rusage.c  groupby.c  flowid.c  sum.c  fifodelay.c  project.c  rename.c  join.c  substr.c  bench_field.c  mask.c  const.c  ndjoin.c  lor.c  counter_loop.c  dfa.c  noop.c  expr.c  equals.c  cflow.c  clock.c 
 SOURCES_TYPES_BUILTIN =  int.c  ushort.c  ubyte.c  timeval.c  uint32.c  bytes.c  netlong.c  ip.c  nushort.c  nuint32.c  macaddr.c  string.c  double.c  refresh.c  empty.c  ipproto.c  packet.c  cflow.c  time.c  ntime.c 
 SQLINSERT_DEPENDENCIES =  sqlinsert.lo

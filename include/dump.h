@@ -11,7 +11,7 @@
 #include <unistd.h>
 
 
-#if !defined (DEBUG)
+#if !defined (DUMP_ENABLE)
   #define DUMP_USE_NOTHING
 #endif
 

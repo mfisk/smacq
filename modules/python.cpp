@@ -3,7 +3,7 @@
 #include "smacq.h"
 #include "dts.h"
 
-#define DEBUG
+#define DUMP_ENABLE
 #include "dump.h"
 
 static int init_count = 0;
@@ -149,7 +149,11 @@ smacq_result pythonModule::consume(DtsObject datum, int &outchan)
     }
 
     /* Send it to the consume function */
+  DUMP_p(this->pConsume);
+  DUMP_p(pDts);
+  DUMP_BREAKPOINT();
     pRet = PyObject_CallFunction(this->pConsume, "O", pDts);
+  DUMP();
     if (! pRet) {
       PyErr_Print();
       break;
@@ -432,6 +436,7 @@ static PyObject *pydts_create(DtsObject datum, DTS *dts)
   PyDtsObject *pObj   = NULL;
   int          passed = 0;
 
+  DUMP();
   do {
     /* Allocate the new object */
     pObj = PyObject_New(PyDtsObject, &PyDtsType);
@@ -439,7 +444,7 @@ static PyObject *pydts_create(DtsObject datum, DTS *dts)
       break;
     }
 
-    pObj->d   = datum;
+    pObj->d   = datum->dup();
     pObj->dts = dts;
 
     passed = 1;
@@ -450,5 +455,7 @@ static PyObject *pydts_create(DtsObject datum, DTS *dts)
     return NULL;
   }
 
+  DUMP_p(pObj);
+  DUMP_d(pObj->ob_refcnt);
   return (PyObject *)pObj;
 }
