@@ -1,4 +1,4 @@
-#define DUMP_ENABLE
+//#define DUMP_ENABLE
 #include <Python.h>
 #include <stdint.h>
 #include <limits.h>
@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include "DtsObject.h"
 #include "smacq.h"
 #include "dump.h"
 #include "dts.h"
@@ -35,7 +36,7 @@ pythonModule::pythonModule(struct smacq_init *context)
   PyObject *pArgs   = NULL;
   int       passed  = 0;
 
-  DUMP();
+  //DUMP();
   if (context->argc < 2) {
     fprintf(stderr, "No module name provided");
     /* XXX: there's got to be a better way to raise an error... */
@@ -210,10 +211,7 @@ static char PyDts_doc[] =
 
 typedef struct {
   PyObject_HEAD
-  /* Normally we'd keep d on the stack, not as a pointer.  But we can't
-   * put it on the stack, since Python wants to use its internal memory
-   * allocator.  Therefore, we keep a pointer and use new and delete. */
-  DtsObject *d;
+  DtsObject d;
   DTS       *dts;
 } PyDtsObject;
 
@@ -222,7 +220,12 @@ static void PyDts_dealloc(PyObject *p)
 {
   PyDtsObject *self = (PyDtsObject *)p;
 
-  delete self->d;
+  /* 
+   * d was constructed with placement new, so we have to call dtor manually.
+   * Do NOT call delete.
+   */
+  self->d.~DtsObject();
+
   PyObject_Del(p);
 }
 
@@ -254,8 +257,7 @@ static PyObject *PyDts_subscript(PyObject *p, PyObject *pName)
       break;
     }
 
-    /* We can't use the overloaded -> operator since self->d is a pointer. */
-    d = self->d->get()->getfield(self->dts->requirefield(name));
+    d = self->d->getfield(name);
     if (! d) {
       PyErr_Format(PyExc_KeyError, "No such field: %s", name);
       break;
@@ -296,7 +298,7 @@ static PyObject *PyDts_gettype(PyObject *p, void *closure)
   char        *dtsname;
   dts_typeid   dtstype;
 
-  dtstype = self->d->get()->gettype();
+  dtstype = self->d->gettype();
   dtsname = self->dts->typename_bynum(dtstype);
   return Py_BuildValue("s", dtsname);
 }
@@ -308,8 +310,8 @@ static PyObject *PyDts_getraw(PyObject *p, void *closure)
   PyDtsObject *self = (PyDtsObject *)p;
 
   return Py_BuildValue("s#",
-                       self->d->get()->getdata(),
-                       self->d->get()->getsize());
+                       self->d->getdata(),
+                       self->d->getsize());
 }
 
 /** Return data as an appropriate Python type
@@ -322,8 +324,8 @@ static PyObject *PyDts_getvalue(PyObject *p, void *closure)
   void        *data;
   PyObject    *pRet;
 
-  dtstype = self->d->get()->gettype();
-  data    = self->d->get()->getdata();
+  dtstype = self->d->gettype();
+  data    = self->d->getdata();
   dtsname = self->dts->typename_bynum(dtstype);
 
   if (strcmp(dtsname, "ubyte") == 0) {
@@ -342,13 +344,13 @@ static PyObject *PyDts_getvalue(PyObject *p, void *closure)
 
     if (NULL == inet_ntop(AF_INET, data, str, sizeof(str))) {
       pRet = PyString_FromStringAndSize((const char *)data,
-                                        self->d->get()->getsize());
+                                        self->d->getsize());
     } else {
       pRet = PyString_FromString((const char *)str);
     }
   } else {
     pRet = PyString_FromStringAndSize((const char *)data,
-                                      self->d->get()->getsize());
+                                      self->d->getsize());
   }
 
   return pRet;
@@ -414,11 +416,11 @@ static PyObject *pydts_create(DtsObject datum, DTS *dts)
     }
 
     /* Boost does some fancy footwork to make things feel nice for the
-     * programmer.  Unfortunately, we can't use it, since our object
-     * isn't on the stack.  So for us, it has to look ugly.  Don't blame
-     * boost; blame C++. */
-    pObj->d = new DtsObject;
-    *(pObj->d) = datum;
+     * programmer.  That would let us just say "pObj->d = datum".  
+     * Unfortunately, since Python uses plain C allocators instead of 
+     * "new", we have to use placement new to manually initialize d.  
+     */
+    new(&pObj->d) DtsObject(datum);
 
     pObj->dts = dts;
 
