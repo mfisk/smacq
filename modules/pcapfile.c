@@ -194,6 +194,10 @@ static inline void close_file(struct state* state) {
     fclose(state->fh);
     state->fh = NULL;
   }
+
+  if (state->mmap) {
+    state->mmap = NULL;
+  }
 }
 
 /* Read from this file or the next one */
@@ -258,11 +262,11 @@ static inline int open_filename(struct state * state, char * filename) {
 
   fprintf(stderr, "pcapfile: Opening %s for read ( ", filename);
 
-  if (state->swapped) fprintf(stderr, " byte-swapped ");
+  if (state->swapped) fprintf(stderr, "byte-swapped ");
   else fprintf(stderr, "host-byte-order ");
 
-  if (state->extended) fprintf(stderr, " extended-header ");
-  if (state->mmap) fprintf(stderr, " memory-mapped ");
+  if (state->extended) fprintf(stderr, "extended-header ");
+  if (state->mmap) fprintf(stderr, "memory-mapped ");
 
   fprintf(stderr, ")\n");
 
