@@ -4,9 +4,13 @@
 #ifdef __cplusplus
 
 class SmacqModule;
+class DtsField;
+class dts_comparison;
+typedef class IterativeScheduler SmacqScheduler;
 
-#include <smacq.h>
+#include <smacq_result.h>
 #include <smacq_args.h>
+#include <DtsObject.h>
 #include <DynamicArray.h>
 
 #include <list>
@@ -148,20 +152,12 @@ class SmacqModule {
   virtual smacq_result produce(DtsObject & datump, int & outchan);
 
   /// This method is called by the join optimizer.
-  virtual bool usesOtherFields(DtsField f) {
-	return usesFields.otherEntry(f[0]);
-  }
+  virtual bool usesOtherFields(DtsField f);
 
  protected:
   class UsesArray : public DynamicArray<bool> {
 	public: 
-	bool otherEntry(unsigned int f) const {
-		DynamicArray<bool>::const_iterator i;
-		for (i = begin(); i != end(); ++i) {
-			if (*i != f) return true;
-		}
-		return false;
-	}
+	bool otherEntry(unsigned int f) const;
   };
 
   UsesArray usesFields;
@@ -173,11 +169,7 @@ class SmacqModule {
 
   /// This method wraps DTS::usesfield() but keeps track of what 
   /// this module uses.
-  virtual DtsField usesfield(char * name) {
-	DtsField res = dts->requirefield(name);	
-	usesFields[res[0]] = true;
-	return res;	
-  }
+  virtual DtsField usesfield(char * name);
 
   /// Each module instance runs in the context of a DTS instance.
   DTS * dts;
@@ -191,6 +183,27 @@ class SmacqModule {
   /// Enqueue an object for output to the specified output channel.
   void enqueue(DtsObject &, int outchan = 0);
 };
+
+#include <DtsField.h>
+#include <dts.h>
+
+inline bool SmacqModule::usesOtherFields(DtsField f) {
+	return usesFields.otherEntry(f[0]);
+}
+
+inline DtsField SmacqModule::usesfield(char * name) {
+	DtsField res = dts->requirefield(name);	
+	usesFields[res[0]] = true;
+	return res;	
+}
+
+inline bool SmacqModule::UsesArray::otherEntry(unsigned int f) const {
+		DynamicArray<bool>::const_iterator i;
+		for (i = begin(); i != end(); ++i) {
+			if (*i != f) return true;
+		}
+		return false;
+}
 
 inline SmacqModule::SmacqModule(struct smacq_init * context) 
 	: dts(context->dts), scheduler(context->scheduler), self(context->self)
