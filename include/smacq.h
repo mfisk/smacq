@@ -142,7 +142,7 @@ struct smacq_init {
 /* 
  * Comparisons & filtering
  */
-enum _dts_comp_op { EQUALITY, INEQUALITY, EXIST, LT, GT, LIKE, AND, OR, FUNC };
+enum _dts_comp_op { EXIST, EQ, LEQ, GEQ, NEQ, LT, GT, LIKE, AND, OR, FUNC };
 typedef enum _dts_comp_op dts_compare_operation;
 
 struct arglist;

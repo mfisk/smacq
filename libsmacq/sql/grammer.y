@@ -74,6 +74,7 @@
 %token STOP
 %token AS
 %token HAVING
+%token YYNEQ YYLEQ YYGEQ
 
 %token YYSTOP YYLIKE YYOR YYAND
 %left YYAND YYOR
@@ -163,10 +164,8 @@ source : pverbphrase
 	;
 
 where : null 		{ $$ = nullgraph; }
-                   | WHERE boolean { $$ = optimize_bools($2); }
+        | WHERE boolean { $$ = optimize_bools($2); }
 	;
-
-
 
 group : null 			{ $$.args = NULL; $$.having = NULL;}
 	| GROUP BY args having 	{ $$.args = $3; $$.having = $4; }
@@ -180,12 +179,13 @@ word:	id
 	| string  
 	;
 
-string:	STRING 		{ $$ = yystring; };
+string:	STRING 		{ $$ = yystring; }
+	;
 
 id:	ID 		{ $$ = yystring; }
-                  | YYOR                         { $$ = "or"; }
-                  | YYAND                       { $$ = "and"; }
-                  ;
+        | YYOR          { $$ = "or"; }
+        | YYAND         { $$ = "and"; }
+        ;
 
 arg: argument 
 	| argument AS word		{ $$->rename = $3; }
@@ -203,8 +203,11 @@ boolarg : id				{ $$ = newarg($1, 0, NULL); }
 		$$ = newarg(str, 0, NULL); 
 	    }
 	| '<'				{ $$ = newarg("<", 0, NULL); }
+	| YYLEQ				{ $$ = newarg("<=", 0, NULL); }
 	| '>'				{ $$ = newarg(">", 0, NULL); }
+	| YYGEQ				{ $$ = newarg(">=", 0, NULL); }
 	| '='				{ $$ = newarg("=", 0, NULL); }
+	| YYNEQ				{ $$ = newarg("!=", 0, NULL); }
 	| '('				{ $$ = newarg("(", 0, NULL); }
 	| ')'				{ $$ = newarg(")", 0, NULL); }
 	| '!'				{ $$ = newarg("!", 0, NULL); }
@@ -250,15 +253,19 @@ boolean : '(' boolean ')'	{ $$ = $2; }
 	;
 
 test : word			{ $$ = comp_new($1, EXIST, NULL); }
-	| word op word		{ $$ = comp_new($1, $2, $3); }
-	| verb '(' args ')'		{ $$ = comp_new($1, FUNC, arglist2str($3));
-					  $$->arglist = $3;
-	}
+	| word op word		{ $$ = comp_new($1, $2, $3); fprintf(stderr, "comp word %s\n", $1);}
+	| verb '(' args ')'	{ 
+					$$ = comp_new($1, FUNC, arglist2str($3));
+					$$->arglist = $3;
+				}
 	;
 
-op : '=' 		{ $$ = EQUALITY; }
+op : '=' 		{ $$ = EQ; }
 	| '>'		{ $$ = GT; }
 	| '<' 		{ $$ = LT; }
+	| YYGEQ		{ $$ = GEQ; }
+	| YYLEQ		{ $$ = LEQ; }
+	| YYNEQ		{ $$ = NEQ; }
 	| YYLIKE 	{ $$ = LIKE; }		 
 	;
 
@@ -293,7 +300,7 @@ smacq_graph * smacq_build_query(dts_environment * tenv, int argc, char ** argv) 
   pthread_mutex_lock(&local_lock);
 
   yy_scan_string(qstr);
-  /* fprintf(stderr, "parsing buffer: %s\n", qstr); */
+  //fprintf(stderr, "parsing buffer: %s\n", qstr); 
 
   res = yyparse();
 
@@ -502,10 +509,16 @@ static char * opstr(dts_comparison * comp) {
   case GT:
     return ">";
 
-  case EQUALITY:
+  case EQ:
     return "==";
 
-  case INEQUALITY:
+  case GEQ:
+    return ">=";
+
+  case LEQ:
+    return "<=";
+
+  case NEQ:
     return "!=";
 
   case LIKE:

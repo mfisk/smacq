@@ -33,7 +33,7 @@ static smacq_result msgtest_consume(struct state * state, const dts_object * dat
 		smacq_requirefield(state->env, "srcip"), 
 		&comp->field_data);
 
-  comp->op = EQUALITY;
+  comp->op = EQ;
   comp->field = smacq_requirefield(state->env, "srcip");
   
   /* Send it to everybody else */

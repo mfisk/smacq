@@ -27,7 +27,7 @@
 
 %}
 
-%token YYSTOP YYLIKE YYOR YYAND YYSTRING YYID
+%token YYSTOP YYLIKE YYOR YYAND YYSTRING YYID YYNEQ YYGEQ YYLEQ 
 
 %left YYAND YYOR
 
@@ -68,7 +68,10 @@ test : word			{ $$ = newlist($1, EXIST, NULL); }
 	| word op word		{ $$ = newlist($1, $2, $3); }
 	;
 
-op : '=' 		{ $$ = EQUALITY; }
+op : '=' 		{ $$ = EQ; }
+	| YYGEQ		{ $$ = GEQ; }
+	| YYLEQ		{ $$ = LEQ; }
+	| YYNEQ		{ $$ = NEQ; }
 	| '>'		{ $$ = GT; }
 	| '<' 		{ $$ = LT; }
 	| YYLIKE 	{ $$ = LIKE; }		 
@@ -100,8 +103,10 @@ static void print_comp(dts_environment * tenv, dts_comparison * c) {
 		case OR: op = "or"; break;
 		case GT: op = "<"; break;
 		case LT: op = ">"; break;
-		case EQUALITY: op = "="; break;
-		case INEQUALITY: op = "!="; break;
+		case EQ: op = "="; break;
+		case NEQ: op = "!="; break;
+		case GEQ: op = ">="; break;
+		case LEQ: op = "<="; break;
 		case EXIST: op = "exist"; break;
 		case LIKE: op = "like"; break;
 	}
@@ -138,7 +143,7 @@ dts_comparison * dts_parse_tests(dts_environment * localtenv, int argc, char ** 
 
   if (yyfilterparse()) {
   	/* Should free the comparisons? */
-        fprintf(stderr, "got nonzero return\n"); 
+        fprintf(stderr, "got nonzero return parsing %s\n", qstr); 
   	return NULL;
   }
 

@@ -16,10 +16,10 @@ int type_parsetest (dts_environment * tenv, dts_comparison * comp,
       comp->op = EXIST;
 
     } else if (test[offset] == '=') {
-      comp->op = EQUALITY;
+      comp->op = EQ;
 
     } else if (!strncmp(test+offset, "!=", 2)) {
-      comp->op = INEQUALITY;
+      comp->op = NEQ;
       comp->valstr++;
     } else if (test[offset] == '<') {
       comp->op = LT;
@@ -32,6 +32,22 @@ int type_parsetest (dts_environment * tenv, dts_comparison * comp,
     //fprintf(stderr, "Field %s is number %d\n", test, comp->field);
 
     return 1;
+}
+
+static inline int compat(const dts_comparison * c, const dts_object * test_data) {
+	return (c->field_data.type == test_data->type);
+}
+
+static inline int eq(dts_environment * tenv, const dts_comparison * c, const dts_object * test_data) {
+	return (compat(c, test_data) && 
+	    (c->field_data.len == test_data->len) && 
+	    (!memcmp(c->field_data.data, test_data->data, test_data->len)));
+}
+
+static inline int lt(dts_environment * tenv, const dts_comparison * c, const dts_object * test_data) {
+	// fprintf(stderr, "%d <? %d: %d\n", *(ushort*)test_data.data, *(ushort*)c->field_data.data, match);
+	return (compat(c, test_data) && 
+	    (dts_lt(tenv, c->field_data.type, test_data->data, test_data->len, c->field_data.data, c->field_data.len)));
 }
 
 int type_match_one(dts_environment * tenv, const dts_object * datum, 
@@ -64,31 +80,28 @@ int type_match_one(dts_environment * tenv, const dts_object * datum,
   }
 
       switch (c->op) {
-      case EQUALITY:
-	if ((c->field_data.type == test_data->type) && 
-	    (c->field_data.len == test_data->len) && 
-	    (!memcmp(c->field_data.data, test_data->data, test_data->len)))  
-	  retval = 1;
+      case EQ:
+	retval = eq(tenv, c, test_data);
 	break;
 
-      case INEQUALITY:
-	if ((c->field_data.type == test_data->type) &&
-	    ((c->field_data.len != test_data->len) || (memcmp(c->field_data.data, test_data->data, test_data->len))))  
-	  retval = 1;
+      case NEQ:
+	retval = !eq(tenv, c, test_data);
 	break;
 
       case LT:
-	if ((c->field_data.type == test_data->type) && 
-	    (dts_lt(tenv, c->field_data.type, test_data->data, test_data->len, c->field_data.data, c->field_data.len)))  
-	  retval = 1;
-	// fprintf(stderr, "%d <? %d: %d\n", *(ushort*)test_data.data, *(ushort*)c->field_data.data, match);
+	retval = lt(tenv, c, test_data);
+	break;
+
+      case GEQ:
+	retval = (compat(c, test_data) && !lt(tenv, c, test_data));
 	break;
 
       case GT:
-	if ((c->field_data.type == test_data->type) && 
-	    (!dts_lt(tenv, c->field_data.type, test_data->data, test_data->len, c->field_data.data, c->field_data.len)) &&  
-	    ((c->field_data.len != test_data->len) || (memcmp(c->field_data.data, test_data->data, test_data->len))))  
-	  retval = 1;
+	retval = (!lt(tenv, c, test_data) && !eq(tenv, c, test_data));
+	break;
+
+      case LEQ:
+	retval = (eq(tenv, c, test_data) || lt(tenv, c, test_data));
 	break;
 
       case EXIST:

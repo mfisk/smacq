@@ -32,6 +32,9 @@ and		return YYAND;
 "&&"		return YYAND;
 or		return YYOR;
 "||"		return YYOR;
+">="		return YYGEQ;
+"<="		return YYLEQ;
+"!="		return YYNEQ;
 
 {quote}		BEGIN(xquote);
 <xquote>{
@@ -61,9 +64,9 @@ or		return YYOR;
 
 [\ \n\t]	{ ; }
 
-[\!\<\>\(\)]    	return yytext[0];
+[\<\>\(\)]    	return yytext[0];
 
-=+		{ return yytext[0]; }
+==		{ return yytext[0]; }
 
 {id}		{ 
 			yystring = strdup((char *)yytext); 
@@ -72,7 +75,7 @@ or		return YYOR;
 
 <<EOF>>		{ return YYSTOP; }
 
-.		{ yyerror("Unexpected character"); }
+.		{ yyerror("Unexpected character in comparison"); return -1; }
 
 %%
 
