@@ -68,6 +68,7 @@ while(<>) {
   $seq = '';
   $sid = '';
   @contents = ();
+  @uricontents = ();
 
   chomp;
   s|\$EXTERNAL_NET|$EXTERNAL_NET|g;
@@ -122,12 +123,18 @@ while(<>) {
       }
       #&notany("payloadsize $op 'ARG'", $arg);
       #$snortrule .= "dsize:$arg; ";
-    } elsif (($op eq "content") || ($op eq "uricontent")) { 
+    } elsif ($op eq "content") {
       if ($arg =~ /^!/) { next; }
       $parsedcontent = $arg; 
       $parsedcontent =~ s/\|([^|]*)\|/&hex2octalstr($1)/eg;
       push(@contents, $parsedcontent);
       $snortrule .= "content:\"$arg\"; ";
+    } elsif ($op eq "uricontent") {
+      if ($arg =~ /^!/) { next; }
+      $parsedcontent = $arg; 
+      $parsedcontent =~ s/\|([^|]*)\|/&hex2octalstr($1)/eg;
+      push(@uricontents, $parsedcontent);
+      $snortrule .= "uricontent:\"$arg\"; ";
     } elsif ($op eq "id") {
       #$snortrule .= "id:\"$arg\"; ";
       #$ipid = $arg;
@@ -141,7 +148,7 @@ while(<>) {
     }
   }
 
-  if (! (@contents || $ipid || $seq)) {
+  if (! (@contents || @uricontents || $ipid || $seq)) {
   	#Skip trivial rules
   	next;
   }
@@ -159,6 +166,9 @@ while(<>) {
   #&notany("ipid = ARG", $ipid);
   foreach $c (@contents) {
   	&notany("substr(payload, \"ARG\")", $c);
+  }
+  foreach $c (@uricontents) {
+  	&notany("substr(payload.urldecode, \"ARG\")", $c);
   }
 
   $q = "print sid, srcip, dstip, ts from (const('$sid', sid) from $SMACQ_INPUT";
