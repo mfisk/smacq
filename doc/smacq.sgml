@@ -12,7 +12,7 @@
       <firstname>Mike</firstname>
       <surname>Fisk</surname>
     </author>
-    <date>$Date: 2004/03/13 20:44:53 $</date>
+    <date>$Date: 2004/05/18 23:56:02 $</date>
   </refentryinfo>
   <refmeta>
     <refentrytitle>smacq</refentrytitle>
@@ -33,9 +33,9 @@
     </para>
 
     <para>
-      These modules are used by SMACQ's command-line utilities
-      <command>smacqp(1)</command>  and <command>smacqp(1)</command>
-      as well as a C API described in <command>smacq-embed(3)</command>.
+      These modules are used by SMACQ's command-line utility
+      <command>smacqp(1)</command>
+      as well as the SMACQ C++ API.
     </para>
 
     <para>
@@ -48,25 +48,33 @@
   <refsect1>
     <title>QUERY SYNTAX</title>
     <para>
-    Smacq queries are specified using the following SQL-like grammer:
+    SMACQ queries are specified using the following SQL-like grammer:
     </para>
 
     <literallayout>
-    query : action from [WHERE boolean] [GROUP BY args [HAVING boolean]]
-          | action [WHERE boolean]
-	  | WHERE boolean
-	  | query '|' action [WHERE boolean] [GROUP BY args [HAVING boolean]]
+    query: 
+		action from [alias, joins] [WHERE boolean] [GROUP BY args [HAVING boolean]]
+		| action [WHERE boolean]
+		| WHERE boolean
+		| query '|' action [WHERE boolean] [GROUP BY args [HAVING boolean]]
 
-    action : function args
-    	   | function ( args )
-	   | ( query )
-	   | ( parenquery + parenquery )
+	action: 
+		function args
+		| function ( args )
+		| ( query )
+		| ( parenquery + parenquery )
+
+    joins: 
+		[parenquery] alias [, joins]
 	   
-    parenquery : ( query )
-    	       | function ( args )
-	       | function
+    parenquery: 
+		( query )
+		| function ( args )
+		| function
 
-    from : FROM action [from]
+    from: 
+		FROM action [from]
+
     </literallayout>
 
     <para>
@@ -76,18 +84,19 @@
     </para>
 
     <literallayout>
-    argument: word 
-            | function ( args ) 
-	    | '[' expression ']'
+    argument: 
+		word 
+		| function ( args ) 
+		| '[' expression ']'
 
-    boolean : ( boolean )
-    	    | boolean AND boolean
-	    | boolean OR boolean
-	    | NOT boolean
-	    | operand
-	    | subexpression op subexpression
-	    | function ( args )
-	    ; 
+    boolean:
+		( boolean )
+		| boolean AND boolean
+		| boolean OR boolean
+		| NOT boolean
+		| operand
+		| subexpression op subexpression
+		| function ( args )
     </literallayout>
 
   </refsect1>
@@ -745,11 +754,8 @@
 
     <para>
       <command>smacqq</command>(1), 
-      <command>smacqp</command>(1), 
-      <command>dts</command>(3), 
-      <command>dts-modules</command>(3), 
-      <command>smacq-modules</command>(3),
-      <command>smacq-embed</command>(3)
+      <command>DTS</command>(3), 
+      <command>SmacqGraph</command>(3)
     </para>
 
   </refsect1>
