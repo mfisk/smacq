@@ -1,5 +1,5 @@
 #!/bin/sh
 
-bin/smacqq -m -O <<EOF 
+bin/smacqq -m -g -O <<EOF 
 print ts, srcip, dstip from (uniq srcip, dstip from pcapfile($TEST/0325@1112-snort.pcap))
 EOF
