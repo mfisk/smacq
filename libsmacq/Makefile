@@ -1,6 +1,6 @@
 LDFLAGS=-lgmodule-2.0 -lglib-2.0 -lm $(LDOPTS)
 
-OBJS=mem.lo bytehash.lo fields.lo bloom.lo args.lo pickle.lo types.lo sched-thread.lo sched-mono.lo sched-iter.lo construct.lo optimize.lo sched.lo msg.lo filter.lo module-closure.lo dynloader.lo parsing.lo sql/libsql.la filter/libfilter.la
+OBJS=mem.lo bytehash.lo fields.lo bloom.lo args.lo pickle.lo types.lo sched-thread.lo sched-mono.lo sched-iter.lo construct.lo optimize.lo sched.lo msg.lo filter.lo module-closure.lo dynloader.lo parsing.lo sql/libsql.la filter/libfilter.la cmalloc.lo
 
 DIRS=sql filter
 
