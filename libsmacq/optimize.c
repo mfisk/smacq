@@ -137,6 +137,15 @@ static void merge_tails(smacq_graph * g) {
   }
 }
 
+static void add_args(smacq_graph * a, smacq_graph * b) {
+	int i;
+	a->argv = realloc(a->argv, (a->argc + b->argc) * sizeof(char*));
+	a->argv[a->argc++] = ";";
+	for (i=1; i < b->argc; i++) {
+		a->argv[a->argc++] = b->argv[i];
+	}
+}
+
 static int merge_tree(smacq_graph * a, smacq_graph *b) {
 	int i, j;
 
@@ -160,6 +169,11 @@ static int merge_tree(smacq_graph * a, smacq_graph *b) {
 
 		/* Pawn this child off on our newly found twin */
 		if (b->child[i]) {
+		   	if (a->alg.vector) {
+				add_args(a, b);
+		   	}
+			assert(!a->alg.demux);
+
 			smacq_add_child(a, b->child[i]);
 			/* fprintf(stderr, "%p child %p(%s) now child of %p(%s)\n", b, 
 					b->child[i], b->child[i]->name, 
@@ -171,16 +185,7 @@ static int merge_tree(smacq_graph * a, smacq_graph *b) {
 	return 1;
 }
 
-static void add_args(smacq_graph * a, smacq_graph * b) {
-	int i;
-	a->argv = realloc(a->argv, (a->argc + b->argc) * sizeof(char*));
-	a->argv[a->argc++] = ";";
-	for (i=1; i < b->argc; i++) {
-		a->argv[a->argc++] = b->argv[i];
-	}
-}
-
-static void apply_demux(smacq_graph * g) {
+static void vectorize(smacq_graph * g) {
 	int i, j, k;
 	smacq_graph * ichild, * jchild, * orphan;
 
@@ -220,7 +225,7 @@ static void apply_demux(smacq_graph * g) {
 	}
 
 	for (i = 0; i < g->numchildren; i++) {
-		apply_demux(g->child[i]);
+		vectorize(g->child[i]);
 	}
 }
 
@@ -259,8 +264,7 @@ smacq_graph * smacq_merge_graphs(smacq_graph * g) {
   merge_tails(g);
 
 #ifdef SMACQ_OPT_DEMUX
-  /* Do the merge again from the tails up */
-  apply_demux(g);
+  vectorize(g);
 #endif
 
   fprintf(stderr, "--- optimized to ---\n");
