@@ -59,6 +59,9 @@ port it to other environments.
 
 In addition to the dependencies in README, you probably want the following:
 
- - MacOS/X + Fink: 	apt-get install ghostscript bison automake1.7 opensp4 docbook-dtd
- - Debian:		(similar to above) + docbook-to-man
+ - MacOS/X + Fink: 	
+	apt-get install tetex-extra ghostscript bison automake1.7 opensp4 docbook-dtd
+
+ - Debian:		
+	apt-get isntall tetex-extra ghostscript bison automake1.7 docbook-to-man
 
