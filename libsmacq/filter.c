@@ -81,7 +81,7 @@ static inline int type_match_one(dts_environment * tenv, const dts_object * datu
 	case EXIST:
   		fetch_operand(tenv, datum, c->op1, -1);
 		break;
-		
+
 	case EQ:
 	case NEQ:
 	case LT:
@@ -104,6 +104,7 @@ static inline int type_match_one(dts_environment * tenv, const dts_object * datu
 
 		break;
 
+                  case NOT:
 	case OR:
 	case AND:
 	case FUNC:
@@ -137,6 +138,10 @@ static inline int type_match_one(dts_environment * tenv, const dts_object * datu
 
       case EXIST:
 	retval = (c->op1->valueo != NULL);
+	break;
+
+      case NOT:
+	retval = !type_match_one(tenv, datum, c->group);
 	break;
 
       case AND:

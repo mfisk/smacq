@@ -197,6 +197,9 @@ char * opstr(dts_comparison * comp) {
   case GEQ:
     return ">=";
 
+  case NOT:
+    return "NOT";
+
   case LEQ:
     return "<=";
 
@@ -281,17 +284,16 @@ char * print_comparison(dts_comparison * comp) {
 		free(op1);
 		break;
 
-	default:
-	  	op1 = print_operand(comp->op1);
-		op2 = print_operand(comp->op2);
-		assert(op1); assert(op2);
-	  	size += 20 + strlen(op1) + strlen(op2);
-  		buf = malloc(size);
-    		snprintf(buf, size, "(%s %s %s)", op1, opstr(comp), op2);
-		free(op1);
-		free(op2);
-		break;
-
+  	case NOT:
+	  assert(comp->group);
+	  b = print_comparison(comp->group);
+	  size = strlen(b) + strlen("NOT ") + 1;
+	  buf = realloc(buf, size);
+	  strcpy(buf, "NOT ");
+	  strcatn(buf, size, b);
+	  free(b);
+	  break;
+	  
   	case AND:
   	case OR:
     		for (c = comp->group; c; c=c->next) {
@@ -311,6 +313,18 @@ char * print_comparison(dts_comparison * comp) {
       			}
     		}
 		break;
+
+	default:
+	  	op1 = print_operand(comp->op1);
+		op2 = print_operand(comp->op2);
+		assert(op1); assert(op2);
+	  	size += 20 + strlen(op1) + strlen(op2);
+  		buf = malloc(size);
+    		snprintf(buf, size, "(%s %s %s)", op1, opstr(comp), op2);
+		free(op1);
+		free(op2);
+		break;
+
   }
 
   //fprintf(stderr, "parse_comparison output: %s\n", buf);
@@ -357,40 +371,51 @@ struct graph optimize_bools(dts_comparison * comp) {
   return g;
 }
 
-dts_comparison * comp_join(dts_comparison * lh, dts_comparison * rh, int isor) {
+dts_comparison * comp_join(dts_comparison * lh, dts_comparison * rh, dts_compare_operation opcode) {
   dts_comparison * ret = NULL;
 
-  if (!lh) return rh;
-  if (!rh) return lh;
+  if (opcode == AND) {
+    if (!lh) return rh;
+    if (!rh) return lh;
 
-  if (!isor) {
-   	ret = lh;
-	for (; lh->next; lh=lh->next) ;
+    ret = lh;
+    for (; lh->next; lh=lh->next) ;
+    
+    lh->next = rh;
+  } else if (opcode == NOT) {
+    assert(!rh);
+    assert(lh);
+    ret = calloc(1,sizeof(dts_comparison));
+    ret->op = NOT;
+    ret->group = lh;
+    ret->next = NULL;
+  } else if (opcode == OR) {
+    dts_comparison * left, * right;
 
-	lh->next = rh;
-  } else if (isor) {
-        dts_comparison * left, * right;
-        if (lh->next) {
-		left = calloc(1,sizeof(dts_comparison));
-		left->op = AND;
-		left->group = lh;
-	} else {
-		left = lh;
-	}
-	if (rh->next) {
-		right = calloc(1,sizeof(dts_comparison));
-		right->op = AND;
-		right->group = rh;
-	} else {
-		right = rh;
-	}
+    if (!lh) return rh;
+    if (!rh) return lh;
 
-        ret = calloc(1,sizeof(dts_comparison));
-	ret->op = OR;
-	ret->group = left;
-	left->next = right;
+    if (lh->next) {
+      left = calloc(1,sizeof(dts_comparison));
+      left->op = AND;
+      left->group = lh;
+    } else {
+      left = lh;
+    }
+    if (rh->next) {
+      right = calloc(1,sizeof(dts_comparison));
+      right->op = AND;
+      right->group = rh;
+    } else {
+      right = rh;
+    }
+    
+    ret = calloc(1,sizeof(dts_comparison));
+    ret->op = OR;
+    ret->group = left;
+    left->next = right;
   } else {
-  	assert(!"Shouldn't get here!");
+    assert(!"Shouldn't get here!");
   }
   	
   return ret;

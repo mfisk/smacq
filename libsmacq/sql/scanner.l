@@ -35,6 +35,7 @@ as|AS		return AS;
 having|HAVING	return HAVING;
 "&&"|and|AND    return YYAND;
 "||"|or|OR      return YYOR;
+!|not|NOT       return YYNOT;
 like|LIKE       return YYLIKE;
 ">="		return YYGEQ;
 "<="		return YYLEQ;

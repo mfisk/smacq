@@ -48,7 +48,8 @@
      YYSTOP = 271,
      YYLIKE = 272,
      YYOR = 273,
-     YYAND = 274
+     YYAND = 274,
+     YYNOT = 275
    };
 #endif
 #define WHERE 258
@@ -68,12 +69,13 @@
 #define YYLIKE 272
 #define YYOR 273
 #define YYAND 274
+#define YYNOT 275
 
 
 
 
 #ifndef YYSTYPE
-#line 68 "/home/mfisk/smacq/libsmacq/sql/parser.y"
+#line 70 "/home/mfisk/smacq/libsmacq/sql/parser.y"
 typedef union {
   struct graph graph;
   struct arglist * arglist;
@@ -86,7 +88,7 @@ typedef union {
   struct dts_operand * operand;
 } yystype;
 /* Line 1281 of /usr/share/bison/yacc.c.  */
-#line 90 "/home/mfisk/smacq/libsmacq/sql/parser.h"
+#line 92 "/home/mfisk/smacq/libsmacq/sql/parser.h"
 # define YYSTYPE yystype
 #endif
 

@@ -35,7 +35,9 @@
 %token YYSTRING YYID YYNUMBER
 %token YYNEQ YYLEQ YYGEQ
 
-%token YYSTOP YYLIKE YYOR YYAND
+%token YYSTOP YYLIKE YYOR YYAND YYNOT
+
+%right YYNOT
 %left YYAND YYOR
 %right FROM
 
@@ -115,8 +117,9 @@ verb :  id
 
 
 boolean : '(' boolean ')'	{ $$ = $2; }
-	| boolean YYOR boolean	{ $$ = comp_join($1, $3, 1); }
-	| boolean YYAND boolean	{ $$ = comp_join($1, $3, 0); }
+	| boolean YYOR boolean	{ $$ = comp_join($1, $3, OR); }
+	| boolean YYAND boolean	{ $$ = comp_join($1, $3, AND); }
+	| YYNOT boolean 	{ $$ = comp_join($2, NULL, NOT); }
 	| test 		
 	;
 

@@ -94,7 +94,7 @@ struct dts_type {
 /* 
  * Comparisons & filtering
  */
-enum _dts_comp_op { EXIST, EQ, LEQ, GEQ, NEQ, LT, GT, LIKE, AND, OR, FUNC };
+enum _dts_comp_op { EXIST, EQ, LEQ, GEQ, NEQ, LT, GT, LIKE, AND, OR, FUNC, NOT };
 typedef enum _dts_comp_op dts_compare_operation;
 
 enum dts_operand_type { CONST, FIELD, ARITH };
