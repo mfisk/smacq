@@ -105,7 +105,7 @@ static smacq_result pcapfile_produce(struct state * state, const dts_object ** d
 
      if (sizeof(struct old_pcap_pkthdr) != res) {
     	if (res) {
-		fprintf(stderr, "pcapfile: premature end of file (read %d bytes instead of %ld)\n", res, sizeof(struct old_pcap_pkthdr));
+		fprintf(stderr, "pcapfile: premature end of file (read %d bytes instead of %d)\n", res, (int)sizeof(struct old_pcap_pkthdr));
 		continue;
     	} else {
     		return SMACQ_END;
