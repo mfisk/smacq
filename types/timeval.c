@@ -17,7 +17,7 @@ static int smacqtype_timeval_get_double(const dts_object * o, dts_object * field
 static int smacqtype_timeval_get_string(const dts_object * o, dts_object * field) {
   struct timeval * t = dts_getdata(o);
   dts_setsize(field, 64);
-  snprintf(field->data, 64, "%lu.%06lu", t->tv_sec, t->tv_usec);
+  snprintf(field->data, 64, "%lu.%06lu", (unsigned long)t->tv_sec, (unsigned long)t->tv_usec);
   return 1;
 }
 

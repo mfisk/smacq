@@ -11,7 +11,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
-#include "bytehash.h"
+#include <string.h>
+#include <bytehash.h>
 
 struct GHashTableofBytes {
   int maxkeybytes;
