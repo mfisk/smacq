@@ -1,4 +1,6 @@
 #include <smacq.h>
+
+#ifndef SMACQ_OPT_NOPTHREADS
 #include <semaphore.h>
 #include <dlfcn.h>
 
@@ -131,3 +133,4 @@ smacq_result smacq_thread_produce(struct state * state, const dts_object ** datu
 
   return result;
 }
+#endif
