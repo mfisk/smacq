@@ -52,8 +52,8 @@ SMACQ_MODULE(pcaplive,
   DtsObject linktype_o;
   DtsObject snaplen_o;
 
-  dts_field linktype_field;
-  dts_field snaplen_field;
+  DtsField linktype_field;
+  DtsField snaplen_field;
 );
 
 void process_wrapper(u_char * user, const struct pcap_pkthdr * hdr, const u_char * data) {

@@ -41,35 +41,34 @@ int DTS::getfieldoffset(DtsObject datum, int fnum, int * dtype, int * offset, in
 }
 */
 
-char * DTS::field_getname(dts_field f) {
-  char buf[1024];
+char * DTS::field_getname(DtsField &f) {
   char * name;
-  dts_field_element v;
-  assert(f);
-  v = dts_field_first(f);
+
+  char buf[1024];
   buf[0] = '\0';
 
-  while (1) {
-	  if (!v) {
-		return strdup(buf);
-	  }
+  assert(f.size());
 
-	  name = (char*)fields_bynum[v];
+  DtsField::iterator v = f.begin();
+
+  while (1) {
+	  if (v == f.end()) {
+		return strdup(buf);
+	  } else if (buf[0] != '\0') {
+	  	strcatn(buf, 1024, ".");
+	  }
+		
+	  name = fields_bynum[*v];
 
 	  if (!name) {
   		char elbuf[64];
-	  	snprintf(elbuf, 64, "%d", v);
+	  	snprintf(elbuf, 64, "%d", *v);
 	  	name = elbuf;
 	  }
 
 	  strcatn(buf, 1024, name);
 
-	  f = dts_field_next(f);
-  	  v = dts_field_first(f);
-
-	  if (v) {
-	  	strcatn(buf, 1024, ".");
-	  }
+  	  ++v;
   }
 }
 
@@ -85,28 +84,29 @@ dts_field_element DTS::requirefield_single(char * name) {
   }
 }
 
-int dts_comparefields(dts_field a, dts_field b) {
+int dts_comparefields(DtsField &fa, DtsField &fb) {
+	DtsField::iterator a, b;
+	a = fa.begin();
+	b = fb.begin();
+	
 	while (1) {
-		if (!a && !b) return 1;
-		if (!a || !b) return 0;
-		if (dts_field_first(a) != dts_field_first(b)) return 0;
-		a = dts_field_next(a);
-		b = dts_field_next(b);
+		if (a == fa.end() && b == fb.end()) return 1;
+		if (a == fa.end() || b == fb.end()) return 0;
+		if (*a != *b) return 0;
+
+		++a; ++b;
 	}
 }
 
-dts_field DTS::requirefield(char * name) {
+DtsField DTS::requirefield(char * name) {
   char * p;
   int i = 0;
-  dts_field f = NULL;
+  DtsField f;
 
   //fprintf(stderr, "Parsing field %s\n", name);
   while (1) {
-    f = (dts_field)realloc(f, (i+1) * sizeof(dts_field_element));
-
     if (!name) {
       //fprintf(stderr, "No more field components\n");
-      f[i] = 0;
       return f;
     }
 	
@@ -115,7 +115,7 @@ dts_field DTS::requirefield(char * name) {
       p[0] = '\0';
     }
     
-    f[i] = requirefield_single(name);
+    f.push_back(requirefield_single(name));
     //fprintf(stderr, "component (%d) %s is %d\n", i, name, f[i]);
     
     if (p) {

@@ -12,10 +12,10 @@ SMACQ_MODULE(rusage,
   int longtype;
 
   int rss;
-  dts_field rss_field;
+  DtsField rss_field;
 
   int idrss;
-  dts_field idrss_field;
+  DtsField idrss_field;
 );
 
 #ifdef linux

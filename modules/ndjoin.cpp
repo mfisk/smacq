@@ -12,8 +12,8 @@
 
 struct join {
   SmacqGraph * graph;
-  dts_field field;
-  dts_field left_key, right_key;
+  DtsField field;
+  DtsField left_key, right_key;
   struct runq * runq;
   double next_val;
   DtsObject next_dobj;

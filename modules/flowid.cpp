@@ -57,18 +57,18 @@ SMACQ_MODULE(flowid,
 
   // Cache
   dts_typeid id_type;
-  dts_field flowid_field;
+  DtsField flowid_field;
   dts_typeid refresh_type;
-  dts_field start_field;
-  dts_field finish_field;
+  DtsField start_field;
+  DtsField finish_field;
   dts_typeid timeval_type;
-  dts_field ts_field; // Field number
-  dts_field len_field;
+  DtsField ts_field; // Field number
+  DtsField len_field;
   dts_typeid len_type;
-  dts_field byte_count_field;
-  dts_field byte_count_back_field;
-  dts_field packet_count_field;
-  dts_field packet_count_back_field;
+  DtsField byte_count_field;
+  DtsField byte_count_back_field;
+  DtsField packet_count_field;
+  DtsField packet_count_back_field;
 
   struct list timers;
 

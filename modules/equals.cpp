@@ -39,7 +39,7 @@ SMACQ_MODULE(equals,
   PROTO_CTOR(equals);
   PROTO_CONSUME();
 
-  dts_field field;
+  DtsField field;
 
   std::vector<char *> argv;
   TypeMap typeSet;

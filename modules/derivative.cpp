@@ -25,13 +25,13 @@ SMACQ_MODULE(derivative,
 
   double lastx;
   double lasty;
-  dts_field xfield;
-  dts_field yfield;
+  DtsField xfield;
+  DtsField yfield;
   char * xfieldname;
   char * yfieldname;
 
   int derivtype;
-  dts_field derivfield;
+  DtsField derivfield;
 ); 
  
 smacq_result derivativeModule::consume(DtsObject datum, int & outchan) {

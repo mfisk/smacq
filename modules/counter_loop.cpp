@@ -20,11 +20,11 @@ smacq_result counterModule::thread(struct SmacqModule::smacq_init * context) {
 
   int counter;
 
-  dts_field timefield; // Field number
-  dts_field probfield; 
-  dts_field countfield;
-  int counttype;
-  int probtype;
+  DtsField timefield; // Field number
+  DtsField probfield; 
+  DtsField countfield;
+  dts_typeid counttype;
+  dts_typeid probtype;
   DtsObject datum;
   int c;
   int argc = 0;

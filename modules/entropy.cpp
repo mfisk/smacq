@@ -12,8 +12,8 @@ SMACQ_MODULE(entropy,
   double total;
   double prev_total;
 
-  dts_field probfield; 
-  dts_field entropyfield;
+  DtsField probfield; 
+  DtsField entropyfield;
   int refreshtype;
   int probtype;
 

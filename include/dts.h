@@ -11,19 +11,9 @@
 #include <dts-types.h>
 #include <dts-filter.h>
 #include <dts-module.h>
+#include <DtsField.h>
 #include <stack>
 #include <DynamicArray.h>
-
-static inline void dts_field_free(dts_field field) {
-  return free(field);
-}
-
-static inline dts_field dts_field_next(const dts_field field) {
-  if (field[0])
-  	return field+1;
-  else
-	return NULL;
-}
 
 static inline char * dts_fieldname_append(const char * old, const char * newf) {
   char * ret = (char*)malloc(strlen(old) + strlen(newf) + 2);
@@ -104,7 +94,7 @@ class DTS {
   int dts_lt(int type, void * p1, int len1, void * p2, int len2);
   ///@name Field IDs 
   /// DtsObjects expose 0 or more fields (attributes) that can be accessed.
-  /// Each field is assigned a numeric identifier, a dts_field,  
+  /// Each field is assigned a numeric identifier, a DtsField,  
   /// specific to this runtime environment.
   /// Fields names can be nested (e.g. "foo.bar.baz") which translates to
   /// nested numeric IDs (e.g. "1.3.2").
@@ -114,14 +104,16 @@ class DTS {
   ///@{
 
   	/// Convert the given field name into a numeric identifier.
-  dts_field requirefield(char * name);
+  DtsField requirefield(char * name);
 
 	/// Find the location, size, and type of a field of the specified object
   //int getfieldoffset(DtsObject datum, dts_field_element fnum, dts_typeid * dtype, int * offset, int * len);
 
   	/// Return the name of the specified field.
-  char * field_getname(dts_field f);
-  
+  char * field_getname(DtsField &f);
+
+  	/// Return the name of the specified field.
+  char * field_getname(int);
 
   ///@}
 
@@ -196,7 +188,7 @@ class DTS {
   DynamicArray<struct dts_type *> types; 
   DynamicArray<char*> fields_bynum; 
   
-  //  	dts_field double_field;
+  //  	DtsField double_field;
   //  	int double_type;
   
   dts_field_element requirefield_single(char * name);
@@ -228,8 +220,7 @@ inline int DTS::typenum_byname(const char * name) {
 
 BEGIN_C_DECLS
  
-#define dts_field_first(x) (x[0])
-int dts_comparefields(dts_field a, dts_field b);
+int dts_comparefields(DtsField &a, DtsField &b);
 
 //void dts_decref(DtsObject d);
 	

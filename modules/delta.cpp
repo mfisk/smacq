@@ -20,11 +20,11 @@ SMACQ_MODULE(delta,
   int started;
 
   double lastx;
-  dts_field xfield;
+  DtsField xfield;
   char * xfieldname;
 
   int deltatype;
-  dts_field deltafield;
+  DtsField deltafield;
 ); 
  
 smacq_result deltaModule::consume(DtsObject datum, int & outchan) {

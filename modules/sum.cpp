@@ -25,11 +25,11 @@ SMACQ_MODULE(sum,
   FieldVec fieldvec;
 
   double total;
-  dts_field xfield;
+  DtsField xfield;
   char * xfieldname;
 
   int sumtype;
-  dts_field sumfield;
+  DtsField sumfield;
   int refreshtype;
   
   int outputall;

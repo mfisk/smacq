@@ -72,13 +72,23 @@ class DtsObject_ {
 
 	/// @name Field Access
 	/// @{
-	DtsObject getfield(dts_field fieldv);
-	void attach_field(dts_field field, DtsObject field_data);
+		/// Return a field object
+	DtsObject getfield(DtsField &fieldv);
+
+		/// Less efficient lookup by string
+	DtsObject getfield(char * s) {
+		DtsField f = dts->requirefield(s);
+		return getfield(f);
+	}
+
+	void attach_field(DtsField &field, DtsObject field_data);
 	/// @}
 
 	DtsObject make_writable();
 
 	void prime_all_fields();
+
+        std::vector<DtsObject> get_all_fields();
 
 	int DtsObject_::write(struct pickle * pickle, int fd);
 
@@ -86,7 +96,7 @@ class DtsObject_ {
 	  dts->send_message(this, fieldnum, comparisons);
 	}
 
-	void send(dts_field field, dts_comparison * comparisons) {
+	void send(DtsField &field, dts_comparison * comparisons) {
 	  dts->send_message(this, field[0], comparisons);
 	}
 
@@ -268,12 +278,9 @@ inline void DtsObject_::decref() {
   }
 }
 
-inline void DtsObject_::attach_field(dts_field field, DtsObject field_data) {
-  int fnum = dts_field_first(field);
-
-  attach_field_single(fnum, field_data);
-
-  assert(!dts_field_first(dts_field_next(field)));
+inline void DtsObject_::attach_field(DtsField &field, DtsObject field_data) {
+  assert(field.size() == 1);
+  attach_field_single(field[0], field_data);
 }
 
 

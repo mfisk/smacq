@@ -31,7 +31,7 @@ SMACQ_MODULE(top,
   int do_count;
   int do_filter;
 
-  dts_field count_field;
+  DtsField count_field;
   int int_type;
 );
 

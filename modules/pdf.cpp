@@ -20,8 +20,8 @@ SMACQ_MODULE(pdf,
 
   dts_typeid refreshtype;
   dts_typeid probtype;
-  dts_field probfield;
-  dts_field countfield;
+  DtsField probfield;
+  DtsField countfield;
   unsigned long long total;
 
   void compute_all();

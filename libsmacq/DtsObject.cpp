@@ -20,10 +20,15 @@ void DtsObject_::prime_all_fields() {
 	DtsObject field;
 	dts_type * t = dts->type_bynum(this->type);
 
-	for (i=t->fields.begin(); i != t->fields.end(); i++) {
+	for (i=t->fields.begin(); i != t->fields.end(); ++i) {
 		/* Get and release immediately */
-		getfield_single((*i)->elementid);
+		if (*i) 
+			getfield_single((*i)->elementid);
 	}
+}
+
+std::vector<DtsObject> DtsObject_::get_all_fields() {
+	return fields;
 }
 
 DtsObject DtsObject_::dup() {
@@ -163,29 +168,16 @@ DtsObject DtsObject_::getfield_single(dts_field_element fnum) {
   }
 }
 
-DtsObject DtsObject_::getfield(dts_field fieldv) {
-  DtsObject parent;
-  DtsObject f;
+DtsObject DtsObject_::getfield(DtsField &fieldv) {
+  DtsField::iterator i;
+  DtsObject f = this;
 
-  parent = getfield_single(dts_field_first(fieldv));
-  //fprintf(stderr, "Get field %d in %p from %p, next is %d\n", dts_field_first(fieldv), parent, this, fieldv[1]);
-  fieldv = dts_field_next(fieldv);
-
-  if (!dts_field_first(fieldv)) return parent;
-
-  /* Must go deeper */
-  while (1) {
-    if (!parent) return parent;
-
-    f = parent->getfield_single(dts_field_first(fieldv));
-    //fprintf(stderr, "Got field %d in %p from %p, next is %d\n", dts_field_first(fieldv), f, parent, fieldv[1]);
-
-    fieldv = dts_field_next(fieldv);
-    if (!dts_field_first(fieldv) || !f)
-      return f;
-
-    parent = f;
+  for (i = fieldv.begin(); i != fieldv.end(); ++i) {
+	f = f->getfield_single(*i);
+	if (!f) return f;
   }
+
+  return f;
 }
 
 void DtsObject_::freeObject() {

@@ -48,7 +48,7 @@ SMACQ_MODULE(dfa,
   DynamicArray<struct dfa_state> states;
   int start_state;
   int stop_state;
-  dts_field previous_field;
+  DtsField previous_field;
 
   IdMap<char *> ids;
 

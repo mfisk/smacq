@@ -12,7 +12,6 @@ static struct smacq_options options[] = {
 
 SMACQ_MODULE(count, 
   PROTO_CTOR(count);
-  PROTO_DTOR(count);
   PROTO_CONSUME();
   PROTO_PRODUCE();
 
@@ -28,9 +27,9 @@ SMACQ_MODULE(count,
   int all;  // -a flag
   DtsObject lastin;
   
-  dts_field timefield; // Field number
-  dts_field probfield; 
-  dts_field countfield;
+  DtsField timefield; // Field number
+  DtsField probfield; 
+  DtsField countfield;
   int counttype;
   int probtype;
 ); 
@@ -107,17 +106,6 @@ countModule::countModule(struct SmacqModule::smacq_init * context)
   	counttype = dts->requiretype("int");
   }
 }
-
-countModule::~countModule() {
-  //fprintf(stderr, "count_shutdown!\n");
-  //
-  if (prob) {
-  	dts_field_free(probfield);
-  } else {
-  	dts_field_free(countfield);
-  }
-}
-
 
 smacq_result countModule::produce(DtsObject & datump, int & outchan) {
   //fprintf(stderr, "count_produce()\n");

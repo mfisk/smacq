@@ -23,8 +23,8 @@ SMACQ_MODULE(clock,
   PROTO_CONSUME();
   PROTO_PRODUCE();
 
-  dts_field timefield;
-  dts_field clockfield;
+  DtsField timefield;
+  DtsField clockfield;
   int refreshtype;
   int ticktype;
   double period;

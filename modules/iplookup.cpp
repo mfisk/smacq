@@ -25,7 +25,7 @@ SMACQ_MODULE(iplookup,
 
 struct batch {
   patricia_tree_t * trie;
-  dts_field field;
+  DtsField field;
   char * fieldname;
 };
 
@@ -38,14 +38,13 @@ static struct smacq_options options[] = {
 struct batch * iplookupModule::get_batch(char * field) {
 	struct batch * mybatch;
 	int i;
-	dts_field f = dts->requirefield(field);
+	DtsField f = dts->requirefield(field);
 
 	for (i = 0; i < num_batches; i++) {
 		if (dts_comparefields(f, batch[i].field)) {
 			return &batch[i];
 		}
 	}
-	dts_field_free(f);
 
 	num_batches++;
 	batch = (struct batch*)realloc(batch, num_batches * sizeof(struct batch));

@@ -5,19 +5,14 @@
 
 SMACQ_MODULE(const,
   PROTO_CTOR(const);
-  PROTO_DTOR(const);
   PROTO_CONSUME();
 
-  dts_field field;
+  DtsField field;
   DtsObject data;
 );
 
 smacq_result constModule::consume(DtsObject datum, int & outchan) {
-  assert(datum);
-
-
   datum->attach_field(field, data);
-
   return SMACQ_PASS;
 }
 
@@ -36,6 +31,3 @@ constModule::constModule(struct SmacqModule::smacq_init * context) : SmacqModule
   }
 }
 
-constModule::~constModule() {
-  dts_field_free(field);
-}

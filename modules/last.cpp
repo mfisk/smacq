@@ -23,7 +23,7 @@ SMACQ_MODULE(last,
 	     bool isstarted;
 	     bool hasinterval;
 	     
-	     dts_field timeseries; // Field number
+	     DtsField timeseries; // Field number
 	     int refreshtype;
 	     int timevaltype;
 

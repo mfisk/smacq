@@ -22,7 +22,7 @@ SMACQ_MODULE(substr,
 
 struct batch {
   struct ruleset * set;
-  dts_field field;
+  DtsField field;
   char * fieldname;
 };
 
@@ -89,7 +89,7 @@ void substrModule::add_entry(char * field, char * needle, int output) {
   if (field) {
 	int i;
 	int found = 0;
-	dts_field f = dts->requirefield(field);
+	DtsField f = dts->requirefield(field);
 
 	for (i = 0; i < num_batches; i++) {
 		if (dts_comparefields(f, batch[i].field)) {

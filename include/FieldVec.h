@@ -30,11 +30,8 @@ class FieldVecElement {
   friend class FieldVec;
 
  public:
-  FieldVecElement();
-  ~FieldVecElement();
-
   char * name;
-  dts_field num;
+  DtsField num;
 };
 
 /// A vector of fields from a DtsObject
@@ -79,14 +76,6 @@ inline DtsObjectVec::DtsObjectVec(DtsObject & o)
   : std::vector<DtsObject>(1) 
 { 
   (*this)[0] = o; 
-}
-
-inline FieldVecElement::FieldVecElement() : num(NULL)
-{}
-
-inline FieldVecElement::~FieldVecElement() {
-  if (num)
-    dts_field_free(num);
 }
 
 inline void FieldVec::init(DTS * dts, int argc, char ** argv) {
