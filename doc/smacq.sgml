@@ -12,7 +12,7 @@
       <firstname>Mike</firstname>
       <surname>Fisk</surname>
     </author>
-    <date>$Date: 2003/03/20 04:12:10 $</date>
+    <date>$Date: 2003/05/04 19:43:36 $</date>
   </refentryinfo>
   <refmeta>
     <refentrytitle>smacq</refentrytitle>
@@ -385,8 +385,10 @@
     <refsect2>
       <title>Counter</title>
       <cmdsynopsis>
-	<command>counter</command>
+	<command>count</command>
+	<arg>-a</arg>
 	<arg>-f <replaceable>countname</replaceable></arg>
+	<arg>-p</arg>
 	<arg rep=repeat><replaceable>fields</replaceable></arg>
       </cmdsynopsis>
 
@@ -398,9 +400,18 @@
       </para>
    
       <para>
-        The count value is added to the record as an annotation of type int and name "counter"
-	unless the "-f" is used to specify an alternate name for the field.
+	Unless the "-p" flag is specified, then a double value named
+	"probability" is annotated instead.  The "-f" flag can still
+	be used to specify an alternate field name.
       </para>
+
+      <para>
+        Normally an annotation is made to only the final object and all
+	other objects are filtered out.  However, if the "-a" flag is given, 
+	then every object is passed and annotated with a
+	running value.
+      </para>
+
     </refsect2>
 
     <refsect2>

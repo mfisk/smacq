@@ -18,7 +18,8 @@
 
 static struct smacq_options options[] = {
   {"pdf", {boolean_t:0}, "Report probabilities rather than absolute counts", SMACQ_OPT_TYPE_BOOLEAN},
-  {"f", {string_t:"counter"}, "Name of field to store count in", SMACQ_OPT_TYPE_STRING},
+  {"a", {boolean_t:0}, "Annotate and pass all objects instead of just the last", SMACQ_OPT_TYPE_BOOLEAN},
+  {"f", {string_t:"count"}, "Name of field to store count in", SMACQ_OPT_TYPE_STRING},
   {NULL, {string_t:NULL}, NULL, 0}
 };
 
@@ -30,6 +31,9 @@ struct state {
   int counter;
 
   int prob; // Report probabilities
+
+  int all;  // -a flag
+  const dts_object * lastin;
   
   dts_field timefield; // Field number
   dts_field probfield; 
@@ -38,9 +42,19 @@ struct state {
   int probtype;
 }; 
   
+static void annotate(struct state * state, const dts_object * datum, int c) {
+  if (state->prob) {
+    double p = (double)c / state->counter;
+    dts_object * msgdata = smacq_dts_construct(state->env, state->probtype, &p);
+    dts_attach_field(datum, state->probfield, msgdata); 
+  } else {
+    dts_object * msgdata = smacq_dts_construct(state->env, state->counttype, &c);
+    dts_attach_field(datum, state->countfield, msgdata); 
+  }
+}
+ 
 static smacq_result count_consume(struct state * state, const dts_object * datum, int * outchan) {
   int c = ++state->counter;
-
 
   if (state->fieldset.num) {
     struct iovec * domainv = fields2vec(state->env, datum, &state->fieldset);
@@ -54,22 +68,25 @@ static smacq_result count_consume(struct state * state, const dts_object * datum
     c++;
   }
 
-  if (state->prob) {
-    double p = (double)c / state->counter;
-    dts_object * msgdata = smacq_dts_construct(state->env, state->probtype, &p);
-    dts_attach_field(datum, state->probfield, msgdata); 
-  } else {
-    dts_object * msgdata = smacq_dts_construct(state->env, state->counttype, &c);
-    dts_attach_field(datum, state->countfield, msgdata); 
-  }
- 
+  if (!state->all) {
+    if (state->lastin) {
+	    dts_decref(state->lastin);
+    }
+    dts_incref(datum, 1);
+    state->lastin = datum;
+
+    return SMACQ_FREE;
+  } 
+
+  annotate(state, datum, c);
+
   return SMACQ_PASS;
 }
 
 static smacq_result count_init(struct smacq_init * context) {
   int argc = 0;
   char ** argv;
-  smacq_opt probability, countfield;
+  smacq_opt probability, countfield, allflag;
   struct state * state = context->state = g_new0(struct state, 1);
   state->env = context->env;
 
@@ -77,6 +94,7 @@ static smacq_result count_init(struct smacq_init * context) {
   	struct smacq_optval optvals[] = {
 		{"pdf", &probability},
 		{"f", &countfield},
+		{"a", &allflag},
     		{NULL, NULL}
   	};
   	smacq_getoptsbyname(context->argc-1, context->argv+1,
@@ -84,6 +102,7 @@ static smacq_result count_init(struct smacq_init * context) {
 			       options, optvals);
 
 	state->prob = probability.boolean_t;
+	state->all = allflag.boolean_t;
   }
 
   // Consume rest of arguments as fieldnames
@@ -104,6 +123,7 @@ static smacq_result count_init(struct smacq_init * context) {
 }
 
 static smacq_result count_shutdown(struct state * state) {
+  fprintf(stderr, "got shutdown!\n");
   bytes_hash_table_destroy(state->counters);
   free(state);
   // Print counters
@@ -111,14 +131,29 @@ static smacq_result count_shutdown(struct state * state) {
 }
 
 
-static smacq_result count_produce(struct state * state, const dts_object ** datum, int * outchan) {
-  return SMACQ_ERROR;
+static smacq_result count_produce(struct state * state, const dts_object ** datump, int * outchan) {
+  int c;
+  struct iovec * domainv = fields2vec(state->env, state->lastin, &state->fieldset);
+
+  *datump = state->lastin;
+  state->lastin = NULL;
+
+  if (state->fieldset.num) {
+  	c = (int)bytes_hash_table_lookupv(state->counters, domainv, state->fieldset.num);
+  } else {
+	c = state->counter;
+  }
+
+  assert(c!=0);
+  annotate(state, *datump, c);
+
+  return SMACQ_PASS|SMACQ_END;
 }
 
 /* Right now this serves mainly for type checking at compile time: */
-struct smacq_functions smacq_counter_table = {
-  &count_produce, 
-  &count_consume,
-  &count_init,
-  &count_shutdown
+struct smacq_functions smacq_count_table = {
+	produce: &count_produce, 
+	consume: &count_consume,
+	init: &count_init,
+	shutdown: &count_shutdown
 };
