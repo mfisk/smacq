@@ -18,10 +18,11 @@ bootstrap:
 	rm -Rf autom4te.cache config/[a-z]*
 	mkdir -p config
 	export PATH=/sw/bin:$$PATH; \
+	export AMV=1.7; \
 	libtoolize --copy --force; \
-	aclocal -I libgnu/m4; \
+	aclocal-$$$AMV -I libgnu/m4; \
 	autoheader; \
-	automake-1.7 -a; \
+	automake-$$AMV -a; \
 	autoconf
 
 cvsinterforce: cvsinter
