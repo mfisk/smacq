@@ -17,7 +17,6 @@ static struct smacq_options options[] = {
   END_SMACQ_OPTIONS
 };
 
-
 SMACQ_MODULE(div,
   PROTO_CTOR(div);
   PROTO_CONSUME();
@@ -33,7 +32,7 @@ SMACQ_MODULE(div,
 
 smacq_result divModule::consume(DtsObject datum, int & outchan) {
   double ts;
-  long int tick;
+  int tick;
 
   DtsObject time = datum->getfield(timefield);
   if (!time) return SMACQ_PASS;
@@ -42,7 +41,7 @@ smacq_result divModule::consume(DtsObject datum, int & outchan) {
   tick = (int)(ts / divisor);
 
   if ( tick != current_tick) {
-  	DtsObject ticko = dts->construct(ticktype, &tick); 
+  	ticko = dts->construct(ticktype, &tick); 
   	assert(ticko);
 	current_tick = tick;
   }
