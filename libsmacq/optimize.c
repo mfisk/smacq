@@ -1,4 +1,4 @@
-#include <smacq-internal.h>
+#include <smacq.h>
 
 #define SMACQ_DEBUG
 #define SMACQ_OPT_DEMUX 
@@ -203,12 +203,12 @@ static void apply_demux(smacq_graph * g) {
 				/* Move j's children to i */
 				for (k=0; k < jchild->numchildren; k++) {
 					orphan = jchild->child[k];
-					fprintf(stderr, "moved %p from %p to %p\n", orphan, jchild, ichild);
+					//fprintf(stderr, "moved %p from %p to %p\n", orphan, jchild, ichild);
 					smacq_add_child(ichild, orphan);
 					smacq_remove_child(jchild, k);
 				}
 
-				fprintf(stderr, "removed %p from %p\n", jchild, g);
+				//fprintf(stderr, "removed %p from %p\n", jchild, g);
 				smacq_remove_child(g, j);
 				j--; /* remove_child will reset g->child[j] to something new */
 
