@@ -12,7 +12,8 @@
 #include <FieldVec.h>
 
 static struct smacq_options options[] = {
-  {"a", {boolean_t:0}, "Output sum only on refresh", SMACQ_OPT_TYPE_BOOLEAN},
+  {"a", {boolean_t:0}, "Output running total with each record", SMACQ_OPT_TYPE_BOOLEAN},
+  {"f", {string_t:"sum"}, "Name of field to store result in", SMACQ_OPT_TYPE_STRING},
   END_SMACQ_OPTIONS
 };
 
@@ -69,26 +70,25 @@ sumModule::sumModule(struct SmacqModule::smacq_init * context) : SmacqModule(con
   int argc = 0;
   char ** argv;
 
-  {
-    smacq_opt outputallo;
+  smacq_opt outputallo, fieldo;
 
-    struct smacq_optval optvals[] = {
+  struct smacq_optval optvals[] = {
       {"a", &outputallo},
+      {"f", &fieldo},
       {NULL, NULL}
-    };
+  };
 
-    smacq_getoptsbyname(context->argc-1, context->argv+1,
-		       &argc, &argv,
-		       options, optvals);
+  smacq_getoptsbyname(context->argc-1, context->argv+1,
+	       &argc, &argv,
+	       options, optvals);
 
-    outputall = outputallo.boolean_t;
-  }
+  outputall = outputallo.boolean_t;
 
   assert(argc==1);
 
   refreshtype = dts->requiretype("refresh");
   sumtype = dts->requiretype("double");
-  sumfield = dts->requirefield("sum");
+  sumfield = dts->requirefield(fieldo.string_t);
   
   xfieldname = dts_fieldname_append(argv[0], "double");
   xfield = dts->requirefield(xfieldname);
