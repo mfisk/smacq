@@ -18,40 +18,11 @@
 
 #define MAXFUNCS 10
 
-unsigned long long prime_greater_than(unsigned long long x) {
-  // From: http://www.rsok.com/cgi-bin/printprimes.html
-  //            http://www.rsok.com/~jrm/next_prime.html
-  unsigned long long prime_list[] = {100003,      200004,      255989,     300008,    400009,   500009, 512999, 600011, 800011, 
-				    1000003,      2000003,     4000037,    4194007,   6000011,  8000009,
-				    10000019,     20000003,    41940023,   60000011,  80000023, 
-				    100000007,    200000033,   419400011, 
-				     1000000007,   1999999973,  5000000029,  5000000039, 6000000001, 7000000001, 7500000031, 8000000011,
-				    10000000019,  20000000089, 50000000021,
-				    100000000003, 200000000041,500000000023,
-				    1000000000039,
-		//		    10000000000037,
-		//		    100000000000031,
-		//		    1000000000000037,
-				    0 };
-  unsigned long y = g_spaced_primes_closest(x);
-  unsigned long long * p = prime_list;
-
-  if (x < y) return y;
-
-  for (p = prime_list; p[1] && (p[0] < x); p++);
-  if (!p[1]) 
-	  	fprintf(stderr, "Warning: requested size too big!\n");
-
- fprintf(stderr, "Using prime %d, %llu < %llu\n", (p - prime_list) / (int)sizeof(unsigned long), x, p[0]);
-  return p[0];
-}
-
 struct bloom_summary {
-  uint32_t * randoms;
   int numfilterfuncs;
   WORDTYPE * summary;
   WORDTYPE * count;
-  unsigned long long prime;
+  unsigned long long size;
   int words;
   int maxkeybytes;
   unsigned long bitsset;
@@ -68,16 +39,9 @@ struct bloom_summary {
   unsigned long counttotal;
 };
 
-static void init_hash_functions(struct bloom_summary * b) {
-  bytes_init_hash(&b->randoms, b->numfilterfuncs * b->maxkeybytes, b->prime);
-}
-
 int bloom_set_hash_functions(struct bloom_summary * b, int numfilterfuncs) {
   assert(numfilterfuncs < MAXFUNCS);
-  if (b->randoms) free(b->randoms);
-
   b->numfilterfuncs = numfilterfuncs;
-  init_hash_functions(b);
 
   return numfilterfuncs;
 }
@@ -96,15 +60,12 @@ unsigned long bloom_get_uniq(struct bloom_summary * b) {
 
 static struct bloom_summary * bloom_init(int maxkeybytes, unsigned long long size) {
   struct bloom_summary * b = g_new0(struct bloom_summary, 1);
+  b->size = size;
   
-  b->prime = prime_greater_than(size);
-  //fprintf(stderr, "prime above %u is %u\n", size, b->prime);
-
   if (maxkeybytes & 1) /* is odd */ maxkeybytes++;
   b->maxkeybytes = maxkeybytes;
 
   bloom_set_hash_functions(b, DEFAULTNUMFUNCS);
-  init_hash_functions(b);
 
   b->perfectsummary = bytes_hash_table_new(maxkeybytes, CHAIN|NOFREE);
 
@@ -113,17 +74,13 @@ static struct bloom_summary * bloom_init(int maxkeybytes, unsigned long long siz
 
 void bloom_make_counter(struct bloom_summary * b) {
   b->type |= BLOOM_COUNTER;
-  if (b->prime >= ( pow(2,31))) {
-	  fprintf(stderr, "Prime overflow!\n");
-	  assert(0);
-  }
-  b->count = g_new(WORDTYPE, b->prime);
-  fprintf(stderr, "Probabilistic counters will use %g megabytes\n",(double) b->prime * WORDBYTES / 1024 / 1024);
+  b->count = g_new(WORDTYPE, b->size);
+  fprintf(stderr, "Probabilistic counters will use %g megabytes\n",(double) b->size * WORDBYTES / 1024 / 1024);
 }
 void bloom_make_summary(struct bloom_summary * b) {
-  b->words = b->prime/(WORDBITS) + 1;
-  if (b->prime >= (pow(2,31) * WORDBITS)) {
-	  fprintf(stderr, "Prime overflow!\n");
+  b->words = b->size/(WORDBITS) + 1;
+  if (b->size >= (pow(2,31) * WORDBITS)) {
+	  fprintf(stderr, "Table too big!\n");
 	  assert(0);
   }
   fprintf(stderr, "Bloom summary will be %g megabytes\n",(double) b->words * WORDBYTES / 1024 / 1024);
@@ -167,18 +124,7 @@ int even(int x) {
 }
 
 static inline int applyfilterfunc(struct bloom_summary * b, int f, struct iovec * key, int keys) {
-  int index = 0;
-  int count = 0;
-  int i, v;
-
-  for (v=0; v < keys; v++) {
-    for (i=0; i< key[v].iov_len; i++) {
-      count++;
-      index += (((unsigned char*)key[v].iov_base)[i] * b->randoms[f * b->maxkeybytes + (count % b->maxkeybytes)]); 
-    }
-  }
-
-  return(index % b->prime);
+  return(bytes_hashv_with(key, keys, f));
 }
 
 /* Return value is the value before being incremented */
@@ -223,7 +169,7 @@ int bloom_incrementv(struct bloom_summary * b, struct iovec * key, int keys) {
 }
 
 double bloom_deviation(struct bloom_summary * b, int v) {
-  return(v * b->prime / b->counttotal);
+  return(v * b->size / b->counttotal);
 }
 
 int bloom_increment(struct bloom_summary * b, unsigned char *key, int keysize) {
@@ -287,12 +233,6 @@ struct bloom_summary * bloom_load(char * filename) {
     exit(-1);
   }
 
-  b->randoms = (uint32_t*)g_new(uint32_t, b->numfilterfuncs*b->maxkeybytes);
-  if (fread(b->randoms, sizeof(uint32_t) * b->numfilterfuncs*b->maxkeybytes, 1, fh) < 1) {
-    fprintf(stderr, "error loading sources.bitmap randomsorts\n");
-    exit(-1);
-  }
-
   if (b->summary) {
     b->summary = g_new0(WORDTYPE, b->words);
     if (fread(b->summary, WORDBYTES * b->words, 1, fh) < 1) {
@@ -302,8 +242,8 @@ struct bloom_summary * bloom_load(char * filename) {
   }
 
   if (b->count) {
-    b->summary = g_new0(WORDTYPE, b->prime);
-    if (fread(b->count, WORDBYTES * b->prime, 1, fh) < 1) {
+    b->summary = g_new0(WORDTYPE, b->size);
+    if (fread(b->count, WORDBYTES * b->size, 1, fh) < 1) {
       fprintf(stderr, "error loading sources.bitmap count\n");
       exit(-1);
     }
@@ -322,10 +262,6 @@ void bloom_save(char * filename, struct bloom_summary * b) {
     fprintf(stderr, "error saving sources.bitmap object\n");
     exit(-1);
   }
-  if (fwrite(b->randoms, sizeof(uint32_t) * b->numfilterfuncs * b->maxkeybytes, 1, fh) < 1) {
-    fprintf(stderr, "error saving sources.bitmap randoms\n");
-    exit(-1);
-  }
 
   if (b->summary) {
     if (fwrite(b->summary, WORDBYTES * b->words, 1, fh) < 1) {
@@ -335,7 +271,7 @@ void bloom_save(char * filename, struct bloom_summary * b) {
   }
 
   if (b->count) {
-    if (fwrite(b->count, WORDBYTES * b->prime, 1, fh) < 1) {
+    if (fwrite(b->count, WORDBYTES * b->size, 1, fh) < 1) {
       fprintf(stderr, "error saving sources.bitmap counters\n");
       exit(-1);
     }

@@ -55,7 +55,7 @@ static smacq_result encrypt_consume(struct state * state, const dts_object * dat
     return SMACQ_PASS;
   }
 
-  hval = bytes_hash_valuev(state->hashtable, state->fieldset.num, keyv);
+  hval = bytes_hashv(keyv, state->fieldset.num);
 
   if (!state->add) {
     memcpy(dts_getdata(field), &hval, min(dts_getsize(field), sizeof(unsigned long)));

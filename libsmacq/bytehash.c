@@ -8,6 +8,7 @@
 #include <string.h>
 #include <bytehash.h>
 #include <cmalloc.h>
+#include <iov_bhash.h>
 
 #define STARTBUCKETS 64
 #define MAXAVGCHAIN 1
@@ -81,38 +82,13 @@ static void free_element(void * k) {
   cmfree(s->table->cm_elements, s);
 }
 
-void bytes_init_hash(uint32_t** randoms, int num, unsigned long prime) {
-  int i;
 
-  /* Randombytes is a an array mapping 16-bit key segments to of 32bit random numbers */
-  /* There is one entry for each filter function and each allowable 16-bit key */
-  /* We avoid having a full 256KB per function by using a user-supplied maximum key size */
-
-  *randoms = malloc(sizeof(uint32_t)*num);
-  assert(*randoms);
-
-  for (i = 0; i < num; i++) {
-    /* Modulo is probably not the right way to get them smaller than HASH_PRIME */
-    (*randoms)[i] = (random() % prime);
-/*       fprintf(stderr, "Random byte %d,%d is %x\n", i, j, randombytes[i][j]); */
-  }
+uint32_t bytes_hashv_with(struct iovec * iovecs, int nvecs, int with) {
+  return iov_hash_with(iovecs, nvecs, with);
 }
 
-static unsigned int bytes_iovec_hash(struct iovec_hash * table, struct iovec * iovecs, int nvecs) {
-  int i;
-  int j;
-  uint32_t index = 0;
-
-  for (i=0; i < nvecs; i++) {
-    unsigned char * base = iovecs[i].iov_base;
-
-    for (j=0; j < iovecs[i].iov_len; j++) {
-      index += (base[j] * table->randoms[j % table->maxkeybytes]); 
-    }
-  }
-
-   //    fprintf(stderr, "hash is %x\n", index); 
-  return index;
+uint32_t bytes_hashv(struct iovec * iovecs, int nvecs) {
+  return iov_hash_with(iovecs, nvecs, 0);
 }
 
 bytes_boolean bytes_mask(const struct element * b1, struct iovec * iovecs, int nvecs) {
@@ -157,7 +133,6 @@ struct iovec_hash * bytes_hash_table_new(int maxbytes, int flags) {
   
   myt = calloc(1, sizeof(struct iovec_hash));
   myt->maxkeybytes = maxbytes;
-  bytes_init_hash(&myt->randoms, maxbytes, 419400011);
 
   myt->cm_bytes = cmalloc_init(0,0);
   myt->cm_iovecs = cmalloc_init(0,0);
@@ -172,11 +147,6 @@ struct iovec_hash * bytes_hash_table_new(int maxbytes, int flags) {
   myt->num_elements = 0;
   
   return myt;
-}
-
-uint32_t bytes_hash_valuev(struct iovec_hash * ht, int nvecs, struct iovec * vecs) {
-  int val = bytes_iovec_hash(ht, vecs, nvecs);
-  return val;
 }
 
 static inline void chain_remove(struct element * e) {
@@ -196,7 +166,7 @@ static inline void chain_add(struct iovec_hash * ht, int bucket, struct element 
 }
 
 static inline void relocate(struct iovec_hash * ht, struct element * e, int oldbucket) {
-  int newbucket = bytes_iovec_hash(ht, e->iovecs, e->nvecs) % ht->num_buckets;
+  int newbucket = bytes_hashv_into(e->iovecs, e->nvecs, ht->num_buckets);
   if (newbucket == oldbucket) return;
 
   /* Remove from old chain */
@@ -243,7 +213,7 @@ static void rebalance(struct iovec_hash * ht) {
 }
 
 bytes_boolean bytes_hash_table_getv(struct iovec_hash * ht, struct iovec * vecs, int nvecs, struct element ** oldkey, void ** current) {
-  struct element * bucket = ht->buckets[bytes_iovec_hash(ht, vecs, nvecs) % ht->num_buckets];
+  struct element * bucket = ht->buckets[bytes_hashv_into(vecs, nvecs, ht->num_buckets)];
 
   if (bucket && ht->do_chain) {
      struct element * e;
@@ -286,7 +256,7 @@ void * bytes_hash_table_setv_get(struct iovec_hash * ht, struct iovec * keys, in
 
 	  e->value = value;
 
-	  b = bytes_iovec_hash(ht, keys, count) % ht->num_buckets;
+	  b = bytes_hashv_into(keys, count, ht->num_buckets);
 	  chain_add(ht, b, e);
 
 	  /* fprintf(stderr, "new key %p created in bucket %d, 2nd is %p\n", e, b, e->chain);  */

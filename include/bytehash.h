@@ -19,7 +19,8 @@ bytes_boolean bytes_hash_table_getv(struct iovec_hash * ht, struct iovec * key, 
 void bytes_init_hash(uint32_t ** randoms, int num, unsigned long prime);
 // int bytes_hash_table_get(struct iovec_hash * ht, int keysize, unsigned short * key, void * current);
 
-uint32_t bytes_hash_valuev(struct iovec_hash * ht, int nvecs, struct iovec *);
+uint32_t bytes_hashv_with(struct iovec * iovecs, int nvecs, int with);
+uint32_t bytes_hashv(struct iovec * iovecs, int nvecs);
 
 typedef int (*ForEachFunc)(struct element * key, void * value, void * user_data);
 void bytes_hash_table_foreach(struct iovec_hash * ht, ForEachFunc func, void * user_data);
@@ -28,3 +29,8 @@ void bytes_hash_table_foreach_remove(struct iovec_hash * ht, ForEachFunc func, v
 bytes_boolean bytes_mask(const struct element * b1, struct iovec * iovecs, int nvecs);
 struct iovec * bytes_hash_element_iovec(struct element * e);
 int bytes_hash_element_nvecs(struct element * e);
+
+static inline uint32_t bytes_hashv_into(struct iovec * vecs, int nvecs, uint32_t into) {
+	return (bytes_hashv(vecs, nvecs) % into);
+}
+

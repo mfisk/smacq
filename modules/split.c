@@ -39,7 +39,7 @@ static smacq_result split_consume(struct state * state, const dts_object * datum
   } else if (!partitionv) {
     bucket = 0;
   } else if (state->mode == BUCKET) {
-    bucket = (bytes_hash_valuev(state->hashtable, state->fieldset.num, partitionv) / 2  % state->children);
+    bucket = bytes_hashv_into(partitionv, state->fieldset.num, state->children);
   } else if (state->mode == UNIQUE) {
     bucket = (int)bytes_hash_table_lookupv(state->hashtable, partitionv, state->fieldset.num);
     if (!bucket) {
