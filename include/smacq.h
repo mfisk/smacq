@@ -63,13 +63,6 @@ common tasks with a DtsObject.
 # define SMACQ_OPT_NOFIELDCACHE
 #endif
 
-#ifdef SMACQ_NO_OPT_DATAFLOW
-# define SMACQ_OPT_NOVECTORS
-# define SMACQ_OPT_NOCHILDREN
-# define SMACQ_OPT_NOHEADS
-# define SMACQ_OPT_NOTAILS
-#endif
-
 #if defined(WIN32) && !defined(inline)       
 	/* Visual C++ uses the keyword "__inline" rather than "inline" */
 	#define inline __inline 
