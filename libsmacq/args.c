@@ -44,14 +44,82 @@ void set_opts_to_default(struct smacq_options * smacq_options,
 	}
 }
 
+void print_help(struct smacq_options * opt) {
+	for (; opt->name; opt++) {
+		if (strlen(opt->name) == 1) {
+			fprintf(stderr, "\t-%s\t%s\n", opt->name, opt->description);
+		} else {
+			fprintf(stderr, "\t--%s\t%s\n", opt->name, opt->description);
+		}
+	}
+}
+
+int parse_opt(struct smacq_options * options, struct smacq_optval * optvals, 
+	char * arg, char * nextarg) {
+	struct smacq_options * opt = get_optstruct_byname(options, arg);
+
+	if (!opt) {
+		// XXX: handle --docbook option here
+
+		fprintf(stderr, "Unknown option %s:\n", arg);
+		print_help(options);
+	   	exit(-1);
+	}
+
+	struct smacq_optval * val = get_optval_byname(optvals, arg);
+	assert(val);
+
+	if (!nextarg && opt->type != SMACQ_OPT_TYPE_BOOLEAN) {
+	    fprintf(stderr, "Option %s needs argument:\n", arg);
+		print_help(options);
+	    exit(-1);
+	}
+	  
+	switch(opt->type) {
+	  case SMACQ_OPT_TYPE_BOOLEAN:
+	    val->location->boolean_t++;
+		return 0;
+	    break;
+	  case SMACQ_OPT_TYPE_STRING:
+	    val->location->string_t = nextarg;
+		return 1;
+	    break;
+	  case SMACQ_OPT_TYPE_INT:
+	    val->location->int_t = atoi(nextarg);
+		return 1;
+	    break;
+	  case SMACQ_OPT_TYPE_UINT32:
+	    val->location->uint32_t = atol(nextarg);
+		return 1;
+	    break;
+	  case SMACQ_OPT_TYPE_USHORT:
+	    val->location->ushort_t = atoi(nextarg);
+		return 1;
+	    break;
+	  case SMACQ_OPT_TYPE_DOUBLE:
+	    val->location->double_t = atof(nextarg);
+		return 1;
+	    break;
+	  case SMACQ_OPT_TYPE_TIMEVAL:
+	    val->location->timeval_t.tv_sec = floor(atof(nextarg));
+	    val->location->timeval_t.tv_usec = floor(1000000 * (atof(nextarg) - val->location->timeval_t.tv_sec));
+		return 1;
+	    break;
+	  case END:
+	    assert(0);
+		break;
+	}
+
+	assert(0);
+	return 0;
+}
+
+
 int smacq_getoptsbyname( int argc, char ** argv,
 			int * argc_left, char *** argv_left,
 			struct smacq_options * options, 
 			struct smacq_optval * optvals) {
-	struct smacq_options * opt;
-	struct smacq_optval * val;
-	int c;
-	char ** v;
+	int i;
 
 	assert(options);
 	assert(optvals);
@@ -62,56 +130,35 @@ int smacq_getoptsbyname( int argc, char ** argv,
 
 	assert (argc>=0);
 
-	for(c = argc, v=argv; c; c--, v++) {
-	  if ((v[0][0] != '-') || v[0][1]=='\0' || !(opt = get_optstruct_byname(options, v[0]+1))) {
+	for (i = 0; i < argc; i++) {
+	  if ((argv[i][0] != '-') || (argv[i][1]=='\0')) {
 	    if (argc_left) {
 	      if (!*argc_left) {
-		*argv_left = g_new(char *, argc);
+			*argv_left = g_new(char *, argc);
 	      }
-	      (*argv_left)[*argc_left] = v[0];
+	      (*argv_left)[*argc_left] = argv[i];
 	      (*argc_left)++;
-	      continue;
 	    } else {
-	      fprintf(stderr, "Unknown option %s", v[0]);
+	      fprintf(stderr, "Unknown option %s", argv[i]);
+		  print_help(options);
 	      exit(-1);
 	    }
-	  }
-				 
-	  val = get_optval_byname(optvals, v[0]+1);
-	  assert(val);
+	  } else if (argv[i][0] == '-' && argv[i][1] == '-') {
+		char * nextarg;
+		if (i < argc) {
+			nextarg = argv[i+1];
+		} else {
+			nextarg = NULL;
+		}
+		i += parse_opt(options, optvals, argv[i]+2, i < argc ? argv[i+1] : NULL);
+	  } else {
+		char * o;
+		char opt[2] = "\0\0";
 
-	  if (c < 2 && opt->type != SMACQ_OPT_TYPE_BOOLEAN) {
-	    fprintf(stderr, "Need argument to %s\n", v[0]);
-	    exit(-1);
-	  }
-	  v++; c--;
-	  
-	  switch(opt->type) {
-	  case SMACQ_OPT_TYPE_BOOLEAN:
-	    val->location->boolean_t++;
-	    v--; c++;
-	    break;
-	  case SMACQ_OPT_TYPE_STRING:
-	    val->location->string_t = v[0];
-	    break;
-	  case SMACQ_OPT_TYPE_INT:
-	    val->location->int_t = atoi(v[0]);
-	    break;
-	  case SMACQ_OPT_TYPE_UINT32:
-	    val->location->uint32_t = atol(v[0]);
-	    break;
-	  case SMACQ_OPT_TYPE_USHORT:
-	    val->location->ushort_t = atoi(v[0]);
-	    break;
-	  case SMACQ_OPT_TYPE_DOUBLE:
-	    val->location->double_t = atof(v[0]);
-	    break;
-	  case SMACQ_OPT_TYPE_TIMEVAL:
-	    val->location->timeval_t.tv_sec = floor(atof(v[0]));
-	    val->location->timeval_t.tv_usec = floor(1000000 * (atof(v[0]) - val->location->timeval_t.tv_sec));
-	    break;
-	  default:
-	    assert(0);
+		for(o = argv[i]+1; *o; o++) {
+			opt[0] = *o;
+			i += parse_opt(options, optvals, opt, i < argc ? argv[i+1] : NULL);
+		}
 	  }
 	}
 
