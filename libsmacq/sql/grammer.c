@@ -84,7 +84,7 @@
 #include <string.h>
 #include <smacq-internal.h>
 #include "smacq-parser.h"
-#define DEBUG
+//#define DEBUG
   
   extern int yylex();
   extern void yy_scan_string(const char *);
