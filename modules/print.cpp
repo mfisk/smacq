@@ -80,8 +80,12 @@ smacq_result printModule::consume(DtsObject datum, int & outchan) {
 				DtsObject str = (*j)->getfield(string_transform);
 				f[0] = num;
 				if (internals) {
+					char * s = "(unprintable)";
+					if (str.get()) { 
+						s = (char*)str->getdata();
+					}
 					printf("\tField %2d: %15s = (obj %p) %s\n", num, 
-						dts->field_getname(f), j->get(), (char*)str->getdata());
+						dts->field_getname(f), j->get(), s);
 				} else {
 					printed = print_field(str, dts->field_getname(f), printed, column);
 				}
