@@ -4,8 +4,8 @@
 #include "smacq.h"
 
 static int smacqtype_string_get_string(const dts_object * o, dts_object * data) {
-  dts_setsize(data, strlen(o->data));
-  strcpy(data->data, o->data);
+  data->len = o->len;
+  data->data = o->data;
   return 1;
 }
 
