@@ -14,7 +14,7 @@ SMACQ_MODULE(uniqobj,
 );
 
 smacq_result uniqobjModule::consume(DtsObject datum, int & outchan) {
-  DtsObject foo = datum->getfield(seen_field);
+  DtsObject foo = datum->getfield(seen_field, true);
   if (foo) {
     return SMACQ_FREE;
   } else {

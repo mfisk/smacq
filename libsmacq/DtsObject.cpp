@@ -182,16 +182,17 @@ DtsObject DtsObject_::getfield_single(dts_field_element fnum) {
   }
 }
 
-DtsObject DtsObject_::getfield(DtsField &fieldv) {
+DtsObject DtsObject_::getfield(DtsField &fieldv, bool nowarn) {
   DtsField::iterator i;
   DtsObject f = this;
 
   for (i = fieldv.begin(); i != fieldv.end(); ++i) {
 	f = f->getfield_single(*i);
 	if (!f) {
-    	if (dts->warn_missing_fields()) {
-			fprintf(stderr, "Warning: requested field %s not present\n",
-				dts->field_getname(fieldv));
+    		if (dts->warn_missing_fields() && !nowarn) {
+			char * fieldname = dts->field_getname(fieldv);
+			// This is an ugly exclusion (see uniqobj module):
+			fprintf(stderr, "Warning: requested field %s not present\n", fieldname);
 		}
 
 		return f;

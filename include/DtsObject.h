@@ -84,12 +84,12 @@ class DtsObject_ {
 	/// @name Field Access
 	/// @{
 		/// Return a field object
-	DtsObject getfield(DtsField &fieldv);
+	DtsObject getfield(DtsField &fieldv, bool nowarn = false);
 
 		/// Less efficient lookup by string
-	DtsObject getfield(char * s) {
+	DtsObject getfield(char * s, bool nowarn = false) {
 		DtsField f = dts->requirefield(s);
-		return getfield(f);
+		return getfield(f, nowarn);
 	}
 
 	void attach_field(DtsField &field, DtsObject field_data);
