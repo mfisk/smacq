@@ -18,32 +18,25 @@ SMACQ_MODULE(mask,
   PROTO_CTOR(mask);
   PROTO_CONSUME();
 
-  dts_field field;
+  DtsField field;
   struct mask test;
-  int ip_type;
+  dts_typeid ip_type;
 );
 
 smacq_result maskModule::consume(DtsObject datum, int & outchan) {
-  DtsObject fieldo;
   in_addr_t f;
   int found = 0;
 
   assert(datum);
 
-  if (field) {
-	fieldo = datum->getfield(field);
-	//if (!field) fprintf(stderr, "mask: No such field (%d) on %p\n", field[0], datum);
-	if (!fieldo) return SMACQ_FREE;
-	assert(fieldo->gettype() == ip_type);
+  DtsObject fieldo = datum->getfield(field);
+  //if (!fieldo) fprintf(stderr, "mask: No such field (%d) on %p\n", field[0], datum);
+  if (!fieldo) return SMACQ_FREE;
+  assert(fieldo->gettype() == ip_type);
 
-        f = dts_data_as(fieldo, in_addr_t);
-
-  } else {
-	assert(datum->gettype() == ip_type);
-        f = dts_data_as(datum, in_addr_t);
-  }
-
-  //fprintf(stderr, "%x & %x =? %x\n", f, test.mask.s_addr, test.addr.s_addr);
+  f = dts_data_as(fieldo, in_addr_t);
+  	
+  //fprintf(stderr, "%x & %x =? %x\n", f, test.mask.s_addr, test.addr.s_addr); 
   if ((f & test.mask.s_addr) == test.addr.s_addr) {
 	  found = 1;
   }
@@ -57,6 +50,7 @@ smacq_result maskModule::consume(DtsObject datum, int & outchan) {
 
 maskModule::maskModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
   int i;
+  test.isnot = 0;
   int argc = context->argc-1;
   char ** argv = context->argv+1;
 

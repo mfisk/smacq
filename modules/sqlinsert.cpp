@@ -18,8 +18,8 @@ SMACQ_MODULE(sqlinsert,
 
   char ** argv;
   int argc;
-  dts_field * fields;
-  dts_field string_transform;
+  std::vector<DtsField> fields;
+  DtsField string_transform;
 );
 
 static struct smacq_options options[] = {
@@ -105,7 +105,7 @@ sqlinsertModule::sqlinsertModule(struct SmacqModule::smacq_init * context)
   assert(database_name.string_t);
   assert(provider_name.string_t);
 
-  fields = (dts_field_element**)malloc(argc * sizeof(dts_field));
+  fields.resize(argc);
   string_transform = dts->requirefield("string");
 
   gda_init("SMACQ-GDA-sqlinsert", "0.1", 0, NULL);
@@ -153,10 +153,5 @@ sqlinsertModule::~sqlinsertModule() {
   gda_command_free(gda_cmd);
   gda_client_close_all_connections(gda_client);
   g_object_unref(G_OBJECT(gda_client));
-
-  for (i = 0; i < argc; i++) 
-	  dts_field_free(fields[i]);
-
-  free(fields);
 }
 

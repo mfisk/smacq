@@ -66,8 +66,8 @@ SMACQ_MODULE(pcapfile,
 
   DtsObject snaplen_o;
   DtsObject linktype_o;
-  dts_field snaplen_field;
-  dts_field linktype_field;
+  DtsField snaplen_field;
+  DtsField linktype_field;
 
   /* Const: */
   int snaplen_type;
@@ -75,9 +75,9 @@ SMACQ_MODULE(pcapfile,
   int ifindex_type;
   int protocol_type; 
   int pkt_type_type;
-  dts_field ifindex_field;
-  dts_field protocol_field; 
-  dts_field pkt_type_field;
+  DtsField ifindex_field;
+  DtsField protocol_field; 
+  DtsField pkt_type_field;
 
   friend void StrucioReader::newfile_hook();
   friend void StrucioWriter::newfile_hook();

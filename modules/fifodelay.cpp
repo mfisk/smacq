@@ -22,8 +22,8 @@ SMACQ_MODULE(fifodelay,
 
   struct obj_list * fifo;
   struct obj_list * last;
-  dts_field ts_field;
-  dts_field edge_field;
+  DtsField ts_field;
+  DtsField edge_field;
   struct timeval edge;
   struct timeval interval;
 
@@ -131,7 +131,6 @@ fifodelayModule::fifodelayModule(struct SmacqModule::smacq_init * context) : Sma
     interval = intervalo.timeval_t;
     edge_field = dts->requirefield(ifieldname.string_t);
     ts_field = dts->requirefield(ofieldname.string_t);
-    assert(ts_field);
 
     assert(argc==0);
   }
@@ -154,8 +153,7 @@ smacq_result fifodelayModule::produce(DtsObject & datum, int & outchan) {
     fifo = fifo->next;
 
     datum = old->obj;
-    free(old);
-
+    delete(old);
     
     return (smacq_result)(SMACQ_PASS|(fifo ? SMACQ_PRODUCE : 0));
   } else {

@@ -20,7 +20,7 @@ SMACQ_MODULE(encrypt,
   PROTO_PRODUCE();
 
   FieldVec fieldvec;
-  dts_field changefield;
+  DtsField changefield;
   DtsObject datum;
 
   int add;

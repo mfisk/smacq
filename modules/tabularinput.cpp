@@ -21,13 +21,13 @@ SMACQ_MODULE(tabularinput,
   char  delimiter;
   FILE * fh;
 
-  DynamicArray<dts_field_element*> field_name;
+  DynamicArray<DtsField> fieldvec;
   int * field_type;
   int fields;
 
-  int string_type;
-  int double_type;
-  int empty_type;
+  dts_typeid string_type;
+  dts_typeid double_type;
+  dts_typeid empty_type;
 
   DtsObject default_parse(char * startp, char * endp);
 );
@@ -56,7 +56,7 @@ smacq_result tabularinputModule::produce(DtsObject & datump, int & outchan) {
   DtsObject msgdata;
   char * result;
   DtsObject datum;
-  dts_field field;
+  DtsField field;
 
   datum = dts->newObject(empty_type);
   
@@ -100,12 +100,12 @@ smacq_result tabularinputModule::produce(DtsObject & datump, int & outchan) {
 
     assert(msgdata);
 
-    field = field_name[i];
+    field = fieldvec[i];
     if (! field) {
       char buf[1024];
       sprintf(buf, "%d", i+1);
       field = dts->requirefield(buf);
-      field_name[i] = field;
+      fieldvec[i] = field;
     }
     datum->attach_field(field, msgdata); 
     //fprintf(stderr, "Attached field %d (type %d) to %p\n", field[0], msgdata->type, datum);
@@ -157,7 +157,7 @@ tabularinputModule::tabularinputModule(struct SmacqModule::smacq_init * context)
       type[0] = '\0';
       field_type[i] = dts->requiretype(type+1);
     }
-    field_name[i] = dts->requirefield(name);
+    fieldvec[i] = dts->requirefield(name);
     free(name);
   }
   
