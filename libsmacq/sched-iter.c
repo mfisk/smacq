@@ -96,8 +96,8 @@ static inline int runq_empty(struct runq * runq) {
 	}
 }
 
-#warning "SMACQ_OPT_RUNRING not set"
 #else
+#warning "SMACQ_OPT_RUNRING not set"
 
 /*
  * Use a list of runq elements.  New elements are allocated as necesssary, and 
