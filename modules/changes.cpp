@@ -1,3 +1,4 @@
+#include <math.h>
 #include <SmacqModule.h>
 #include <DynamicArray.h>
 #include <FieldVec.h>
@@ -10,6 +11,7 @@ static struct smacq_options options[] = {
 	{"t", {double_t:-1}, "Threshold (in standard deviations)", SMACQ_OPT_TYPE_DOUBLE},
 	{"i", {string_t:NULL}, "Identify field", SMACQ_OPT_TYPE_STRING},
 	{"a", {boolean_t:0}, "Add mean and sigma fields to each feature", SMACQ_OPT_TYPE_BOOLEAN},
+	{"base", {double_t:1}, "Feature value is log with this base", SMACQ_OPT_TYPE_DOUBLE},
 	END_SMACQ_OPTIONS
 };
 
@@ -36,6 +38,8 @@ SMACQ_MODULE(changes,
 	double threshold;
 	int	dimensions;
 
+	double base;
+
 	double alpha_avg_up;
 	double alpha_avg_down;
 	double alpha_stddev;
@@ -49,6 +53,7 @@ SMACQ_MODULE(changes,
 
 smacq_result changesModule::consume(DtsObject datum, int & outchan) {
 	double total_distance = 0;
+	fprintf(stderr, "changes consuming %p\n", datum.get());
 
 	DtsObject id = datum->getfield(id_field);
 	if (!id) {
@@ -64,6 +69,9 @@ smacq_result changesModule::consume(DtsObject datum, int & outchan) {
 		// make sure we got it
 		if (o) {
 			double val = dts_data_as(o, double);
+			if (base != 1) {
+				val = pow(base,val);
+			}
 			double dev = fabs(d.avg - val);
 
 			// Use first value as seed and don't call it anomalous
@@ -77,10 +85,7 @@ smacq_result changesModule::consume(DtsObject datum, int & outchan) {
 			double sigma = d.stddev;
 			if (sigma < 1) sigma = 1;
 			d.distance = dev / sigma;
-			/*
-			fprintf(stderr, "%g is %g sigma from avg of %g (sigma=%g)\n", val,
-					d.distance, d.avg, d.stddev);
-			*/
+			//fprintf(stderr, "%g is %g sigma from avg of %g (sigma=%g)\n", val, d.distance, d.avg, d.stddev);
 			d.distance *= d.distance;	// Square it
 
 			if (val > d.avg) {
@@ -89,7 +94,13 @@ smacq_result changesModule::consume(DtsObject datum, int & outchan) {
 			} else {
 				d.avg *= alpha_avg_down;
 				d.avg += (1-alpha_avg_down) * val;
+
+				// If asymmetric mode, only count distance above avg
+				if (alpha_avg_up != alpha_avg_down) {
+					d.distance = 0;
+				}
 			}
+
 
 			d.stddev *= alpha_stddev;
 			d.stddev += (1-alpha_stddev) * dev;
@@ -109,9 +120,10 @@ smacq_result changesModule::consume(DtsObject datum, int & outchan) {
 	}
 
 	// Check for changes
-    //fprintf(stderr, "total distance is %g\n", total_distance);
+	//fprintf(stderr, "total distance is %g\n", total_distance);
 	total_distance = sqrt(total_distance);
 	if (total_distance <= threshold) {
+		//fprintf(stderr, "Skipping total distance = %g\n", total_distance);
 		return SMACQ_FREE;
 	}
 		
@@ -126,7 +138,7 @@ changesModule::changesModule(struct SmacqModule::smacq_init * context)
 {
 	int argc;
 	char ** argv;
-	smacq_opt opt_threshold, opt_severity, opt_id, opt_alpha_avg_up, opt_alpha_avg_down, opt_alpha_stddev, opt_all;
+	smacq_opt opt_threshold, opt_severity, opt_id, opt_alpha_avg_up, opt_alpha_avg_down, opt_alpha_stddev, opt_all, opt_base;
     
 	struct smacq_optval optvals[] = {
       { "histup", &opt_alpha_avg_up}, 
@@ -136,6 +148,7 @@ changesModule::changesModule(struct SmacqModule::smacq_init * context)
       { "f", &opt_severity}, 
       { "t", &opt_threshold}, 
       { "a", &opt_all}, 
+      { "base", &opt_base}, 
       {NULL, NULL}
 	};
 	smacq_getoptsbyname(context->argc-1, context->argv+1,
@@ -154,6 +167,8 @@ changesModule::changesModule(struct SmacqModule::smacq_init * context)
 	alpha_avg_up = opt_alpha_avg_up.double_t;
 	alpha_avg_down = opt_alpha_avg_down.double_t;
 	alpha_stddev = opt_alpha_stddev.double_t;
+
+	base = opt_base.double_t;
 
 	assert(alpha_avg_up <= 1); assert(alpha_avg_up >= 0);
 	assert(alpha_avg_down <= 1); assert(alpha_avg_down >= 0);
