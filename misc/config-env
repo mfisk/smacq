@@ -33,6 +33,16 @@ config() {
 			echo 'CC=gcc296'
 		fi 
 
+		if has gcc-3.3; then
+			if has gcc-3.2; then
+				echo 'Using gcc-3.2 instead of 3.3' >&2
+				echo 'CC=gcc-3.2'
+			else 
+				echo 'Cannot use gcc 3.3' >&2
+				exit 1
+			fi
+		fi
+
 		# Red Hat 7.3: 
 		if [ -d /usr/include/pcap ]; then 
 			COPTS="${COPTS}-I/usr/include/pcap "
