@@ -11,13 +11,11 @@
 #define DEFAULTNUMFUNCS 4
 #define DEFAULTRANGE 640000
 
-template <class T, class HFN>
+template <class T>
   class Bloom {
  public:
   Bloom(int r) : numfilters(DEFAULTNUMFUNCS), range(r) 
   { 
-    //HFN * h;
-    //hash_fn = new h; //HFN::operator size_t ()(T,int); 
   }
   
   void setfilters(int n) { numfilters = n; }
@@ -27,21 +25,18 @@ template <class T, class HFN>
   int getrange() { return range; }
   
  protected:
-  //size_t (* hash_fn)(T, int);
-  HFN * hash_fn;
-
   int numfilters;
   int range;
   
-  size_t inrange(T n, int i) { return (((*hash_fn)(n,i)) % range); }
+  //size_t inrange(T n, int i) { return (((*hash_fn)(n,i)) % range); }
+  size_t inrange(T n, int i) { return (n.hash(i) % range); }
 };
 
-template <class T, class HFN>
-  class BloomSet : std::vector<bool>, Bloom<T, HFN> {
+template <class T>
+  class BloomSet : std::vector<bool>, Bloom<T> {
  public:
     
-    BloomSet(int size = DEFAULTRANGE) 
-      : Bloom<T,HFN>(size) {}
+    BloomSet(int size = DEFAULTRANGE) : Bloom<T>(size) {}
     
     bool test(T n) {
       for (int i = 0; i < numfilters; i++) {
@@ -70,10 +65,10 @@ template <class T, class HFN>
 		     }
   };
 
-class IoVecBloomSet : public BloomSet<IoVec, hash_iovec> {};
+class IoVecBloomSet : public BloomSet<IoVec> {};
 
-template <class T, class HFN, class COUNTER>
-  class BloomCounters : std::vector<COUNTER>, Bloom<T,HFN> {
+template <class T, class COUNTER>
+  class BloomCounters : std::vector<COUNTER>, Bloom<T> {
  public:
     COUNTER get(T n) {
       COUNTER min = 0;
@@ -104,7 +99,7 @@ template <class T, class HFN, class COUNTER>
     }
     
     BloomCounters(int size=DEFAULTRANGE) 
-      : Bloom<T,HFN>(size), counttotal(0) 
+      : Bloom<T>(size), counttotal(0) 
     {}
     
  private:
@@ -112,10 +107,10 @@ template <class T, class HFN, class COUNTER>
     
   };
 
-class IoVecBloomCounters : public BloomCounters<IoVec, hash_iovec, unsigned int> {
+class IoVecBloomCounters : public BloomCounters<IoVec, unsigned int> {
  public:
   IoVecBloomCounters(int size=DEFAULTRANGE) 
-    : BloomCounters<IoVec, hash_iovec, unsigned int> (size) 
+    : BloomCounters<IoVec, unsigned int> (size) 
 			     {}
 };
 

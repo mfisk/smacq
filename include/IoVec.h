@@ -26,7 +26,7 @@ inline bool IoVecElement::operator==(const IoVecElement & j) const {
 class IoVec : public std::vector<IoVecElement> {
  public:
   IoVec(size_type n) : std::vector<IoVecElement>(n) {}
-  IoVec() {}
+  IoVec() : std::vector<IoVecElement>() {}
 
   size_t hash(const int seed=0) const {
     uint32_t result = seed;
@@ -70,11 +70,13 @@ class IoVec : public std::vector<IoVecElement> {
   }
 };
 
-/*
-template<> size_t hash<IoVec>(IoVec*i) {
-  i->hash();
+namespace __gnu_cxx {
+   template<> struct hash<IoVec> {
+        size_t operator() (const IoVec & v) const { 
+	  return v.hash();
+        }
+   };
 }
-*/
 
 class eq_iovec {
  public:
@@ -83,16 +85,18 @@ class eq_iovec {
   }
 };
 
+/*
 class hash_iovec { 
  public:
   size_t operator() (const IoVec & a, const int seed = 0) const {
     return a.hash(seed);
   }
 };
+*/
 
 template <class T>
-class IoVecHash : public stdext::hash_map<IoVec, T, hash_iovec> {};
+class IoVecHash : public stdext::hash_map<IoVec, T> {};
 
-class IoVecSet : public stdext::hash_set<IoVec, hash_iovec>{};
+class IoVecSet : public stdext::hash_set<IoVec>{};
 
 #endif
