@@ -1,0 +1,26 @@
+#!/usr/bin/perl
+
+if (!@ARGV) {
+	print STDERR "Usage: $0 <bpf-filter>\n";
+	print STDERR "\tEnter a BPF filter on the command line.\n";
+	print STDERR "\tThe SMACQ equivalent will be printed.\n";
+	exit -1;
+}
+
+$query = " @ARGV ";
+$query =~ s|\s+| |g;
+
+$query =~ s| dst host | dstip = |g;
+$query =~ s| src host | srcip = |g;
+
+$query =~ s| dst port | dstport = |g;
+$query =~ s| src port | srcport = |g;
+
+$query =~ s| ether src | srcmac = |g;
+$query =~ s| ether dst | dstmac = |g;
+
+$query =~ s| host ([^\s]+) | ((srcip = $1) or (dstip = $1)) |g;
+$query =~ s| port ([^\s]+) | ((srcport = $1) or (dstport = $1)) |g;
+$query =~ s| ether host ([^\s]+) | ((srcmac = $1) or (dstmac = $1)) |g;
+
+print "$query\n";
