@@ -1,5 +1,5 @@
 /*
- * $Id: patricia.c,v 1.1.4.1 2004/09/29 16:58:42 npickett Exp $
+ * $Id: patricia.c,v 1.2 2004/10/08 19:42:11 npickett Exp $
  * Dave Plonka <plonka@doit.wisc.edu>
  *
  * This product includes software developed by the University of Michigan,
@@ -20,6 +20,10 @@
 #include <stdio.h> /* sprintf, fprintf, stderr */
 #include <stdlib.h> /* free, atol, calloc */
 #include <string.h> /* memcpy, strchr, strlen */
+
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
 #include <arpa/inet.h> /* for inet_addr */
 
 #include "patricia.h"
