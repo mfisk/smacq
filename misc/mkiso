@@ -24,18 +24,21 @@ MacApp() {
 
 
 	cp misc/smacq.ico misc/autorun.inf "$DSTDIR"
-	cp doc/*.txt doc/*.pdf "$DSTDIR/doc/"
+	cp doc/*.txt doc/*.pdf "$DSTDIR/doc/" 
 	platforms=`cd build; echo *-*`
 
 	for p in $platforms; do
 		mkdir -p "$DSTDIR/.bin/$p/"
-		cp "build/$p/reloc/"* "build/$p/bin/smacqq" "$DSTDIR/.bin/$p/"
+		cp "build/$p/bin/smacqq" "$DSTDIR/.bin/$p/"
+		cp `misc/deplibs build/$p/bin/smacqq` "$DSTDIR/.bin/$p/"
+		cp "build/$p/"smacq*.tar.* "$DSTDIR/"
+		#cp "build/$p/doc/"*.txt "build/$p/doc/"*.pdf "$DSTDIR/doc/" || true
 	done	
 	
 	cp misc/reloc "$DSTDIR/.bin"
 	(cd "$DSTDIR"; ln -f .bin/reloc smacqq)
 
-	Get_CVS
+	#Get_CVS
 	MacApp
 
 	if [ `uname -s` != Darwin ]; then
