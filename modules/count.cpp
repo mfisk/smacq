@@ -17,14 +17,10 @@ SMACQ_MODULE(count,
 
   void annotate(DtsObject datum, int c);
 
-  FieldVec fieldvec;
-  FieldVecHash<int> counters;
-
   int counter;
 
-  int prob; // Report probabilities
-
-  int all;  // -a flag
+  bool prob; // Report probabilities
+  bool all;  // -a flag
   DtsObject lastin;
   
   DtsField timefield; // Field number
@@ -34,7 +30,7 @@ SMACQ_MODULE(count,
   int probtype;
 ); 
   
-void countModule::annotate(DtsObject datum, int c) {
+inline void countModule::annotate(DtsObject datum, int c) {
   if (prob) {
     double p = (double)c / counter;
     DtsObject msgdata = dts->construct(probtype, &p);
@@ -46,26 +42,15 @@ void countModule::annotate(DtsObject datum, int c) {
 }
  
 smacq_result countModule::consume(DtsObject datum, int & outchan) {
-  int c;
+  ++counter;
 
-  if (! fieldvec.empty()) {
-    fieldvec.getfields(datum);
-
-    c = ++counters[fieldvec];
-    c++;
+  if (all) {
+    annotate(datum, counter);
+    return SMACQ_PASS;
   } else {
-    c = ++counter;
-  }
-
-  if (!all) {
     lastin = datum;
-
     return SMACQ_FREE;
-  } 
-
-  annotate(datum, c);
-
-  return SMACQ_PASS;
+  }
 }
 
 countModule::countModule(struct SmacqModule::smacq_init * context) 
@@ -90,9 +75,6 @@ countModule::countModule(struct SmacqModule::smacq_init * context)
 	all = allflag.boolean_t;
   }
 
-  // Consume rest of arguments as fieldnames
-  fieldvec.init(dts, argc, argv);
-
   timefield = dts->requirefield("timeseries");
   if (prob) {
   	probfield = dts->requirefield("probability");
@@ -104,7 +86,7 @@ countModule::countModule(struct SmacqModule::smacq_init * context)
 }
 
 countModule::~countModule() {
-  if (lastin && fieldvec.empty()) {
+  if (lastin) {
      annotate(lastin, counter);
      enqueue(lastin);
   }
