@@ -37,6 +37,15 @@ static int smacqtype_timeval_get_ctime(const dts_object * o, dts_object * field)
   return 1;
 }
 
+static int smacqtype_timeval_get_date(const dts_object * o, dts_object * field) {
+  struct timeval * t = dts_getdata(o);
+  struct tm tm;
+  dts_setsize(field, 32);
+  strftime(field->data, 32, "%Y-%m-%d", localtime_r(&(t->tv_sec), &tm));
+  
+  return 1;
+}
+
 static int parse_timeval(char * buf,  const dts_object * d) {
   struct timeval rv;
   double time = atol(buf);
@@ -62,6 +71,7 @@ static int timeval_lt(void * p1, int len1, void * p2, int len2) {
 struct dts_field_spec dts_type_timeval_fields[] = {
   { "string",		"string",	smacqtype_timeval_get_string },
   { "string",		"ctime",	smacqtype_timeval_get_ctime },
+  { "string",		"date",	smacqtype_timeval_get_date },
   { "double", 	"double",	smacqtype_timeval_get_double },
   { "uint32", 	"sec",	smacqtype_timeval_get_sec },
   { END,        NULL }
