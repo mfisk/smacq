@@ -45,12 +45,37 @@ void set_opts_to_default(struct smacq_options * smacq_options,
 }
 
 void print_help(struct smacq_options * opt) {
+	char defbuf[256];
+	double t;
 	for (; opt->name; opt++) {
-		if (strlen(opt->name) == 1) {
-			fprintf(stderr, "\t-%s\t%s\n", opt->name, opt->description);
-		} else {
-			fprintf(stderr, "\t--%s\t%s\n", opt->name, opt->description);
+		char * defval = defbuf;
+		switch (opt->type) {
+		case SMACQ_OPT_TYPE_STRING:
+			defval = opt->default_value.string_t;
+			break;
+		case SMACQ_OPT_TYPE_BOOLEAN:
+			defval = opt->default_value.boolean_t ? "on" : "off";
+			break;
+		case SMACQ_OPT_TYPE_DOUBLE:
+			sprintf(defval, "%g", opt->default_value.double_t);
+			break;
+		case SMACQ_OPT_TYPE_UINT32:
+			sprintf(defval, "%lu", opt->default_value.uint32_t);
+			break;
+		case SMACQ_OPT_TYPE_INT:
+			sprintf(defval, "%i", opt->default_value.int_t);
+			break;
+	    case SMACQ_OPT_TYPE_TIMEVAL:
+			t = opt->default_value.timeval_t.tv_sec +  
+					opt->default_value.timeval_t.tv_usec / 1e6;
+			sprintf(defval, "%g", t);
+			break;
+		case END:
+			return;
 		}
+
+		fprintf(stderr, "\t-%s%s\t%s (default=%s)\n", strlen(opt->name) > 1 ? "-" : "",
+					opt->name, opt->description, defval);
 	}
 }
 
@@ -90,10 +115,6 @@ int parse_opt(struct smacq_options * options, struct smacq_optval * optvals,
 	    break;
 	  case SMACQ_OPT_TYPE_UINT32:
 	    val->location->uint32_t = atol(nextarg);
-		return 1;
-	    break;
-	  case SMACQ_OPT_TYPE_USHORT:
-	    val->location->ushort_t = atoi(nextarg);
 		return 1;
 	    break;
 	  case SMACQ_OPT_TYPE_DOUBLE:
