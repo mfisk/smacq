@@ -247,25 +247,33 @@ smacq_graph * smacq_graph_add_graph(smacq_graph * a, smacq_graph * b) {
 	return a;
 }
 
-void smacq_remove_parent(smacq_graph * a, const smacq_graph * parent) {
+void smacq_remove_parent(smacq_graph * child, const smacq_graph * parent) {
   int i;
   if (!parent) return;
 
-  assert(a->numparents);
+  assert(child->numparents);
 
-  for (i = 0; i < a->numparents; i++) {
-    if (a->parent[i] == parent) {
-      a->numparents--;
+  for (i = 0; i < child->numparents; i++) {
+    if (child->parent[i] == parent) {
+      child->numparents--;
 
-      if (a->numparents) {
-	a->parent[i] = a->parent[a->numparents];
+      if (child->numparents) {
+	child->parent[i] = child->parent[child->numparents];
       }
     }
   }
 }
 
+void smacq_replace_child(smacq_graph * parent, int num, smacq_graph * newchild) {
+  assert(num < parent->numchildren);
+  smacq_remove_parent(parent->child[num], parent);
+  smacq_add_parent(newchild, parent);
+  parent->child[num] = newchild;
+}
+
 void smacq_remove_child(smacq_graph * a, int num) {
   assert(num < a->numchildren);
+  assert(!a->alg.demux && !a->alg.vector);
 
   smacq_remove_parent(a->child[num], a);
 
