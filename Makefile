@@ -2,7 +2,8 @@ WMAKE=$(MAKE) >&-
 DIRS=libsmacq types modules bin doc
 OS=`uname -s`
 LIBTOOL=libtool
-COPTS=-O9 -Winline
+COPTS=-ggdb -O0 -fno-inline -Winline	# For debugging
+COPTS=-O9 -Winline 			# Optimized for normal use
 
 auto:
 	@if [ `uname -s` == "Darwin" ]; then set -x; make fink; else set -x; make LIBTOOL=libtool all; fi
