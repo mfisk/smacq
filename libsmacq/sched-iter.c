@@ -1,6 +1,12 @@
 #include <smacq-internal.h>
 #include <stdlib.h>
 
+/*
+ * Note:  This scheduler uses the "status" element of the smacq_graph structure. 
+ * Normally it is unset, but when a module's shutdown is pending, it is SMACQ_END.
+ * After the shutdown, it is SMACQ_END|SMACQ_FREE and should no longer be used.
+ */
+
 struct runq {
   smacq_graph * f;
   const dts_object * d;
@@ -72,12 +78,18 @@ void check_for_shutdown(struct runq ** runqp, smacq_graph *f) {
 void do_shutdown(struct runq ** runqp, smacq_graph *f) {
   int i;
 
+  if (f->status & SMACQ_FREE) {
+	  /* Already shutdown, so do nothing */
+	  return;
+  }
+
   if (f->ops.shutdown) {
     f->ops.shutdown(f->state);
   }
+  f->state = NULL;  /* Just in case */
 
-  //fprintf(stderr, "module %p %s ended\n", f, f->name);
-  f->status = SMACQ_END;
+  // fprintf(stderr, "module %p %s ended\n", f, f->name);
+  f->status = SMACQ_END|SMACQ_FREE;
 
   /* Propagate to children */
   for (i=0; i < f->numchildren; i++) {
@@ -151,26 +163,29 @@ int smacq_sched_iterative(smacq_graph * startf, const dts_object * din, const dt
     runable(runqp, startf, din);
   
   while (1) {
-    if (!(*runqp)  && (produce_first)) {
-
-      /* Force first guy to produce */
-      int outchan = -1;
-      const dts_object * d;
-      
-      retval = startf->ops.produce(startf->state, &d, &outchan);
-      //fprintf(stderr, "Forced a produce by %p, got %p for %d\n", startf, d, outchan);
-      
-      queue_children(runqp, startf, d, outchan);
-      
-      if (retval & SMACQ_END) {
-	/* Enqueue a terminate record */
-	smacq_sched_iterative_shutdown(startf, (void**)runqp);
-      }
-    }
-    
     if (!(*runqp)) {
-      *dout = NULL;
-      return SMACQ_FREE;
+      if (produce_first) {
+
+        /* Force first guy to produce */
+        int outchan = -1;
+        const dts_object * d = NULL;
+      
+        retval = startf->ops.produce(startf->state, &d, &outchan);
+        //fprintf(stderr, "Forced a produce by %p, got %p for %d\n", startf, d, outchan);
+       
+        if (retval & SMACQ_PASS) {
+      	  queue_children(runqp, startf, d, outchan);
+      	  dts_decref(d);
+        }
+      
+        if (retval & SMACQ_END) {
+	  /* Enqueue a terminate record */
+	  smacq_sched_iterative_shutdown(startf, (void**)runqp);
+        }
+      } else {
+      	*dout = NULL;
+      	return SMACQ_FREE;
+      }
     } else {
       smacq_graph * f = (*runqp)->f;
       const dts_object * d = (*runqp)->d;
@@ -193,9 +208,9 @@ int smacq_sched_iterative(smacq_graph * startf, const dts_object * din, const dt
       if (!d) {
 	if (f->status & SMACQ_END) {
 	  pop_runable(runqp);
-      
+
 	  do_shutdown(runqp, f);
-	  //(*runqp)->f = NULL;
+
 	  *dout = NULL;
 	  if (*runqp || smacq_sched_iterative_graph_alive(startf)) {
 	    return SMACQ_FREE;
@@ -226,8 +241,9 @@ int smacq_sched_iterative(smacq_graph * startf, const dts_object * din, const dt
 	int outchan = -1;
 	const dts_object * d = NULL;
 	pretval = f->ops.produce(f->state, &d, &outchan);
-	
-	queue_children(runqp, f, d, outchan);
+
+	if (pretval & SMACQ_PASS)
+		queue_children(runqp, f, d, outchan);
       }
       
       if ((retval|pretval) & SMACQ_END) {
