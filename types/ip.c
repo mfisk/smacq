@@ -19,7 +19,6 @@ static int smacqtype_ip_get_string(const dts_object * datum, dts_object * data) 
 static int parse_ip(char * buf, void ** resp, int * reslen) {
   struct in_addr * a = g_new(struct in_addr, 1);
   if (!inet_aton(buf, a)) {
-    perror(buf);
     free(a);
     return 0;
   } else {
