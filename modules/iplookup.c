@@ -70,6 +70,7 @@ static void add_entry(struct state * state, char * field, char * needle, int out
   	assert(pfx);
   }
   patricia_node_t * node = patricia_lookup(batch->trie, pfx);
+  /* fprintf(stderr, "%s batch->trie is %p, output is %d, node is %p\n", needle, batch, output, node); */
     
   assert(node);
   if (node->data) {
@@ -95,7 +96,6 @@ static smacq_result iplookup_consume(struct state * state, const dts_object * da
   for (i=0; i < state->num_batches; i++) {
      struct batch * batch = &state->batch[i];
      prefix_t * prefix;
-     
 
      if (batch->field) {
   	field = smacq_getfield(state->env, datum, batch->field, NULL);
@@ -105,7 +105,7 @@ static smacq_result iplookup_consume(struct state * state, const dts_object * da
      }
 
      assert(field->type == state->ipaddr_type);
-     prefix = New_Prefix(AF_INET, dts_getdata(field), 0);
+     prefix = New_Prefix(AF_INET, dts_getdata(field), 32);
  
      node = patricia_search_best(batch->trie, prefix);
      Deref_Prefix(prefix);	 
