@@ -6,6 +6,8 @@
 #include <dlfcn.h>
 #include <smacq.h>
 
+#define DTS_FREELIST_SIZE 10
+
 char * type_typename_bynum(dts_environment * tenv, int num) {
   assert(tenv);
   assert(dts_type_bynum(tenv, num));
@@ -32,7 +34,7 @@ dts_object * dts_construct(dts_environment * tenv, int type, void * data) {
 
 	assert((t->info.size >=0)  && "Cannot use dts_construct on variable sized types");
 
-	dobj = (dts_object*)_smacq_alloc(t->info.size, type);
+	dobj = (dts_object*)dts_alloc(tenv, t->info.size, type);
 	memcpy(dts_getdata(dobj), data, t->info.size);
 	return dobj;
 }
@@ -244,6 +246,10 @@ dts_environment * dts_init() {
   tenv->getfield = type_getfield_virtual;
   tenv->fromstring = type_fromstring_virtual;
   tenv->lt = type_lt_virtual;
+
+  tenv->freelist.start = calloc(DTS_FREELIST_SIZE, sizeof(dts_object *));
+  tenv->freelist.p = tenv->freelist.start;
+  tenv->freelist.end = tenv->freelist.start + DTS_FREELIST_SIZE - 1;
 
   return tenv;
 }

@@ -8,7 +8,7 @@ all: dirs libsmacq.la #libflow-static.a #libflow-engine.a libflow-engine-static.
 dirs: 
 	@set -e; for f in $(DIRS); do $(MAKE) -C $$f; done
 
-USEROBJS=libsmacq.lo bytehash.lo fields.lo bloom.lo args.lo pickle.lo types.lo sched-thread.lo sched-mono.lo sched-iter.lo construct.lo optimize.lo sched.lo msg.lo filter.lo module-thread.lo dynloader.lo sql/libsql.la filter/libfilter.la
+USEROBJS=mem.lo bytehash.lo fields.lo bloom.lo args.lo pickle.lo types.lo sched-thread.lo sched-mono.lo sched-iter.lo construct.lo optimize.lo sched.lo msg.lo filter.lo module-thread.lo dynloader.lo sql/libsql.la filter/libfilter.la
 
 ENGINEOBJS=types.lo construct.lo $(USEROBJS)
 
@@ -20,16 +20,10 @@ reallyclean:
 	for f in $(DIRS); do $(MAKE) -C $$f reallyclean; done
 	rm -Rf *.o *.so *.a *.lo *.la .libs
 
-%.lo: %.c
-	$(LIBTOOL) $(CC) -c $(CFLAGS) $<
+%.lo: %.c ../include/smacq.h ../include/smacq-internal.h ../include/types-inline.c
+	$(LIBTOOL) $(CC) -c -o $@ $(CFLAGS) $<
 
 libsmacq-engine.lo: libsmacq.c ../include/smacq.h ../include/smacq-internal.h
-	$(LIBTOOL) $(CC) -c -o $@ $(CFLAGS) $< 
-
-libsmacq.lo: libsmacq.c ../include/smacq.h ../include/smacq-internal.h
-	$(LIBTOOL) $(CC) -c -o $@ $(CFLAGS) $< 
-
-types.lo: types.c ../include/smacq.h ../include/smacq-internal.h
 	$(LIBTOOL) $(CC) -c -o $@ $(CFLAGS) $< 
 
 libsmacq-engine.la: $(ENGINEOBJS)

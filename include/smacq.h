@@ -57,23 +57,6 @@ struct darray {
   int max;
 };
 
-struct _dts_object {
-  /* private to engine */
-#ifndef SMACQ_OPT_NOPTHREADS
-  pthread_mutex_t mutex;
-#endif
-  int refcount;
-  int free_data;
-
-  /* Cache of received messages */
-  struct darray fields; /* const dts_object * */
-
-  /* data description */
-  int type;
-  void * data;
-  int len;
-};
-
 typedef int field_getfunc_fn(const dts_object*, dts_object*);
 
 struct dts_field_descriptor {
@@ -86,12 +69,19 @@ struct dts_field_descriptor {
 //struct _type_env;
 struct dts_type;
 
+struct dts_freelist {
+  const dts_object ** start;
+  const dts_object ** p;
+  const dts_object ** end;
+};
+
 typedef struct _type_env {
   GHashTable * types_byname;
   GHashTable * fields_byname;
   int max_type;
   int max_field;
- 
+  struct dts_freelist freelist;
+
   struct darray messages_byfield;
   struct darray types; /* struct dts_type * */
   struct darray fields_bynum; /* char * */
@@ -106,11 +96,30 @@ typedef struct _type_env {
 } dts_environment;
 
 
+struct _dts_object {
+  /* private to engine */
+  int refcount;
+
+  int free_data; /* boolean */
+
+  /* Cache of received messages */
+  struct darray fields; /* const dts_object * */
+
+  /* data description */
+  int type;
+  void * data;
+  int len;
+  int max_size;
+
+  dts_environment * tenv;
+
+#ifndef SMACQ_OPT_NOPTHREADS
+  pthread_mutex_t mutex;
+#endif
+};
+
 typedef struct _smacq_env {
   dts_environment * types;
-
-  const dts_object * (*alloc)(int, int);
-
 } smacq_environment;
 
 struct smacq_init;
@@ -237,8 +246,7 @@ smacq_graph * smacq_clone_tree(smacq_graph * donorParent, smacq_graph * newParen
 dts_comparison * dts_parse_tests(dts_environment * tenv, int argc, char ** argv);
 char * dts_field_getname(dts_environment * tenv, dts_field f);
 void smacq_graph_print(FILE * fh, smacq_graph * f, int indent);
-
-void dts_init_object(dts_object * d);
+void dts_free(const dts_object*);
 
 #if defined(WIN32) && !defined(inline)       
 	/* Visual C++ uses the keyword "__inline" rather than "inline" */

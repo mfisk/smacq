@@ -100,18 +100,16 @@ static void dts_decref(const dts_object * d_const) {
       if (d->fields.array[i]) {
 	//fprintf(stderr, "child: %p... ", d->fields.array[i]);
 	dts_decref(darray_get(&d->fields, i));
+	darray_set(&d->fields, i, NULL);
       }
     }
 
-    //fprintf(stderr, "freeing %p\n", d);
-
-    darray_free(&d->fields);
     if (d->free_data) {
 	//fprintf(stderr, "Freeing data %p of %p\n", d->data, d);
     	free(d->data);
 	d->data = NULL;
     }
-    free(d);
+    dts_free(d);
 #ifndef SMACQ_OPT_NOPTHREADS
   } else {
     pthread_mutex_unlock(&d->mutex);
@@ -180,9 +178,11 @@ static inline int smacq_datum_settype(const dts_object * d, int type) {
   return((wd->type = type));
 }
 
+const dts_object* dts_alloc(dts_environment * tenv, int size, int type);
+
 /* Allocate space for a new datum */
 static inline const dts_object * smacq_alloc(smacq_environment * env, int size, int type) {
-  return(env->alloc(size, type));
+  return(dts_alloc(env->types, size, type));
 }
 
 static inline const dts_object * dts_writable(smacq_environment * env, const dts_object *d) {
@@ -272,7 +272,7 @@ static inline void dts_fieldcache_flush(dts_environment * tenv, const dts_object
   darray_set((struct darray*)&datum->fields, fnum, NULL);
 }
 
-static inline const dts_object * dts_getfield_single(dts_environment * tenv, const dts_object * datum, dts_field_element fnum, dts_object * data) {
+static inline const dts_object * dts_getfield_single(dts_environment * tenv, const dts_object * datum, dts_field_element fnum, dts_object * scratch) {
   dts_object * cached;
 
   cached = darray_get((struct darray*)&datum->fields, fnum);
@@ -290,15 +290,19 @@ static inline const dts_object * dts_getfield_single(dts_environment * tenv, con
   if (d) {
 #ifndef SMACQ_OPT_FORCEFIELDCACHE
    offset = d->offset;
-   if (!data) {
+   if (!scratch) {
 #endif 
     dts_object * field;
+    int size = dts_type_bynum(tenv, d->type)->info.size;
 
     if (offset >= 0) {
-      field = dts_construct(tenv, d->type, datum->data+offset);
+      field = (dts_object*)dts_alloc(tenv, 0, d->type);
+      field->len = size;
+      field->data = datum->data+offset;
     } else {
-      field = (dts_object*)_smacq_alloc(dts_type_bynum(tenv, d->type)->info.size, d->type);
+      field = (dts_object*)dts_alloc(tenv, size, d->type);
       if (!d->desc.getfunc(datum, field)) {
+	/* getfunc failed, release memory */
 	dts_decref(field);
 	field = NULL;
       }
@@ -312,21 +316,21 @@ static inline const dts_object * dts_getfield_single(dts_environment * tenv, con
     return field;
 #ifndef SMACQ_OPT_FORCEFIELDCACHE
    } else {
-    data->type = d->type;
-    data->len = dts_type_bynum(tenv, d->type)->info.size;
+    scratch->type = d->type;
+    scratch->len = dts_type_bynum(tenv, d->type)->info.size;
     
     if (offset >= 0) {
       //fprintf(stderr, "%s offset %d (constant), len = %d\n", name, offset, *len);
-      data->data = dts_getdata(datum) + offset;
-      return data;
+      scratch->data = dts_getdata(datum) + offset;
+      return scratch;
     } else {
       //fprintf(stderr, "offset %d; calling getfunc()%p for %s\n", offset, d->desc.getfunc, name);
       
       assert(d->desc.getfunc);
-      if (!d->desc.getfunc(datum, data)) {
+      if (!d->desc.getfunc(datum, scratch)) {
      	return NULL;
       } else {
-      	return data;
+      	return scratch;
       }
     }
    }

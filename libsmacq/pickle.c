@@ -139,7 +139,7 @@ int read_datum(smacq_environment * env, struct pickle * pickle, int fd, const dt
   }
 
   assert(dts_getsize(&hdr.datum) + sizeof(struct sockdatum) > 0);
-  *datump = (dts_object*)env->alloc(dts_getsize(&hdr.datum) + sizeof(dts_object),
+  *datump = (dts_object*)smacq_alloc(env, dts_getsize(&hdr.datum) + sizeof(dts_object),
 					 maptype(pickle, dts_gettype(&hdr.datum), fd));
   
   if ((temp = receive_it(fd, dts_getdata(*datump), dts_getsize(&hdr.datum))) < 0) {
