@@ -34,6 +34,12 @@ To only see warning output (less verbose):
 To generate documentation and a tarball for distribution:
         make dist
 
+To build a debugging version:
+	make debug
+
+To build a profiling version:
+	make profile
+
 Dependencies:
 -------------
 If you change any of the autoconf/automake files, you may have problems, you
@@ -45,4 +51,14 @@ If you're seeing versioning problems with autoconf/automake, try running
 
 To build the grammer files, you need Bison.  We have seen problems with
 Bison version 1.35 in the past.
+
+Manpages are generated from Docbook SGML.  This introduces several dependencies.
+After looking at several options to convert Docbook to Unix man format, the only
+viable option appears to be Debian's version of docbook-to-man.  It is easy to
+port it to other environments.  
+
+In addition to the dependencies in README, you probably want the following:
+
+ - MacOS/X + Fink: 	apt-get install ghostscript bison automake1.7 opensp4 docbook-dtd
+ - Debian:		(similar to above) + docbook-to-man
 
