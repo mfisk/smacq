@@ -6,6 +6,7 @@ VERSION 2.2 - unreleased
            - Renaming of attribute functions with "AS" now requires each 
              attribute function to have -f option
 2005-03 - print module: 
+           - 2005-03: added --filefield option
            - 2005-03: added --binary option
            - 2005-02: added -f option for file output
            - 2005-01: --boulder (Boulder output format) added
