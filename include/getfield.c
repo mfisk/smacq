@@ -9,7 +9,7 @@ static inline const dts_object * dts_getfield_new(dts_environment * tenv, const 
   struct dts_type * t = dts_type_bynum(tenv, dts_gettype(datum));
   assert(t);
   
-  d = darray_get(&t->fields, fnum);
+  d = (struct dts_field_info*)darray_get(&t->fields, fnum);
   
   if (d) {
     int size = dts_type_bynum(tenv, d->type)->info.size;
@@ -20,7 +20,7 @@ static inline const dts_object * dts_getfield_new(dts_environment * tenv, const 
       //fprintf(stderr, "getfield has offset %d\n", offset);
       field = (dts_object*)dts_alloc(tenv, 0, d->type);
       field->len = size;
-      field->data = datum->data+offset;
+      field->data = (char*)datum->data + offset;
     } else {
       //fprintf(stderr, "getfield has helper func\n");
       field = (dts_object*)dts_alloc(tenv, size, d->type);
@@ -53,7 +53,7 @@ static inline const dts_object * dts_getfield_new(dts_environment * tenv, const 
 static inline const dts_object * dts_getfield_single(dts_environment * tenv, const dts_object * datum, dts_field_element fnum) {
   dts_object * cached;
   
-  cached = darray_get((struct darray*)&datum->fields, fnum);
+  cached = (dts_object*)darray_get((struct darray*)&datum->fields, fnum);
   if (cached) {
     dts_incref(cached, 1);
     return cached;

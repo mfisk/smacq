@@ -19,7 +19,7 @@ static inline void * darray_get(struct darray * darray, unsigned int element) {
 
 static void darray_set(struct darray * darray, unsigned int element, const void * value) {
   if ((int)element > darray->max) {
-	darray->array = crealloc(darray->array, 
+	darray->array = (long unsigned int*)crealloc(darray->array, 
 				 (element+1) * sizeof(unsigned long), 
 				 (darray->max+1) * sizeof(unsigned long));
 	darray->max = element;
@@ -42,7 +42,7 @@ static inline void darray_init(struct darray * darray, int num) {
   assert(num >= 0);
   assert(sizeof(unsigned long) == sizeof(void *));
   if (num) {
-    darray->array = calloc(num, sizeof(unsigned long));
+    darray->array = (long unsigned int*)calloc(num, sizeof(unsigned long));
   }
   darray->max = num-1;
 }
@@ -55,10 +55,12 @@ static inline int darray_size(struct darray* darray) {
 
 typedef struct darray idset;
 
+/*
 struct idset {
   int size;
   struct darray * strs;
 };
+*/
 
 static inline void idset_init(idset * idset) {
   darray_init(idset, 0);
