@@ -26,12 +26,6 @@
 # define SMACQ_OPT_TAILS
 #endif
 
-#ifdef __cplusplus
-#   define EXTERN extern "C"
-#else
-#   define EXTERN extern
-#endif
-
 #if defined(WIN32) && !defined(inline)       
 	/* Visual C++ uses the keyword "__inline" rather than "inline" */
 	#define inline __inline 
@@ -52,7 +46,18 @@
 #define _PTHREAD_H
 #endif
 
-typedef enum _smacq_result { SMACQ_FREE=1, SMACQ_PASS=2, SMACQ_ERROR=4, SMACQ_END=8, SMACQ_CANPRODUCE=256, SMACQ_PRODUCE=512} smacq_result;
+#ifndef BEGIN_C_DECLS
+# ifdef __cplusplus
+#   define BEGIN_C_DECLS extern "C" {
+#   define END_C_DECLS }
+# else
+#   define BEGIN_C_DECLS
+#   define END_C_DECLS
+# endif
+#endif
+
+enum _smacq_result { SMACQ_FREE=1, SMACQ_PASS=2, SMACQ_ERROR=4, SMACQ_END=8, SMACQ_CANPRODUCE=256, SMACQ_PRODUCE=512};
+typedef enum _smacq_result smacq_result;
 
 #define SMACQ_MULTITHREAD 65536
 
@@ -84,11 +89,6 @@ struct smacq_init {
   smacq_thread_fn * thread_fn;
 };
 
-typedef smacq_result smacq_produce_fn(struct state * state, const dts_object **, int * outchan);
-typedef smacq_result smacq_consume_fn(struct state * state, const dts_object *, int * outchan);
-typedef smacq_result smacq_init_fn(struct smacq_init *);
-typedef smacq_result smacq_shutdown_fn(struct state *);
-
 /*
  * Interrogation structures
  */
@@ -99,22 +99,32 @@ struct smacq_module_algebra {
   unsigned int nesting:1;
 };
 
+typedef smacq_result smacq_produce_fn(struct state * state, const dts_object **, int * outchan);
+typedef smacq_result smacq_consume_fn(struct state * state, const dts_object *, int * outchan);
+typedef smacq_result smacq_init_fn(struct smacq_init *);
+typedef smacq_result smacq_shutdown_fn(struct state *);
+#include <SmacqModule.h>
+typedef SmacqModule*  smacq_constructor_fn(struct smacq_init *);
+
 struct smacq_functions {
   smacq_produce_fn * produce;
   smacq_consume_fn * consume;
   smacq_init_fn * init;
   smacq_shutdown_fn * shutdown;
   smacq_thread_fn * thread;
+  smacq_constructor_fn * constructor;
   struct smacq_module_algebra algebra;
 };
+
+BEGIN_C_DECLS
 
 /*
  * Module threading routines 
  */
-extern smacq_result smacq_thread_init(struct smacq_init * volatile_context);
-extern smacq_result smacq_thread_consume(struct state * state, const dts_object * datum, int * outchan);
-extern smacq_result smacq_thread_produce(struct state * state, const dts_object ** datum, int *outchan);
-extern smacq_result smacq_thread_shutdown(struct state * state);
+smacq_result smacq_thread_init(struct smacq_init * volatile_context);
+smacq_result smacq_thread_consume(struct state * state, const dts_object * datum, int * outchan);
+smacq_result smacq_thread_produce(struct state * state, const dts_object ** datum, int *outchan);
+smacq_result smacq_thread_shutdown(struct state * state);
 
 #define SMACQ_THREADED_MODULE(THREAD) { \
 	init: smacq_thread_init, \
@@ -123,19 +133,19 @@ extern smacq_result smacq_thread_shutdown(struct state * state);
 	shutdown: smacq_thread_shutdown, \
 	thread: THREAD };
 
-extern const dts_object * smacq_read(struct smacq_init * context);
-extern void smacq_write(struct state * state, dts_object * datum, int outchan);
-extern void smacq_decision(struct smacq_init * context, const dts_object * datum, smacq_result result);
-extern int smacq_flush(struct smacq_init * context);
+const dts_object * smacq_read(struct smacq_init * context);
+void smacq_write(struct state * state, dts_object * datum, int outchan);
+void smacq_decision(struct smacq_init * context, const dts_object * datum, smacq_result result);
+int smacq_flush(struct smacq_init * context);
 
 
 /*
  * User Interface to main system
  */
 enum smacq_scheduler { ITERATIVE, RECURSIVE, LOOP, THREADED };
-EXTERN int smacq_start(smacq_graph *, enum smacq_scheduler, dts_environment *);
+int smacq_start(smacq_graph *, enum smacq_scheduler, dts_environment *);
 void smacq_init_modules(smacq_graph *, smacq_environment *);
-EXTERN smacq_graph * smacq_build_pipeline(int argc, char ** argv);
+smacq_graph * smacq_build_pipeline(int argc, char ** argv);
 smacq_graph * smacq_build_query(dts_environment * tenv, int argc, char ** argv);
 int smacq_execute_query(int argc, char ** argv);
 smacq_graph * smacq_add_new_child(smacq_graph * parent, int argc, char ** argv);
@@ -149,14 +159,16 @@ smacq_graph * smacq_graph_add_graph(smacq_graph * a, smacq_graph * b);
 smacq_graph * smacq_graph_clone(smacq_environment *, smacq_graph *);
 
 smacq_graph * smacq_new_module(int argc, char ** argv);
-EXTERN void smacq_free_module(smacq_graph * f);
-EXTERN void smacq_destroy_graph(smacq_graph * f);
+void smacq_free_module(smacq_graph * f);
+void smacq_destroy_graph(smacq_graph * f);
 smacq_graph * smacq_clone_child(smacq_graph * parent, int child);
 smacq_graph * smacq_clone_tree(smacq_graph * donorParent, smacq_graph * newParent, int child);
 
 int smacq_graph_print(FILE * fh, smacq_graph * f, int indent);
 int smacq_graphs_print(FILE * fh, smacq_graph * f, int indent);
 double smacq_graph_count_nodes(smacq_graph * f);
+
+END_C_DECLS
 
 enum smacq_log_level { INFO, WARN, ERROR, };
 

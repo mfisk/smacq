@@ -151,6 +151,8 @@ typedef struct _dts_msg {
   struct _dts_msg * next;
 } dts_message;
 
+BEGIN_C_DECLS
+
 void msg_send(dts_environment *, dts_field_element, const dts_object *, dts_comparison *);
 dts_object * dts_construct(dts_environment * tenv, int type, void * data);
 static void dts_decref(const dts_object * d_const);
@@ -175,10 +177,11 @@ dts_comparison * dts_parse_tests(dts_environment * tenv, int argc, char ** argv)
 struct dts_operand * dts_parse_expr(dts_environment * tenv, int argc, char ** argv);
 char * dts_field_getname(dts_environment * tenv, dts_field f);
 void dts_free(const dts_object*);
-EXTERN int dts_requiretype(dts_environment *, char * name);
+int dts_requiretype(dts_environment *, char * name);
 void dts_prime_all_fields(dts_environment * tenv, const dts_object * o);
 
 typedef void smacq_filter_callback_fn(char * operation, int argc, char ** argv, void * data);
 void smacq_downstream_filters(smacq_graph * mod, smacq_filter_callback_fn callback, void * data);
+END_C_DECLS
 
 #endif
