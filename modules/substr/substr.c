@@ -16,7 +16,7 @@
 ** Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
-/* $Id: substr.c,v 1.2 2003/01/19 02:07:28 mfisk Exp $ */
+/* $Id: substr.c,v 1.3 2003/03/20 04:12:13 mfisk Exp $ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -206,6 +206,8 @@ substr_add(substr_object * rs, int len, unsigned char * str, int nocase, void * 
   int i;
   struct pattern * newp = calloc(sizeof(struct pattern),1);
   if (!newp) return(0);
+  assert(len);
+  /* if (len == 0) return(0); */
 
   newp->pattern = memdup(str, len);
   if (!newp->pattern) {
