@@ -10,7 +10,7 @@
 #include <smacq.h>
 #include <dts_packet.h>
 #include <FieldVec.h>
-#include <IoVec.h>
+#include <FieldVec.h>
 
 /* Glib and Snort both define MIN and MAX macros.  
  * Undef the glib one (provided by smacq.h) so that we get the Snort one 
@@ -110,10 +110,7 @@ int reassemble_init(struct smacq_init * context) {
   int argc;
   char ** argv;
 
-  struct state * state = context->state = g_new0 1);
   //u_char * snort_args = "both, ports all";
-
-  assert(state);
 
 #ifdef DEBUG
   fprintf(stderr, "*** reassemble.c::reassemble_init(): entered...\n");

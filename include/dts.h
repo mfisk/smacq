@@ -233,10 +233,8 @@ int dts_comparefields(dts_field a, dts_field b);
 #define dts_data_as(datum,type) (*((type*)((datum)->getdata())))
 #define dts_set(datum,type,val) (datum)->setsize(sizeof(type)) , (*((type*)((datum)->getdata()))) = (val), 1 
 
-void dts_decref(DtsObject d);
+//void dts_decref(DtsObject d);
 	
-typedef void smacq_filter_callback_fn(char * operation, int argc, char ** argv, void * data);
-void smacq_downstream_filters(smacq_graph * mod, smacq_filter_callback_fn callback, void * data);
 END_C_DECLS
 
 #include <DtsObject.h>

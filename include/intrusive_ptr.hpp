@@ -34,7 +34,6 @@ namespace boost
 //
 //  The object is responsible for destroying itself.
 //
-
 template<class T> class intrusive_ptr
 {
 private:

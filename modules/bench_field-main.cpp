@@ -8,7 +8,7 @@
 #include <assert.h>
 #include <smacq.h>
 #include <FieldVec.h>
-#include <IoVec.h>
+#include <FieldVec.h>
 
 #define LOOPSIZE 1e7
 
@@ -40,7 +40,7 @@ static double tv_diff(struct timeval tvstart, struct timeval tvstop) {
   return (sec + (usec * 1e-6));
 }
 
-static smacq_result bench_field_consume DtsObject datum, int * outchan) {
+static smacq_result bench_field_consume DtsObject datum, int & outchan) {
   DtsObject x;
   double val;
   double len_cache, len_nocache, len_fn;
@@ -100,9 +100,6 @@ static smacq_result bench_field_consume DtsObject datum, int * outchan) {
 static smacq_result bench_field_init(struct smacq_init * context) {
   int argc = 0;
   char ** argv;
-  struct state * state = context->state = g_new0 1);
-  env = context->env;
-
 
   {
     smacq_opt field;
@@ -127,7 +124,7 @@ static smacq_result bench_field_shutdown(struct state * state) {
 }
 
 
-static smacq_result bench_field_produce DtsObject datum, int * outchan) {
+static smacq_result bench_field_produce DtsObject datum, int & outchan) {
   return SMACQ_END;
 }
 

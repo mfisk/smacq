@@ -88,7 +88,7 @@ pythonModule::pythonModule(struct smacq_init * context) {
 	return SMACQ_PASS;
 }
 
-smacq_result pythonModule::consume(DtsObject &datum, int * outchan) {
+smacq_result pythonModule::consume(DtsObject &datum, int & outchan) {
 	PyDtsObject * result, * temp;
 
 //	printf("Datum is at %d\n", datum);

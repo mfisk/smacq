@@ -65,7 +65,7 @@ static inline int min(int a, int b) {
 
 wardenModule::wardenModule(smacq_init * context) : SmacqModule(context) {}
 
-smacq_result wardenModule::consume(DtsObject datum, int * outchan) {
+smacq_result wardenModule::consume(DtsObject datum, int & outchan) {
   struct dts_pkthdr * pkthdr;
   struct ether_header * ethhdr;
   struct ip * iphdr;
@@ -107,7 +107,7 @@ smacq_result wardenModule::consume(DtsObject datum, int * outchan) {
  return (smacq_result)(SMACQ_FREE|SMACQ_PRODUCE);
 }
 
-smacq_result wardenModule::produce(DtsObject & datump, int * outchan) {
+smacq_result wardenModule::produce(DtsObject & datump, int & outchan) {
   if (datum) {
     datump = datum;
     datum = NULL;

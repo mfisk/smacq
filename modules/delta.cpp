@@ -8,7 +8,7 @@
 #include <assert.h>
 #include <smacq.h>
 #include <FieldVec.h>
-#include <IoVec.h>
+#include <FieldVec.h>
 
 #define SMACQ_MODULE_IS_ANNOTATION 1
 
@@ -31,7 +31,7 @@ SMACQ_MODULE(delta,
   dts_field deltafield;
 ); 
  
-smacq_result deltaModule::consume(DtsObject datum, int * outchan) {
+smacq_result deltaModule::consume(DtsObject datum, int & outchan) {
   DtsObject newx;
 
   if (! (newx = datum->getfield(xfield))) {

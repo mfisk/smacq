@@ -29,7 +29,7 @@ SMACQ_MODULE(cflow,
   int cflow_type_size;
 );
 
-smacq_result cflowModule::produce(DtsObject & datump, int * outchan) {
+smacq_result cflowModule::produce(DtsObject & datump, int & outchan) {
   DtsObject datum;
 
   datum = dts->newObject(cflow_type, cflow_type_size);

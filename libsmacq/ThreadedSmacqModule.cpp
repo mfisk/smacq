@@ -43,7 +43,7 @@ int ThreadedSmacqModule::smacq_flush() {
 
 
 void ThreadedSmacqModule::smacq_write(DtsObject datum, int outchan) {
-  struct dts_list * entry = g_new(struct dts_list, 1);
+  struct dts_list * entry = new dts_list;
   entry->d = datum;
   entry->outchan = outchan;
 
@@ -77,7 +77,7 @@ ThreadedSmacqModule::ThreadedSmacqModule(struct smacq_init * volatile_context) :
   }
 }
 
-smacq_result ThreadedSmacqModule::consume(DtsObject datum, int * outchan) {
+smacq_result ThreadedSmacqModule::consume(DtsObject datum, int & outchan) {
   this->datum = datum;
 
   if (!setjmp(this->event_stack)) {
@@ -88,7 +88,7 @@ smacq_result ThreadedSmacqModule::consume(DtsObject datum, int * outchan) {
   return this->result;
 }
 
-smacq_result ThreadedSmacqModule::produce(DtsObject datum, int *outchan) {
+smacq_result ThreadedSmacqModule::produce(DtsObject datum, int & outchan) {
   smacq_result result;
   
   if (!this->product) {
@@ -96,7 +96,7 @@ smacq_result ThreadedSmacqModule::produce(DtsObject datum, int *outchan) {
   } else {
     struct dts_list * entry = this->product;
     datum = entry->d;
-    *outchan = entry->outchan;
+    outchan = entry->outchan;
     
     this->product = entry->next;
     if (this->product_tail == entry) {

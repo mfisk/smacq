@@ -9,7 +9,7 @@
 #include <smacq.h>
 #include <FieldVec.h>
 #include <bloom.h>
-#include <IoVec.h>
+#include <FieldVec.h>
 
 /* Really it's an ulonglong, but STL doesn't come with a hash function
    for that, so we're lazy and truncate to ulong. */
@@ -23,8 +23,8 @@ SMACQ_MODULE(uniq,
 	     PROTO_CONSUME();
 	     
 	     FieldVec fieldvec;
-	     IoVecSet * perfectset;
-	     IoVecBloomSet * probset;
+	     FieldVecSet * perfectset;
+	     FieldVecBloomSet * probset;
 	     IdSet * idset;
 	     double prob; // Use probabilistic algorithms?
 	     int use_obj_id;
@@ -39,7 +39,7 @@ static struct smacq_options options[] = {
 /*
  * Check presence in set.
  */
-smacq_result uniqModule::consume(DtsObject datum, int * outchan) {
+smacq_result uniqModule::consume(DtsObject datum, int & outchan) {
   bool isnew;
 
   if (use_obj_id) {
@@ -48,10 +48,12 @@ smacq_result uniqModule::consume(DtsObject datum, int * outchan) {
     isnew = idset->insert(id).second;
   } else if (prob) {
     fieldvec.getfields(datum);
-    isnew = probset->insert(fieldvec).second;
+    isnew = probset->insert((DtsObjectVec)fieldvec).second;
   } else {
     fieldvec.getfields(datum);
     isnew = perfectset->insert(fieldvec).second; 
+    fprintf(stderr, "uniq consume lookup returned %d on %d\n", 
+	    (int)isnew, fieldvec.size());
   }
 
   if (isnew) {
@@ -90,9 +92,9 @@ uniqModule::uniqModule(struct smacq_init * context)
   if (use_obj_id) {
     idset = new IdSet;
   } else if (!prob) {
-    perfectset = new IoVecSet();
+    perfectset = new FieldVecSet();
   } else {
-    probset = new IoVecBloomSet();
+    probset = new FieldVecBloomSet();
     // XXX: use prob to constrain memory
   }
 }

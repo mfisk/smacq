@@ -1,6 +1,6 @@
 #include <smacq-parser.h>
 #include <smacq-internal.h>
-#include <smacq-dataflow.h>
+#include <SmacqGraph.h>
 #include <dts.h>
 
 #define tmalloc(type, number) (type*)malloc(number*sizeof(type))
@@ -10,7 +10,7 @@
 DTS * parse_dts;
 extern dts_comparison * Comp;
 extern struct dts_operand * Expr;
-extern smacq_graph * Graph;
+extern SmacqGraph * Graph;
 extern int yyfilterparse();
 extern int yyexprparse();
 extern int yysmacql_parse();
@@ -74,50 +74,30 @@ char * arglist2str(struct arglist * alist) {
 }
 
 void graph_join(struct graph * graph, struct graph newg) {
-	if (!newg.head) 
-		return; /* Do nothing */
+  if (!newg.head) 
+    return; /* Do nothing */
+  
+  assert(graph);
+  
+  if (!graph->head) {
+    graph->head = newg.head;
+    graph->tail = newg.tail;
+    return;
+  }
+  
+  graph->head->join(newg.head);
 
-	assert(graph);
-
-	if (!graph->head) {
-		graph->head = newg.head;
-		graph->tail = newg.tail;
-		return;
-	}
-
-	/* fprintf(stderr, "Adding %s after %s\n", newg.head->name, graph->tail->name); */
-
-	/* Splice them together */
-	assert(graph->tail);
-
-	if (graph->head->next_graph) {
-		/* Existing graph may have multiple tails */
-		fprintf(stderr, "Using bag of graphs as a source is not yet supported\n");
-		smacq_add_child(graph->tail, newg.head); 
-	} else {
-		smacq_add_child(graph->tail, newg.head); 
-	}
-
-	if (newg.head->next_graph) {
-		/* This graph has multiple heads that should all become children */
-		smacq_graph * sg = newg.head->next_graph;
-		smacq_graph * prev = newg.head;
-
-		for( ; sg; prev=sg, sg=sg->next_graph) {
-			prev->next_graph = NULL;
-			smacq_add_child(graph->tail, sg); 
-		}
-	}
-	
-	graph->tail = newg.tail;
+  graph->tail = newg.tail;
 }
-	
-void graph_append(struct graph * graph, smacq_graph * newmod) {
-	if (graph->tail) 
-		smacq_add_child(graph->tail, newmod); 
-	graph->tail = newmod;
-	if (! graph->head) 
-		graph->head = newmod;
+
+void graph_append(struct graph * graph, SmacqGraph * newmod) {
+  if (graph->tail) 
+    graph->tail->add_child(newmod); 
+
+  graph->tail = newmod;
+
+  if (! graph->head) 
+    graph->head = newmod;
 }
 
 struct arglist * arglist_append(struct arglist * tail, struct arglist * addition) {
@@ -206,11 +186,11 @@ struct graph newmodule(char * module, struct arglist * alist) {
      if (rename_argc > 1) {
         /* We need to splice in a rename module before this module */
      	rename_argv[0] = "rename";
-        graph_append(&graph, smacq_new_module(rename_argc, rename_argv));
+        graph_append(&graph, new SmacqGraph(rename_argc, rename_argv));
      }
 
      arglist2argv(anew, &argc, &argv);
-     graph_append(&graph, smacq_new_module(argc, argv));
+     graph_append(&graph, new SmacqGraph(argc, argv));
 
      return graph;
 }
@@ -784,11 +764,11 @@ struct dts_operand * DTS::parse_expr(int argc, char ** argv) {
 }
 
 
-smacq_graph * smacq_build_query(DTS * tenv, int argc, char ** argv) {
+SmacqGraph * smacq_build_query(DTS * tenv, int argc, char ** argv) {
   int size = 0;
   int i;
   char * qstr; 
-  smacq_graph * graph;
+  SmacqGraph * graph;
   int res;
 
   parse_dts = tenv;

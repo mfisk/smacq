@@ -44,7 +44,7 @@ static inline smacq_result smacq_produce_canproduce(struct smacq_outputq ** qp) 
   }
 }
 
-static inline smacq_result smacq_produce_dequeue(struct smacq_outputq ** qp, DtsObject o, int * outchan) {
+static inline smacq_result smacq_produce_dequeue(struct smacq_outputq ** qp, DtsObject o, int & outchan) {
   struct smacq_outputq * head = *qp;
 
   if (!head) {
@@ -52,7 +52,7 @@ static inline smacq_result smacq_produce_dequeue(struct smacq_outputq ** qp, Dts
   }
 
   o = head->o;
-  *outchan = head->outchan;
+  outchan = head->outchan;
   *qp = head->next;
 
   /* Update both ends of queue */

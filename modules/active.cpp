@@ -15,7 +15,7 @@
 #include <assert.h>
 #include <smacq.h>
 #include <FieldVec.h>
-#include <IoVec.h>
+#include <FieldVec.h>
 
 /* Programming constants */
 
@@ -38,7 +38,7 @@ struct srcstat {
 struct state {
   DTS * env;
   FieldVec fieldvec;
-  IoVecHash *stats;
+  FieldVecHash *stats;
 
   FILE * printfd;
 
@@ -86,7 +86,7 @@ static int isexpired(gpointer key, gpointer value, gpointer userdata) {
  * 3) Timout idle flows and send out a final record
  *
  */
-smacq_result activeModule::consume(DtsObject datum, int * outchan) {
+smacq_result activeModule::consume(DtsObject datum, int & outchan) {
   struct srcstat * s;
 
   DtsObject field;
@@ -158,8 +158,6 @@ smacq_result activeModule::consume(DtsObject datum, int * outchan) {
 activeModule::activeModule(struct smacq_init * context) {
   int argc = 0;
   char ** argv;
-  struct state * state = context->state = g_new0 1);
-  env = context->env;
 
   {
 	smacq_opt interval;
@@ -193,7 +191,7 @@ activeModule::~activeModule(struct state * state) {
 }
 
 
-smacq_result activeModule::produce(DtsObject & datum, int * outchan) {
+smacq_result activeModule::produce(DtsObject & datum, int & outchan) {
   return SMACQ_END;
 }
 

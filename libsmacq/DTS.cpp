@@ -152,7 +152,7 @@ dts_typeid DTS::requiretype(const char * name) {
   t = (struct dts_type*)g_hash_table_lookup(types_byname, name);
   if (t)  return(t->num);
 
-  t = g_new0(struct dts_type, 1);
+  t = new dts_type;
   //darray_init(&t->fields, max_field);
   t->name=strdup(name);
   t->info.size = -1; // Variable

@@ -1,7 +1,7 @@
 #include <glib.h>
 #include <sys/uio.h>
 #include <stdint.h>
-#include <IoVec.h>
+#include <FieldVec.h>
 #include <set>
 #include <utility>
 #include <vector>
@@ -65,7 +65,7 @@ template <class T>
 		     }
   };
 
-class IoVecBloomSet : public BloomSet<IoVec> {};
+class FieldVecBloomSet : public BloomSet<DtsObjectVec> {};
 
 template <class T, class COUNTER>
   class BloomCounters : std::vector<COUNTER>, Bloom<T> {
@@ -107,11 +107,11 @@ template <class T, class COUNTER>
     
   };
 
-class IoVecBloomCounters : public BloomCounters<IoVec, unsigned int> {
+
+
+class FieldVecBloomCounters : public BloomCounters<DtsObjectVec, unsigned int> {
  public:
-  IoVecBloomCounters(int size=DEFAULTRANGE) 
-    : BloomCounters<IoVec, unsigned int> (size) 
+  FieldVecBloomCounters(int size=DEFAULTRANGE) 
+    : BloomCounters<DtsObjectVec, unsigned int> (size) 
 			     {}
 };
-
-typedef int bar;

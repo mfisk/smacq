@@ -18,7 +18,7 @@ SMACQ_MODULE(project,
   DtsObject product;
 ); 
  
-smacq_result projectModule::consume(DtsObject datum, int * outchan) {
+smacq_result projectModule::consume(DtsObject datum, int & outchan) {
   DtsObject newo;
   FieldVec::iterator i;
 
@@ -49,7 +49,7 @@ projectModule::projectModule(struct smacq_init * context) : SmacqModule(context)
   empty_type = dts->requiretype("empty");
 }
 
-smacq_result projectModule::produce(DtsObject & datum, int * outchan) {
+smacq_result projectModule::produce(DtsObject & datum, int & outchan) {
   if (product) {
 	  datum = product;
 	  product = NULL;

@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <smacq.h>
 #include <errno.h>
+#include <SmacqScheduler.h>
 
 /* Programming constants */
 
@@ -38,21 +39,23 @@ struct dfa_state {
 };
 
 struct transition {
-  smacq_graph * graph;
+  SmacqGraph * graph;
   int next_state;
-  struct runq * runq;
+  SmacqScheduler * sched;
 };
 
 int dfaModule::try_transition(DtsObject datum, struct transition * t) {
   DtsObject output;
   smacq_result more;
 
-  smacq_sched_iterative_input(t->graph, datum, t->runq);
-  more = smacq_sched_iterative_busy(t->graph, &output, t->runq, 0);
+  t->sched->input(datum);
+  more = t->sched->get(output);
 
-  if (SMACQ_END & more) {
+  if ((SMACQ_END|SMACQ_ERROR) & more) {
     assert(0);
   }
+
+  assert(more & SMACQ_PASS);
 
   if (datum == output) {
     return t->next_state;
@@ -84,7 +87,7 @@ int dfaModule::dfa_try(DtsObject datum, int current_state) {
   return -1;
 }
 
-smacq_result dfaModule::consume(DtsObject datum, int * outchan) {
+smacq_result dfaModule::consume(DtsObject datum, int & outchan) {
   int i;
   int next_state;
 
@@ -126,11 +129,11 @@ smacq_result dfaModule::consume(DtsObject datum, int * outchan) {
   next_state = dfa_try(datum, start_state);
   if (next_state >= 0) {
     /* Instantiate a new machine */
-    struct dfa * dfa = g_new(struct dfa, 1);
-    dfa->state = next_state;
-    dfa->stack = datum;
+    struct dfa * ndfa = new dfa();
+    ndfa->state = next_state;
+    ndfa->stack = datum;
     
-    darray_append(&machines, dfa);
+    darray_append(&machines, ndfa);
     //fprintf(stderr, "Cranking up new DFA in state %d\n", next_state);
 
     return SMACQ_FREE;
@@ -206,10 +209,7 @@ int dfaModule::parse_dfa(char * filename) {
 	*/
       }
 
-      if (0 != smacq_start(transition->graph, ITERATIVE, dts)) {
-        return -1;
-      }
-      smacq_sched_iterative_init(transition->graph, &transition->runq, 0);
+      transition->sched = new SmacqScheduler(dts, transition->graph, false);
     }
 
     if (this_state_num > -1) {

@@ -8,8 +8,7 @@
 #include <assert.h>
 #include <smacq.h>
 #include <FieldVec.h>
-#include <IoVec.h>
-#include <produceq.h>
+#include <FieldVec.h>
 
 static struct smacq_options options[] = {
   {"t", {double_t:1}, "Clock tick length", SMACQ_OPT_TYPE_DOUBLE},
@@ -28,13 +27,12 @@ SMACQ_MODULE(clock,
   int refreshtype;
   int ticktype;
   double period;
-  struct smacq_outputq * outputq;
 
   long int current_tick;
   DtsObject current_ticko;
 );
 
-smacq_result clockModule::consume(DtsObject datum, int * outchan) {
+smacq_result clockModule::consume(DtsObject datum, int & outchan) {
   double ts;
   long int tick;
 
@@ -57,7 +55,7 @@ smacq_result clockModule::consume(DtsObject datum, int * outchan) {
 	DtsObject refresh = dts->newObject(refreshtype);
 	refresh->attach_field(clockfield, current_ticko);
   	//fprintf(stderr, "clock is queueing %p (a refresh of type %d)\n", refresh, refreshtype);
-	smacq_produce_enqueue(&outputq, refresh, -1);
+	enqueue(refresh, outchan);
 
   	ticko = dts->construct(ticktype, &tick); 
   	assert(ticko);
@@ -69,7 +67,7 @@ smacq_result clockModule::consume(DtsObject datum, int * outchan) {
   datum->attach_field(clockfield, current_ticko);
   
 
-  return (smacq_result)(SMACQ_PASS|smacq_produce_canproduce(&outputq));
+  return (SMACQ_PASS|canproduce());
 }
 
 clockModule::clockModule(struct smacq_init * context) : SmacqModule(context) {
@@ -98,15 +96,15 @@ clockModule::clockModule(struct smacq_init * context) : SmacqModule(context) {
   ticktype = dts->requiretype("int");
 }
 
-smacq_result clockModule::produce(DtsObject & datum, int * outchan) {
+smacq_result clockModule::produce(DtsObject & datum, int & outchan) {
   //fprintf(stderr, "clock is producing (a refresh)\n");
-  if (smacq_produce_peek(&outputq)) {
-  	return smacq_produce_dequeue(&outputq, datum, outchan);
+  if (canproduce()) {
+  	return dequeue(datum, outchan);
   } else {
 	/* Forced last call */
 	datum = dts->construct(refreshtype, NULL);
-	(datum)->attach_field(clockfield, current_ticko);
-	return (smacq_result)(SMACQ_PASS|SMACQ_END);
+	datum->attach_field(clockfield, current_ticko);
+	return (SMACQ_PASS|SMACQ_END);
   }
 }
 

@@ -47,7 +47,7 @@ static void print_gda_errors(GdaConnection * conn) {
 }
 
 
-smacq_result sqlinsertModule::consume(DtsObject datum, int * outchan) {
+smacq_result sqlinsertModule::consume(DtsObject datum, int & outchan) {
   char values [BUFSIZE] = "";
   char query [BUFSIZE] = "";
   int i, gdares;

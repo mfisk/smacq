@@ -4,7 +4,7 @@
 #include <assert.h>
 #include <smacq.h>
 #include <FieldVec.h>
-#include <IoVec.h>
+#include <FieldVec.h>
 
 #define KEYBYTES 128
 
@@ -30,7 +30,7 @@ static inline int min(int a, int b) {
   return (a<b ? a : b);
 }
 
-smacq_result encryptModule::consume(DtsObject datum, int * outchan) {
+smacq_result encryptModule::consume(DtsObject datum, int & outchan) {
   DtsObject field;
   unsigned long hval;
 
@@ -49,7 +49,7 @@ smacq_result encryptModule::consume(DtsObject datum, int * outchan) {
     return SMACQ_PASS;
   }
 
-  hval = fieldvec.hash();
+  hval = fieldvec.getobjs().hash();
 
   if (!add) {
     memcpy(field->getdata(), &hval, min(field->getsize(), sizeof(unsigned long)));
@@ -100,7 +100,7 @@ encryptModule::encryptModule(struct smacq_init * context) : SmacqModule(context)
 
 }
 
-smacq_result encryptModule::produce(DtsObject & datump, int * outchan) {
+smacq_result encryptModule::produce(DtsObject & datump, int & outchan) {
   if (datum) {
     datump = datum;
     datum = NULL;

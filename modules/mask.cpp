@@ -29,7 +29,7 @@ static struct smacq_options options[] = {
   END_SMACQ_OPTIONS
 };
 
-smacq_result maskModule::consume(DtsObject datum, int * outchan) {
+smacq_result maskModule::consume(DtsObject datum, int & outchan) {
   DtsObject fieldo;
   in_addr_t f;
   int found = 0;

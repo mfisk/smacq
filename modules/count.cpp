@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <smacq.h>
-//#include <IoVec.h>
+//#include <FieldVec.h>
 #include <FieldVec.h>
 
 /* Programming constants */
@@ -26,7 +26,7 @@ SMACQ_MODULE(count,
   void annotate(DtsObject datum, int c);
 
   FieldVec fieldvec;
-  IoVecHash<int> counters;
+  FieldVecHash<int> counters;
 
   int counter;
 
@@ -53,7 +53,7 @@ void countModule::annotate(DtsObject datum, int c) {
   }
 }
  
-smacq_result countModule::consume(DtsObject datum, int * outchan) {
+smacq_result countModule::consume(DtsObject datum, int & outchan) {
   int c;
 
   if (! fieldvec.empty()) {
@@ -80,7 +80,9 @@ smacq_result countModule::consume(DtsObject datum, int * outchan) {
   return SMACQ_PASS;
 }
 
-countModule::countModule(struct smacq_init * context) : SmacqModule(context) {
+countModule::countModule(struct smacq_init * context) 
+  : SmacqModule(context), counter(0)
+{
   int argc = 0;
   char ** argv = NULL;
   smacq_opt probability, countopt, allflag;
@@ -124,7 +126,9 @@ countModule::~countModule() {
 }
 
 
-smacq_result countModule::produce(DtsObject & datump, int * outchan) {
+smacq_result countModule::produce(DtsObject & datump, int & outchan) {
+  //fprintf(stderr, "count_produce()\n");
+  
   if (!lastin) {
     return SMACQ_FREE;
   }
@@ -138,5 +142,5 @@ smacq_result countModule::produce(DtsObject & datump, int * outchan) {
   }
 
   //fprintf(stderr, "count_produce() %p\n", datump);
-  return (smacq_result)(SMACQ_PASS|SMACQ_END);
+  return (SMACQ_PASS|SMACQ_END);
 }

@@ -82,7 +82,7 @@ inline void pcapliveModule::ProcessPacket(const struct old_pcap_pkthdr * hdr,
 
 }
 
-smacq_result pcapliveModule::produce(DtsObject & datump, int * outchan) {
+smacq_result pcapliveModule::produce(DtsObject & datump, int & outchan) {
   int retval;
 
   assert(pcap);

@@ -69,7 +69,7 @@ int socketModule::close_it(int closefd) {
   return 1;
 }
 
-smacq_result socketModule::produce(DtsObject & datump, int * outchan) {
+smacq_result socketModule::produce(DtsObject & datump, int & outchan) {
   struct sockaddr_in their_addr;
   int i, new_fd;
   socklen_t sin_size;
@@ -123,7 +123,7 @@ smacq_result socketModule::produce(DtsObject & datump, int * outchan) {
   } /* while */
 }
 
-smacq_result socketModule::consume(DtsObject datum, int * outchan) {
+smacq_result socketModule::consume(DtsObject datum, int & outchan) {
   assert(datum->write(pickle, connect_fd) > 0);
 
   return SMACQ_FREE;

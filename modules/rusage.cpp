@@ -59,7 +59,7 @@ static struct smacq_options options[] = {
   END_SMACQ_OPTIONS
 };
 
-smacq_result rusageModule::consume(DtsObject datum, int * outchan) {
+smacq_result rusageModule::consume(DtsObject datum, int & outchan) {
   struct rusage rusage;
   getrusage(RUSAGE_SELF, &rusage);
 

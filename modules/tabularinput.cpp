@@ -50,7 +50,7 @@ DtsObject tabularinputModule::default_parse(char * startp, char * endp) {
       return msgdata;
 }
 
-smacq_result tabularinputModule::produce(DtsObject & datump, int * outchan) {
+smacq_result tabularinputModule::produce(DtsObject & datump, int & outchan) {
   int i;
   char * startp, * stopp, * endp, line[MAX_STR];
   DtsObject msgdata;

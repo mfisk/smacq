@@ -15,11 +15,8 @@ extern void intrusive_ptr_release(DtsObject_ *);
 
 #include <intrusive_ptr.hpp>
 
-#ifdef DOXYGEN_KLUDGE
-typedef DtsObject_* DtsObject;
-#else
+/// A pointer to a DtsObject_
 typedef boost::intrusive_ptr<DtsObject_> DtsObject;
-#endif
 
 #endif
 

@@ -9,11 +9,7 @@ SMACQ_MODULE(head,
 	int left;
 );
 
-static struct smacq_options options[] = {
-  END_SMACQ_OPTIONS
-};
-
-smacq_result headModule::consume(DtsObject datum, int * outchan) {
+smacq_result headModule::consume(DtsObject datum, int & outchan) {
   assert(datum);
 
   if (left-- > 0) return SMACQ_PASS;

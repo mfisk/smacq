@@ -996,7 +996,7 @@ void newhandleQuery(char * query)
 {
 
   struct runq * runq = NULL;
-  smacq_graph * graph;
+  SmacqGraph * graph;
   DtsObjectrecord;
 
   DTS * tenv = dts_init();

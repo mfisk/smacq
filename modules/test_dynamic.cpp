@@ -21,11 +21,11 @@ static struct smacq_options options[] = {
   END_SMACQ_OPTIONS
 };
 
-smacq_result printModule::produce(DtsObject & datum, int * outchan) {
+smacq_result printModule::produce(DtsObject & datum, int & outchan) {
   return SMACQ_ERROR;
 }
 
-smacq_result printModule::consume(DtsObject datum, int * outchan) {
+smacq_result printModule::consume(DtsObject datum, int & outchan) {
   int i,j;
   int printed = 0;
   DtsObjectfield;

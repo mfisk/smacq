@@ -10,9 +10,8 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <smacq.h>
-#include <produceq.h>
 #include <FieldVec.h>
-#include <IoVec.h>
+#include <FieldVec.h>
 #include <vector>
 #include <dts.h>
 
@@ -22,12 +21,15 @@
 class PerType {
  public:
   dts_typeid id;
-  IoVecHash<int> outChan;
+  FieldVecHash<int> outChan;
 
-  PerType(DTS * dts, dts_typeid i, int argc, std::vector<char*> argv) : id(i) {
-    for (int i=0; i < argc; i++) {
+  PerType(DTS * dts, dts_typeid idt, std::vector<char*> argv) 
+    : id(idt) 
+  {
+    for (unsigned int i=0; i < argv.size(); i++) {
+      fprintf(stderr, "Set %p contains %s\n", this, argv[i]);
       DtsObject valo = dts->construct_fromstring(id, argv[i]);
-      outChan[*valo] = i-1;	
+      outChan[valo] = i;
     }
   }
 };
@@ -37,22 +39,18 @@ typedef stdext::hash_map<dts_typeid,PerType*> TypeMap;
 SMACQ_MODULE(equals,
   PROTO_CTOR(equals);
   PROTO_CONSUME();
-  PROTO_PRODUCE();
 
   dts_field field;
 
-  int argc;
   std::vector<char *> argv;
-
-  struct smacq_outputq * outputq;
   TypeMap typeSet;
 );
 
 /*
  * Check presense in set
  */
-smacq_result equalsModule::consume(DtsObject datum, int * outchan) {
-  IoVecHash<int>::iterator i;
+smacq_result equalsModule::consume(DtsObject datum, int & outchan) {
+  FieldVecHash<int>::iterator i;
 	
   DtsObject f = datum->getfield(field);
   if (! f) 
@@ -60,38 +58,36 @@ smacq_result equalsModule::consume(DtsObject datum, int * outchan) {
 
   PerType * t = typeSet[f->gettype()];
   if (!t) {
-    t = new PerType(dts, f->gettype(), argc, argv);
+    t = new PerType(dts, f->gettype(), argv);
     typeSet[f->gettype()] = t;
   }
 
-  i = t->outChan.find(*f);
+  //fprintf(stderr, "looking in set %p\n", t);
+  i = t->outChan.find(f);
 
   if (i == t->outChan.end()) {
-	return SMACQ_FREE;
+    return SMACQ_FREE;
   } else {
-	*outchan = i->second;
- 	return SMACQ_PASS;
+    fprintf(stderr, "equal\n");
+    outchan = i->second;
+    return SMACQ_PASS;
   }
 }
 
-equalsModule::equalsModule(struct smacq_init * context) : SmacqModule(context) {
-  int j = 0;
+equalsModule::equalsModule(struct smacq_init * context) 
+  : SmacqModule(context) 
+{
   assert(context->argc > 2);
   
   field = dts->requirefield(context->argv[1]);
+
+  argv.reserve(context->argc/2);
 
   /* Copy arguments without semicolons */
   for (int i = 2; i < context->argc; i++) {
 	if (strcmp(context->argv[i], ";")) {
 	  argv.push_back(context->argv[i]);
-	  //	argv[j] = context->argv[i];
-	  j++;
 	} 
   }
-  argc = j;
 }
 
-smacq_result equalsModule::produce(DtsObject & datum, int * outchan) {
-  return smacq_produce_dequeue(&outputq, datum, outchan);
-}
-                                                                                                                                 

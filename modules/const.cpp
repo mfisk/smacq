@@ -16,7 +16,7 @@ static struct smacq_options options[] = {
   END_SMACQ_OPTIONS
 };
 
-smacq_result constModule::consume(DtsObject datum, int * outchan) {
+smacq_result constModule::consume(DtsObject datum, int & outchan) {
   assert(datum);
 
   

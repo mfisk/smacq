@@ -8,7 +8,7 @@
 #include <assert.h>
 #include <smacq.h>
 #include <FieldVec.h>
-#include <IoVec.h>
+#include <FieldVec.h>
 
 static struct smacq_options options[] = {
   END_SMACQ_OPTIONS
@@ -34,7 +34,7 @@ SMACQ_MODULE(derivative,
   dts_field derivfield;
 ); 
  
-smacq_result derivativeModule::consume(DtsObject datum, int * outchan) {
+smacq_result derivativeModule::consume(DtsObject datum, int & outchan) {
   DtsObject newx, newy;
 
   if (! (newx = datum->getfield(xfield))) {

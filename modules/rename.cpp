@@ -15,7 +15,7 @@ SMACQ_MODULE(rename,
   FieldVec fieldvec;
 ); 
  
-smacq_result renameModule::consume(DtsObject datum, int * outchan) {
+smacq_result renameModule::consume(DtsObject datum, int & outchan) {
   int i;
   int num = fieldvec.size();
 

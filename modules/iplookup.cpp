@@ -91,14 +91,13 @@ void iplookupModule::add_entry(char * field, char * needle, int output) {
   node->data = (void*)output;
 }
 
-smacq_result iplookupModule::produce(DtsObject & datum, int * outchan) {
+smacq_result iplookupModule::produce(DtsObject & datum, int & outchan) {
   return smacq_produce_dequeue(&outputq, datum, outchan);
 }
 
-smacq_result iplookupModule::consume(DtsObject datum, int * outchan) {
+smacq_result iplookupModule::consume(DtsObject datum, int & outchan) {
   DtsObject field;
   int matched = 0;
-  int chan;
   int i;
   patricia_node_t * node;
 
@@ -121,13 +120,12 @@ smacq_result iplookupModule::consume(DtsObject datum, int * outchan) {
      node = patricia_search_best(mybatch->trie, prefix);
      Deref_Prefix(prefix);	 
      if (node) {
-	  	chan = (int)node->data;
+	  	outchan = (int)node->data;
 		if (matched) {
-			smacq_produce_enqueue(&outputq, datum, chan);
+			smacq_produce_enqueue(&outputq, datum, outchan);
 			
 	  	} else {
 	  		matched = 1;
-			*outchan = chan;
 		} 
      }
   }

@@ -8,7 +8,7 @@ noinst_LTLIBRARIES=libsmacq.la @ETHEREAL_LIBRARY@
 EXTRA_LTLIBRARIES=#libethereal.la
 #libethereal_la_SOURCES=`find @ETHEREAL_DIR@ \( -name plugins -prune \) , \( -name \*.lo -print \)` 
 
-libsmacq_la_SOURCES=mem.c args.c pickle.cpp sched-iter.cpp construct.cpp optimize.cpp sched.cpp msg.cpp filter.cpp ThreadedSmacqModule.cpp dynloader.c parsing.cpp cmalloc.c parser.ym scanner.lpp filter-parser.ym expr-parser.ym strucio.cpp DTS.cpp DtsObject.cpp smacq_result.cpp
+libsmacq_la_SOURCES=mem.c args.c pickle.cpp optimize.cpp msg.cpp filter.cpp ThreadedSmacqModule.cpp dynloader.c parsing.cpp cmalloc.c parser.ym scanner.lpp filter-parser.ym expr-parser.ym strucio.cpp DTS.cpp DtsObject.cpp smacq_result.cpp
 
 libsmacq_la_LIBADD=
 libsmacq_la_LDFLAGS = -rpath /bogus

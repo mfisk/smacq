@@ -2,8 +2,15 @@
 #include <zlib.h>
 
 enum strucio_read_type { EITHER, COPY, MMAP };
-class Filelist;
 
+/// A pure virtual base for classes that return filenames.
+class Filelist {
+ public:
+  virtual char * nextfilename() = 0;
+};
+
+
+/// A file reader/writer for structured data.
 class Strucio {
    public:
 	Strucio();
@@ -72,3 +79,54 @@ inline void * Strucio::read(void * buf, int len) {
   return read_multi(buf, len, EITHER);
 }   
             
+/// Return filenames from an index file.
+class FilelistBounded : public Filelist {
+ public:
+  FilelistBounded(char * root, long long lower, long long upper);
+  char * nextfilename();
+
+ protected:
+  char * indexfile;
+  FILE * index_fh;
+  long long lower_bound;
+  long long upper_bound;
+};
+
+/// Return a single filename.
+class FilelistOneshot : public Filelist {
+ public:
+  FilelistOneshot(char * filename) { this->file = filename; }
+  char * nextfilename() { 
+     char * filename = this->file;
+     this->file = NULL;
+     return filename;
+  }
+
+ protected:
+  char * file;
+
+};
+
+/// Return file names from STDIN.
+class FilelistStdin : public Filelist {
+ public:
+  char * nextfilename();
+};
+
+/// Return file names from an argument vector.
+class FilelistArgs : public Filelist {
+ public:
+  FilelistArgs(int, char **);
+  char * nextfilename();
+
+ protected:
+  int strucio_argc;
+  char ** strucio_argv;
+};
+
+/// Never return a file name.
+class FilelistError : public Filelist {
+ public:
+  char * nextfilename() { return NULL; }
+};
+

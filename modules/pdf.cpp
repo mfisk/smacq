@@ -54,7 +54,7 @@ void pdfModule::compute_all() {
   total = 0;
 }
   
-smacq_result pdfModule::consume(DtsObject datum, int * outchan) {
+smacq_result pdfModule::consume(DtsObject datum, int & outchan) {
   DtsObject count; 
   smacq_result res = SMACQ_FREE;
 
@@ -67,7 +67,7 @@ smacq_result pdfModule::consume(DtsObject datum, int * outchan) {
       	return SMACQ_PASS;
       }
   } else {
-  	struct obj_list * newo = g_new(struct obj_list, 1);
+  	struct obj_list * newo = new obj_list;
   	newo->obj = datum;
   	newo->next = list;
   	list = newo;
@@ -92,7 +92,7 @@ pdfModule::pdfModule(struct smacq_init * context)
 	countfield(dts->requirefield("count"))
 {}
 
-smacq_result pdfModule::produce(DtsObject & datum, int * outchan) {
+smacq_result pdfModule::produce(DtsObject & datum, int & outchan) {
   if (!outputq) {
     compute_all();
   }

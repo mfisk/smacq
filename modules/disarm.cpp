@@ -9,6 +9,7 @@
 #include <arpa/inet.h>
 #include <signal.h>
 #include <netdb.h>
+#include <SmacqGraph.h>
 
 #define MAX_LINE 1e7 /* == 1e7 == 10MB */
 
@@ -24,7 +25,7 @@ SMACQ_MODULE(disarm,
   PROTO_CTOR(disarm);
   PROTO_PRODUCE();
 
-  smacq_graph * self;
+  SmacqGraph * self;
   int datasock;
   FILE * datafh;
   unsigned long lineno;
@@ -134,7 +135,7 @@ int disarmModule::get_line(char ** buf, struct get_line * s) {
 	}
 }
 
-smacq_result disarmModule::produce(DtsObject & datump, int * outchan) {
+smacq_result disarmModule::produce(DtsObject & datump, int & outchan) {
 	char * hex;
 	unsigned char * decode;
 	int i;
@@ -317,7 +318,7 @@ disarmModule::disarmModule(struct smacq_init * context) : SmacqModule(context) {
   }
 
   /* Get downstream filters before we apply args */
-  smacq_downstream_filters(self, filter_callback, this);
+  self->downstream_filters(filter_callback, this);
 
   sv4_type = dts->requiretype("sv4");
 

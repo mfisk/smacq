@@ -44,9 +44,10 @@ void yysmacql_error(char*);
      #define yyrule   yysmacql_yyrule
 
 #include <smacq-parser.h>
-#include <smacq-dataflow.h>
+#include <SmacqGraph.h>
+
 static struct graph nullgraph = { head: NULL, tail: NULL };
-smacq_graph * Graph;
+SmacqGraph * Graph;
 extern int yylex();
 %}
 %defines
@@ -60,7 +61,7 @@ m4_include(grammer.ypp)
 queryline: query YYSTOP	
 	   { 
 #ifdef DEBUG
-	   	smacq_graph_print(stderr, $1.head, 0); 
+	   	$1.head->print(stderr, 0); 
 #endif
 		Graph = $1.head;
 		return 0;
@@ -126,10 +127,7 @@ parenquery : '(' query ')'	{ $$ = $2; }
 moreparenquery : parenquery
 	| parenquery '+' moreparenquery
 	   {
-	   	smacq_graph * g = $1.head;
-		while(g->next_graph)
-			g=g->next_graph;
-		g->next_graph = $3.head;
+		$1.head->add_graph($3.head);
 		$$ = $1;
 	   }
 	;
@@ -139,10 +137,7 @@ action : function args 		{ $$ = newmodule($1, $2); }
 	| '(' query ')'		{ $$ = $2; }
 	| '(' parenquery '+' moreparenquery ')'
 	   {
-	   	smacq_graph * g = $2.head;
-		while(g->next_graph)
-			g=g->next_graph;
-		g->next_graph = $4.head;
+		$2.head->add_graph($4.head);
 		$$ = $2;
 	   }
 	;

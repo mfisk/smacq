@@ -10,7 +10,7 @@
 #include <assert.h>
 #include <smacq.h>
 #include <FieldVec.h>
-#include <IoVec.h>
+#include <FieldVec.h>
 #include <dllist.h>
 #include <produceq.h>
 
@@ -77,7 +77,7 @@ SMACQ_MODULE(flowid,
 
   struct list timers;
 
-  IoVecHash<SrcStat*> stats;
+  FieldVecHash<SrcStat*> stats;
   
   int reverse;
 
@@ -131,13 +131,18 @@ inline void flowidModule::output(SrcStat * s) {
       // Output refresh record
       DtsObject msgdata;
       DtsObject refresh = dts->construct(refresh_type, NULL);
+      DtsObjectVec ov = s->fields.getobjs();
 
       msgdata = dts->construct(id_type, &s->id);
       refresh->attach_field(flowid_field, msgdata);
 
-      FieldVec::iterator i;
-      for (i = s->fields.begin(); i != s->fields.end(); i++) {
-	refresh->attach_field((*i)->num, (*i)->field_obj);
+      DtsObjectVec::iterator i;
+      int j = 0;
+      for (i = ov.begin(); 
+	   i != ov.end(); 
+	   i++) {
+	refresh->attach_field(s->fields[j]->num, *i);
+	j++;
       }
 
       msgdata = dts->construct(timeval_type, &s->lasttime);
@@ -164,7 +169,7 @@ inline void flowidModule::finalize(SrcStat * s) {
 }
 
 inline SrcStat * flowidModule::stats_lookup(DtsObject datum, int * swapped) {
-  IoVecHash<SrcStat *>::iterator s = stats.find(fieldvec);
+  FieldVecHash<SrcStat *>::iterator s = stats.find(fieldvec);
   if (s != stats.end()) return s->second;
   
   /* Try reverse */
@@ -224,7 +229,7 @@ void flowidModule::timers_manage() {
  * 3) Timout idle flows and send out a final record
  *
  */
-smacq_result flowidModule::consume(DtsObject datum, int * outchan) {
+smacq_result flowidModule::consume(DtsObject datum, int & outchan) {
   SrcStat * s;
   smacq_result status = SMACQ_FREE;
 
@@ -391,13 +396,13 @@ flowidModule::~flowidModule() {
   list_free(&timers);
 }
 
-smacq_result flowidModule::produce(DtsObject & datum, int * outchan) {
+smacq_result flowidModule::produce(DtsObject & datum, int & outchan) {
   if (smacq_produce_canproduce(&outputq)) {
     return smacq_produce_dequeue(&outputq, datum, outchan);
   } else {
     /* fprintf(stderr, "flowid: produce called with nothing in queue.  Outputing everything in current table!\n"); */
 
-    IoVecHash<SrcStat*>::iterator i;
+    FieldVecHash<SrcStat*>::iterator i;
     for (i=stats.begin(); i!=stats.end(); i++) {
       finalize(i->second);
     }

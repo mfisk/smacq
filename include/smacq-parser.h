@@ -24,8 +24,8 @@ struct arglist {
 };
 
 struct graph {
-      smacq_graph * head;
-      smacq_graph * tail;
+      SmacqGraph * head;
+      SmacqGraph * tail;
 };
 
 struct vphrase {

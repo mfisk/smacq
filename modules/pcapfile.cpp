@@ -179,7 +179,7 @@ void StrucioReader::newfile_hook() {
   fprintf(stderr, ")\n");
 }
 
-smacq_result pcapfileModule::produce(DtsObject & datum, int * outchan) {
+smacq_result pcapfileModule::produce(DtsObject & datum, int & outchan) {
   struct old_pcap_pkthdr * hdrp;
   struct dts_pkthdr * pkt;
 
@@ -283,7 +283,7 @@ void StrucioWriter::newfile_hook() {
   }
 }
 
-smacq_result pcapfileModule::consume(DtsObject datum, int * outchan) {
+smacq_result pcapfileModule::consume(DtsObject datum, int & outchan) {
   assert(datum);
 
   current_datum = datum;

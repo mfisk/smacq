@@ -1,14 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
 #include <assert.h>
 #include <smacq.h>
 #include <FieldVec.h>
-#include <IoVec.h>
+#include <FieldVec.h>
 
-/* Programming constants */
-
-#define KEYBYTES 128
 
 enum mode { ROUND_ROBIN, UNIQUE, BUCKET };
 
@@ -25,11 +21,11 @@ SMACQ_MODULE(split,
   int children;
   int bucket;
   enum mode mode;
-  smacq_graph * self;
-  IoVecHash<int> hashtable;
+  SmacqGraph * self;
+  FieldVecHash<int> hashtable;
 ); 
 
-smacq_result splitModule::consume(DtsObject datum, int * outchan) {
+smacq_result splitModule::consume(DtsObject datum, int & outchan) {
   int bucket;
   fieldvec.getfields(datum);
 	
@@ -42,11 +38,11 @@ smacq_result splitModule::consume(DtsObject datum, int * outchan) {
   } else if (mode == UNIQUE) {
     bucket = hashtable[fieldvec];
     if (!bucket) {
-	smacq_graph * newClone;
+	SmacqGraph * newClone;
 	bucket = bucket++;
 	//fprintf(stderr, "Cloning %d\n", bucket);
-        newClone = smacq_clone_tree(self, self, 0);
-	smacq_init_modules(newClone, dts);
+        newClone = self->clone_tree(NULL);
+	newClone->init(dts);
 
 	// 0 return value is error, so everything is inflated by 1
     	hashtable[fieldvec] = bucket;
@@ -60,7 +56,7 @@ smacq_result splitModule::consume(DtsObject datum, int * outchan) {
 
   // bucket = (bucket++) % children;
   //fprintf(stderr, "Sending to output #%d\n", bucket);
-  *outchan = bucket;
+  outchan = bucket;
   return SMACQ_PASS;
 }
 
@@ -103,7 +99,7 @@ splitModule::splitModule(struct smacq_init * context)
 	mode = ROUND_ROBIN;
 
   	for  (i=1; i < children; i++) {
-    		smacq_clone_tree(context->self, context->self, 0);
+	  context->self->clone_tree(NULL);
   	}
   }
 }

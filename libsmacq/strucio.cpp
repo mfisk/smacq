@@ -15,59 +15,8 @@
 #include <sys/mman.h>
 #include <strucio.h>
 
-class Filelist {
- public:
-  virtual char * nextfilename() = 0;
-};
 
-class BoundedFilelist : public Filelist {
- public:
-  BoundedFilelist(char * root, long long lower, long long upper);
-  char * nextfilename();
-
- protected:
-  char * indexfile;
-  FILE * index_fh;
-  long long lower_bound;
-  long long upper_bound;
-};
-
-class OneshotFilelist : public Filelist {
- public:
-  OneshotFilelist(char * filename) { this->file = filename; }
-  char * nextfilename() { 
-     char * filename = this->file;
-     this->file = NULL;
-     return filename;
-  }
-
- protected:
-  char * file;
-
-};
-
-class StdinFilelist : public Filelist {
- public:
-  char * nextfilename();
-};
-
-class ArgsFilelist : public Filelist {
- public:
-  ArgsFilelist(int, char **);
-  char * nextfilename();
-
- protected:
-  int strucio_argc;
-  char ** strucio_argv;
-};
-
-class ErrorFilelist : public Filelist {
- public:
-  char * nextfilename() { return NULL; }
-};
-
-
-BoundedFilelist::BoundedFilelist(char * indexroot, long long lower, long long upper) {
+FilelistBounded::FilelistBounded(char * indexroot, long long lower, long long upper) {
   this->lower_bound = lower;
   this->upper_bound = upper;
 
@@ -82,7 +31,7 @@ BoundedFilelist::BoundedFilelist(char * indexroot, long long lower, long long up
   }
 }
 
-char * BoundedFilelist::nextfilename() {
+char * FilelistBounded::nextfilename() {
   long long key, offset;
   char file[4096];
 
@@ -100,7 +49,7 @@ char * BoundedFilelist::nextfilename() {
   return NULL; /* Shouldn't get here */
 }
 
-char * StdinFilelist::nextfilename() {
+char * FilelistStdin::nextfilename() {
   int res;
   char filename[4096];
 
@@ -116,13 +65,13 @@ char * StdinFilelist::nextfilename() {
   }
 }
 
-ArgsFilelist::ArgsFilelist(int num, char** names) {
+FilelistArgs::FilelistArgs(int num, char** names) {
   strucio_argc = num;
   assert(num >= 0);
   strucio_argv = names;
 }
 
-char * ArgsFilelist::nextfilename() {
+char * FilelistArgs::nextfilename() {
   if (! strucio_argc) {
     //fprintf(stderr, "No more files to read from\n");
     return(NULL);
@@ -134,15 +83,15 @@ char * ArgsFilelist::nextfilename() {
 }
 
 void Strucio::register_filelist_bounded(char * root, long long lower, long long upper) {
-  newFilelist(new BoundedFilelist(root, lower, upper));
+  newFilelist(new FilelistBounded(root, lower, upper));
 }
 
 void Strucio::register_filelist_stdin() {
-  newFilelist(new StdinFilelist());
+  newFilelist(new FilelistStdin());
 }
 
 void Strucio::register_filelist_args(int argc, char ** argv) {
-  newFilelist(new ArgsFilelist(argc, argv));
+  newFilelist(new FilelistArgs(argc, argv));
 }
 
 void Strucio::set_use_gzip(int use_gzip) {
@@ -150,7 +99,7 @@ void Strucio::set_use_gzip(int use_gzip) {
 }
 
 void Strucio::register_file(char * filename) {
-  filelist = new OneshotFilelist(filename);
+  filelist = new FilelistOneshot(filename);
 }
 
 void Strucio::set_read_type(enum strucio_read_type read_type) {
@@ -359,7 +308,7 @@ void Strucio::newFilelist(Filelist * fl) {
 Strucio::Strucio() :
   filename(NULL), fh(NULL), use_gzip(false), gzfh(NULL), outputleft(0), suffix(0),
   mmap_current(NULL), mmap_end(NULL), 
-  filelist(new ErrorFilelist()) // We're pure virtual
+  filelist(new FilelistError()) // We're pure virtual
 { }
 
 Strucio::~Strucio() {

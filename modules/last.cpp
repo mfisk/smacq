@@ -8,7 +8,7 @@
 #include <assert.h>
 #include <smacq.h>
 #include <FieldVec.h>
-#include <IoVec.h>
+#include <FieldVec.h>
 #include <dts.h>
 #include <produceq.h>
 #include <sys/time.h>
@@ -28,7 +28,7 @@ SMACQ_MODULE(last,
 
 	     struct smacq_outputq * outputq;
 	     FieldVec fieldvec;
-	     IoVecHash<DtsObject> last;
+	     FieldVecHash<DtsObject> last;
 	     
 	     struct timeval interval;
 	     struct timeval nextinterval;
@@ -80,7 +80,7 @@ static inline void timeval_minus(struct timeval x, struct timeval y, struct time
 
 void lastModule::emit_all() {
   assert (!outputq);
-  IoVecHash<DtsObject>::iterator i;
+  FieldVecHash<DtsObject>::iterator i;
   
   for (i = last.begin(); i != last.end(); i++) {
     smacq_produce_enqueue(&outputq, i->second, -1);
@@ -103,7 +103,7 @@ void lastModule::emit_all() {
 
 }
   
-smacq_result lastModule::consume(DtsObject datum, int * outchan) {
+smacq_result lastModule::consume(DtsObject datum, int & outchan) {
   smacq_result condproduce = (smacq_result)0;
   
   if (hasinterval) {
@@ -181,7 +181,7 @@ lastModule::lastModule(struct smacq_init * context)
   timevaltype = dts->requiretype("timeval");
 }
 
-smacq_result lastModule::produce(DtsObject & datum, int * outchan) {
+smacq_result lastModule::produce(DtsObject & datum, int & outchan) {
   if (!outputq) {
     emit_all();
   }

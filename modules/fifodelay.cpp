@@ -52,7 +52,7 @@ static int timeval_past(struct timeval x, struct timeval y) {
 }
 
 struct obj_list * fifodelayModule::fifo_insert(DtsObject datum, struct timeval ts) {
-  struct obj_list * newo = g_new(struct obj_list, 1);
+  struct obj_list * newo = new obj_list;
   struct obj_list * i;
   newo->obj = (DtsObject)datum;
   newo->next = NULL;
@@ -91,7 +91,7 @@ struct obj_list * fifodelayModule::fifo_insert(DtsObject datum, struct timeval t
   return newo;
 }
 
-smacq_result fifodelayModule::consume(DtsObject datum, int * outchan) {
+smacq_result fifodelayModule::consume(DtsObject datum, int & outchan) {
   DtsObject dtime;
 
   /* Add this entry to the queue */
@@ -139,7 +139,7 @@ fifodelayModule::fifodelayModule(struct smacq_init * context) : SmacqModule(cont
   }
 }
 
-smacq_result fifodelayModule::produce(DtsObject & datum, int * outchan) {
+smacq_result fifodelayModule::produce(DtsObject & datum, int & outchan) {
   if (fifo) {
     struct obj_list * old = fifo;
 

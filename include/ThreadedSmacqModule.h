@@ -3,10 +3,13 @@
 #include <signal.h> /* Needed on MacOS for ucontext.h */
 #include <ucontext.h>
 
+/// A base clase for SMACQ modules that are executed with in their own
+/// "thread" instead of being event-driven.  This is typically easier
+/// to program, but less efficient than a regular SmacqModule.
 class ThreadedSmacqModule : public SmacqModule	{
  public:
-  smacq_result produce(DtsObject, int*);
-  smacq_result consume(DtsObject, int*);
+  smacq_result produce(DtsObject, int&);
+  smacq_result consume(DtsObject, int&);
   ThreadedSmacqModule(smacq_init *);
   ~ThreadedSmacqModule();
   friend void run_thread(int args, ThreadedSmacqModule * ths) {

@@ -94,23 +94,25 @@ extern smacq_result SMACQ_PRODUCE;
 struct smacq_init;
 struct arglist;
 struct state; // Private to modules
-struct _smacq_module;
-typedef struct _smacq_module smacq_graph;
 
 #include "util.c"
 #include "darray.c"
 #include "smacq_args.h"
 
 #include <dts-types.h>
+class SmacqGraph;
+class IterativeScheduler;
+typedef IterativeScheduler SmacqScheduler;
 
 struct smacq_init {
-  int isfirst;
-  int islast;
+  SmacqScheduler * scheduler;
+  bool isfirst;
+  bool islast;
   char ** argv;
   int argc;
   DTS * dts;
   void * state;
-  smacq_graph * self;
+  SmacqGraph * self;
 };
 
 /*
@@ -123,8 +125,8 @@ struct smacq_module_algebra {
   unsigned int demux:1;
 };
 
-//typedef smacq_result smacq_produce_fn(struct state * state, DtsObject, int * outchan);
-//typedef smacq_result smacq_consume_fn(struct state * state, DtsObject, int * outchan);
+//typedef smacq_result smacq_produce_fn(struct state * state, DtsObject, int & outchan);
+//typedef smacq_result smacq_consume_fn(struct state * state, DtsObject, int & outchan);
 //typedef smacq_result smacq_init_fn(struct smacq_init *);
 //typedef smacq_result smacq_shutdown_fn(struct state *);
 #include <SmacqModule.h>
@@ -138,34 +140,7 @@ struct smacq_functions {
 
 BEGIN_C_DECLS
 
-/*
- * User Interface to main system
- */
-enum smacq_scheduler { ITERATIVE, RECURSIVE, LOOP, THREADED };
-int smacq_start(smacq_graph *, enum smacq_scheduler, DTS *);
-void smacq_init_modules(smacq_graph *, DTS *);
-smacq_graph * smacq_build_pipeline(int argc, char ** argv);
-smacq_graph * smacq_build_query(DTS * tenv, int argc, char ** argv);
-int smacq_execute_query(int argc, char ** argv);
-smacq_graph * smacq_add_new_child(smacq_graph * parent, int argc, char ** argv);
-int smacq_add_child(smacq_graph * parent, smacq_graph * child);
-void smacq_replace_child(smacq_graph * parent, int num, smacq_graph * newchild);
-void smacq_add_parent(smacq_graph * child, smacq_graph * parent);
-void smacq_remove_child(smacq_graph * parent, int childnum);
-void smacq_remove_parent(smacq_graph * child, const smacq_graph * parent);
-smacq_graph * smacq_merge_graphs(smacq_graph *);
-smacq_graph * smacq_graph_add_graph(smacq_graph * a, smacq_graph * b);
-smacq_graph * smacq_graph_clone(DTS *, smacq_graph *);
-
-smacq_graph * smacq_new_module(int argc, char ** argv);
-void smacq_free_module(smacq_graph * f);
-void smacq_destroy_graph(smacq_graph * f);
-smacq_graph * smacq_clone_child(smacq_graph * parent, int child);
-smacq_graph * smacq_clone_tree(smacq_graph * donorParent, smacq_graph * newParent, int child);
-
-int smacq_graph_print(FILE * fh, smacq_graph * f, int indent);
-int smacq_graphs_print(FILE * fh, smacq_graph * f, int indent);
-double smacq_graph_count_nodes(smacq_graph * f);
+SmacqGraph * smacq_build_query(DTS * tenv, int argc, char ** argv);
 
 END_C_DECLS
 
@@ -188,8 +163,8 @@ SMACQ_MODULE(foo,
 
 */
 
-#define PROTO_CONSUME() public: smacq_result consume(DtsObject, int*); private:
-#define PROTO_PRODUCE() public: smacq_result produce(DtsObject&, int*); private:
+#define PROTO_CONSUME() public: smacq_result consume(DtsObject, int&); private:
+#define PROTO_PRODUCE() public: smacq_result produce(DtsObject&, int&); private:
 #define PROTO_CTOR(name) public: name##Module::name##Module(smacq_init *); private:
 #define PROTO_DTOR(name) public: name##Module::~name##Module(); private:
 

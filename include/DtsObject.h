@@ -7,8 +7,6 @@
 typedef void * DtsObject;
 #else
 
-#include <IoVec.h>
-
 #ifdef SMACQ_DEBUG_MEM
 # define SMDEBUG(x) x
 #else
@@ -83,15 +81,9 @@ class DtsObject_ {
 	/// Expr module uses this
 	double eval_arith_operand(struct dts_operand * op);
 
-	/// Return (by value) an IoVec pointing to this DtsObject 
-	operator IoVec () { 
-	  IoVec v(1);
-	  v[0].iov_base = (unsigned char*)data;
-	  v[0].iov_len = len;
-	  return v;
-	}
+	bool operator == (DtsObject_ &) const;
 
- protected:
+ private:
 	/// @name Reference Counting
 	/// Programmers should NOT use these methods directly
 	/// @{
@@ -109,7 +101,7 @@ class DtsObject_ {
         friend void intrusive_ptr_release(DtsObject_*o) { o->decref(); }
 
 	/// Plain-C Wrapper 
-	friend void dts_decref(DtsObject d) { d->decref(); }
+	//friend void dts_decref(DtsObject d) { d->decref(); }
 
 
 	/// @}
@@ -264,7 +256,20 @@ inline void DtsObject_::attach_field(dts_field field, DtsObject field_data) {
   assert(!dts_field_first(dts_field_next(field)));
 }
 
+inline bool operator== (DtsObject_&a, DtsObject_&b) {
+  return a.operator==(b);
+}
 
+inline bool DtsObject_::operator== (DtsObject_& b) const { 
+  if ( (getsize() == b.getsize()) && 
+       (!memcmp(getdata(), b.getdata(), getsize()))) {
+    fprintf(stderr, "DtsObject %p == %p\n", this, &b);
+    return true;
+  } else {
+    fprintf(stderr, "DtsObject %p != %p\n", this, &b);
+    return false;
+  }
+}
 
 #endif
 #endif

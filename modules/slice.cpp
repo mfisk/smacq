@@ -8,7 +8,7 @@
 #include <assert.h>
 #include <smacq.h>
 #include <FieldVec.h>
-#include <IoVec.h>
+#include <FieldVec.h>
 
 /* Programming constants */
 
@@ -47,7 +47,7 @@ static void printout(struct state * state) {
   }
 }
   
-smacq_result sliceModule::consume(DtsObject datum, int * outchan) {
+smacq_result sliceModule::consume(DtsObject datum, int & outchan) {
   int c;
 
   if (hasinterval) {
@@ -92,8 +92,6 @@ smacq_result sliceModule::consume(DtsObject datum, int * outchan) {
 sliceModule::sliceModule(struct smacq_init * context) {
   int argc = 0;
   char ** argv;
-  struct state * state = context->state = g_new0 1);
-  env = context->env;
 
   {
 	smacq_opt interval;
@@ -129,7 +127,7 @@ sliceModule::~sliceModule(struct state * state) {
 }
 
 
-smacq_result sliceModule::produce(DtsObject & datum, int * outchan) {
+smacq_result sliceModule::produce(DtsObject & datum, int & outchan) {
   return SMACQ_ERROR;
 }
 

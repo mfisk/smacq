@@ -4,7 +4,7 @@
 #include <assert.h>
 #include <smacq.h>
 #include <FieldVec.h>
-#include <IoVec.h>
+#include <FieldVec.h>
 #include <ThreadedSmacqModule.h>
 
 /* Programming constants */
@@ -20,7 +20,7 @@ SMACQ_MODULE_THREAD(counter,);
 
 smacq_result counterModule::thread(struct smacq_init * context) {
   FieldVec fieldvec;
-  IoVecHash<int> counters;
+  FieldVecHash<int> counters;
 
   int counter;
 

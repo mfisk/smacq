@@ -1,9 +1,9 @@
 #include <smacq.h>
-#include <smacq-dataflow.h>
+#include <SmacqGraph.h>
 #include <stdio.h>
 #include <dts.h>
 
-static int smacq_start_single(smacq_graph * objs, enum smacq_scheduler scheduler, DTS * tenv) {
+static int smacq_start_single(SmacqGraph * objs, enum smacq_scheduler scheduler, DTS * tenv) {
   DtsObject record;
   struct runq * runq = NULL;
 
@@ -47,7 +47,7 @@ static int smacq_start_single(smacq_graph * objs, enum smacq_scheduler scheduler
   return 0;
 }
 
-int smacq_start(smacq_graph * g, enum smacq_scheduler scheduler, DTS * tenv) {
+int smacq_start(SmacqGraph * g, enum smacq_scheduler scheduler, DTS * tenv) {
   while (g) {
 	if (g->next_graph && (scheduler != ITERATIVE) && (scheduler != THREADED)) {
 		fprintf(stderr, "Cannot start multiple graphs with this scheduler\n");
@@ -61,5 +61,4 @@ int smacq_start(smacq_graph * g, enum smacq_scheduler scheduler, DTS * tenv) {
 
   return 0;
 }
-
 

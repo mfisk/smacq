@@ -3,11 +3,13 @@
 #include <assert.h>
 #include <string.h>
 #include <smacq.h>
+#include <SmacqGraph.h>
+#include <SmacqScheduler.h>
 
 #define MAX_QUERY_SIZE 4096*100
 
 struct thread_args {
-  smacq_graph * f;
+  SmacqGraph * f;
   struct smacq_init * context;
 };
 
@@ -24,11 +26,10 @@ int main(int argc, char ** argv) {
   smacq_opt multiple, optimize, qfile, showgraph;
   int qargc;
   char ** qargv;
-  DTS * tenv = new DTS();
+  DTS dts;
   FILE * fh;
-  smacq_graph * graphs = NULL;
+  SmacqGraph * graphs = NULL;
   DtsObject product;
-  struct runq * runq = NULL;
 
   if (argc <= 1) {
 	  fprintf(stderr, "Usage: %s [-m] query\n", argv[0]);
@@ -65,46 +66,39 @@ int main(int argc, char ** argv) {
       }
 
       while(fgets(queryline, MAX_QUERY_SIZE, fh)) {
-	      smacq_graph * newgraph;
+	      SmacqGraph * newgraph;
 
 	      /* Chomp newline */
 	      if (queryline[strlen(queryline)-1] == '\n')
 		      queryline[strlen(queryline)-1] = '\0';
 
-	      newgraph = smacq_build_query(tenv, 1, &queryline);
+	      newgraph = smacq_build_query(&dts, 1, &queryline);
 	      if (!newgraph) {
 		      fprintf(stderr, "Fatal error at line %d\n", qno);
 		      exit(-1);
 	      }
-      	      graphs = smacq_graph_add_graph(graphs, newgraph);
+      	      if (graphs) {
+		graphs->add_graph(newgraph);
+	      } else {
+		graphs = newgraph;
+	      }
 	      qno++;
       }
 
-      if (optimize.boolean_t) {
-	      graphs = smacq_merge_graphs(graphs);
-      }
   } else {
-      graphs = smacq_build_query(tenv, qargc, qargv);
+      graphs = smacq_build_query(&dts, qargc, qargv);
       assert(graphs);
   }
 
+  if (optimize.boolean_t) {
+    graphs->optimize();
+  }
+
   if (showgraph.boolean_t) {
-      smacq_graphs_print(stderr, graphs, 8);
+      graphs->print(stderr, 8);
   }
 
-  if (0 != smacq_start(graphs, ITERATIVE, tenv)) {
-      return -1;
-  }
-
-  while(1) {
-       smacq_result res = smacq_sched_iterative(graphs, NULL, &product, &runq, 1);
-       if (product) {
-	       //fprintf(stderr, "smacqq: Got selection!\n");
-	       dts_decref(product);
-       }
-       if (res & SMACQ_END) {
-	       return 0;
-       }
-  }
+  SmacqScheduler * s = new SmacqScheduler(&dts, graphs, true);
+  return (! s->busy_loop());
 }
 

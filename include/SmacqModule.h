@@ -9,21 +9,30 @@ class SmacqModule;
 #include <list>
 #include <utility>
 
+/// A virtual base class for SMACQ modules.
 class SmacqModule {
   public:
 	SmacqModule(struct smacq_init * context);
 	virtual ~SmacqModule();
 
-	virtual smacq_result consume(DtsObject datum, int * outchan);
-	virtual smacq_result produce(DtsObject & datump, int * outchan);
+	virtual smacq_result consume(DtsObject datum, int & outchan);
+	virtual smacq_result produce(DtsObject & datump, int & outchan);
 
   protected:
 	DTS * dts;
 
-	smacq_result canproduce();
-	bool dequeue(DtsObject &, int & outchan);
-	void enqueue(DtsObject &, int outchan);
+	/// @name Output Queueing
+	/// A module can internally queue output objects
+	/// @{
 
+	/// Return SMACQ_CANPRODUCE or SMACQ_NONE
+	smacq_result canproduce();
+
+	smacq_result dequeue(DtsObject &, int & outchan);
+	void enqueue(DtsObject &, int outchan);
+	/// @}
+
+ private:
 	std::list<std::pair<DtsObject,int> > outputq;
 };
 
@@ -33,26 +42,21 @@ inline SmacqModule::SmacqModule(struct smacq_init * context) {
 
 inline SmacqModule::~SmacqModule() {}
 
-inline smacq_result SmacqModule::consume(DtsObject datum, int * outchan) {
+inline smacq_result SmacqModule::consume(DtsObject datum, int & outchan) {
 	return SMACQ_ERROR;
 }
 
-inline smacq_result SmacqModule::produce(DtsObject & datum, int * outchan) {
+inline smacq_result SmacqModule::produce(DtsObject & datum, int & outchan) {
 	if (outputq.empty()) {
 		return SMACQ_END;
 	} else {
-		dequeue(datum, *outchan);
-		if (outputq.empty()) {
-			return SMACQ_PASS|SMACQ_END;
-		} else {
-			return (smacq_result)(SMACQ_PASS|SMACQ_PRODUCE);
-		}
+		return dequeue(datum, outchan);
 	}
 }
 
 inline smacq_result SmacqModule::canproduce() {
 	if (outputq.empty()) {
-		return (smacq_result)0;
+		return SMACQ_NONE;
 	} else {
 		return SMACQ_PRODUCE;
 	}
@@ -62,17 +66,21 @@ inline void SmacqModule::enqueue(DtsObject & datum, int outchan) {
 	outputq.push_back(std::pair<DtsObject,int>(datum,outchan));
 }
 
-inline bool SmacqModule::dequeue(DtsObject & d, int & outchan) {
-	if (outputq.empty()) {
-		return false;
-	}
-
-	d = outputq.front().first;
-	outchan = outputq.front().second;
-
-	outputq.pop_front();
-
-	return true;
+inline smacq_result SmacqModule::dequeue(DtsObject & d, int & outchan) {
+  if (outputq.empty()) {
+    return SMACQ_NONE;
+  }
+  
+  d = outputq.front().first;
+  outchan = outputq.front().second;
+  
+  outputq.pop_front();
+  
+  if (outputq.empty()) {
+    return SMACQ_PASS;
+  } else {
+    return SMACQ_PASS|SMACQ_PRODUCE;
+  }
 }
 
 #else

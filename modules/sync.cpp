@@ -5,7 +5,7 @@
 #include <smacq.h>
 #include <smacq.h>
 #include <FieldVec.h>
-#include <IoVec.h>
+#include <FieldVec.h>
 
 /* Programming constants */
 
@@ -24,12 +24,12 @@ SMACQ_MODULE(sync,
 
   DtsObject product;
   struct runq * runq;
-  smacq_graph * graph;
+  SmacqGraph * graph;
   smacq_result done; 
   int isfirst;
 ); 
 
-smacq_result syncModule::consume(DtsObject datum, int * outchan) {
+smacq_result syncModule::consume(DtsObject datum, int & outchan) {
  smacq_result more = smacq_sched_iterative(graph, datum, &product, &runq, isfirst);
 
  more = (more ? 0 : SMACQ_END);
@@ -58,11 +58,13 @@ syncModule::syncModule(struct smacq_init * context) : SmacqModule(context) {
 	  }
   }
 
-  graph = smacq_build_pipeline(argc, argv);
-  smacq_start(graph, ITERATIVE, dts);
+  graph = smacq_build_query(dts, argc, argv);
+  graph->init(dts);
+  sched = new IterativeScheduler(graph, false);
+  sched->busy()
 }
 
-smacq_result syncModule::produce(DtsObject & datump, int * outchan) {
+smacq_result syncModule::produce(DtsObject & datump, int & outchan) {
   if (isfirst && !product) {
 	consume(NULL, outchan);
   }

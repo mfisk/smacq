@@ -8,7 +8,7 @@
 #include <assert.h>
 #include <smacq.h>
 #include <FieldVec.h>
-#include <IoVec.h>
+#include <FieldVec.h>
 
 #define SMACQ_MODULE_IS_ANNOTATION 1
 
@@ -36,7 +36,7 @@ SMACQ_MODULE(sum,
   DtsObject lastin;
 ); 
  
-smacq_result sumModule::consume(DtsObject datum, int * outchan) {
+smacq_result sumModule::consume(DtsObject datum, int & outchan) {
   DtsObject newx;
   DtsObject msgdata;
   
@@ -95,7 +95,7 @@ sumModule::sumModule(struct smacq_init * context) : SmacqModule(context) {
   xfield = dts->requirefield(xfieldname);
 }
 
-smacq_result sumModule::produce(DtsObject & datum, int * outchan) {
+smacq_result sumModule::produce(DtsObject & datum, int & outchan) {
   if (lastin) {
         DtsObject msgdata = dts->construct(sumtype, &total);
         lastin->attach_field(sumfield, msgdata); 

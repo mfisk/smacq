@@ -24,8 +24,8 @@ SMACQ_MODULE(fifo,
 
 fifoModule::fifoModule(smacq_init * context) : SmacqModule(context) { ; }
 
-smacq_result fifoModule::consume(DtsObject datum, int * outchan) {
-  struct obj_list * newo = g_new(struct obj_list, 1);
+smacq_result fifoModule::consume(DtsObject datum, int & outchan) {
+  struct obj_list * newo = new obj_list;
   newo->obj = (DtsObject)datum;
   newo->next = NULL;
 
@@ -39,7 +39,7 @@ smacq_result fifoModule::consume(DtsObject datum, int * outchan) {
   return (smacq_result)(SMACQ_FREE|SMACQ_CANPRODUCE);
 }
 
-smacq_result fifoModule::produce(DtsObject & datum, int * outchan) {
+smacq_result fifoModule::produce(DtsObject & datum, int & outchan) {
   if (fifo) {
     struct obj_list * old = fifo;
     fifo = fifo->next;

@@ -13,7 +13,7 @@
 #include <smacq.h>
 #include <FieldVec.h>
 #include <bloom.h>
-#include <IoVec.h>
+#include <FieldVec.h>
 
 /* Programming constants */
 #define KEYBYTES 128
@@ -23,8 +23,8 @@ SMACQ_MODULE(top,
   PROTO_CONSUME();
 
   FieldVec fieldvec;
-  IoVecHash<int> counters;
-  IoVecBloomCounters * pcounters;
+  FieldVecHash<int> counters;
+  FieldVecBloomCounters * pcounters;
   double prob; // Use probabilistic algebraorithms?
   int threshold;
 
@@ -49,7 +49,7 @@ static struct smacq_options options[] = {
 /*
  * Check presense in set.
  */
-smacq_result topModule::consume(DtsObject datum, int * outchan) {
+smacq_result topModule::consume(DtsObject datum, int & outchan) {
   double deviation;
   int val;
 
@@ -113,7 +113,7 @@ topModule::topModule(struct smacq_init * context) : SmacqModule(context) {
   fieldvec.init(dts, argc, argv);
 
   if (prob) {
-    pcounters = new IoVecBloomCounters(prob/4 * 1024 * 1024);
+    pcounters = new FieldVecBloomCounters(prob/4 * 1024 * 1024);
   }
 
   do_filter = (threshold == 0);

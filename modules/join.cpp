@@ -5,7 +5,7 @@
 #include <smacq.h>
 #include <smacq.h>
 #include <FieldVec.h>
-#include <IoVec.h>
+#include <FieldVec.h>
 
 /* Programming constants */
 
@@ -16,7 +16,7 @@ static struct smacq_options options[] = {
 };
 
 struct join {
-  smacq_graph * graph;
+  SmacqGraph * graph;
   dts_field field;
   struct runq * runq;
 };
@@ -36,7 +36,7 @@ SMACQ_MODULE(join,
   static void find_join(dts_comparison * comp);
 ); 
 
-smacq_result joinModule::consume(DtsObject datum, int * outchan) {
+smacq_result joinModule::consume(DtsObject datum, int & outchan) {
   smacq_result more;
   int i;
 
@@ -96,7 +96,7 @@ joinModule::joinModule(struct smacq_init * context) : SmacqModule(context) {
   find_join(comp);
 }
 
-smacq_result joinModule::produce(DtsObject & datump, int * outchan) {
+smacq_result joinModule::produce(DtsObject & datump, int & outchan) {
   smacq_result status;
 
   if (product) {

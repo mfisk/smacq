@@ -52,7 +52,7 @@ int printModule::print_field(DtsObject field, char * fname, int printed, int col
 	return 1;
 }
 
-smacq_result printModule::consume(DtsObject datum, int * outchan) {
+smacq_result printModule::consume(DtsObject datum, int & outchan) {
   int i;
   int printed = 0;
   int column = 0;

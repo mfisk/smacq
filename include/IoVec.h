@@ -8,95 +8,64 @@
 
 namespace stdext = ::__gnu_cxx;
 
-class IoVecElement {
+/// An element of an FieldVec.  Describes a memory region.
+class FieldVecElement {
  public:
+  /// A pointer to the beginning of the memory region
   unsigned char * iov_base;
+
+  /// The size of the memory region
   int iov_len;
 
-  bool operator== (const IoVecElement& x) const;
+  bool operator== (const FieldVecElement& x) const;
+  bool operator!= (const FieldVecElement& x) const { return !((*this)==(x)); }
 };
 
-inline bool IoVecElement::operator==(const IoVecElement & j) const {
+inline bool FieldVecElement::operator==(const FieldVecElement & j) const {
+  /*
+  fprintf(stderr, "iovecelement %p + %d == %p + %d\n", 
+	  iov_base, iov_len, 
+	  j.iov_base, j.iov_len);
+  */
   if (iov_len != j.iov_len) 
     return false;
   
   return (! memcmp(iov_base, j.iov_base, iov_len));
 }
 
-class IoVec : public std::vector<IoVecElement> {
+typedef FieldVec<FieldVecElement> FieldVec;
+
+/// A vector of FieldVecElement pointing to various sized byte ranges.
+template <class T>
+class FieldVec : public std::vector<T> {
  public:
-  IoVec(size_type n) : std::vector<IoVecElement>(n) {}
-  IoVec() : std::vector<IoVecElement>() {}
+  FieldVec(size_type n) : std::vector<T>(n) {}
+  FieldVec() : std::vector<T>() {}
 
-  size_t hash(const int seed=0) const {
-    uint32_t result = seed;
-    IoVec::const_iterator i = begin();
-    
-    for (; i != end(); i++) {
-      result = bhash(i->iov_base, i->iov_len, result);
-    }
-
-    return result;
-  }
-    
-  bool masks (const IoVec &b) const {
-    IoVec::const_iterator i;
-    IoVec::const_iterator j;
-
-    if (size() != b.size()) return false;
-    if (this == &b) return true;
-    
-    for (i = begin(), j=b.begin(); i != end(); i++, j++) {
-      if ((i->iov_len != 0 && j->iov_len != 0) && (i != j)) {
-	return false;
-      }
-    }
-     
-    return true;
-  }
-
-  bool operator == (const IoVec&b) {
-    IoVec::const_iterator i;
-    IoVec::const_iterator j;
-
-    if (size() != b.size()) return false;
-    if (this == &b) return true;
-    
-    for (i = begin(), j=b.begin(); i != end(); i++, j++) {
-      if (i != j) return false;
-    }
-     
-    return true;
-  }
 };
 
 namespace __gnu_cxx {
-   template<> struct hash<IoVec> {
-        size_t operator() (const IoVec & v) const { 
-	  return v.hash();
-        }
+   template<> struct hash<FieldVec> {
+     size_t operator() (const FieldVec & v) const { 
+       return v.hash();
+     }
    };
 }
 
-class eq_iovec {
- public:
-  bool operator() (const IoVec& a, const IoVec& b) const {
-    return (a == b);
-  }
-};
-
 /*
-class hash_iovec { 
- public:
-  size_t operator() (const IoVec & a, const int seed = 0) const {
-    return a.hash(seed);
-  }
-};
+namespace std {
+   template<> struct equal_to<FieldVec> {
+     bool operator() (const FieldVec &a, const FieldVec &b) const {
+       return a==b;
+     }
+   };
+}
 */
-
+/// A hash_map (table) of FieldVec keys.
 template <class T>
-class IoVecHash : public stdext::hash_map<IoVec, T> {};
+class FieldVecHash : public stdext::hash_map<FieldVec, T> {};
 
-class IoVecSet : public stdext::hash_set<IoVec>{};
+/// A hash_set of FieldVec keys.
+class FieldVecSet : public stdext::hash_set<FieldVec, stdext::hash<FieldVec>, std::equal_to<FieldVec> > {};
 
 #endif

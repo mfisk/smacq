@@ -45,7 +45,7 @@ exprModule::exprModule(struct smacq_init * context) : SmacqModule(context) {
   }
 }
 
-smacq_result exprModule::consume(DtsObject datum, int * outchan) {
+smacq_result exprModule::consume(DtsObject datum, int & outchan) {
   DtsObject msgdata;
   double val;
 

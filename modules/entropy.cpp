@@ -30,7 +30,7 @@ static struct smacq_options options[] = {
   END_SMACQ_OPTIONS
 };
 
-smacq_result entropyModule::consume(DtsObject datum, int * outchan) {
+smacq_result entropyModule::consume(DtsObject datum, int & outchan) {
 	if (datum->gettype() == refreshtype) {
 		double total = total / log(2);
     		DtsObject msgdata = dts->construct(probtype, &total);
@@ -84,7 +84,7 @@ entropyModule::entropyModule(struct smacq_init * context) : SmacqModule(context)
   entropyfield = dts->requirefield("entropy");
 }
 
-smacq_result entropyModule::produce(DtsObject & datum, int * outchan) {
+smacq_result entropyModule::produce(DtsObject & datum, int & outchan) {
   double total = total;
   if (!total) total = prev_total;
 

@@ -19,7 +19,7 @@ static struct smacq_options options[] = {
  * This is abstraction violation.  comp_new() is currently in a different .h file.
  * We don't provide a string constant and instead prime the comparison object cache.
  */
-smacq_result msgtestModule::consume(DtsObject datum, int * outchan) {
+smacq_result msgtestModule::consume(DtsObject datum, int & outchan) {
   dts_comparison * comp = comp_new(EQ, comp_operand(FIELD, "srcip"), comp_operand(CONST, ""));
   DtsObject msgdata, srcip;
 

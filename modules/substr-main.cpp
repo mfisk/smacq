@@ -123,11 +123,11 @@ void substrModule::add_entry(char * field, char * needle, int output) {
   substr_add(mybatch->set, nlen, (unsigned char*)needle, 0, (void*)output, 0, 0);
 }
 
-smacq_result substrModule::produce(DtsObject & datum, int * outchan) {
+smacq_result substrModule::produce(DtsObject & datum, int & outchan) {
   return smacq_produce_dequeue(&outputq, datum, outchan);
 }
 
-smacq_result substrModule::consume(DtsObject datum, int * outchan) {
+smacq_result substrModule::consume(DtsObject datum, int & outchan) {
   struct substr_search_result res;
   DtsObject field;
   int matched = 0;
@@ -162,7 +162,7 @@ smacq_result substrModule::consume(DtsObject datum, int * outchan) {
 		
 	  } else {
 	  	matched = 1;
-		*outchan = chan;
+		outchan = chan;
 	  } 
       }
   }

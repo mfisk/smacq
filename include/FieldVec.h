@@ -1,19 +1,43 @@
 #ifndef FIELD_VEC_H
 #define FIELD_VEC_H
 #include <vector>
+#include <ext/hash_map>
+#include <ext/hash_set>
+#include <DtsObject.h>
 #include <dts.h>
-#include <IoVec.h>
+#include <iov_bhash.h>
 
-class FieldVecElement {
+namespace stdext = ::__gnu_cxx;
+
+class FieldVec;
+
+/// A vector of DtsObject elements.
+class DtsObjectVec : public std::vector<DtsObject> {
  public:
-  char * name;
-  dts_field num;
-  DtsObject field_obj;
+  DtsObjectVec::DtsObjectVec() {}
+  DtsObjectVec::DtsObjectVec(FieldVec & v);
+  DtsObjectVec::DtsObjectVec(DtsObject & o);
 
-  FieldVecElement();
-  ~FieldVecElement();
+  /// Hash into value in [0..range]
+  size_t hash(int seed = 0) const;
+
+  bool masks (const DtsObjectVec &b) const;
 };
 
+
+/// An element of a FieldVec.
+class FieldVecElement {
+  friend class FieldVec;
+
+ public:
+  FieldVecElement();
+  ~FieldVecElement();
+
+  char * name;
+  dts_field num;
+};
+
+/// A vector of fields from a DtsObject
 class FieldVec : public std::vector<FieldVecElement*> {
  public:
   /// Initialize fields from this DtsObject
@@ -21,9 +45,10 @@ class FieldVec : public std::vector<FieldVecElement*> {
 
   /// Return true iff one of the vector elements is undefined for this
   /// DtsObject.  Recomputed when getfields() is called.
-  bool has_undefined() { return has_undefined_element; }
+  bool has_undefined() const;
 
-  /// Initialize field vector from an argument vector.  Deletes any previous contents.
+  /// Initialize field vector from an argument vector.  Deletes any
+  /// previous contents.
   void init(DTS *, int argc, char ** argv);
  
   /// Construct an empty vector.  Use init() to initialize later
@@ -32,33 +57,31 @@ class FieldVec : public std::vector<FieldVecElement*> {
   /// Construct and initialize field vector from an argument vector
   FieldVec(DTS * dts, int argc, char** argv) { init(dts, argc, argv); }
 
-  /// Can evaluate to IoVec
-  operator IoVec () { return ioVec(); }
+  /// Return a copy of the vector of current objects.
+  //DtsObjectVec operator () () { return objs; }
 
-  /// Hash into value in [0..range]
-  int hash() { return this->ioVec().hash(); }
+  DtsObjectVec & getobjs() { return objs; }
 
-  /*
-  FieldVec& operator= (const FieldVec& a) {
-    if (this == a) return this;
-    this->dts = a->dts;
-    this->lasttype = a->lasttype;
-    this->has_undefined_element = a->has_undefined_element;
-    
-  }
-  */
+  bool operator == (const FieldVec &b) const;
 
  private:
   DTS * dts;
   int lasttype;
-  bool has_undefined_element;
-
-  /// Construct and return an equivalent IoVec object
-  IoVec ioVec();
+  DtsObjectVec objs;
 
 };
 
-inline FieldVecElement::FieldVecElement() : num(NULL), field_obj(NULL)
+inline DtsObjectVec::DtsObjectVec(FieldVec & v) 
+  : std::vector<DtsObject>(v.getobjs()) 
+{}
+  
+inline DtsObjectVec::DtsObjectVec(DtsObject & o) 
+  : std::vector<DtsObject>(1) 
+{ 
+  (*this)[0] = o; 
+}
+
+inline FieldVecElement::FieldVecElement() : num(NULL)
 {}
 
 inline FieldVecElement::~FieldVecElement() {
@@ -83,45 +106,81 @@ inline void FieldVec::init(DTS * dts, int argc, char ** argv) {
       argv++;
     }
   }
+
+  objs.resize(size());
 }
 
 inline FieldVec & FieldVec::getfields(DtsObject o) {
   FieldVecElement * el;
   FieldVec::iterator i;
-  has_undefined_element = false;
+  int j = 0;
 
   for (i = begin(); i != end(); i++) {
     el = *i;
-
-    el->field_obj = o->getfield(el->num);
-
-    if (! el->field_obj)
-      has_undefined_element = true;
+    objs[j] = o->getfield(el->num);
+    j++;
   }
 
   return *this;
 }
-
-inline IoVec FieldVec::ioVec() {
-  FieldVec::iterator i;
-  IoVec v(this->size());
-  int j;
-
-  for (i = begin(), j=0; 
-       i != end(); 
-       i++, j++) 
-    {
-      FieldVecElement * el = *i;
-      
-      if (el->field_obj) {
-    	v[j].iov_len = el->field_obj->getsize();
-    	v[j].iov_base = (unsigned char*)el->field_obj->getdata();
-      } else {
-	v[j].iov_len = 0;
-      }
-    }
+    
+inline bool FieldVec::has_undefined () const {
+  DtsObjectVec::const_iterator i;
   
-  return v;
+  for (i = objs.begin(); i != objs.end(); i++) {
+    if (!i->get()) return true;
+  }
+  
+  return false;
 }
+
+inline size_t DtsObjectVec::hash(const int seed) const {
+  uint32_t result = seed;
+  DtsObjectVec::const_iterator i;
+  
+  for (i = begin(); i != end(); i++) {
+    result = bhash((*i)->getdata(), 
+		   (*i)->getsize(), result);
+  }
+  
+  return result;
+}
+
+inline bool DtsObjectVec::masks (const DtsObjectVec &b) const {
+  DtsObjectVec::const_iterator i;
+  DtsObjectVec::const_iterator j;
+  
+  if (size() != b.size()) return false;
+  if (this == &b) return true;
+  
+  for (i = begin(), j=b.begin(); i != end(); i++, j++) {
+    if (i->get() && j->get() && (*i != *j)) {
+      return false;
+    }
+  }
+  
+  return true;
+}
+
+namespace __gnu_cxx {
+  template<> struct hash<DtsObjectVec> {
+    size_t operator() (const DtsObjectVec & v) const { 
+      return v.hash();
+    }
+  };
+}
+ 
+template <class T>
+/// A hash_map (table) for FieldVec.
+class FieldVecHash : public stdext::hash_map<DtsObjectVec, T> 
+{
+};
+
+
+/// A hash_set for FieldVec.
+class FieldVecSet : public stdext::hash_set<DtsObjectVec >
+{
+};
+
 
 #endif

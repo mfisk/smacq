@@ -68,15 +68,16 @@ void yysmacql_error(char*);
      #define yyrule   yysmacql_yyrule
 
 #include <smacq-parser.h>
-#include <smacq-dataflow.h>
+#include <SmacqGraph.h>
+
 static struct graph nullgraph = { head: NULL, tail: NULL };
-smacq_graph * Graph;
+SmacqGraph * Graph;
 extern int yylex();
-#line 77 "parser.ypp"
+#line 78 "parser.ypp"
 
 #include <smacq-parser.h>
 
-#line 107 "parser.ypp"
+#line 108 "parser.ypp"
 #ifndef YYSTYPE
 typedef union {
   struct graph graph;
@@ -181,14 +182,14 @@ static const short yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined. */
 static const short yyrline[] =
 {
-       0,   120,   123,   124,   125,   128,   131,   134,   135,   136,
-     139,   140,   143,   144,   145,   150,   153,   154,   157,   158,
-     161,   162,   170,   171,   172,   173,   174,   177,   178,   179,
-     183,   188,   194,   196,   199,   201,   202,   209,   210,   211,
-     212,   213,   214,   215,   218,   219,   220,   221,   225,   235,
-     245,   250,   260,   263,   264,   267,   274,   275,   278,   279,
-     282,   283,   286,   287,   288,   291,   292,   302,   303,   304,
-     305
+       0,   121,   124,   125,   126,   129,   132,   135,   136,   137,
+     140,   141,   144,   145,   146,   151,   154,   155,   158,   159,
+     162,   163,   171,   172,   173,   174,   175,   178,   179,   180,
+     184,   189,   195,   197,   200,   202,   203,   210,   211,   212,
+     213,   214,   215,   216,   219,   220,   221,   222,   226,   236,
+     246,   251,   261,   264,   265,   268,   275,   276,   279,   280,
+     283,   284,   287,   288,   289,   292,   293,   300,   301,   302,
+     303
 };
 #endif
 
@@ -1062,113 +1063,113 @@ yyreduce:
   switch (yyn) {
 
 case 5:
-#line 128 "parser.ypp"
+#line 129 "parser.ypp"
 { yyval.string = yystring; }
     break;
 case 6:
-#line 131 "parser.ypp"
+#line 132 "parser.ypp"
 { yyval.string = yystring; }
     break;
 case 7:
-#line 134 "parser.ypp"
+#line 135 "parser.ypp"
 { yyval.string = yystring; }
     break;
 case 8:
-#line 135 "parser.ypp"
+#line 136 "parser.ypp"
 { yyval.string = "or"; }
     break;
 case 9:
-#line 136 "parser.ypp"
+#line 137 "parser.ypp"
 { yyval.string = "and"; }
     break;
 case 11:
-#line 140 "parser.ypp"
+#line 141 "parser.ypp"
 { yyval.arglist->rename = yyvsp[0].string; }
     break;
 case 12:
-#line 143 "parser.ypp"
+#line 144 "parser.ypp"
 { yyval.arglist = newarg(yyvsp[0].string, WORD, NULL); }
     break;
 case 13:
-#line 144 "parser.ypp"
+#line 145 "parser.ypp"
 { yyval.arglist = newarg(yyvsp[-3].string, FUNCTION, yyvsp[-1].arglist); }
     break;
 case 14:
-#line 145 "parser.ypp"
+#line 146 "parser.ypp"
 { yyval.arglist = newarg("expr", FUNCTION, 
 					       newarg(print_operand(yyvsp[-1].operand), WORD, NULL)); 
 			                  }
     break;
 case 16:
-#line 153 "parser.ypp"
+#line 154 "parser.ypp"
 { yyval.arglist = yyvsp[-3].arglist; yyval.arglist->next = yyvsp[-1].arglist; yyvsp[-1].arglist->next = yyvsp[0].arglist; }
     break;
 case 18:
-#line 157 "parser.ypp"
+#line 158 "parser.ypp"
 { yyval.arglist = NULL; }
     break;
 case 19:
-#line 158 "parser.ypp"
+#line 159 "parser.ypp"
 { yyval.arglist = yyvsp[-1].arglist; yyval.arglist->next = yyvsp[0].arglist; }
     break;
 case 20:
-#line 161 "parser.ypp"
+#line 162 "parser.ypp"
 { yyval.arglist = NULL; }
     break;
 case 21:
-#line 162 "parser.ypp"
+#line 163 "parser.ypp"
 { yyval.arglist = yyvsp[-1].arglist; yyval.arglist->next = yyvsp[0].arglist; }
     break;
 case 22:
-#line 170 "parser.ypp"
+#line 171 "parser.ypp"
 { yyval.comp = yyvsp[-1].comp; }
     break;
 case 23:
-#line 171 "parser.ypp"
+#line 172 "parser.ypp"
 { yyval.comp = comp_join(yyvsp[-2].comp, yyvsp[0].comp, OR); }
     break;
 case 24:
-#line 172 "parser.ypp"
+#line 173 "parser.ypp"
 { yyval.comp = comp_join(yyvsp[-2].comp, yyvsp[0].comp, AND); }
     break;
 case 25:
-#line 173 "parser.ypp"
+#line 174 "parser.ypp"
 { yyval.comp = comp_join(yyvsp[0].comp, NULL, NOT); }
     break;
 case 27:
-#line 177 "parser.ypp"
+#line 178 "parser.ypp"
 { yyval.operand = comp_operand(FIELD, yyvsp[0].string); }
     break;
 case 28:
-#line 178 "parser.ypp"
-{ yyval.operand = comp_operand(CONST, yyvsp[0].string); }
-    break;
-case 29:
 #line 179 "parser.ypp"
 { yyval.operand = comp_operand(CONST, yyvsp[0].string); }
     break;
+case 29:
+#line 180 "parser.ypp"
+{ yyval.operand = comp_operand(CONST, yyvsp[0].string); }
+    break;
 case 30:
-#line 185 "parser.ypp"
+#line 186 "parser.ypp"
 {	  
 				  yyval.operand = yyvsp[-1].operand;  
 				}
     break;
 case 31:
-#line 189 "parser.ypp"
+#line 190 "parser.ypp"
 {
 				  yyval.operand = parse_dts->comp_arith(yyvsp[-1].arithop, yyvsp[-2].operand, yyvsp[0].operand); 
 				}
     break;
 case 34:
-#line 200 "parser.ypp"
+#line 201 "parser.ypp"
 {  yyval.comp = comp_new(EXIST, yyvsp[0].operand, yyvsp[0].operand); }
     break;
 case 35:
-#line 201 "parser.ypp"
+#line 202 "parser.ypp"
 { yyval.comp = comp_new(yyvsp[-1].op, yyvsp[-2].operand, yyvsp[0].operand); }
     break;
 case 36:
-#line 202 "parser.ypp"
+#line 203 "parser.ypp"
 { 
 				  int argc; char ** argv;
 				  arglist2argv(yyvsp[-1].arglist, &argc, &argv);
@@ -1176,61 +1177,61 @@ case 36:
 				}
     break;
 case 37:
-#line 209 "parser.ypp"
+#line 210 "parser.ypp"
 { yyval.op = EQ; }
     break;
 case 38:
-#line 210 "parser.ypp"
+#line 211 "parser.ypp"
 { yyval.op = GT; }
     break;
 case 39:
-#line 211 "parser.ypp"
+#line 212 "parser.ypp"
 { yyval.op = LT; }
     break;
 case 40:
-#line 212 "parser.ypp"
+#line 213 "parser.ypp"
 { yyval.op = GEQ; }
     break;
 case 41:
-#line 213 "parser.ypp"
+#line 214 "parser.ypp"
 { yyval.op = LEQ; }
     break;
 case 42:
-#line 214 "parser.ypp"
+#line 215 "parser.ypp"
 { yyval.op = NEQ; }
     break;
 case 43:
-#line 215 "parser.ypp"
+#line 216 "parser.ypp"
 { yyval.op = LIKE; }
     break;
 case 44:
-#line 218 "parser.ypp"
+#line 219 "parser.ypp"
 { yyval.arithop = ADD; }
     break;
 case 45:
-#line 219 "parser.ypp"
+#line 220 "parser.ypp"
 { yyval.arithop = SUB; }
     break;
 case 46:
-#line 220 "parser.ypp"
+#line 221 "parser.ypp"
 { yyval.arithop = DIVIDE; }
     break;
 case 47:
-#line 221 "parser.ypp"
+#line 222 "parser.ypp"
 { yyval.arithop = MULT; }
     break;
 case 48:
-#line 226 "parser.ypp"
+#line 227 "parser.ypp"
 { 
 #ifdef DEBUG
-	   	smacq_graph_print(stderr, yyvsp[-1].graph.head, 0); 
+	   	yyvsp[-1].graph.head->print(stderr, 0); 
 #endif
 		Graph = yyvsp[-1].graph.head;
 		return 0;
 	   }
     break;
 case 49:
-#line 236 "parser.ypp"
+#line 237 "parser.ypp"
 {
 	   	yyval.graph = yyvsp[-2].graph;
 		graph_join(&(yyval.graph), yyvsp[-1].graph);
@@ -1242,14 +1243,14 @@ case 49:
 	   }
     break;
 case 50:
-#line 246 "parser.ypp"
+#line 247 "parser.ypp"
 {
 	   	yyval.graph = yyvsp[0].graph;
 		graph_join(&(yyval.graph), yyvsp[-1].graph);
 	   }
     break;
 case 51:
-#line 251 "parser.ypp"
+#line 252 "parser.ypp"
 {
 	   	yyval.graph = yyvsp[-4].graph;
 		graph_join(&(yyval.graph), yyvsp[-1].graph);
@@ -1261,85 +1262,79 @@ case 51:
 	   }
     break;
 case 52:
-#line 260 "parser.ypp"
+#line 261 "parser.ypp"
 { yyval.graph = optimize_bools(yyvsp[0].comp); }
     break;
 case 54:
-#line 264 "parser.ypp"
+#line 265 "parser.ypp"
 { yyval.graph = nullgraph; }
     break;
 case 55:
-#line 268 "parser.ypp"
+#line 269 "parser.ypp"
 {
 	   	yyval.graph = yyvsp[0].graph;
 		graph_join(&(yyval.graph), yyvsp[-1].graph);
 	   }
     break;
 case 56:
-#line 274 "parser.ypp"
+#line 275 "parser.ypp"
 { yyval.graph = nullgraph; }
     break;
 case 57:
-#line 275 "parser.ypp"
+#line 276 "parser.ypp"
 { yyval.graph = optimize_bools(yyvsp[0].comp); }
     break;
 case 58:
-#line 278 "parser.ypp"
+#line 279 "parser.ypp"
 { yyval.group.args = NULL; yyval.group.having = NULL;}
     break;
 case 59:
-#line 279 "parser.ypp"
+#line 280 "parser.ypp"
 { yyval.group.args = yyvsp[-1].arglist; yyval.group.having = yyvsp[0].comp; }
     break;
 case 60:
-#line 282 "parser.ypp"
+#line 283 "parser.ypp"
 { yyval.comp = NULL; }
     break;
 case 61:
-#line 283 "parser.ypp"
+#line 284 "parser.ypp"
 { yyval.comp = yyvsp[0].comp; }
     break;
 case 62:
-#line 286 "parser.ypp"
+#line 287 "parser.ypp"
 { yyval.graph = yyvsp[-1].graph; }
     break;
 case 63:
-#line 287 "parser.ypp"
+#line 288 "parser.ypp"
 { yyval.graph = newmodule(yyvsp[-3].string, yyvsp[-1].arglist); }
     break;
 case 64:
-#line 288 "parser.ypp"
+#line 289 "parser.ypp"
 { yyval.graph = newmodule(yyvsp[0].string, NULL); }
     break;
 case 66:
-#line 293 "parser.ypp"
+#line 294 "parser.ypp"
 {
-	   	smacq_graph * g = yyvsp[-2].graph.head;
-		while(g->next_graph)
-			g=g->next_graph;
-		g->next_graph = yyvsp[0].graph.head;
+		yyvsp[-2].graph.head->add_graph(yyvsp[0].graph.head);
 		yyval.graph = yyvsp[-2].graph;
 	   }
     break;
 case 67:
-#line 302 "parser.ypp"
+#line 300 "parser.ypp"
 { yyval.graph = newmodule(yyvsp[-1].string, yyvsp[0].arglist); }
     break;
 case 68:
-#line 303 "parser.ypp"
+#line 301 "parser.ypp"
 { yyval.graph = newmodule(yyvsp[-3].string, yyvsp[-1].arglist); }
     break;
 case 69:
-#line 304 "parser.ypp"
+#line 302 "parser.ypp"
 { yyval.graph = yyvsp[-1].graph; }
     break;
 case 70:
-#line 306 "parser.ypp"
+#line 304 "parser.ypp"
 {
-	   	smacq_graph * g = yyvsp[-3].graph.head;
-		while(g->next_graph)
-			g=g->next_graph;
-		g->next_graph = yyvsp[-1].graph.head;
+		yyvsp[-3].graph.head->add_graph(yyvsp[-1].graph.head);
 		yyval.graph = yyvsp[-3].graph;
 	   }
     break;
@@ -1576,16 +1571,16 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 314 "parser.ypp"
+#line 309 "parser.ypp"
 
 
 extern void yysmacql_scan_string(char*);
 
 #ifndef SMACQ_OPT_NOPTHREADS
 #ifdef PTHREAD_MUTEX_INITIALIZER
-  static smacq_pthread_mutex_t local_lock = PTHREAD_MUTEX_INITIALIZER;
+  static pthread_mutex_t local_lock = PTHREAD_MUTEX_INITIALIZER;
 #else
-  static smacq_pthread_mutex_t local_lock;
+  static pthread_mutex_t local_lock;
   #warning "No PTHREAD_MUTEX_INITIALIZER"
 #endif
 #endif
