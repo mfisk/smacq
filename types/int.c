@@ -10,12 +10,8 @@ static int smacqtype_int_get_string(const dts_object * o, dts_object * field) {
 }
 
 static int smacqtype_int_get_double(const dts_object * o, dts_object * field) {
-  double * d = g_new(double, 1);
-  *d = dts_data_as(o, int);
-  field->data= d;
-  field->len= sizeof(double);
-
-  return 1;
+  double d = dts_data_as(o, int);
+  return dts_set(field, double, d);
 }
 
 static int parse_string(char * buf, const dts_object * d) {

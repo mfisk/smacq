@@ -4,18 +4,12 @@
 #include "smacq.h"
 
 static int smacqtype_double_get_double(const dts_object * o, dts_object * field) {
-  double * dbl = malloc(sizeof(double));
-  *dbl = dts_data_as(o, double);
-  field->data= dbl;
-  field->len= sizeof(double);
-
-  return 1;
+  return dts_set(field, double, dts_data_as(o, double));
 }
 
 static int smacqtype_double_get_string(const dts_object * o, dts_object * field) {
   dts_setsize(field, 64);
   snprintf(field->data, 64, "%g", dts_data_as(o, double));
-
   return 1;
 }
 
