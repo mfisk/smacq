@@ -219,7 +219,7 @@ static int socket_init(struct flow_init * context) {
     };
     
     //XXX: for some reason the following nulls state 	
-    flow_getoptsbyname(context->argc-1, context->argv+1,
+    smacq_getoptsbyname(context->argc-1, context->argv+1,
 				 NULL, NULL,
 				 options, optvals);
     //fprintf(stderr,"state: %p", state);

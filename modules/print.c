@@ -78,7 +78,7 @@ static int print_init(struct flow_init * context) {
       {"B", &flush},
       {NULL, NULL}
     };
-    flow_getoptsbyname(context->argc-1, context->argv+1,
+    smacq_getoptsbyname(context->argc-1, context->argv+1,
 				 &state->argc, &state->argv,
 				 options, optvals);
     assert(state->argv);

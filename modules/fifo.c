@@ -43,7 +43,7 @@ static int fifo_init(struct flow_init * context) {
   	struct smacq_optval optvals[] = {
     		{NULL, NULL}
   	};
-  	flow_getoptsbyname(context->argc-1, context->argv+1,
+  	smacq_getoptsbyname(context->argc-1, context->argv+1,
 			       &argc, &argv,
 			       options, optvals);
   }

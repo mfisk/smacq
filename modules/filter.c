@@ -51,7 +51,7 @@ static int filter_init(struct flow_init * context) {
     struct smacq_optval optvals[] = {
       {NULL, NULL}
     };
-    flow_getoptsbyname(context->argc-1, context->argv+1,
+    smacq_getoptsbyname(context->argc-1, context->argv+1,
 				 &state->argc, &state->argv,
 				 options, optvals);
     assert(state->argv);

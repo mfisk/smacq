@@ -207,7 +207,7 @@ static int pcapfile_init(struct flow_init * context) {
       {NULL, NULL}
     };
     output.uint32_t = 0;
-    flow_getoptsbyname(context->argc-1, context->argv+1,
+    smacq_getoptsbyname(context->argc-1, context->argv+1,
 				 &state->argc, &state->argv,
 				 options, optvals);
     

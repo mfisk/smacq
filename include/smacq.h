@@ -161,7 +161,7 @@ struct dts_type_info {
 /*
  * Utility routines that have no shared state 
  */
-EXTERN int flow_getoptsbyname(int argc, char ** argv, 
+EXTERN int smacq_getoptsbyname(int argc, char ** argv, 
 			      int * , char***, 
 			      struct smacq_options *, 
 			      struct smacq_optval *);

@@ -123,7 +123,7 @@ static int fifodelay_init(struct flow_init * context) {
       {"o", &ofieldname},
       {NULL, NULL},
     };
-    flow_getoptsbyname(context->argc-1, context->argv+1,
+    smacq_getoptsbyname(context->argc-1, context->argv+1,
 		       &argc, &argv,
 		       options, optvals);
 

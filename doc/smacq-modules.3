@@ -1,4 +1,4 @@
-.TH smacq-modules 3 "$Date: 2002/10/30 23:23:14 $" "LANL"
+.TH smacq-modules 3 "$Date: 2002/10/31 01:00:59 $" "LANL"
 .SH NAME
 smacq-modules - pipeline module programming guide
 .SH SYNOPSIS
@@ -233,7 +233,7 @@ The system knows how to compare typed objects using the following routines:
 .RE
 	
 .TP
-.BI "int flow_getoptsbyname(int argc, char ** argv, int * argc_left, char *** argv_left, struct smacq_options * options, struct smacq_optval * optvals)"
+.BI "int smacq_getoptsbyname(int argc, char ** argv, int * argc_left, char *** argv_left, struct smacq_options * options, struct smacq_optval * optvals)"
 Parse the argv argument vector according to the legal options specified in
 the \fIoptions\fP array and store the values in the memory locations
 pointed to by the \fIoptvals\fP array. 

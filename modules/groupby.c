@@ -133,7 +133,7 @@ static int groupby_init(struct flow_init * context) {
   	struct smacq_optval optvals[] = {
     		{NULL, NULL}
   	};
-  	flow_getoptsbyname(argc, argv,
+  	smacq_getoptsbyname(argc, argv,
 			       &argc, &argv,
 			       options, optvals);
 
