@@ -1,0 +1,70 @@
+VERSION 2.0 - 6 September 2004
+==============================
+2004-08 - C API for modules removed
+		- Modules are classes now too
+2004-08 - Module output queueing is now part of base class
+2004-08 - Finished rewrite of significant portions of code to C++
+		- STL data-structures
+		- Classes: DTS, DtsObject, IterativeScheduler, FieldVec, etc.
+2004-08 - SmacqGraph.child is now a 2D array
+2004-08 - Fixed "bag of tails" warning
+2004-08 - getfield() objects keep a reference to their parent
+2004-08 - Doxygen used for all API documentation now
+2004-07 - DtsObject is an autopointer (code from Boost)
+
+VERSION 1.9 - 7 September 2004
+==============================
+2004-05 - clock module only moves time forward, even if input is back and forth
+2004-04 - New iterative scheduler is now the default; recursive deprecated
+2004-04 - Added sqlinsert module using libgda
+2004-02 - Added iplookup module & patricia code
+2003-12 - print(-x)
+2003-12 - Downstream filters (invariants) API added
+2003-11	- Switched to autoconf/automake
+2003-11 - Indexed file reader (.strucio_index files)
+2003-11 - Strucio, structured I/O
+2003-11 - disarm reader and sv4 type
+2003-10	- Jenkins hash function
+2003-09 - Fieldsets can specify a field that isn't always present
+2003-09	- cmalloc added
+2003-08 - cflow, clock modules
+2003-08 - cflow, time, ntime types
+2003-08 - Vector compare function
+2003-08 - IoVec hashtable
+2003-08 - groupby now supports partial refresh messages
+2003-06 - NOT support
+2003-06 - expression parser
+2003-06 - OR by union rather than short-circuit
+2003-05 - count module now behaves like SQL
+2003-05 - Macintosh .app created
+2003-05 - Added arithmetic expressions to Boolean expressions
+2003-05 - Complex AND/OR Boolean expressions
+2003-05 - DFA module added
+2003-04 - Coroutine-based thread modules
+2003-04 - Ethereal integration
+2003-04 - Query parser understands pipes; commas optional
+2003-04 - ISO build scripts
+2003-03 - >=, <=, !=
+2003-03 - RedHat 7.3 and 8 kludges--er support
+2003-03 - Nested queries
+2003-02 - ndjoin module
+2003-02 - Modules declare their algebraic properties
+2003-01 - const, mask, substr modules
+2003-01 - ipproto type
+2003-01 - Nested functions in comparisons
+2003-01 - Began regression testing
+2003-01 - Aggresive getfield() caching
+2003-01 - Multi-headed graphs; smacqq -m option
+2003-01 - getfield() returns an object rather than just data
+2003-01 - Object free list
+2003-01 - Nested field names
+2003-01 - Query optimization (-O)
+2002-12 - Boolean expression parsing for WHERE clauses (in "filter" module)
+2002-12 - project, rename  modules (for relational algebra)
+2002-12 - Query syntax parser
+2002-11 - Ported to MacOS X
+2002-11 - flowid, groupby, sum modules
+
+VERSION 0.9
+===========
+ - Initial public release from LANL
