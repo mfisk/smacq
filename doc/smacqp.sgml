@@ -12,7 +12,7 @@
       <firstname>Mike</firstname>
       <surname>Fisk</surname>
     </author>
-    <date>$Date: 2002/10/31 01:00:59 $</date>
+    <date>$Date: 2002/10/31 01:08:24 $</date>
   </refentryinfo>
   <refmeta>
     <refentrytitle>smacqp</refentrytitle>
@@ -371,6 +371,43 @@
 	perfect algorithm.
       </para>
       
+    </refsect2>
+
+    <refsect2>
+      <title>Flow ID</title>
+      <cmdsynopsis>
+	<command>flowid</command>
+	<arg>-t <replaceable>time</replaceable></arg>
+	<arg choice=req rep=repeat> <replaceable>fields</replaceable></arg>
+      </cmdsynopsis>
+
+      <para>
+	Treat the specified field(s) as a tuple and assign a unique
+	flow id number to each object based on the typle value.  The
+	annotated field is called "flowid".
+      </para>
+
+      <para>
+	The <option>-t</option> option specifies a number of seconds
+	idle time before a flow is timed out.
+      </para>
+      
+    </refsect2>
+
+    <refsect2>
+      <title>Group-By</title>
+      <cmdsynopsis>
+	<command>groupby</command>
+	<arg choice=req rep=repeat> <replaceable>fields</replaceable></arg>
+	<arg choice=req>-- 
+	<arg choice=req rep=repeat> <replaceable>query</replaceable></arg>
+      </cmdsynopsis>
+
+      <para>
+	Treat the specified field(s) as a tuple and instantiate the
+	specified query for each tuple.
+      </para>
+
     </refsect2>
 
     <refsect2>
