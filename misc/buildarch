@@ -7,7 +7,12 @@ fi
 
 platform=`uname -sm| sed 's/  */-/g'`
 srcdir=`pwd`
-builddir="build/$platform"
+
+if [ "$BUILDNAME" = "" ]; then
+	builddir="build/$platform"
+else
+	builddir="build/$BUILDNAME-$platform"
+fi
 
 if [ -d /sw/bin ]; then
 	# Have to use fink autoconf/libtool or build dies

@@ -1,6 +1,9 @@
 default: 
 	misc/buildarch
 
+debug:
+	BUILDNAME=debug CONFIG="--enable-debug" misc/buildarch 
+
 bootstrap:
 	rm -Rf autom4te.cache config
 	mkdir -p config
