@@ -20,6 +20,8 @@ How do I pass configure options?
 --------------------------------
 Set them in the CONFIG environment variable before running make:
 	CONFIG="--with-ethereal" make
+	CONFIG="--with-debug" make
+	CONFIG="--with-profile --with-debug" make
 
 Supported Platforms:
 --------------------
