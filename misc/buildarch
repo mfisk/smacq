@@ -1,5 +1,10 @@
 #!/bin/sh
 
+targets="$@"
+if [ "$targets" = "" ]; then
+        targets="all test"
+fi
+
 platform=`uname -sm| sed 's/  */-/g'`
 srcdir=`pwd`
 builddir="build/$platform"
@@ -9,13 +14,13 @@ build() {
 	if [ \! -f $builddir/Makefile ]; then
 		mkdir -p $builddir
 		cd $builddir
-		$srcdir/configure --srcdir=$srcdir
+		$srcdir/configure --srcdir=$srcdir $CONFIG
 	else 
 		cd $builddir
 	fi
 	
 	echo "Building in $builddir"
-	make all test 
+	make $targets
 }
 
 (build)
