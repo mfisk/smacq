@@ -10,7 +10,7 @@
 
 struct thread_args {
   struct filter * f;
-  struct flow_init * context;
+  struct smacq_init * context;
 };
 
 char * printer_args[] = { "print", "count" };

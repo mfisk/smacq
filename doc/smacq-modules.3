@@ -1,4 +1,4 @@
-.TH smacq-modules 3 "$Date: 2002/10/31 01:00:59 $" "LANL"
+.TH smacq-modules 3 "$Date: 2002/12/01 03:21:45 $" "LANL"
 .SH NAME
 smacq-modules - pipeline module programming guide
 .SH SYNOPSIS
@@ -7,7 +7,7 @@ smacq-modules - pipeline module programming guide
 .sp 
 Each module must provide the following functions and global variables:
 .sp
-.BI "static smacq_result flow_init(struct flow_init * context);"
+.BI "static smacq_result flow_init(struct smacq_init * context);"
 .sp
 .BI "static smacq_result flow_consume(void * state, const dts_object *, int * outchan);"
 .sp
@@ -55,7 +55,7 @@ All parameters are passed in a single structure:
 .nf
 .ne 7
 .ta 8n 16n 32n
-struct flow_init {
+struct smacq_init {
 	int isfirst;
 	int islast;
 	char ** argv;

@@ -44,7 +44,7 @@ static smacq_result sync_consume(struct state * state, const dts_object * datum,
   return SMACQ_PASS;
 }
 
-static int sync_init(struct flow_init * context) {
+static int sync_init(struct smacq_init * context) {
   int argc = 0;
   int i;
   char ** argv;

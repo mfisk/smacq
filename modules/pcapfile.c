@@ -188,7 +188,7 @@ static int pcapfile_shutdown(struct state * state) {
 	return 0;
 }
 
-static int pcapfile_init(struct flow_init * context) {
+static int pcapfile_init(struct smacq_init * context) {
   struct state * state;
 
   //fprintf(stderr, "Loading pcapfile (%d,%d)\n", context->isfirst, context->islast);

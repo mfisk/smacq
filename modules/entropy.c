@@ -61,7 +61,7 @@ static smacq_result entropy_consume(struct state * state, const dts_object * dat
 	}
 }
 
-static int entropy_init(struct flow_init * context) {
+static int entropy_init(struct smacq_init * context) {
   int argc = 0;
   char ** argv;
   struct state * state = context->state = g_new0(struct state, 1);

@@ -239,7 +239,7 @@ static smacq_result intervals_consume(struct state * state, const dts_object * d
   return SMACQ_FREE;
 }
 
-static int intervals_init(struct flow_init * context) {
+static int intervals_init(struct smacq_init * context) {
   int argc = 0;
   char ** argv;
   struct state * state = context->state = g_new0(struct state, 1);

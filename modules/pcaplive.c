@@ -112,7 +112,7 @@ static char * merge_args(int argc, char ** argv) {
 }
   
 
-static int pcaplive_init(struct flow_init * context) {
+static int pcaplive_init(struct smacq_init * context) {
   char ebuf[PCAP_ERRBUF_SIZE];
   struct state * state;
   smacq_opt snapleno, promisco, interfaceo;

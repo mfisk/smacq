@@ -4,7 +4,7 @@
 
 struct thread_args {
   struct filter * f;
-  struct flow_init * context;
+  struct smacq_init * context;
 };
 
 // Return 0 iff module has nothing more to produce at the moment

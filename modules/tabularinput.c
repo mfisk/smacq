@@ -111,7 +111,7 @@ static int tabularinput_shutdown(struct state * state) {
   return 0;
 }
 
-static int tabularinput_init(struct flow_init * context) {
+static int tabularinput_init(struct smacq_init * context) {
   struct state * state;
   smacq_opt delimitero, fileo;
   int argc;

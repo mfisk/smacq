@@ -106,7 +106,7 @@ static smacq_result fifodelay_consume(struct state * state, const dts_object * d
   return(SMACQ_FREE|SMACQ_PRODUCE);
 }
 
-static int fifodelay_init(struct flow_init * context) {
+static int fifodelay_init(struct smacq_init * context) {
   int argc = 0;
   char ** argv;
   struct state * state = context->state = g_new0(struct state, 1);

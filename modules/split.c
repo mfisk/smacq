@@ -63,7 +63,7 @@ static smacq_result split_consume(struct state * state, const dts_object * datum
   return SMACQ_PASS;
 }
 
-static int split_init(struct flow_init * context) {
+static int split_init(struct smacq_init * context) {
   int argc = 0;
   char ** argv;
   int i;

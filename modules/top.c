@@ -96,7 +96,7 @@ static smacq_result top_consume(struct state * state, const dts_object * datum, 
   }
 }
 
-static int top_init(struct flow_init * context) {
+static int top_init(struct smacq_init * context) {
   int argc;
   char ** argv;
   smacq_opt pcount;

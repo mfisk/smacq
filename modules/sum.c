@@ -66,7 +66,7 @@ static smacq_result sum_consume(struct state * state, const dts_object * datum, 
     
 }
 
-static int sum_init(struct flow_init * context) {
+static int sum_init(struct smacq_init * context) {
   int argc = 0;
   char ** argv;
   struct state * state = context->state = g_new0(struct state, 1);

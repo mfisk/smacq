@@ -39,7 +39,7 @@ static smacq_result filter_consume(struct state * state, const dts_object * datu
     return SMACQ_FREE;
 }
 
-static int filter_init(struct flow_init * context) {
+static int filter_init(struct smacq_init * context) {
   struct state * state;
   int i;
 

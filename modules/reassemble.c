@@ -105,7 +105,7 @@ list_item * list_dequeue() {
 }
 
 //////////////
-int reassemble_init(struct flow_init * context) {
+int reassemble_init(struct smacq_init * context) {
 //////////////
   int argc;
   char ** argv;

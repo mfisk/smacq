@@ -67,7 +67,7 @@ static smacq_result count_consume(struct state * state, const dts_object * datum
   return SMACQ_PASS;
 }
 
-static int count_init(struct flow_init * context) {
+static int count_init(struct smacq_init * context) {
   int argc = 0;
   char ** argv;
   smacq_opt probability, countfield;

@@ -36,7 +36,7 @@ typedef struct {
 	struct state * state;
 } DTSObject;
 
-static smacq_result python_init(struct flow_init * context) {
+static smacq_result python_init(struct smacq_init * context) {
 	char * cmd, * filename;
 	PyObject * builtins, * tmpargs = NULL;
 	struct state * state = context->state = g_new0(struct state, 1);

@@ -33,7 +33,7 @@ static smacq_result fifo_consume(struct state * state, const dts_object * datum,
   return(SMACQ_FREE|SMACQ_CANPRODUCE);
 }
 
-static int fifo_init(struct flow_init * context) {
+static int fifo_init(struct smacq_init * context) {
   int argc = 0;
   char ** argv;
   struct state * state = context->state = g_new0(struct state, 1);

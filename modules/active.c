@@ -162,7 +162,7 @@ static smacq_result active_consume(struct state * state, const dts_object * datu
   return SMACQ_PASS;
 }
 
-static int active_init(struct flow_init * context) {
+static int active_init(struct smacq_init * context) {
   int argc = 0;
   char ** argv;
   struct state * state = context->state = g_new0(struct state, 1);

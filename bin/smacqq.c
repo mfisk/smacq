@@ -12,7 +12,7 @@ static int multiproc = 1;
 
 struct thread_args {
   struct filter * f;
-  struct flow_init * context;
+  struct smacq_init * context;
 };
 
 int main(int argc, char ** argv) {

@@ -243,7 +243,7 @@ struct filter * smacq_build_query(int argc, char ** argv) {
 
 
 void flow_init_modules(struct filter * f, smacq_environment * env) {
-  struct flow_init * context = g_new0(struct flow_init, 1);
+  struct smacq_init * context = g_new0(struct smacq_init, 1);
   int i;
 
   if (!f) return;

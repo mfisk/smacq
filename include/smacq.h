@@ -88,11 +88,11 @@ typedef struct _flow_env {
 
 } smacq_environment;
 
-struct flow_init;
+struct smacq_init;
 
-typedef smacq_result smacq_thread_fn(struct flow_init *);
+typedef smacq_result smacq_thread_fn(struct smacq_init *);
 
-struct flow_init {
+struct smacq_init {
   int isfirst;
   int islast;
   char ** argv;
@@ -132,7 +132,7 @@ struct state; // Private to modules
 
 typedef smacq_result flow_produce_fn(struct state * state, const dts_object **, int * outchan);
 typedef smacq_result flow_consume_fn(struct state * state, const dts_object *, int * outchan);
-typedef smacq_result flow_init_fn(struct flow_init *);
+typedef smacq_result flow_init_fn(struct smacq_init *);
 typedef smacq_result flow_shutdown_fn(struct state *);
 
 /*
@@ -170,15 +170,15 @@ EXTERN int smacq_getoptsbyname(int argc, char ** argv,
  * Module threading routines 
  */
 
-extern smacq_result smacq_thread_init(struct flow_init * volatile_context);
+extern smacq_result smacq_thread_init(struct smacq_init * volatile_context);
 extern smacq_result smacq_thread_consume(struct state * state, const dts_object * datum, int * outchan);
 extern smacq_result smacq_thread_produce(struct state * state, const dts_object ** datum, int *outchan);
 extern smacq_result smacq_thread_shutdown(struct state * state);
 
-extern const dts_object * smacq_read(struct flow_init * context);
+extern const dts_object * smacq_read(struct smacq_init * context);
 extern void smacq_write(struct state * state, dts_object * datum, int outchan);
-extern void smacq_decision(struct flow_init * context, const dts_object * datum, smacq_result result);
-extern void  smacq_flush(struct flow_init * context);
+extern void smacq_decision(struct smacq_init * context, const dts_object * datum, smacq_result result);
+extern void  smacq_flush(struct smacq_init * context);
 
 
 /*

@@ -203,7 +203,7 @@ static void client_init(struct state * state, int port, char * hostname) {
   *state->client_type_array = 0; 
 }
 
-static int socket_init(struct flow_init * context) {
+static int socket_init(struct smacq_init * context) {
   struct state * state;
   smacq_opt port, hostname, serverd;
   context->state = state = (struct state*) calloc(sizeof(struct state),1);

@@ -57,7 +57,7 @@ static smacq_result flow_consume(struct state * state, const dts_object * datum,
 static smacq_result flow_produce(struct state * state, const dts_object **datump, int * outchan) {
 	return SMACQ_END;
 }
-static smacq_result flow_init(struct flow_init * context) {
+static smacq_result flow_init(struct smacq_init * context) {
 	return SMACQ_PASS;
 }
 struct smacq_functions smacq_pcap_preload_table = {

@@ -98,7 +98,7 @@ static smacq_result groupby_consume(struct state * state, const dts_object * dat
   return status;
 }
 
-static int groupby_init(struct flow_init * context) {
+static int groupby_init(struct smacq_init * context) {
   int argc = 0;
   char ** argv;
   int i;
