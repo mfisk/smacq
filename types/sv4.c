@@ -7,7 +7,8 @@ static int get_sv4_data(const dts_object * datum, dts_object * data) {
 }
 
 struct dts_field_spec dts_type_sv4_fields[] = {
-	{ "uint64",	"id",		NULL },
+	{ "nushort",	"epoch",	NULL },
+	{ "nuint32",	"id",		NULL },
 	{ "ip",		"dstip",	NULL },
 	{ "ip",		"srcip",	NULL },
 	{ "nushort",	"dstport",	NULL },
