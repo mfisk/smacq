@@ -1,6 +1,6 @@
-# Makefile.in generated automatically by automake 1.4-p6 from Makefile.am
+# Makefile.in generated automatically by automake 1.4-p4 from Makefile.am
 
-# Copyright (C) 1994, 1995-8, 1999, 2001 Free Software Foundation, Inc.
+# Copyright (C) 1994, 1995-8, 1999 Free Software Foundation, Inc.
 # This Makefile.in is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
@@ -59,29 +59,33 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 host_alias = @host_alias@
 host_triplet = @host@
+AR = @AR@
 AS = @AS@
 CC = @CC@
 CXX = @CXX@
+CXXCPP = @CXXCPP@
 DLLTOOL = @DLLTOOL@
 ECHO = @ECHO@
+EGREP = @EGREP@
 ETHEREAL_DIR = @ETHEREAL_DIR@
 ETHEREAL_LIBRARY = @ETHEREAL_LIBRARY@
 EXEEXT = @EXEEXT@
+F77 = @F77@
+GCJ = @GCJ@
+GCJFLAGS = @GCJFLAGS@
 GLOBAL_INCLUDES = @GLOBAL_INCLUDES@
-HAVE_LIB = @HAVE_LIB@
 LEX = @LEX@
-LIB = @LIB@
 LIBS_MODULES_ALL = @LIBS_MODULES_ALL@
 LIBS_MODULES_SHARED = @LIBS_MODULES_SHARED@
 LIBTOOL = @LIBTOOL@
 LN_S = @LN_S@
-LTLIB = @LTLIB@
 MAKEINFO = @MAKEINFO@
 OBJDUMP = @OBJDUMP@
 OBJECTS_MODULES_BUILTIN = @OBJECTS_MODULES_BUILTIN@
 OBJEXT = @OBJEXT@
 PACKAGE = @PACKAGE@
 RANLIB = @RANLIB@
+RC = @RC@
 SOURCES_MODULES_BUILTIN = @SOURCES_MODULES_BUILTIN@
 SOURCES_TYPES_BUILTIN = @SOURCES_TYPES_BUILTIN@
 STRIP = @STRIP@
@@ -90,11 +94,11 @@ YACC = @YACC@
 
 INCLUDES = @GLOBAL_INCLUDES@ -I$(top_srcdir)/include
 
-noinst_LTLIBRARIES = libdts_modules.la libdts_modules_pass1.la 
+noinst_LTLIBRARIES = libdts_modules.la 
 EXTRA_LTLIBRARIES = libpacket_la 
 
 libdts_modules_la_SOURCES = bytes.c empty.c ipproto.c ntime.c string.c ubyte.c cflow.c int.c macaddr.c nuint32.c time.c uint32.c double.c ip.c netlong.c nushort.c refresh.c timeval.c ushort.c packet.c sv4.c uint64.c
-libdts_modules_la_DEPENDENCIES = libdts_modules_pass1.la
+libdts_modules_la_DEPENDENCIES = 
 libdts_modules_la_LDFLAGS = -rpath /bogus
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
 CONFIG_HEADER = ../config.h
@@ -115,10 +119,6 @@ libdts_modules_la_OBJECTS =  bytes.lo empty.lo ipproto.lo ntime.lo \
 string.lo ubyte.lo cflow.lo int.lo macaddr.lo nuint32.lo time.lo \
 uint32.lo double.lo ip.lo netlong.lo nushort.lo refresh.lo timeval.lo \
 ushort.lo packet.lo sv4.lo uint64.lo
-libdts_modules_pass1_la_LDFLAGS = 
-libdts_modules_pass1_la_LIBADD = 
-libdts_modules_pass1_la_SOURCES = libdts_modules_pass1.la.c
-libdts_modules_pass1_la_OBJECTS =  libdts_modules_pass1.la.lo
 CFLAGS = @CFLAGS@
 COMPILE = $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
 LTCOMPILE = $(LIBTOOL) --mode=compile $(CC) $(DEFS) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -132,13 +132,13 @@ DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
 TAR = tar
 GZIP_ENV = --best
 DEP_FILES =  .deps/bytes.P .deps/cflow.P .deps/double.P .deps/empty.P \
-.deps/int.P .deps/ip.P .deps/ipproto.P .deps/libdts_modules_pass1.la.P \
-.deps/libpacket_la.P .deps/macaddr.P .deps/netlong.P .deps/ntime.P \
-.deps/nuint32.P .deps/nushort.P .deps/packet.P .deps/refresh.P \
-.deps/string.P .deps/sv4.P .deps/time.P .deps/timeval.P .deps/ubyte.P \
-.deps/uint32.P .deps/uint64.P .deps/ushort.P
-SOURCES = libpacket_la.c $(libdts_modules_la_SOURCES) libdts_modules_pass1.la.c
-OBJECTS = libpacket_la.$(OBJEXT) $(libdts_modules_la_OBJECTS) libdts_modules_pass1.la.lo
+.deps/int.P .deps/ip.P .deps/ipproto.P .deps/libpacket_la.P \
+.deps/macaddr.P .deps/netlong.P .deps/ntime.P .deps/nuint32.P \
+.deps/nushort.P .deps/packet.P .deps/refresh.P .deps/string.P \
+.deps/sv4.P .deps/time.P .deps/timeval.P .deps/ubyte.P .deps/uint32.P \
+.deps/uint64.P .deps/ushort.P
+SOURCES = libpacket_la.c $(libdts_modules_la_SOURCES)
+OBJECTS = libpacket_la.$(OBJEXT) $(libdts_modules_la_OBJECTS)
 
 all: all-redirect
 .SUFFIXES:
@@ -204,9 +204,6 @@ libpacket_la: $(libpacket_la_OBJECTS) $(libpacket_la_DEPENDENCIES)
 libdts_modules.la: $(libdts_modules_la_OBJECTS) $(libdts_modules_la_DEPENDENCIES)
 	$(LINK)  $(libdts_modules_la_LDFLAGS) $(libdts_modules_la_OBJECTS) $(libdts_modules_la_LIBADD) $(LIBS)
 
-libdts_modules_pass1.la: $(libdts_modules_pass1_la_OBJECTS) $(libdts_modules_pass1_la_DEPENDENCIES)
-	$(LINK)  $(libdts_modules_pass1_la_LDFLAGS) $(libdts_modules_pass1_la_OBJECTS) $(libdts_modules_pass1_la_LIBADD) $(LIBS)
-
 tags: TAGS
 
 ID: $(HEADERS) $(SOURCES) $(LISP)
@@ -225,7 +222,7 @@ TAGS:  $(HEADERS) $(SOURCES)  $(TAGS_DEPENDENCIES) $(LISP)
 	  awk '    { files[$$0] = 1; } \
 	       END { for (i in files) print i; }'`; \
 	test -z "$(ETAGS_ARGS)$$unique$(LISP)$$tags" \
-	  || (cd $(srcdir) && etags -o $$here/TAGS $(ETAGS_ARGS) $$tags  $$unique $(LISP))
+	  || (cd $(srcdir) && etags $(ETAGS_ARGS) $$tags  $$unique $(LISP) -o $$here/TAGS)
 
 mostlyclean-tags:
 
