@@ -8,7 +8,7 @@
 #include <smacq.h>
 
 struct thread_args {
-  SmacqGraph * f;
+  SmacqGraph_ptr f;
   struct SmacqModule::smacq_init * context;
 };
 
@@ -18,7 +18,7 @@ int main(int argc, char ** argv) {
   struct runq * runq = NULL;
   struct runq * printq = NULL;
   DtsObject record = NULL;
-  SmacqGraph * objs, *printer;
+  SmacqGraph_ptr objs, printer;
 
   DTS * tenv = dts_init();
 

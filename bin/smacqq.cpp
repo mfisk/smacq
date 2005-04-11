@@ -10,7 +10,7 @@
 #define MAX_QUERY_SIZE 4096*100
 
 struct thread_args {
-  SmacqGraph * f;
+  SmacqGraph_ptr f;
   struct SmacqModule::smacq_init * context;
 };
 
@@ -30,7 +30,7 @@ int main(int argc, char ** argv) {
   char ** qargv;
   DTS dts;
   FILE * fh;
-  SmacqGraph * graphs = NULL;
+  SmacqGraph_ptr graphs;
   DtsObject product;
 
   if (argc <= 1) {
@@ -90,7 +90,7 @@ int main(int argc, char ** argv) {
       }
 
       while(fgets(queryline, MAX_QUERY_SIZE, fh)) {
-	      SmacqGraph * newgraph;
+	      SmacqGraph_ptr newgraph;
 
 	      /* Chomp newline */
 	      if (queryline[strlen(queryline)-1] == '\n')
@@ -102,7 +102,7 @@ int main(int argc, char ** argv) {
 		      exit(-1);
 	      }
       	      if (graphs) {
-		graphs->add_graph(newgraph);
+		graphs->add_graph(newgraph.get());
 	      } else {
 		graphs = newgraph;
 	      }
@@ -120,7 +120,7 @@ int main(int argc, char ** argv) {
       graphs->print(stderr, 8);
   }
 
-  s.seed_produce(graphs);
+  s.seed_produce(graphs.get());
   return (! s.busy_loop());
 }
 

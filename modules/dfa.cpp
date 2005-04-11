@@ -68,7 +68,7 @@ struct dfa_state {
 };
 
 struct transition {
-  SmacqGraph * graph;
+  SmacqGraph_ptr graph;
   int next_state;
 };
 
@@ -77,7 +77,7 @@ int dfaModule::try_transition(DtsObject datum, struct transition & t) {
   smacq_result more;
 
   t.graph->print(stderr, 2);
-  more = sched->decide(t.graph, datum);
+  more = sched->decide(t.graph.get(), datum);
 
   if ((SMACQ_END|SMACQ_ERROR) & more) {
     assert(0);

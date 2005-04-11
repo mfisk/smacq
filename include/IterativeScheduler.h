@@ -23,7 +23,7 @@ public:
   void sched_shutdown(SmacqGraph * f);
 
   /// Perform an immediate shutdown for the specified graph.  The argument is invalidated.
-  void do_shutdown(SmacqGraph *f);
+  void do_shutdown(SmacqGraph * f);
 
   /// Run until an output object is ready.
   smacq_result get(DtsObject &dout);
@@ -39,8 +39,8 @@ public:
   void queue_children(SmacqGraph * f, DtsObject d, int outchan);
 
  private:
-  bool graphs_alive (SmacqGraph *f);
-  void do_delete (SmacqGraph *f);
+  bool graphs_alive (SmacqGraph * f);
+  void do_delete (SmacqGraph * f);
 
   smacq_result run_produce(SmacqGraph * f);
   bool run_consume(SmacqGraph * f, DtsObject d);
@@ -81,7 +81,7 @@ inline void IterativeScheduler::queue_children(SmacqGraph * f, DtsObject d, int 
     for (unsigned int i=0; i < f->children[outchan].size(); i++) {
       assert(f->children[outchan][i]);
       //fprintf(stderr, "\tchild %d: %s (%p)\n", i, f->children[outchan][i]->name, f->children[outchan][i]);
-      consumeq.runable(f->children[outchan][i], d);
+      consumeq.runable(f->children[outchan][i].get(), d);
     }
   } else {
     //fprintf(stderr, "queueing %p falling off leaf %s (%p)\n", d.get(), f->name, f);
@@ -90,7 +90,7 @@ inline void IterativeScheduler::queue_children(SmacqGraph * f, DtsObject d, int 
 }
 
 /// Try to delete f
-inline void IterativeScheduler::do_delete(SmacqGraph *f) {
+inline void IterativeScheduler::do_delete(SmacqGraph * f) {
     assert(!f->numparents);
     FOREACH_CHILD(f, assert(!child));
 
@@ -112,7 +112,7 @@ inline void IterativeScheduler::do_delete(SmacqGraph *f) {
 
 
 /// This should destroy the argument, so caller must not refer to it after call.
-inline void IterativeScheduler::do_shutdown(SmacqGraph *f) {
+inline void IterativeScheduler::do_shutdown(SmacqGraph * f) {
   if (f->shutdown) {
     // Already shutdown, so do nothing 
     return;
@@ -147,7 +147,7 @@ inline void IterativeScheduler::do_shutdown(SmacqGraph *f) {
       // No reason to live! 
       // This shutdown should be processed soon even if there are pending objects for the child.
       // Callee will remove parent/child relationship for us.
-      do_shutdown(f->parent[i]);
+      do_shutdown(f->parent[i].get());
     }
   }
 
@@ -157,7 +157,7 @@ inline void IterativeScheduler::do_shutdown(SmacqGraph *f) {
   }
 }
 
-inline bool IterativeScheduler::graphs_alive (SmacqGraph *f) {
+inline bool IterativeScheduler::graphs_alive (SmacqGraph * f) {
   if (! f->shutdown) {
     return true;
   }
@@ -234,7 +234,7 @@ inline bool IterativeScheduler::run_consume(SmacqGraph * f, DtsObject d) {
 /// Return SMACQ_NONE iff there is no work we can do.
 /// Otherwise, return SMACQ_FREE.
 inline smacq_result IterativeScheduler::element(DtsObject &dout) {
-  SmacqGraph * f;
+  SmacqGraph_ptr f;
   DtsObject d;
  
   if (consumeq.pop_runable(f,d)) {
@@ -244,14 +244,14 @@ inline smacq_result IterativeScheduler::element(DtsObject &dout) {
     	return SMACQ_PASS;
       } else if (!f->shutdown) {
 	if (!d) {
-		do_shutdown(f);
+		do_shutdown(f.get());
 	} else {
-		run_consume(f,d);
+		run_consume(f.get(), d);
 	}
       }
   } else if (produceq.pop_runable(f,d)) {
       if (!f->shutdown) {
-        run_produce(f);
+        run_produce(f.get());
       }
   } else {
       return SMACQ_NONE;
@@ -314,7 +314,7 @@ inline smacq_result IterativeScheduler::decide(SmacqGraph * g, DtsObject din) {
 
     // Try each child
     for (unsigned int i = 0; i < g->children[outchan].size(); i++) {
-      if (decide(g->children[outchan][i], din)) {
+      if (decide(g->children[outchan][i].get(), din)) {
 	return SMACQ_PASS;
       }
     }

@@ -92,6 +92,10 @@ class IterativeScheduler;
 /// typedef instead of a base class.
 typedef IterativeScheduler SmacqScheduler;
 
+#include <boost/intrusive_ptr.hpp>
+class SmacqGraph;
+typedef boost::intrusive_ptr<SmacqGraph> SmacqGraph_ptr;
+
 enum smacq_log_level { INFO, WARN, ERROR, };
 
 static inline void smacq_log(char * name, enum smacq_log_level level, char * msg) {

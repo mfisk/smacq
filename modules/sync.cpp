@@ -16,7 +16,7 @@ SMACQ_MODULE(sync,
 
   DtsObject product;
   struct runq * runq;
-  SmacqGraph * graph;
+  SmacqGraph_ptr graph;
   smacq_result done; 
   int isfirst;
 ); 

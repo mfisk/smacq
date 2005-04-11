@@ -1,7 +1,6 @@
 #ifndef SMACQMODULE_H
 #define SMACQMODULE_H
-
-#ifdef __cplusplus
+#include <smacq.h>
 
 class SmacqModule;
 class DtsField;
@@ -234,10 +233,6 @@ struct smacq_functions {
 inline void SmacqModule::enqueue(DtsObject & datum, int outchan) {
   scheduler->queue_children(self, datum, outchan);
 }
-
-#else
-typedef void SmacqModule;
-#endif
 
 #endif	
 

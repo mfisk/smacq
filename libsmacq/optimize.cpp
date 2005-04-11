@@ -24,21 +24,18 @@ inline bool SmacqGraph::equiv(SmacqGraph * a, SmacqGraph * b) {
 }
 
 inline void SmacqGraph::merge_tails() {
-  std::set<SmacqGraph*> list;
-  std::set<SmacqGraph*>::iterator lpa, lpb;
+  std::set<SmacqGraph_ptr> list;
+  std::set<SmacqGraph_ptr>::iterator lpa, lpb;
   list_tails(list);
 
   /* n**2 comparison between each tails */
   for (lpa = list.begin(); lpa != list.end(); lpa++) {
     for (lpb = lpa; lpb != list.end(); lpb++) {
-      if (*lpa != *lpb && equiv(*lpa, *lpb)) {
-	fprintf(stderr, "tails %p and %p merging\n", *lpa, *lpb);
+      if (*lpa != *lpb && equiv(lpa->get(), lpb->get())) {
+	fprintf(stderr, "tails %p and %p merging\n", lpa->get(), lpb->get());
 	while ((*lpb)->numparents) {
-	  (*lpb)->parent[0]->replace_child(*lpb, *lpa);
+	  (*lpb)->parent[0]->replace_child(lpb->get(), lpa->get());
 	}
-
-	// lpb is now unreferenced
-	delete *lpb;
 
 	list.erase(lpb);
 
@@ -106,11 +103,11 @@ inline bool SmacqGraph::merge_nodes(SmacqGraph * a, SmacqGraph * b) {
 void SmacqGraph::merge_redundant_children() {
   for (unsigned int k = 0; k < children.size(); k++) {
     for (unsigned int i = 0; i < children[k].size(); i++) {
-      SmacqGraph * twina = children[k][i];
+      SmacqGraph_ptr twina = children[k][i];
       // Look for twins among siblings
       for (unsigned int j = 0; j < children[k].size(); j++) {
-	SmacqGraph * twinb = children[k][j];	
-	if (merge_nodes(twina, twinb)) {
+	SmacqGraph_ptr twinb = children[k][j];	
+	if (merge_nodes(twina.get(), twinb.get())) {
 	  // Remove twin 
 	  remove_child(k,j);
 	  
@@ -127,7 +124,7 @@ void SmacqGraph::merge_redundant_children() {
   if (next_graph) next_graph->merge_redundant_children();
 }
 
-inline bool SmacqGraph::same_children(SmacqGraph *a, SmacqGraph *b) {
+inline bool SmacqGraph::same_children(SmacqGraph * a, SmacqGraph * b) {
   if (a->children.size() < b->children.size()) {
     // Swap so that a is >= b in size
     SmacqGraph * g = a;
@@ -163,17 +160,17 @@ bool SmacqGraph::merge_redundant_parents() {
   for (int i = 0; i < numparents; i++) {
     if (parent[i]->algebra.stateless) {
       for (int j = i+1; j < numparents; j++) {
-	if (parent[i] != parent[j] && equiv(parent[i], parent[j]) && 
-	    same_children(parent[i], parent[j])) {
+	if (parent[i] != parent[j] && equiv(parent[i].get(), parent[j].get()) && 
+	    same_children(parent[i].get(), parent[j].get())) {
 
 	  //fprintf(stderr, "merging redundant parents %p and %p\n", parent[i], parent[j]);
 
 	  // Tell grandparents to replace j
-	  SmacqGraph * departing = parent[j];
+	  SmacqGraph_ptr departing = parent[j];
 	  while (departing->numparents) {
 	    assert(departing->parent[0] != parent[i]);
-	    departing->parent[0]->add_child(parent[i]);
-	    departing->parent[0]->remove_child(departing);
+	    departing->parent[0]->add_child(parent[i].get());
+	    departing->parent[0]->remove_child(departing.get());
 	  }
 	  
 	  // Now that nothing will come from j, we can remove it
@@ -186,7 +183,6 @@ bool SmacqGraph::merge_redundant_parents() {
 	  // Free j
 	  assert(departing->numparents == 0);
 	  FOREACH_CHILD(departing, assert(!child));
-	  //delete departing;
 
 	  return true; // Iterators hosed, so ask to be restarted
 	}
@@ -199,13 +195,13 @@ bool SmacqGraph::merge_redundant_parents() {
 
 void SmacqGraph::merge_heads() {
 #ifndef SMACQ_OPT_NOHEADS
-  SmacqGraph * ap, * bp;
+  SmacqGraph_ptr ap, bp;
 
   /* Merge identical heads */
   for (ap = this; ap ; ap = ap->next_graph) {
-    SmacqGraph * bprev = ap;
-    for (bp = ap->next_graph; bp; bp=bp->next_graph) {
-      if (merge_nodes(ap, bp)) {
+    SmacqGraph_ptr bprev = ap;
+    for (bp = ap->next_graph; bp; bp=bp->nextGraph()) {
+      if (merge_nodes(ap.get(), bp.get())) {
 	// Remove bp from list
 	bprev->next_graph = bp->next_graph;\
 

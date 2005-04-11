@@ -16,7 +16,7 @@ static struct smacq_options options[] = {
   END_SMACQ_OPTIONS
 };
 
-typedef FieldVecHash<SmacqGraph*>::iterator OutputsIterator;
+typedef FieldVecHash<SmacqGraph_ptr>::iterator OutputsIterator;
 
 SMACQ_MODULE(groupby,
   PROTO_CTOR(groupby);
@@ -26,24 +26,24 @@ SMACQ_MODULE(groupby,
   SmacqScheduler * sched;
 	  
   FieldVec fieldvec;
-  SmacqGraph * mastergraph;
-  SmacqGraph * self;
+  SmacqGraph_ptr mastergraph;
+  SmacqGraph_ptr self;
 
-  FieldVecHash<SmacqGraph*> outTable;
+  FieldVecHash<SmacqGraph_ptr> outTable;
 
   int refresh_type;
 
   void handle_invalidate(DtsObject datum);
-  SmacqGraph * get_partition();
+  SmacqGraph_ptr get_partition();
 ); 
 
-inline SmacqGraph * groupbyModule::get_partition() {
-  SmacqGraph * partition;
+inline SmacqGraph_ptr groupbyModule::get_partition() {
+  SmacqGraph_ptr partition;
 
   partition = outTable[fieldvec];
   if (!partition) {
     partition = mastergraph->clone(NULL);
-    partition->share_children_of(self);
+    partition->share_children_of(self.get());
     partition->init(dts, sched, false);
     outTable[fieldvec] = partition;
   } 
@@ -57,7 +57,7 @@ inline void groupbyModule::handle_invalidate(DtsObject datum) {
 
   for (i=outTable.begin(); i != outTable.end();) {
     if (i->first.masks(fieldvec)) {
-      sched->do_shutdown(i->second);
+      sched->do_shutdown(i->second.get());
       prev = i++;
       outTable.erase(prev);
 /*
@@ -81,8 +81,8 @@ smacq_result groupbyModule::consume(DtsObject datum, int & outchan) {
   if (datum->gettype() == refresh_type) {
     handle_invalidate(datum);
   } else {
-    SmacqGraph * p = get_partition();
-    sched->input(p, datum);
+    SmacqGraph_ptr p = get_partition();
+    sched->input(p.get(), datum);
   }
 
   return SMACQ_FREE;
@@ -91,7 +91,7 @@ smacq_result groupbyModule::consume(DtsObject datum, int & outchan) {
 groupbyModule::~groupbyModule() {
   OutputsIterator i;
   for (i=outTable.begin(); i != outTable.end(); ++i) {
-    sched->do_shutdown(i->second);
+    sched->do_shutdown(i->second.get());
   }
   outTable.clear();
 }

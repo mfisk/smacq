@@ -13,7 +13,7 @@ class DtsObject_;
 extern void intrusive_ptr_add_ref(DtsObject_ *);
 extern void intrusive_ptr_release(DtsObject_ *);
 
-#include <intrusive_ptr.hpp>
+#include <boost/intrusive_ptr.hpp>
 
 /// A pointer to a DtsObject_
 typedef boost::intrusive_ptr<DtsObject_> DtsObject;

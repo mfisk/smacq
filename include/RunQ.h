@@ -3,7 +3,7 @@
 #include <DtsObject.h>
 
 struct qel {
-  SmacqGraph * f;
+  SmacqGraph_ptr f;
   DtsObject d;
   struct qel * next;
 #ifdef SMACQ_OPT_RUNRING
@@ -16,7 +16,7 @@ class runq {
   runq();
 
   /// Remove the first element from the runq.  Set f & d accordingly.
-  bool pop_runable(SmacqGraph * & f, DtsObject &d);
+  bool pop_runable(SmacqGraph_ptr & f, DtsObject &d);
 
   /// Add a new element to the end of the runq.
   void runable(SmacqGraph * f, DtsObject d);
@@ -116,7 +116,7 @@ void inline runq::print(FILE * fh) {
   fprintf(fh, "Runq:");
   if (head) {
     for (struct qel * el = head; el != tail; el = el->next) {
-      fprintf(fh, "\t-> %p, %p\n", el->f, el->d.get());
+      fprintf(fh, "\t-> %p, %p\n", el->f.get(), el->d.get());
     }
   }
   fprintf(fh, "\n");
@@ -138,7 +138,7 @@ void inline runq::runable(SmacqGraph * f, DtsObject d) {
   //this->print();
 }
 
-inline bool runq::pop_runable(SmacqGraph * & f, DtsObject &d) {
+inline bool runq::pop_runable(SmacqGraph_ptr & f, DtsObject &d) {
   if (!this->head) {
     //fprintf(stderr, "queue %p/%p empty\n", this, this->head);
     return false;

@@ -30,7 +30,7 @@ SMACQ_MODULE(disarm,
   PROTO_CTOR(disarm);
   PROTO_PRODUCE();
 
-  SmacqGraph * self;
+  SmacqGraph_ptr self;
   int datasock;
   FILE * datafh;
   unsigned long lineno;

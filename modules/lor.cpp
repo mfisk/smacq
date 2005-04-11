@@ -10,7 +10,7 @@
 SMACQ_MODULE(lor,
 	     PROTO_CTOR(lor);
 	     
-	     SmacqGraph * graphs;
+	     SmacqGraph_ptr graphs;
 	     SmacqScheduler * sched;
 	     void build_clause(char ** argv, int num);
 );
@@ -57,5 +57,5 @@ lorModule::lorModule(struct SmacqModule::smacq_init * context)
   }
 
   graphs->init(dts, context->scheduler);
-  context->self->replace(graphs);
+  context->self->replace(graphs.get());
 }

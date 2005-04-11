@@ -47,7 +47,7 @@ void yysmacql_error(char*);
 #include <SmacqGraph.h>
 
 static SmacqGraph * nullgraph = NULL;
-SmacqGraph * Graph;
+SmacqGraph_ptr Graph;
 extern int yylex();
 %}
 %defines

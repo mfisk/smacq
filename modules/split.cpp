@@ -21,7 +21,7 @@ SMACQ_MODULE(split,
   int children;
   int bucket;
   enum mode mode;
-  SmacqGraph * self;
+  SmacqGraph_ptr self;
   FieldVecHash<int> hashtable;
 ); 
 
@@ -38,7 +38,7 @@ smacq_result splitModule::consume(DtsObject datum, int & outchan) {
   } else if (mode == UNIQUE) {
     bucket = hashtable[fieldvec];
     if (!bucket) {
-	SmacqGraph * newClone;
+	SmacqGraph_ptr newClone;
 	bucket = bucket++;
 	//fprintf(stderr, "Cloning %d\n", bucket);
         newClone = self->clone_tree(NULL);

@@ -12,7 +12,7 @@
 struct alias {
   DtsField field;
   DtsField newfield;
-  SmacqGraph * until;
+  SmacqGraph_ptr until;
   std::vector<DtsObject> objects;
 };
 
@@ -23,7 +23,7 @@ SMACQ_MODULE(join,
 	     private:
 
 	     SmacqScheduler * sched;
-	     SmacqGraph * where;
+	     SmacqGraph_ptr where;
 	     dts_typeid emptytype;
 
 	     std::vector<struct alias> Aliases;
@@ -41,7 +41,7 @@ SMACQ_MODULE(join,
 void joinModule::for_all_but(unsigned int is_alias, DtsObject o, unsigned int alias) {
   if (alias == Aliases.size()) {
     // Okay, test this join.
-    if (!where || (SMACQ_PASS == sched->decide(where, o))) {
+    if (!where || (SMACQ_PASS == sched->decide(where.get(), o))) {
       // Dup the object, because we're about to assign new alias values.
       DtsObject cpy = o->dup();
       //fprintf(stderr, "passing joined obj %p\n", cpy.get());
@@ -79,7 +79,7 @@ smacq_result joinModule::consume(DtsObject datum, int & outchan) {
       t->attach_field(a.newfield, datum);
       t->attach_field(a.field, a.objects[j]);
 
-      if (a.until && (SMACQ_PASS == sched->decide(a.until, t))) {
+      if (a.until && (SMACQ_PASS == sched->decide(a.until.get(), t))) {
 	// Remove j'th element
 	// (by swapping and shrinking)
 	a.objects[j] = a.objects.back();

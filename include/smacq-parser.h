@@ -23,7 +23,7 @@ struct arglist {
 
 class joinlist {
  public:
-        joinlist(char * n, SmacqGraph *g, SmacqGraph *u)
+        joinlist(char * n, SmacqGraph * g, SmacqGraph * u)
                 : next(NULL), graph(g), name(n), until(u) 
 		{}
 
