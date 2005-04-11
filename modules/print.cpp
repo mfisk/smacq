@@ -1,3 +1,7 @@
+#ifdef linux
+#define _FILE_OFFSET_BITS 64
+#define _LARGEFILE64_SOURCE
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
