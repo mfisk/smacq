@@ -84,14 +84,15 @@ AC_STRUCT_TM
 ##
 ## Checks for library functions.
 ##
-AC_FUNC_MALLOC
-AC_FUNC_MEMCMP
+# These 4 cause gnulib to look for extra files on Linux.  ???
+#AC_FUNC_MALLOC
+#AC_FUNC_MEMCMP
+#AC_FUNC_REALLOC
+#AC_FUNC_STRTOD
 AC_FUNC_MMAP
-AC_FUNC_REALLOC
 AC_FUNC_SELECT_ARGTYPES
 AC_FUNC_STRFTIME
-AC_FUNC_STRTOD
-AC_CHECK_FUNCS([floor gethostbyname gettimeofday inet_ntoa localtime_r memmove memset pow select socket strchr strdup strerror strtol])
+AC_CHECK_FUNCS([floor gethostbyname gettimeofday inet_ntoa localtime_r memmove memset pow select socket strchr strdup strerror strtol malloc memcmp realloc strtod])
 
 ##
 ## module manifest
@@ -239,9 +240,10 @@ print ' '.join(res)
 EOF
 fi
 
-if test "X$with_python" != "Xauto"; then
+if test "X$with_python" = "Xauto"; then
 	CFLAGS_PYTHON=`$PYTHON $PYCONF CFLAGS 2>&5`
 	if test $? -ne 0; then
+            AC_MSG_NOTICE([Error configuring Python; building without])
 	    rm -f $PYCONF
 	    with_python=no
  	else
@@ -249,7 +251,7 @@ if test "X$with_python" != "Xauto"; then
 	fi
 fi
 		
-if test "X$with_python" = "yes"; then
+if test "X$with_python" = "Xyes"; then
 	AC_MSG_CHECKING([CFLAGS_PYTHON])
 	CFLAGS_PYTHON=`$PYTHON $PYCONF CFLAGS 2>&5`
 	if test $? -ne 0; then
