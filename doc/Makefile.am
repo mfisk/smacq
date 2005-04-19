@@ -1,15 +1,23 @@
 DOCS=smacq.1 smacqq.1 dts-modules.3 
+docdir=$(prefix)/share/doc/smacq
+apidocdir=$(docdir)/api
+apihtmldocdir=$(apidocdir)/html
+DOCDSTS=$(patsubst %,$(srcdir)/%,$(DOCS))
+
+dist_man1_MANS=$(srcdir)/smacq.1 $(srcdir)/smacqq.1
+dist_man3_MANS=$(srcdir)/dts-modules.3 $(srcdir)/api/man3/*.3
+dist_doc_DATA=smacq.1.pdf smacqq.1.pdf index.html gotsmacq.png icon.png 
+apidoc_DATA=api/refman.pdf
+#apihtmldoc_DATA=api/html
+
+EXTRA_DIST=api
+#$(man1_MANS) $(man3_MANS) $(doc_DATA) api/
+
 DOXYGEN=doxygen
 DOCBOOK2MAN=docbook-to-man
 
-DOCDSTS=$(patsubst %,$(srcdir)/%,$(DOCS))
-#DOCCATS=$(patsubst %,$(srcdir)/%.catman,$(DOCS))
-
-EXTRA_DIST=api/refman.pdf api/html smacq1.pdf smacqq.1.pdf index.html gotsmacq.png icon.png
-dist_man_MANS=api/man3 $(DOCDSTS) #$(DOCCATS) 
-
-api: .ALWAYS
-	(cd $(srcdir); $(DOXYGEN)
+api: #.ALWAYS
+	(cd $(srcdir); $(DOXYGEN))
 
 .ALWAYS:
 
@@ -25,23 +33,23 @@ api/man3: api
 api/html: api
 
 %.3.ps: %.3
-	groff -man $< > $@
+	groff -man $< > $@ || rm -f $@
 
 %.pdf: %.ps
-	ps2pdf $< $@
+	ps2pdf $< $@ || rm -f $@
 
 %.3.catman: %.3
-	nroff -man $< > $@
+	nroff -man $< > $@ || rm -f $@
 
 %.1.ps: %.1
-	groff -man $< > $@
+	groff -man $< > $@ || rm -f $@
 
 %.1.catman: %.1
-	nroff -man $< > $@
+	nroff -man $< > $@ || rm -f $@
 
 %.3: %.sgml
-	$(DOCBOOK2MAN) $< > $@
+	$(DOCBOOK2MAN) $< > $@ || rm -f $@
 
 %.1: %.sgml
-	$(DOCBOOK2MAN) $< > $@
+	$(DOCBOOK2MAN) $< > $@ || rm -f $@
 
