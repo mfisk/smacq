@@ -76,7 +76,7 @@ smacq_result groupbyModule::consume(DtsObject datum, int & outchan) {
   //fprintf(stderr , "groupby got %p a type %d (refresh is %d)\n", 
   //datum.get(), datum->gettype(), refresh_type);
 
-  fieldvec.getfields(datum);
+  if (! fieldvec.getfields(datum)) return SMACQ_FREE;
 
   if (datum->gettype() == refresh_type) {
     handle_invalidate(datum);

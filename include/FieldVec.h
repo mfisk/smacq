@@ -37,8 +37,8 @@ class FieldVecElement {
 /// A vector of fields from a DtsObject
 class FieldVec : public std::vector<FieldVecElement*> {
  public:
-  /// Initialize fields from this DtsObject
-  FieldVec & getfields(DtsObject o);
+  /// Initialize fields from this DtsObject.  Return true if one or more fields present.
+  bool getfields(DtsObject o);
 
   /// Return true iff one of the vector elements is undefined for this
   /// DtsObject.  Recomputed when getfields() is called.
@@ -100,18 +100,20 @@ inline void FieldVec::init(DTS * dts, int argc, char ** argv) {
   objs.resize(size());
 }
 
-inline FieldVec & FieldVec::getfields(DtsObject o) {
+inline bool FieldVec::getfields(DtsObject o) {
   FieldVecElement * el;
   FieldVec::iterator i;
+  bool hasfields = false;
   int j = 0;
 
   for (i = begin(); i != end(); i++) {
     el = *i;
     objs[j] = o->getfield(el->num);
+    if (objs[j]) hasfields = true;
     j++;
   }
 
-  return *this;
+  return hasfields;
 }
     
 inline bool FieldVec::has_undefined () const {

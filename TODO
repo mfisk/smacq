@@ -6,7 +6,12 @@ Optimizations:
 	- do invariant tests before streamalias
 	- merge_tails would be faster if a GraphSet described both the roots (heads) and leaves (tails) of the GraphSet.
 	- merge groupby graphs when grouping on the same thing
-
+	- make sure expr() is annotation func
+	- remove [] and expressions from parser
+	- cast() module
+	- FileHandle type and class
+	- file() module that produces FileHandle objects
+	- DTS RPC (GasNet Active Messages)
 
 Looking for volunteers:
 	- Implement Vector<FieldVec> sort & sort module
