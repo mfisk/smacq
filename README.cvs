@@ -60,11 +60,11 @@ port it to other environments.
 In addition to the dependencies in README, you probably want the following:
 
  - MacOS/X + Fink: 	
-	apt-get install tetex-extra ghostscript bison automake1.7 opensp4 docbook-dtd
+	apt-get install tetex-extra ghostscript bison automake1.7 opensp4 docbook-dtd doxygen graphviz
 
  - Debian:		
-	apt-get install tetex-extra ghostscript bison automake1.7 docbook-to-man
+	apt-get install tetex-extra ghostscript bison automake1.7 docbook-to-man doxygen graphviz
 
  - ArchLinux:
-	pacmac -S -y ghostscript
+	pacmac -S tetex ghostscript bison doxygen graphviz
 
