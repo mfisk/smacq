@@ -1,19 +1,15 @@
 DOCS=smacq.1 smacqq.1 dts-modules.3 
-
-DOCDSTS=$(patsubst %,$(srcdir)/%,$(DOCS))
-DOCCATS=$(patsubst %,$(srcdir)/%.catman,$(DOCS))
-DOCPDFS=smacq.1.pdf smacqq.1.pdf
-DOCHTML=index.html gotsmacq.png icon.png
-
 DOXYGEN=doxygen
 DOCBOOK2MAN=docbook-to-man
 
-EXTRA_DIST=api/refman.pdf api/man3 api/html
+DOCDSTS=$(patsubst %,$(srcdir)/%,$(DOCS))
+#DOCCATS=$(patsubst %,$(srcdir)/%.catman,$(DOCS))
 
-dist_man_MANS=$(DOCDSTS) $(DOCPDFS) $(DOCCATS) $(DOCHTML)
+EXTRA_DIST=api/refman.pdf api/html smacq1.pdf smacqq.1.pdf index.html gotsmacq.png icon.png
+dist_man_MANS=api/man3 $(DOCDSTS) #$(DOCCATS) 
 
 api: .ALWAYS
-	(cd $(srcdir); doxygen)
+	(cd $(srcdir); $(DOXYGEN)
 
 .ALWAYS:
 
