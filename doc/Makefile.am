@@ -8,10 +8,9 @@ dist_man1_MANS=$(srcdir)/smacq.1 $(srcdir)/smacqq.1
 dist_man3_MANS=$(srcdir)/dts-modules.3 $(srcdir)/api/man3/*.3
 dist_doc_DATA=smacq.1.pdf smacqq.1.pdf index.html gotsmacq.png icon.png 
 apidoc_DATA=api/refman.pdf
-#apihtmldoc_DATA=api/html
+apihtmldoc_DATA=$(wildcard $(srcdir)/api/html/*) #XXX. Not very portable
 
 EXTRA_DIST=api
-#$(man1_MANS) $(man3_MANS) $(doc_DATA) api/
 
 DOXYGEN=doxygen
 DOCBOOK2MAN=docbook-to-man
