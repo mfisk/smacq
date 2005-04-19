@@ -98,9 +98,11 @@
 /* Define if you have the 'long long' type. */
 #undef HAVE_LONG_LONG
 
-/* Define to 1 if your system has a GNU libc compatible `malloc' function, and
-   to 0 otherwise. */
+/* Define to 1 if you have the `malloc' function. */
 #undef HAVE_MALLOC
+
+/* Define to 1 if you have the `memcmp' function. */
+#undef HAVE_MEMCMP
 
 /* Define to 1 if you have the `memmove' function. */
 #undef HAVE_MEMMOVE
@@ -123,8 +125,7 @@
 /* Define to 1 if you have the `pow' function. */
 #undef HAVE_POW
 
-/* Define to 1 if your system has a GNU libc compatible `realloc' function,
-   and to 0 otherwise. */
+/* Define to 1 if you have the `realloc' function. */
 #undef HAVE_REALLOC
 
 /* Define to 1 if you have the <search.h> header file. */
@@ -168,6 +169,9 @@
 
 /* Define to 1 if you have the <string.h> header file. */
 #undef HAVE_STRING_H
+
+/* Define to 1 if you have the `strtod' function. */
+#undef HAVE_STRTOD
 
 /* Define to 1 if you have the `strtol' function. */
 #undef HAVE_STRTOL
@@ -329,14 +333,8 @@
 /* Define to rpl_localtime if the replacement function should be used. */
 #undef localtime
 
-/* Define to rpl_malloc if the replacement function should be used. */
-#undef malloc
-
 /* Define to rpl_mktime if the replacement function should be used. */
 #undef mktime
-
-/* Define to rpl_realloc if the replacement function should be used. */
-#undef realloc
 
 /* Define to equivalent of C99 restrict keyword, or to nothing if this is not
    supported. Do not define if restrict is supported directly. */
