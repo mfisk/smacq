@@ -1,0 +1,227 @@
+.\" $Header: /aolnet/dev/src/CVS/sgml/docbook-to-man/cmd/docbook-to-man.sh,v 1.1.1.1 1998/11/13 21:31:59 db3l Exp $
+.\"
+.\"	transcript compatibility for postscript use.
+.\"
+.\"	synopsis:  .P! <file.ps>
+.\"
+.de P!
+.fl
+\!!1 setgray
+.fl
+\\&.\"
+.fl
+\!!0 setgray
+.fl			\" force out current output buffer
+\!!save /psv exch def currentpoint translate 0 0 moveto
+\!!/showpage{}def
+.fl			\" prolog
+.sy sed \-e 's/^/!/' \\$1\" bring in postscript file
+\!!psv restore
+.
+.de pF
+.ie     \\*(f1 .ds f1 \\n(.f
+.el .ie \\*(f2 .ds f2 \\n(.f
+.el .ie \\*(f3 .ds f3 \\n(.f
+.el .ie \\*(f4 .ds f4 \\n(.f
+.el .tm ? font overflow
+.ft \\$1
+..
+.de fP
+.ie     !\\*(f4 \{\
+.	ft \\*(f4
+.	ds f4\"
+'	br \}
+.el .ie !\\*(f3 \{\
+.	ft \\*(f3
+.	ds f3\"
+'	br \}
+.el .ie !\\*(f2 \{\
+.	ft \\*(f2
+.	ds f2\"
+'	br \}
+.el .ie !\\*(f1 \{\
+.	ft \\*(f1
+.	ds f1\"
+'	br \}
+.el .tm ? font underflow
+..
+.ds f1\"
+.ds f2\"
+.ds f3\"
+.ds f4\"
+'\" t 
+.ta 8n 16n 24n 32n 40n 48n 56n 64n 72n  
+.TH "dts-modules" "3" 
+.SH "NAME" 
+dts-modules \(em type module programming guide 
+.SH "SYNOPSIS" 
+.PP 
+.nf 
+.ta 8n 16n 24n 32n 40n 48n 56n 64n 72n 
+#include <smacq.h> 
+ 
+.fi 
+.SH "DESCRIPTION" 
+.PP 
+SMACQ(1) is an extensible component system for analyzing streams 
+of structured data.  This manpage describes how type modules are 
+added to the system. 
+ 
+.PP 
+By convention, types are compiled to an ELF shared library with 
+a name like \fBsmacqtype_x.so\fP, where 
+\fBx\fP is the type name.  Types modules are 
+not containers for data, but merely interfaces for accessing 
+data of that type.  Thus there is no private storage associated 
+with a type. 
+ 
+.PP 
+Many SMACQ \fIcompute modules\fR are polymorphic 
+and have no knowledge of the internal representation of typed 
+data.  They access the data through field and transform 
+functions described below.  However, a type-specific compute 
+module may have this knowledge.  Therefore, a type module that 
+is expected to be used by type-specific modules should be 
+accompanied by an include file defining the structure of the 
+data.  Type-specific compute modules may then use this include 
+file. 
+ 
+.SS "dts_type_\fItypename\fR_table" 
+.PP 
+Each type module must declare a structure named 
+\fBdts_type_\fP\fItypename\fR\fB_table\fP of type \fBstruct 
+dts_type_info\fR, which is defined as follows: 
+ 
+.PP 
+.nf 
+.ta 8n 16n 24n 32n 40n 48n 56n 64n 72n 
+struct \fBdts_type_info\fR { 
+\fB	  int size; 
+\fR\fB	  smacqtype_lt_fn * lt; 
+\fR\fB	  smacqtype_fromstring_fn * fromstring; 
+\fR 	}; 
+.fi 
+.PP 
+.PP 
+The size is the constant size, in bytes, of the data type (e.g. 1 for a char), or -1 if the data has variable size. 
+The less-than and fromstring functions are optional and have the following prototypes: 
+ 
+.PP 
+.nf 
+.ta 8n 16n 24n 32n 40n 48n 56n 64n 72n 
+typedef int smacqtype_lt_fn(void *, int, void *, int); 
+.fi 
+.PP 
+.PP 
+.nf 
+.ta 8n 16n 24n 32n 40n 48n 56n 64n 72n 
+typedef int smacqtype_fromstring_fn(char *, DtsObject *); 
+.fi 
+.PP 
+.SS "dts_type_\fItypename\fR_fields" 
+.PP 
+Each type module may declare a list named 
+\fBdts_type_\fP\fItypename\fR\fB_fields\fP of \fBstruct 
+dts_field_descriptor\fR elements, which are defined as follows: 
+ 
+.PP 
+.nf 
+.ta 8n 16n 24n 32n 40n 48n 56n 64n 72n 
+struct \fBdts_field_descriptor\fR { 
+\fB	  char * type; 
+\fR\fB	  char * name; 
+\fR\fB	  field_getfunc_fn * getfunc; 
+\fR 	};  
+.fi 
+.PP 
+.PP 
+.nf 
+.ta 8n 16n 24n 32n 40n 48n 56n 64n 72n 
+typedef int \fBfield_getfunc_fn\fP(DtsObject*, DtsObject *); 
+.fi 
+.PP 
+.PP 
+Each entry in this list describes a named field in a list of 
+elements of this type.  For example, the type may be a 
+structure.  The \fBtype\fP string is the type of the element named \fBname\fP. 
+ 
+If the \fBgetfunc\fP pointer is NULL, then it 
+is assumed that this field occurs in the data immediately 
+following the previous field.  The fixed-size fields in a C 
+structure can be listed this way (but if you're describing a C 
+struct, be aware of padding that the compiler may add to 
+properly align C struct). 
+ 
+If \fBgetfunc\fP is non-NULL, then it 
+represents a function to be called to get initialize an object 
+for this field.  Variable sized fields must provide a getfunc. 
+For fixed-length types, the data object will already be the 
+correct size.  Otherwise, the length should be set appropriately 
+and the data pointer set to a new buffer of the same size. 
+If a new buffer is allocated, the "free_data" element should be set 
+to indicate that the buffer should be freed along with the data object. 
+ 
+.SS "Field access functions" 
+.PP 
+.nf 
+.ta 8n 16n 24n 32n 40n 48n 56n 64n 72n 
+.sp 1 
+\fBint \fBfield_getfunc_fn\fP\fR( 
+\fB        DtsObject * \fBdatum\fR\fR, 
+\fB        DtsObject * \fBfield_datum\fR\fR); 
+.fi 
+.PP 
+Set \fB*data\fR to point to the field in 
+\fBdatum\fR.  Set 
+\fB*len\fR to the correct length.  Return 1 
+on success or 0 if the field is not present in this datum. 
+ 
+.SS "dts_type_\fItypename\fR_transforms" 
+.PP 
+Each type module may declare a list named 
+\fBdts_type_\fP\fItypename\fR\fB_transforms\fP of \fBstruct 
+dts_transform_descriptor\fR elements, which are defined as follows: 
+ 
+.PP 
+.nf 
+.ta 8n 16n 24n 32n 40n 48n 56n 64n 72n 
+struct \fBdts_field_descriptor\fR { 
+\fB	  char * name; 
+\fR\fB	  transform_getfunc_fn * getfunc; 
+\fR 	}; 
+ 
+typedef int \fBtransform_getfunc_fn\fP(void * data, int len, void ** tdata, int * tlen); 
+.fi 
+.PP 
+.PP 
+Each entry in this list describes a named transformation that 
+can be applied to data of this type.  Each type should provide 
+a transform to a "string" so that the type can be printed. 
+The transform is performed by calling 
+\fBgetfunc\fP.  Transforms allocate storage for 
+the transformation and the caller must free this space when it 
+is done with the transform. 
+ 
+.SS "Field transform functions" 
+.PP 
+.nf 
+.ta 8n 16n 24n 32n 40n 48n 56n 64n 72n 
+.sp 1 
+\fBint \fBtransform_getfunc_fn\fP\fR( 
+\fB        void * \fBdata\fR\fR, 
+\fB        int \fBlen\fR\fR, 
+\fB        void ** \fBtdata\fR\fR, 
+\fB        int *\fBtlen\fR\fR); 
+.fi 
+.PP 
+Allocate new storage for a transformation of the data of 
+length \fBlen\fR pointed to by 
+\fB*data\fR.  Return a pointer in 
+\fB*tdata\fR and the transformed size in 
+\fB*tlen\fR.  Return 1 on sucess or 0 if the 
+field is not present in this datum. 
+ 
+.SH "SEE ALSO" 
+.PP 
+smacqp(1), smacq-modules(3) 
+.\" created by instant / docbook-to-man, Tue 19 Apr 2005, 17:47 
