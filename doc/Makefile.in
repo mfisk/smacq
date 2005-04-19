@@ -162,18 +162,21 @@ sharedstatedir = @sharedstatedir@
 sysconfdir = @sysconfdir@
 target_alias = @target_alias@
 DOCS = smacq.1 smacqq.1 dts-modules.3 
-
+docdir = $(prefix)/share/doc/smacq
+apidocdir = $(docdir)/api
+apihtmldocdir = $(apidocdir)/html
 DOCDSTS = $(patsubst %,$(srcdir)/%,$(DOCS))
-DOCCATS = $(patsubst %,$(srcdir)/%.catman,$(DOCS))
-DOCPDFS = smacq.1.pdf smacqq.1.pdf
-DOCHTML = index.html gotsmacq.png icon.png
+
+dist_man1_MANS = $(srcdir)/smacq.1 $(srcdir)/smacqq.1
+dist_man3_MANS = $(srcdir)/dts-modules.3 $(srcdir)/api/man3/*.3
+dist_doc_DATA = smacq.1.pdf smacqq.1.pdf index.html gotsmacq.png icon.png 
+apidoc_DATA = api/refman.pdf
+apihtmldoc_DATA = $(wildcard $(srcdir)/api/html/*) #XXX. Not very portable
+
+EXTRA_DIST = api
 
 DOXYGEN = doxygen
 DOCBOOK2MAN = docbook-to-man
-
-EXTRA_DIST = api/refman.pdf api/man3 api/html
-
-dist_man_MANS = $(DOCDSTS) $(DOCPDFS) $(DOCCATS) $(DOCHTML)
 subdir = doc
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 mkinstalldirs = $(SHELL) $(top_srcdir)/config/mkinstalldirs
@@ -182,8 +185,11 @@ CONFIG_CLEAN_FILES =
 DIST_SOURCES =
 
 NROFF = nroff
-MANS = $(dist_man_MANS)
-DIST_COMMON = $(dist_man_MANS) Makefile.am Makefile.in
+MANS = $(dist_man1_MANS) $(dist_man3_MANS)
+DATA = $(apidoc_DATA) $(apihtmldoc_DATA) $(dist_doc_DATA)
+
+DIST_COMMON = $(dist_doc_DATA) $(dist_man1_MANS) $(dist_man3_MANS) \
+	Makefile.am Makefile.in
 all: all-am
 
 .SUFFIXES:
@@ -203,15 +209,15 @@ distclean-libtool:
 	-rm -f libtool
 uninstall-info-am:
 
-manhdir = $(mandir)/manh
-install-manh: $(manh_MANS) $(man_MANS)
+man1dir = $(mandir)/man1
+install-man1: $(man1_MANS) $(man_MANS)
 	@$(NORMAL_INSTALL)
-	$(mkinstalldirs) $(DESTDIR)$(manhdir)
-	@list='$(manh_MANS) $(dist_manh_MANS) $(nodist_manh_MANS)'; \
+	$(mkinstalldirs) $(DESTDIR)$(man1dir)
+	@list='$(man1_MANS) $(dist_man1_MANS) $(nodist_man1_MANS)'; \
 	l2='$(man_MANS) $(dist_man_MANS) $(nodist_man_MANS)'; \
 	for i in $$l2; do \
 	  case "$$i" in \
-	    *.h*) list="$$list $$i" ;; \
+	    *.1*) list="$$list $$i" ;; \
 	  esac; \
 	done; \
 	for i in $$list; do \
@@ -219,46 +225,46 @@ install-manh: $(manh_MANS) $(man_MANS)
 	  else file=$$i; fi; \
 	  ext=`echo $$i | sed -e 's/^.*\\.//'`; \
 	  case "$$ext" in \
-	    h*) ;; \
-	    *) ext='h' ;; \
+	    1*) ;; \
+	    *) ext='1' ;; \
 	  esac; \
 	  inst=`echo $$i | sed -e 's/\\.[0-9a-z]*$$//'`; \
 	  inst=`echo $$inst | sed -e 's/^.*\///'`; \
 	  inst=`echo $$inst | sed '$(transform)'`.$$ext; \
-	  echo " $(INSTALL_DATA) $$file $(DESTDIR)$(manhdir)/$$inst"; \
-	  $(INSTALL_DATA) $$file $(DESTDIR)$(manhdir)/$$inst; \
+	  echo " $(INSTALL_DATA) $$file $(DESTDIR)$(man1dir)/$$inst"; \
+	  $(INSTALL_DATA) $$file $(DESTDIR)$(man1dir)/$$inst; \
 	done
-uninstall-manh:
+uninstall-man1:
 	@$(NORMAL_UNINSTALL)
-	@list='$(manh_MANS) $(dist_manh_MANS) $(nodist_manh_MANS)'; \
+	@list='$(man1_MANS) $(dist_man1_MANS) $(nodist_man1_MANS)'; \
 	l2='$(man_MANS) $(dist_man_MANS) $(nodist_man_MANS)'; \
 	for i in $$l2; do \
 	  case "$$i" in \
-	    *.h*) list="$$list $$i" ;; \
+	    *.1*) list="$$list $$i" ;; \
 	  esac; \
 	done; \
 	for i in $$list; do \
 	  ext=`echo $$i | sed -e 's/^.*\\.//'`; \
 	  case "$$ext" in \
-	    h*) ;; \
-	    *) ext='h' ;; \
+	    1*) ;; \
+	    *) ext='1' ;; \
 	  esac; \
 	  inst=`echo $$i | sed -e 's/\\.[0-9a-z]*$$//'`; \
 	  inst=`echo $$inst | sed -e 's/^.*\///'`; \
 	  inst=`echo $$inst | sed '$(transform)'`.$$ext; \
-	  echo " rm -f $(DESTDIR)$(manhdir)/$$inst"; \
-	  rm -f $(DESTDIR)$(manhdir)/$$inst; \
+	  echo " rm -f $(DESTDIR)$(man1dir)/$$inst"; \
+	  rm -f $(DESTDIR)$(man1dir)/$$inst; \
 	done
 
-manpdir = $(mandir)/manp
-install-manp: $(manp_MANS) $(man_MANS)
+man3dir = $(mandir)/man3
+install-man3: $(man3_MANS) $(man_MANS)
 	@$(NORMAL_INSTALL)
-	$(mkinstalldirs) $(DESTDIR)$(manpdir)
-	@list='$(manp_MANS) $(dist_manp_MANS) $(nodist_manp_MANS)'; \
+	$(mkinstalldirs) $(DESTDIR)$(man3dir)
+	@list='$(man3_MANS) $(dist_man3_MANS) $(nodist_man3_MANS)'; \
 	l2='$(man_MANS) $(dist_man_MANS) $(nodist_man_MANS)'; \
 	for i in $$l2; do \
 	  case "$$i" in \
-	    *.p*) list="$$list $$i" ;; \
+	    *.3*) list="$$list $$i" ;; \
 	  esac; \
 	done; \
 	for i in $$list; do \
@@ -266,35 +272,89 @@ install-manp: $(manp_MANS) $(man_MANS)
 	  else file=$$i; fi; \
 	  ext=`echo $$i | sed -e 's/^.*\\.//'`; \
 	  case "$$ext" in \
-	    p*) ;; \
-	    *) ext='p' ;; \
+	    3*) ;; \
+	    *) ext='3' ;; \
 	  esac; \
 	  inst=`echo $$i | sed -e 's/\\.[0-9a-z]*$$//'`; \
 	  inst=`echo $$inst | sed -e 's/^.*\///'`; \
 	  inst=`echo $$inst | sed '$(transform)'`.$$ext; \
-	  echo " $(INSTALL_DATA) $$file $(DESTDIR)$(manpdir)/$$inst"; \
-	  $(INSTALL_DATA) $$file $(DESTDIR)$(manpdir)/$$inst; \
+	  echo " $(INSTALL_DATA) $$file $(DESTDIR)$(man3dir)/$$inst"; \
+	  $(INSTALL_DATA) $$file $(DESTDIR)$(man3dir)/$$inst; \
 	done
-uninstall-manp:
+uninstall-man3:
 	@$(NORMAL_UNINSTALL)
-	@list='$(manp_MANS) $(dist_manp_MANS) $(nodist_manp_MANS)'; \
+	@list='$(man3_MANS) $(dist_man3_MANS) $(nodist_man3_MANS)'; \
 	l2='$(man_MANS) $(dist_man_MANS) $(nodist_man_MANS)'; \
 	for i in $$l2; do \
 	  case "$$i" in \
-	    *.p*) list="$$list $$i" ;; \
+	    *.3*) list="$$list $$i" ;; \
 	  esac; \
 	done; \
 	for i in $$list; do \
 	  ext=`echo $$i | sed -e 's/^.*\\.//'`; \
 	  case "$$ext" in \
-	    p*) ;; \
-	    *) ext='p' ;; \
+	    3*) ;; \
+	    *) ext='3' ;; \
 	  esac; \
 	  inst=`echo $$i | sed -e 's/\\.[0-9a-z]*$$//'`; \
 	  inst=`echo $$inst | sed -e 's/^.*\///'`; \
 	  inst=`echo $$inst | sed '$(transform)'`.$$ext; \
-	  echo " rm -f $(DESTDIR)$(manpdir)/$$inst"; \
-	  rm -f $(DESTDIR)$(manpdir)/$$inst; \
+	  echo " rm -f $(DESTDIR)$(man3dir)/$$inst"; \
+	  rm -f $(DESTDIR)$(man3dir)/$$inst; \
+	done
+apidocDATA_INSTALL = $(INSTALL_DATA)
+install-apidocDATA: $(apidoc_DATA)
+	@$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(DESTDIR)$(apidocdir)
+	@list='$(apidoc_DATA)'; for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  f="`echo $$p | sed -e 's|^.*/||'`"; \
+	  echo " $(apidocDATA_INSTALL) $$d$$p $(DESTDIR)$(apidocdir)/$$f"; \
+	  $(apidocDATA_INSTALL) $$d$$p $(DESTDIR)$(apidocdir)/$$f; \
+	done
+
+uninstall-apidocDATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(apidoc_DATA)'; for p in $$list; do \
+	  f="`echo $$p | sed -e 's|^.*/||'`"; \
+	  echo " rm -f $(DESTDIR)$(apidocdir)/$$f"; \
+	  rm -f $(DESTDIR)$(apidocdir)/$$f; \
+	done
+apihtmldocDATA_INSTALL = $(INSTALL_DATA)
+install-apihtmldocDATA: $(apihtmldoc_DATA)
+	@$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(DESTDIR)$(apihtmldocdir)
+	@list='$(apihtmldoc_DATA)'; for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  f="`echo $$p | sed -e 's|^.*/||'`"; \
+	  echo " $(apihtmldocDATA_INSTALL) $$d$$p $(DESTDIR)$(apihtmldocdir)/$$f"; \
+	  $(apihtmldocDATA_INSTALL) $$d$$p $(DESTDIR)$(apihtmldocdir)/$$f; \
+	done
+
+uninstall-apihtmldocDATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(apihtmldoc_DATA)'; for p in $$list; do \
+	  f="`echo $$p | sed -e 's|^.*/||'`"; \
+	  echo " rm -f $(DESTDIR)$(apihtmldocdir)/$$f"; \
+	  rm -f $(DESTDIR)$(apihtmldocdir)/$$f; \
+	done
+dist_docDATA_INSTALL = $(INSTALL_DATA)
+install-dist_docDATA: $(dist_doc_DATA)
+	@$(NORMAL_INSTALL)
+	$(mkinstalldirs) $(DESTDIR)$(docdir)
+	@list='$(dist_doc_DATA)'; for p in $$list; do \
+	  if test -f "$$p"; then d=; else d="$(srcdir)/"; fi; \
+	  f="`echo $$p | sed -e 's|^.*/||'`"; \
+	  echo " $(dist_docDATA_INSTALL) $$d$$p $(DESTDIR)$(docdir)/$$f"; \
+	  $(dist_docDATA_INSTALL) $$d$$p $(DESTDIR)$(docdir)/$$f; \
+	done
+
+uninstall-dist_docDATA:
+	@$(NORMAL_UNINSTALL)
+	@list='$(dist_doc_DATA)'; for p in $$list; do \
+	  f="`echo $$p | sed -e 's|^.*/||'`"; \
+	  echo " rm -f $(DESTDIR)$(docdir)/$$f"; \
+	  rm -f $(DESTDIR)$(docdir)/$$f; \
 	done
 tags: TAGS
 TAGS:
@@ -308,7 +368,7 @@ top_distdir = ..
 distdir = $(top_distdir)/$(PACKAGE)-$(VERSION)
 
 distdir: $(DISTFILES)
-	$(mkinstalldirs) $(distdir)/%,. $(distdir)/api
+	$(mkinstalldirs) $(distdir)/./api/man3
 	@srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`; \
 	topsrcdirstrip=`echo "$(top_srcdir)" | sed 's|.|.|g'`; \
 	list='$(DISTFILES)'; for file in $$list; do \
@@ -337,10 +397,10 @@ distdir: $(DISTFILES)
 	done
 check-am: all-am
 check: check-am
-all-am: Makefile $(MANS)
+all-am: Makefile $(MANS) $(DATA)
 
 installdirs:
-	$(mkinstalldirs) $(DESTDIR)$(manhdir) $(DESTDIR)$(manpdir)
+	$(mkinstalldirs) $(DESTDIR)$(man1dir) $(DESTDIR)$(man3dir) $(DESTDIR)$(apidocdir) $(DESTDIR)$(apihtmldocdir) $(DESTDIR)$(docdir)
 install: install-am
 install-exec: install-exec-am
 install-data: install-data-am
@@ -381,13 +441,14 @@ info: info-am
 
 info-am:
 
-install-data-am: install-man
+install-data-am: install-apidocDATA install-apihtmldocDATA \
+	install-dist_docDATA install-man
 
 install-exec-am:
 
 install-info: install-info-am
 
-install-man: install-manh install-manp
+install-man: install-man1 install-man3
 
 installcheck-am:
 
@@ -407,24 +468,27 @@ ps: ps-am
 
 ps-am:
 
-uninstall-am: uninstall-info-am uninstall-man
+uninstall-am: uninstall-apidocDATA uninstall-apihtmldocDATA \
+	uninstall-dist_docDATA uninstall-info-am uninstall-man
 
-uninstall-man: uninstall-manh uninstall-manp
+uninstall-man: uninstall-man1 uninstall-man3
 
 .PHONY: all all-am check check-am clean clean-generic clean-libtool \
 	distclean distclean-generic distclean-libtool distdir dvi \
-	dvi-am info info-am install install-am install-data \
-	install-data-am install-exec install-exec-am install-info \
-	install-info-am install-man install-manh install-manp \
+	dvi-am info info-am install install-am install-apidocDATA \
+	install-apihtmldocDATA install-data install-data-am \
+	install-dist_docDATA install-exec install-exec-am install-info \
+	install-info-am install-man install-man1 install-man3 \
 	install-strip installcheck installcheck-am installdirs \
 	maintainer-clean maintainer-clean-generic mostlyclean \
 	mostlyclean-generic mostlyclean-libtool pdf pdf-am ps ps-am \
-	uninstall uninstall-am uninstall-info-am uninstall-man \
-	uninstall-manh uninstall-manp
+	uninstall uninstall-am uninstall-apidocDATA \
+	uninstall-apihtmldocDATA uninstall-dist_docDATA \
+	uninstall-info-am uninstall-man uninstall-man1 uninstall-man3
 
 
-api: .ALWAYS
-	(cd $(srcdir); doxygen)
+api: #.ALWAYS
+	(cd $(srcdir); $(DOXYGEN))
 
 .ALWAYS:
 
@@ -440,25 +504,25 @@ api/man3: api
 api/html: api
 
 %.3.ps: %.3
-	groff -man $< > $@
+	groff -man $< > $@ || rm -f $@
 
 %.pdf: %.ps
-	ps2pdf $< $@
+	ps2pdf $< $@ || rm -f $@
 
 %.3.catman: %.3
-	nroff -man $< > $@
+	nroff -man $< > $@ || rm -f $@
 
 %.1.ps: %.1
-	groff -man $< > $@
+	groff -man $< > $@ || rm -f $@
 
 %.1.catman: %.1
-	nroff -man $< > $@
+	nroff -man $< > $@ || rm -f $@
 
 %.3: %.sgml
-	$(DOCBOOK2MAN) $< > $@
+	$(DOCBOOK2MAN) $< > $@ || rm -f $@
 
 %.1: %.sgml
-	$(DOCBOOK2MAN) $< > $@
+	$(DOCBOOK2MAN) $< > $@ || rm -f $@
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
