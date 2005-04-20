@@ -41,7 +41,8 @@ constModule::constModule(struct SmacqModule::smacq_init * context) : SmacqModule
 
   assert(argc==1);
 
-  data = dts->construct_fromstring(dts->requiretype(type_opt.string_t), strdup(argv[0]));
+  data = dts->construct_fromstring(dts->requiretype(type_opt.string_t), argv[0]);
+  assert(data);
   field = dts->requirefield(field_opt.string_t);
 }
 
