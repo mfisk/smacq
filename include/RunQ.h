@@ -24,7 +24,7 @@ class runq {
   /// Return TRUE iff the graph is in this runq.
   bool find(SmacqGraph * f);
 
-  /// Remove any instances of the graph in this runq.
+  /// Remove any instances of the graph in this runq. (expensive!)
   void remove(SmacqGraph * f);
 
   /// Print-out the runq.
