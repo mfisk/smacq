@@ -282,7 +282,7 @@ if test "X$with_python" = "Xyes"; then
 	AC_MSG_RESULT($CFLAGS_PYTHON)
 
 	AC_MSG_CHECKING([LDFLAGS_PYTHON])
-	LDFLAGS_PYTHON=`$PYTHON $PYCONF LINKFORSHARED LIBS BLDLIBRARY`
+	LDFLAGS_PYTHON=`$PYTHON $PYCONF LINKFORSHARED LIBS`
 	if test $? -ne 0; then
 		rm -f $PYCONF
 		AC_MSG_FAILURE([Python config script failed])
@@ -297,6 +297,15 @@ if test "X$with_python" = "Xyes"; then
 	fi
 	LDFLAGS_PYTHON="$LDFLAGS_PYTHON -L$loc"
 	AC_MSG_RESULT($loc)
+
+	AC_MSG_CHECKING([Name of libpython])
+	lib=`$PYTHON $PYCONF BLDLIBRARY | sed 's/^lib//' | sed 's/\.a$//'`
+	if test $? -ne 0; then
+		rm -f $PYCONF
+		AC_MSG_FAILURE([Python config script failed])
+	fi
+	LDFLAGS_PYTHON="$LDFLAGS_PYTHON -l$lib"
+	AC_MSG_RESULT($lib)
 
 	AC_MSG_CHECKING([LIBS_PYTHON])
 	LIBS_PYTHON=`$PYTHON $PYCONF LIBS BLDLIBRARY`
