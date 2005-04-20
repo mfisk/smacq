@@ -123,6 +123,25 @@ AC_SUBST(EXTRA_STATIC_MODULES)
 AC_SUBST(OPTIONAL_TESTS)
 
 ##
+## --with-docdir
+##
+AC_DEFUN([WITH_DOCDIR],
+[AC_ARG_WITH(docdir,
+            AC_HELP_STRING([--with-docdir=DIR],
+                           [Use DIR to store documentation files (default ${datadir}/doc/smacq)]),
+            [with_docdir=$withval])
+if test "x$with_docdir" = "x" ; then
+  docdir='${datadir}/doc/smacq'
+else
+  docdir=$with_docdir
+fi
+AC_SUBST(docdir)
+])
+
+dnl Run the check for --with-docdir
+WITH_DOCDIR
+
+##
 ## libgda
 ##
 PKG_CHECK_MODULES(GDA, libgda,
@@ -269,6 +288,15 @@ if test "X$with_python" = "Xyes"; then
 		AC_MSG_FAILURE([Python config script failed])
 	fi
 	AC_MSG_RESULT($LDFLAGS_PYTHON)
+
+	AC_MSG_CHECKING([Location of libpython])
+	loc=`$PYTHON $PYCONF LIBPL`
+	if test $? -ne 0; then
+		rm -f $PYCONF
+		AC_MSG_FAILURE([Python config script failed])
+	fi
+	LDFLAGS_PYTHON="$LDFLAGS_PYTHON -L$loc"
+	AC_MSG_RESULT($loc)
 
 	AC_MSG_CHECKING([LIBS_PYTHON])
 	LIBS_PYTHON=`$PYTHON $PYCONF LIBS BLDLIBRARY`
