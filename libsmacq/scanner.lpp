@@ -1,5 +1,5 @@
 %{
-#define YY_NO_UNPUT
+#define YY_NO_UNPUT 1
 #include <smacq-parser.h>
 #include <parser.h>
 #include <string.h>
