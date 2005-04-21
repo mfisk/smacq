@@ -24,6 +24,7 @@ libsmacq_modules_la_LDFLAGS = -rpath /bogus
 # 
 libpython_la_SOURCES = python.cpp
 libpython_la_LIBS = @PYTHON_LIBADD@
+libpython_la_LDFLAGS = @LDFLAGS_PYTHON@
 libpython_la_CPPFLAGS = @CFLAGS_PYTHON@ 
 
 libsqlinsert_la_SOURCES = sqlinsert.cpp
