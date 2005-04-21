@@ -7,5 +7,5 @@ test: check
 quiet:
 	$(MAKE) all >/dev/null
 
-dpkg: 
+deb: 
 	fakeroot debian/rules binary
