@@ -2,12 +2,12 @@ Source: smacq
 Section: db
 Priority: optional
 Maintainer: Mike Fisk <mfisk@lanl.gov>
-Build-Depends: zlib1g-dev, libglib2.0-dev, libpcap-dev
-Standards-Version: 3.1.1
+Build-Depends: zlib1g-dev, libglib2.0-dev, libpcap-dev | libpcap0.8-dev | libpcap0.7-dev, debhelper (>= 4.0.0)
+Standards-Version: 3.6.1
 
 Package: smacq
 Architecture: any
-Depends: zlib1g, libglib2.0, libpcap0
+Depends: zlib1g, libglib2.0, libpcap0, ${shlibs:Depends}, ${misc:Depends}
 Suggests: libgda
 Description: Relational query engine for streams of data
  The System for Modular Analysis and Continuous Queries (SMACQ) is a
