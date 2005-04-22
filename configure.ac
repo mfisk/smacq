@@ -252,6 +252,8 @@ for i in sys.argv[1:]:
         res.append('-I %s' % sysconfig.get_python_inc())
     elif i == 'PYTHON_LIB':
         res.append(sysconfig.get_python_lib())
+    elif i == 'VERSION':
+        res.append(sys.version[:3])
     else:
         res.append(sysconfig.get_config_var(i))
 print ' '.join(res)
@@ -299,13 +301,13 @@ if test "X$with_python" = "Xyes"; then
 	AC_MSG_RESULT($loc)
 
 	AC_MSG_CHECKING([Name of libpython])
-	lib=`$PYTHON $PYCONF BLDLIBRARY | sed 's/^lib//' | sed 's/\.a$//'`
+	ver=`$PYTHON $PYCONF VERSION`
 	if test $? -ne 0; then
 		rm -f $PYCONF
 		AC_MSG_FAILURE([Python config script failed])
 	fi
-	LDFLAGS_PYTHON="$LDFLAGS_PYTHON -l$lib"
-	AC_MSG_RESULT($lib)
+	LDFLAGS_PYTHON="$LDFLAGS_PYTHON -lpython$ver"
+	AC_MSG_RESULT("should be libpython$ver")
 
 	AC_MSG_CHECKING([LIBS_PYTHON])
 	LIBS_PYTHON=`$PYTHON $PYCONF LIBS BLDLIBRARY`
