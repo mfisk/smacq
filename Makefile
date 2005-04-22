@@ -15,7 +15,7 @@ small:
 tarball:
 	CONFIG="--prefix install/" misc/buildarch install
 
-dist:
+mydistcheck:
 	misc/buildarch dist
 	(set -ex; misc/buildarch dist; d=/tmp/$$$$; mkdir $$d; tar -C $$d -xzf build/*/smacq-*.tar.gz; cd $$d/smacq-*; ./configure; make check); echo "IT'S A KEEPER:" build/*/smacq-*.tar.gz 1>&2
 
