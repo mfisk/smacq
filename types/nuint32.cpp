@@ -24,7 +24,7 @@ static int smacqtype_nuint32_get_uint32(DtsObject o, DtsObject field) {
 }
 
 static int parse_nuint32(char * buf,  DtsObject d) {
-  return dts_set(d, unsigned long, ntohl(atol(buf)));
+  return dts_set(d, unsigned long, atol(buf));
 }
 
 static int nuint32_lt(void * num1, int size1, void * num2, int size2) {
