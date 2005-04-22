@@ -1,7 +1,9 @@
 AUTOMAKE_VERSION=1.7
 
-default: 
+default: config/config.guess
 	misc/buildarch
+
+config/config.guess: bootstrap
 
 debug:
 	BUILDNAME=debug CONFIG="--enable-debug" misc/buildarch 
