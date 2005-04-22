@@ -18,6 +18,7 @@ static struct smacq_options options[] = {
   {"t", {string_t:NULL}, "Describe the specified type", SMACQ_OPT_TYPE_STRING},
   {"m", {boolean_t:0}, "Multiple queries on STDIN", SMACQ_OPT_TYPE_BOOLEAN},
   {"f", {string_t:"-"}, "File to read queries from", SMACQ_OPT_TYPE_STRING},
+  {"pregraph", {boolean_t:0}, "Show pre-initialization graph", SMACQ_OPT_TYPE_BOOLEAN},
   {"g", {boolean_t:0}, "Show final graph", SMACQ_OPT_TYPE_BOOLEAN},
   {"q", {boolean_t:0}, "Ignore warnings", SMACQ_OPT_TYPE_BOOLEAN},
   END_SMACQ_OPTIONS
@@ -25,7 +26,7 @@ static struct smacq_options options[] = {
 
 
 int main(int argc, char ** argv) {
-  smacq_opt multiple, optimize, qfile, showgraph, showtype, quiet;
+  smacq_opt multiple, optimize, qfile, showpregraph, showgraph, showtype, quiet;
   int qargc;
   char ** qargv;
   DTS dts;
@@ -45,6 +46,7 @@ int main(int argc, char ** argv) {
 		  {"m", &multiple},
 		  {"f", &qfile},
 		  {"O", &optimize},
+		  {"pregraph", &showpregraph},
 		  {"g", &showgraph},
 		  {"q", &quiet},
 		  {NULL, NULL}
@@ -112,6 +114,10 @@ int main(int argc, char ** argv) {
   } else {
     graphs = SmacqGraph::newQuery(&dts, &s, qargc, qargv);
     if (!graphs) exit(-1);
+  }
+
+  if (showpregraph.boolean_t) {
+      graphs->print(stderr, 8);
   }
 
   graphs->init(&dts, &s);
