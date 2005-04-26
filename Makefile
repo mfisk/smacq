@@ -1,4 +1,4 @@
-AUTOMAKE_VERSION=1.7
+#AUTOMAKE_VERSION=-1.9
 
 default: config/config.guess
 	misc/buildarch
@@ -15,7 +15,7 @@ small:
 	BUILDNAME=small CONFIG="--enable-small" misc/buildarch
 
 tarball:
-	CONFIG="--prefix install/" misc/buildarch install
+	(set -ex; d=/tmp/$$$$.install/usr; mkdir -p $$d; misc/buildarch prefix=$$d install; cd $$d/..; tar -czvf smacq.tar.gz usr)
 
 mydistcheck:
 	misc/buildarch dist
@@ -26,9 +26,9 @@ bootstrap:
 	mkdir -p config
 	export PATH=/sw/bin:$$PATH; \
 	libtoolize --copy --force; \
-	aclocal-$(AUTOMAKE_VERSION) -I libgnu/m4; \
+	aclocal$(AUTOMAKE_VERSION) -I libgnu/m4; \
 	autoheader; \
-	automake-$(AUTOMAKE_VERSION) -a; \
+	automake$(AUTOMAKE_VERSION) -a; \
 	autoconf
 
 cvsinterforce: cvsinter
