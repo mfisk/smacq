@@ -2,3 +2,6 @@
 *.pdf
 *.sw?
 api
+Makefile.in
+doxygen.log
+

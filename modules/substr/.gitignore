@@ -2,3 +2,4 @@
 *.la
 .libs
 *.sw?
+Makefile.in

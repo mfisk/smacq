@@ -32,3 +32,8 @@ smacq.iso
 config.log
 Makefile
 autom4te.cache
+aclocal.m4
+config
+Makefile.in
+Makefile.in
+configure
