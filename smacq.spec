@@ -37,7 +37,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(0755,root,root) /usr/bin/*
 %attr(0755,root,root) /usr/share/man/man1/*
 %attr(0755,root,root) /usr/share/man/man3/*
-%attr(0755,root,root) /usr/share/doc/smacq-${version}/*
+%attr(0755,root,root) /usr/share/doc/smacq-%{version}/*
 
 #
 # make install makes its own doc dir, so skip this:
