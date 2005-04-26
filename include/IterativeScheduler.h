@@ -93,21 +93,6 @@ inline void IterativeScheduler::queue_children(SmacqGraph * f, DtsObject d, int 
 inline void IterativeScheduler::do_delete(SmacqGraph * f) {
     assert(!f->numparents);
     FOREACH_CHILD(f, assert(!child));
-
-    // XXX: These are expensive!
-    produceq.remove(f);
-    consumeq.remove(f);
-
-    /*
-    if (consumeq.find(f)) {
-	fprintf(stderr, "Warning: cannot delete %p because still on consume queue\n", f);
-    } else if (produceq.find(f)) {
-	fprintf(stderr, "Warning: cannot delete %p because still on produce queue\n", f);
-    } else {
-    	//fprintf(stderr, "delete self %p\n", f);
-    	//delete f;
-    }
-    */
 }
 
 
