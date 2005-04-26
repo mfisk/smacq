@@ -1,5 +1,4 @@
 DOCS=smacq.1 smacqq.1 dts-modules.3 
-docdir=$(prefix)/share/doc/smacq
 apidocdir=$(docdir)/api
 apihtmldocdir=$(apidocdir)/html
 DOCDSTS=$(patsubst %,$(srcdir)/%,$(DOCS))
