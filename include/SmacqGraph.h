@@ -257,7 +257,12 @@ inline SmacqGraph_ptr SmacqGraph::clone(SmacqGraph * newParent) {
   }
   
   FOREACH_CHILD(this, child->clone(newg));
-  
+
+  // Clone next_graph(s) too
+  if (next_graph) {
+	  newg->next_graph = next_graph->clone(newParent);
+  }
+
   return newg;
 }
 
