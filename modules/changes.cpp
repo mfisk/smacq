@@ -9,24 +9,35 @@ static struct smacq_options options[] = {
   {"histdev", {double_t:0.8}, "Standard Deviation history", SMACQ_OPT_TYPE_DOUBLE},
   {"f", {string_t:"severity"}, "Report severity of change as this field", SMACQ_OPT_TYPE_STRING},
   {"t", {double_t:-1}, "Threshold (in standard deviations)", SMACQ_OPT_TYPE_DOUBLE},
+  {"idle", {boolean_t:0}, "Only update fields when data is seen --- not during idle periods", SMACQ_OPT_TYPE_BOOLEAN},
   {"i", {string_t:NULL}, "Identify field", SMACQ_OPT_TYPE_STRING},
   {"a", {boolean_t:0}, "Add mean and sigma fields to each feature", SMACQ_OPT_TYPE_BOOLEAN},
   {"base", {double_t:1}, "Feature value is log with this base", SMACQ_OPT_TYPE_DOUBLE},
   END_SMACQ_OPTIONS
 };
 
-class per_dimension_state {
+class per_id_dimension_state {
 public:
-  per_dimension_state() : avg(0), stddev(0), distance(0) {}
+  per_id_dimension_state() : avg(0), stddev(0), distance(0) {}
   
   double avg;
   double stddev;
   double distance;
+
+  double oldavg;
+  double oldstddev;
+
+  DtsObject last_field;
+};
+
+class per_dimension_state {
+public:
+  DtsField  field, raw_field;
 };
 
 class per_id_state {
 public:
-  DynamicArray<struct per_dimension_state> dim;
+  DynamicArray<struct per_id_dimension_state> dim;
 };
 
 SMACQ_MODULE(changes,
@@ -47,8 +58,8 @@ SMACQ_MODULE(changes,
 	     DtsField id_field, severity_field, avg_field, sigma_field;
 	     dts_typeid double_type;
 
-	     std::vector<DtsField> fields, raw_fields;
 	     FieldVecHash<per_id_state> Id;
+	     std::vector<per_dimension_state> Dim;
 	     );
 
 smacq_result changesModule::consume(DtsObject datum, int & outchan) {
@@ -62,11 +73,12 @@ smacq_result changesModule::consume(DtsObject datum, int & outchan) {
   per_id_state & s = Id[id];
 
   for (int i = 0; i < dimensions; i++) {
-    per_dimension_state & d = s.dim[i];
-    DtsObject o = datum->getfield(fields[i]);
+    per_id_dimension_state & d = s.dim[i];
+    DtsObject o = datum->getfield(Dim[i].field);
 		
     // make sure we got it
     if (o) {
+      d.last_field = datum->getfield(Dim[i].raw_field);
       double val = dts_data_as(o, double);
       if (base != 1) {
 	val = pow(base,val);
@@ -77,7 +89,9 @@ smacq_result changesModule::consume(DtsObject datum, int & outchan) {
       if (!d.stddev && !d.avg) {
 	d.distance = 0;
 	d.stddev = dev;
+	d.oldstddev = dev;
 	d.avg = val;
+	d.oldavg = val;
 	continue;
       }
 
@@ -86,6 +100,9 @@ smacq_result changesModule::consume(DtsObject datum, int & outchan) {
       d.distance = dev / sigma;
       //fprintf(stderr, "%g is %g sigma from avg of %g (sigma=%g)\n", val, d.distance, d.avg, d.stddev);
       d.distance *= d.distance;	// Square it
+
+      d.oldavg = d.avg;
+      d.oldstddev = d.stddev;
 
       if (val > d.avg) {
 	d.avg *= alpha_avg_up;
@@ -100,21 +117,10 @@ smacq_result changesModule::consume(DtsObject datum, int & outchan) {
 	}
       }
 
-
       d.stddev *= alpha_stddev;
       d.stddev += (1-alpha_stddev) * dev;
-
-      if (attach_all) {
-	DtsObject rawo = datum->getfield(raw_fields[i]);
-	//fprintf(stderr, "attaching to %p field of %p\n", o.get(), datum.get());
-	rawo->attach_field(avg_field, 
-			   dts->construct(double_type, &d.avg));
-
-	rawo->attach_field(sigma_field, 
-			   dts->construct(double_type, &d.stddev));
-      }
-
     }
+
     total_distance += d.distance ;
   }
 
@@ -128,6 +134,24 @@ smacq_result changesModule::consume(DtsObject datum, int & outchan) {
 		
   datum->attach_field(severity_field, 
 		      dts->construct(double_type, &total_distance));
+
+  if (attach_all) {
+  	for (int i = 0; i < dimensions; i++) {
+    		per_id_dimension_state & d = s.dim[i];
+    		if (!datum->getfield(Dim[i].raw_field)) {
+			datum->attach_field(Dim[i].raw_field, d.last_field);
+		}
+	
+		//fprintf(stderr, "attaching to %p field of %p\n", o.get(), datum.get());
+		if (d.last_field) {
+		   d.last_field->attach_field(avg_field, 
+			   dts->construct(double_type, &d.oldavg));
+
+		   d.last_field->attach_field(sigma_field, 
+			   dts->construct(double_type, &d.oldstddev));
+		}
+	}
+    }
 
   return SMACQ_PASS;
 }
@@ -178,16 +202,10 @@ changesModule::changesModule(struct SmacqModule::smacq_init * context)
     fprintf(stderr, "One or more fields must be specified\n");
     assert(0);
   }
-  fields.resize(dimensions);
+  Dim.resize(dimensions);
   for (int i = 0; i < argc; i++) {
-    fields[i] = dts->requirefield(dts_fieldname_append(argv[i], "double"));
-  }	
-
-  if (opt_all.boolean_t) {
-    raw_fields.resize(dimensions);
-    for (int i = 0; i < argc; i++) {
-      raw_fields[i] = dts->requirefield(argv[i]);
-    }
+    Dim[i].field = dts->requirefield(dts_fieldname_append(argv[i], "double"));
+    Dim[i].raw_field = dts->requirefield(argv[i]);
   }
 
   if (! opt_id.string_t) {
