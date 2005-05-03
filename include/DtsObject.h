@@ -122,7 +122,12 @@ class DtsObject_ {
 
 	//bool operator == (DtsObject_ &) const;
 
+	/// Pointer to the DTS used by this type
+	DTS * getDts() const { return dts; }
+
  private:
+ 	DTS * dts;
+
 	/// @name Reference Counting
 	/// Programmers should NOT use these methods directly
 	/// @{
@@ -187,8 +192,6 @@ class DtsObject_ {
 	void * buffer;
 	int buffer_size;
 
-	DTS * dts;
-
 #ifndef SMACQ_OPT_NOPTHREADS
 	pthread_mutex_t mutex;
 #endif
@@ -225,7 +228,7 @@ inline void DtsObject_::setsize(int size) {
 }
 
 inline DtsObject_::DtsObject_(DTS * dts, int size, int type)
-  : refcount(0), usecount(0), dts(dts)
+  : dts(dts), refcount(0), usecount(0)
 {
 #ifndef SMACQ_OPT_NOPTHREADS
   pthread_mutex_init(&this->mutex, NULL);
