@@ -301,13 +301,18 @@ if test "X$with_python" = "Xyes"; then
 	AC_MSG_RESULT($loc)
 
 	AC_MSG_CHECKING([Name of libpython])
-	ver=`$PYTHON $PYCONF VERSION`
-	if test $? -ne 0; then
-		rm -f $PYCONF
-		AC_MSG_FAILURE([Python config script failed])
+	if expr "$LDFLAGS_PYTHON" : ".*-framework Python"; then
+		FRAMEWORKADD="$FRAMEWORKADD -framework Python"
+		AC_MSG_RESULT("Using -framework Python")
+	else 
+		ver=`$PYTHON $PYCONF VERSION`
+		if test $? -ne 0; then
+			rm -f $PYCONF
+			AC_MSG_FAILURE([Python config script failed])
+		fi
+		LDFLAGS_PYTHON="$LDFLAGS_PYTHON -lpython$ver"
+		AC_MSG_RESULT("should be -lpython$ver")
 	fi
-	LDFLAGS_PYTHON="$LDFLAGS_PYTHON -lpython$ver"
-	AC_MSG_RESULT("should be libpython$ver")
 
 	AC_MSG_CHECKING([LIBS_PYTHON])
 	LIBS_PYTHON=`$PYTHON $PYCONF LIBS BLDLIBRARY`
@@ -336,6 +341,7 @@ AC_SUBST(LDFLAGS_PYTHON)
 AC_SUBST(LIBS_PYTHON)
 AC_SUBST(LIBINST_PYTHON)
 AC_SUBST(PYTHON_LIBADD)
+AC_SUBST(FRAMEWORKADD) # Apple Frameworks aren't propagated by libtool
 
 AM_CONDITIONAL(USE_PYTHON, test x$with_python = xyes)
 
