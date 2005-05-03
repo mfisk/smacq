@@ -3,7 +3,8 @@
 default: config/config.guess
 	misc/buildarch
 
-config/config.guess: bootstrap
+config/config.guess: 
+	$(MAKE) bootstrap
 
 debug:
 	BUILDNAME=debug CONFIG="--enable-debug" misc/buildarch 
