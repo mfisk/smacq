@@ -1,0 +1,5 @@
+#!/bin/sh
+
+${BINDIR}smacqq -gm <<EOF 
+print -v srcip from countobj -t 2 from ((uniq srcip) + (last srcip)) from pcapfile($TEST/0325@1112-snort.pcap) 
+EOF
