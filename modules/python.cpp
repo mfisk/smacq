@@ -21,13 +21,15 @@ SMACQ_MODULE(python,
 	     PROTO_CONSUME();
 
              public:
-             void enqueue_mofo(DtsObject &dts, int &outchan);
+	     static PyObject * pyEnqueue(PyObject *p, PyObject *args);
 
 	     private:
 	     PyObject *pConsume;
+	
+	     //friend PyObject *PySmacq_enqueue(PyObject *p, PyObject *args);
 );
 
-static PyObject *pydts_create(DtsObject datum, DTS *dts);
+static PyObject *PyDtsObject_wrap(DtsObject datum);
 
 
 /*
@@ -40,7 +42,7 @@ static PyObject *pydts_create(DtsObject datum, DTS *dts);
  *
  */
 
-static char PyDts_doc[] =
+static char PyDtsObject_doc[] =
 ("A DTS object.\n"
  "\n"
  "This object contains (possibly heirarchical) data.\n"
@@ -50,11 +52,10 @@ static char PyDts_doc[] =
 typedef struct {
   PyObject_HEAD
   DtsObject d;
-  DTS       *dts;
 } PyDtsObject;
 
 
-static void PyDts_dealloc(PyObject *p)
+static void PyDtsObject_dealloc(PyObject *p)
 {
   PyDtsObject *self = (PyDtsObject *)p;
 
@@ -67,12 +68,12 @@ static void PyDts_dealloc(PyObject *p)
   PyObject_Del(p);
 }
 
-static int PyDts_length(PyObject *p)
+static int PyDtsObject_length(PyObject *p)
 {
   return 0;
 }
 
-static PyMethodDef PyDts_methods[] = {
+static PyMethodDef PyDtsObject_methods[] = {
   {NULL, NULL},
 };
 
@@ -81,11 +82,11 @@ static PyMethodDef PyDts_methods[] = {
  *
  * Pretty standard stuff here.
  */
-static PyObject *PyDts_subscript(PyObject *p, PyObject *pName)
+static PyObject *PyDtsObject_subscript(PyObject *p, PyObject *pName)
 {
   PyDtsObject *self   = (PyDtsObject *)p;
   char        *name;
-  PyObject    *pDts   = NULL;
+  PyObject    *pDtsObj   = NULL;
   DtsObject    d;
   int          passed = 0;
 
@@ -101,8 +102,8 @@ static PyObject *PyDts_subscript(PyObject *p, PyObject *pName)
       break;
     }
 
-    pDts = pydts_create(d, self->dts);
-    if (! pDts) {
+    pDtsObj = PyDtsObject_wrap(d);
+    if (! pDtsObj) {
       break;
     }
 
@@ -110,16 +111,16 @@ static PyObject *PyDts_subscript(PyObject *p, PyObject *pName)
   } while (0);
 
   if (! passed) {
-    Py_XDECREF(pDts);
+    Py_XDECREF(pDtsObj);
     return NULL;
   }
 
-  return (PyObject *)pDts;
+  return (PyObject *)pDtsObj;
 }
 
-static PyMappingMethods PyDts_as_mapping = {
-  PyDts_length,                 /* mp_length            */
-  PyDts_subscript,              /* mp_subscript         */
+static PyMappingMethods PyDtsObject_as_mapping = {
+  PyDtsObject_length,                 /* mp_length            */
+  PyDtsObject_subscript,              /* mp_subscript         */
   NULL,                         /* mp_ass_subscript     */
 };
 
@@ -130,20 +131,20 @@ enum datatype {
 
 /** Return type name
  */
-static PyObject *PyDts_gettype(PyObject *p, void *closure)
+static PyObject *PyDtsObject_gettype(PyObject *p, void *closure)
 {
   PyDtsObject *self = (PyDtsObject *)p;
   char        *dtsname;
   dts_typeid   dtstype;
 
   dtstype = self->d->gettype();
-  dtsname = self->dts->typename_bynum(dtstype);
+  dtsname = self->d->getDts()->typename_bynum(dtstype);
   return Py_BuildValue("s", dtsname);
 }
 
 /** Return raw data
  */
-static PyObject *PyDts_getraw(PyObject *p, void *closure)
+static PyObject *PyDtsObject_getraw(PyObject *p, void *closure)
 {
   PyDtsObject *self = (PyDtsObject *)p;
 
@@ -155,7 +156,7 @@ static PyObject *PyDts_getraw(PyObject *p, void *closure)
 
 /** Return data as an appropriate Python type
  */
-static PyObject *PyDts_getvalue(PyObject *p, void *closure)
+static PyObject *PyDtsObject_getvalue(PyObject *p, void *closure)
 {
   PyDtsObject *self = (PyDtsObject *)p;
   dts_typeid   dtstype;
@@ -165,7 +166,7 @@ static PyObject *PyDts_getvalue(PyObject *p, void *closure)
 
   data    = self->d->getdata();
   dtstype = self->d->gettype();
-  dtsname = self->dts->typename_bynum(dtstype);
+  dtsname = self->d->getDts()->typename_bynum(dtstype);
 
   if (strcmp(dtsname, "ubyte") == 0) {
     pRet = PyInt_FromLong((long)*((unsigned char *)data));
@@ -200,7 +201,7 @@ static PyObject *PyDts_getvalue(PyObject *p, void *closure)
 
 /** Set data from a Python object
  */
-static int PyDts_setvalue(PyObject *p,
+static int PyDtsObject_setvalue(PyObject *p,
                           PyObject *val,
                           void *closure)
 {
@@ -211,7 +212,7 @@ static int PyDts_setvalue(PyObject *p,
 
   data    = self->d->getdata();
   dtstype = self->d->gettype();
-  dtsname = self->dts->typename_bynum(dtstype);
+  dtsname = self->d->getDts()->typename_bynum(dtstype);
 
   if (strcmp(dtsname, "ubyte") == 0) {
       long i;
@@ -268,20 +269,20 @@ static int PyDts_setvalue(PyObject *p,
 }
 
 
-static PyGetSetDef PyDts_getset[] = {
-  {"type",  PyDts_gettype,  NULL, "named type of data"},
-  {"raw",   PyDts_getraw,   NULL, "raw data as a string"},
-  {"value", PyDts_getvalue, PyDts_setvalue, "data as an appropriate Python type"},
+static PyGetSetDef PyDtsObject_getset[] = {
+  {"type",  PyDtsObject_gettype,  NULL, "named type of data"},
+  {"raw",   PyDtsObject_getraw,   NULL, "raw data as a string"},
+  {"value", PyDtsObject_getvalue, PyDtsObject_setvalue, "data as an appropriate Python type"},
   {NULL}                        /* Sentinel */
 };
 
-static PyTypeObject PyDtsType = {
+static PyTypeObject PyDtsObjectType = {
   PyObject_HEAD_INIT(NULL)
   0,                            /* ob_size		*/
-  "PyDts",                      /* tp_name		*/
+  "PyDtsObject",                /* tp_name		*/
   sizeof(PyDtsObject),          /* tp_basicsize		*/
   0,                            /* tp_itemsize		*/
-  PyDts_dealloc,                /* tp_dealloc		*/
+  PyDtsObject_dealloc,          /* tp_dealloc		*/
   0,                            /* tp_print		*/
   0,                            /* tp_getattr		*/
   0,                            /* tp_setattr		*/
@@ -289,7 +290,7 @@ static PyTypeObject PyDtsType = {
   0,                            /* tp_repr		*/
   0,                            /* tp_as_number		*/
   0,                            /* tp_as_sequence	*/
-  &PyDts_as_mapping,            /* tp_as_mapping	*/
+  &PyDtsObject_as_mapping,      /* tp_as_mapping	*/
   0,                            /* tp_hash		*/
   0,                            /* tp_call		*/
   0,                            /* tp_str		*/
@@ -297,32 +298,32 @@ static PyTypeObject PyDtsType = {
   0,                            /* tp_setattro          */
   0,                            /* tp_as_buffer         */
   Py_TPFLAGS_DEFAULT,           /* tp_flags             */
-  PyDts_doc,                    /* tp_doc               */
+  PyDtsObject_doc,              /* tp_doc               */
   0,                            /* tp_traverse */
   0,                            /* tp_clear */
   0,                            /* tp_richcompare */
   0,                            /* tp_weaklistoffset */
   0,                            /* tp_iter */
   0,                            /* tp_iternext */
-  PyDts_methods,                /* tp_methods */
+  PyDtsObject_methods,          /* tp_methods */
   0,                            /* tp_members */
-  PyDts_getset,                 /* tp_getset */
+  PyDtsObject_getset,           /* tp_getset */
   0,                            /* tp_base */
   0,                            /* tp_dict */
   0,                            /* tp_descr_get */
   0,                            /* tp_descr_set */
 };
 
-/** Create a new DtsObject from C
+/** Create a new PyDtsObject from a C++ DtsObject
  */
-static PyObject *pydts_create(DtsObject datum, DTS *dts)
+static PyObject *PyDtsObject_wrap(DtsObject datum)
 {
   PyDtsObject *pObj   = NULL;
   int          passed = 0;
 
   do {
     /* Allocate the new object */
-    pObj = PyObject_New(PyDtsObject, &PyDtsType);
+    pObj = PyObject_New(PyDtsObject, &PyDtsObjectType);
     if (! pObj) {
       break;
     }
@@ -333,8 +334,6 @@ static PyObject *pydts_create(DtsObject datum, DTS *dts)
      * "new", we have to use placement new to manually initialize d.
      */
     new(&pObj->d) DtsObject(datum);
-
-    pObj->dts = dts;
 
     passed = 1;
   } while (0);
@@ -379,24 +378,24 @@ static void PySmacq_dealloc(PyObject *p)
   /* Nothing to do here */
 }
 
-static PyObject *PySmacq_enqueue(PyObject *p, PyObject *args)
+PyObject * pythonModule::pyEnqueue(PyObject *p, PyObject *args)
 {
   PySmacqObject *self    = (PySmacqObject *)p;
-  PyDtsObject   *pDts;
+  PyDtsObject   *pDtsObj;
   int            outchan = 0;
 
-  if (! PyArg_ParseTuple(args, "O!|i", &PyDtsType, &pDts, &outchan)) {
+  if (! PyArg_ParseTuple(args, "O!|i", &PyDtsObjectType, &pDtsObj, &outchan)) {
     return NULL;
   }
 
-  self->module->enqueue_mofo(pDts->d, outchan);
+  self->module->enqueue(pDtsObj->d, outchan);
 
   Py_INCREF(Py_None);
   return Py_None;
 }
 
 static PyMethodDef PySmacq_methods[] = {
-  {"enqueue", PySmacq_enqueue, METH_VARARGS},
+  {"enqueue", pythonModule::pyEnqueue, METH_VARARGS},
   {NULL, NULL}                  // sentry
 };
 
@@ -440,7 +439,7 @@ static PyTypeObject PySmacqType = {
 
 /** Create a new SmacqObject from C
  */
-static PyObject *pysmacq_create(pythonModule *module)
+static PyObject *pysmacq_wrap(pythonModule *module)
 {
   PySmacqObject *pObj   = NULL;
   int            passed = 0;
@@ -559,7 +558,7 @@ pythonModule::pythonModule(struct smacq_init *context)
     }
 
     /* Create the smacq object */
-    pSmacq = pysmacq_create(this);
+    pSmacq = pysmacq_wrap(this);
     if (! pSmacq) {
       PyErr_Print();
       break;
@@ -632,31 +631,23 @@ pythonModule::pythonModule(struct smacq_init *context)
   }
 }
 
-/*
- * It's crap like this that drives people to Python.
- */
-void pythonModule::enqueue_mofo(DtsObject &dts, int &outchan)
-{
-  enqueue(dts, outchan);
-}
-
 smacq_result pythonModule::consume(DtsObject datum, int &outchan)
 {
-  PyObject     *pDts   = NULL;
+  PyObject     *pDtsObj   = NULL;
   PyObject     *pRet   = NULL;
   int           passed = 0;
   smacq_result  ret    = SMACQ_ERROR;
 
   do {
     /* Create a new DTS object */
-    pDts = pydts_create(datum, this->dts);
-    if (! pDts) {
+    pDtsObj = PyDtsObject_wrap(datum);
+    if (! pDtsObj) {
       PyErr_Print();
       break;
     }
 
     /* Send it to the consume function */
-    pRet = PyObject_CallFunction(this->pConsume, "O", pDts);
+    pRet = PyObject_CallFunction(this->pConsume, "O", pDtsObj);
     if (! pRet) {
       PyErr_Print();
       break;
@@ -667,7 +658,7 @@ smacq_result pythonModule::consume(DtsObject datum, int &outchan)
       ret = SMACQ_FREE;
     } else {
       /* Otherwise, it's gotta be a PyDtsObject */
-      if (! PyObject_IsInstance(pRet, (PyObject *)&PyDtsType)) {
+      if (! PyObject_IsInstance(pRet, (PyObject *)&PyDtsObjectType)) {
         fprintf(stderr, "Invalid return value: must be data object\n");
         break;
       }
@@ -689,7 +680,7 @@ smacq_result pythonModule::consume(DtsObject datum, int &outchan)
   /* Clean up */
 
   Py_XDECREF(pRet);
-  Py_XDECREF(pDts);
+  Py_XDECREF(pDtsObj);
 
   if (! passed) {
     return SMACQ_ERROR;
