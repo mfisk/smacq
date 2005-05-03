@@ -57,15 +57,11 @@ inline void groupbyModule::handle_invalidate(DtsObject datum) {
 
   for (i=outTable.begin(); i != outTable.end();) {
     if (i->first.masks(fieldvec)) {
-      sched->do_shutdown(i->second.get());
+      for (SmacqGraph * g = i->second.get(); g; g=g->nextGraph()) {
+      	sched->do_shutdown(g); 
+      }
       prev = i++;
       outTable.erase(prev);
-/*
-	/// Iterator invalidated; so start over
-      	handle_invalidate(datum);
-      	return;
-*/
-
     } else {
       ++i;
     }
