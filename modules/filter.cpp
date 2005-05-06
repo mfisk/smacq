@@ -22,7 +22,6 @@ static struct smacq_options options[] = {
 };
 
 smacq_result filterModule::consume(DtsObject datum, int & outchan) {
-  assert(datum);
   assert(argv[0]);
   
   type = datum->gettype();
