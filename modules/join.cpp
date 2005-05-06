@@ -68,22 +68,29 @@ smacq_result joinModule::consume(DtsObject datum, int & outchan) {
   for (unsigned int i=0; i < num_aliases; i++) {
     alias & a = Aliases[i];
 
-    DtsObject o = datum->getfield(a.field);
+    DtsObject o = datum->getfield(a.field, true);
     if (!o) continue;
 
     // Remove any stored objects that pass UNTIL graph.
     // XXX.  This only tests against new instances of same alias.
-    for (unsigned int j=0; j < a.objects.size(); j++) {
-      // Build test join
+    if (a.until) {
+      // Make a new test object
       DtsObject t = dts->newObject(emptytype);
+      // Attach this object as the "new" object
       t->attach_field(a.newfield, datum);
-      t->attach_field(a.field, a.objects[j]);
 
-      if (a.until && (SMACQ_PASS == sched->decide(a.until.get(), t))) {
-	// Remove j'th element
-	// (by swapping and shrinking)
-	a.objects[j] = a.objects.back();
-	a.objects.pop_back();
+      // Test each existing object
+      for (unsigned int j=0; j < a.objects.size(); j++) {
+        // Build test join
+        t->attach_field(a.field, a.objects[j]);
+
+        if (SMACQ_PASS == sched->decide(a.until.get(), t)) {
+	  // Remove j'th element
+	  // (by swapping and shrinking)
+	  a.objects[j] = a.objects.back();
+	  j--;
+	  a.objects.pop_back();
+        }
       }
     }
 
