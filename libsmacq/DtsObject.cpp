@@ -71,7 +71,7 @@ double DtsObject_::eval_arith_operand(struct dts_operand * op) {
 
   switch (op->type) {
 	  case FIELD:
-		 fetch_operand(op, -1);
+		 fetch_operand(op);
 		 if (op->valueo) {
 		   assert(op->valueo->type == dts->typenum_byname("double"));
 			 return dts_data_as(op->valueo, double);
@@ -82,7 +82,7 @@ double DtsObject_::eval_arith_operand(struct dts_operand * op) {
 		 break;
 
 	  case CONST:
-	    fetch_operand(op, dts->typenum_byname("double"));
+	    	fetch_const_operand(op, dts->typenum_byname("double"));
 		 if (op->valueo) {
 			 return dts_data_as(op->valueo, double);
 		 } else {
@@ -232,11 +232,16 @@ void DtsObject_::freeObject() {
 #define max(a,b) ((a)>(b) ? (a) : (b))
 #endif
 
-void DtsObject_::fetch_operand(struct dts_operand * op, dts_typeid const_type) {
-  if (op->type == CONST && op->valueo && op->valueo->type == const_type) {
+void DtsObject_::fetch_const_operand(struct dts_operand * op, dts_typeid const_type) {
+  	if (op->type == CONST && op->valueo && op->valueo->type == const_type) {
 	  return;
-  }
+  	}
 
+	op->valueo = dts->construct_fromstring(const_type, op->origin.literal.str);
+	if (!op->valueo) fprintf(stderr, "Could not parse %s\n", op->origin.literal.str);
+}
+
+void DtsObject_::fetch_operand(struct dts_operand * op) {
   switch(op->type) {
 	case FIELD:
 	  op->valueo = this->getfield(op->origin.literal.field);
@@ -244,8 +249,7 @@ void DtsObject_::fetch_operand(struct dts_operand * op, dts_typeid const_type) {
 	  break;
 
 	case CONST:
-	  op->valueo = dts->construct_fromstring(const_type, op->origin.literal.str);
-	  if (!op->valueo) fprintf(stderr, "Could not parse %s\n", op->origin.literal.str);
+	  assert(0);
 	  break;
 
 	case ARITH:

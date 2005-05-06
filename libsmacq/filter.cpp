@@ -27,7 +27,7 @@ int DtsObject_::match_one(dts_comparison * c) {
 
   switch (c->op) {
   case EXIST:
-    this->fetch_operand(c->op1, -1);
+    this->fetch_operand(c->op1);
     break;
 
   case EQ:
@@ -37,24 +37,40 @@ int DtsObject_::match_one(dts_comparison * c) {
   case LEQ:
   case GEQ:
 
-    if (c->op1->type != CONST) {
-      this->fetch_operand(c->op1, -1);
-      if (c->op1->valueo)
-	this->fetch_operand(c->op2, c->op1->valueo->gettype());
-
-    } else if (c->op2->type != CONST) {
-
-      this->fetch_operand(c->op2, -1);
+    if (c->op1->type == CONST && c->op2->type == CONST) {
+      fetch_const_operand(c->op2, dts->requiretype("string"));
       if (c->op2->valueo)
-	this->fetch_operand(c->op1, c->op2->valueo->gettype());
-
+	fetch_const_operand(c->op1, c->op2->valueo->gettype());
     } else {
-    
-      this->fetch_operand(c->op2, dts->requiretype("string"));
-      if (c->op2->valueo)
-	this->fetch_operand(c->op1, c->op2->valueo->gettype());
+  	dts_operand * op1, * op2;
+	if (c->op1->type != CONST) {
+      		op1 = c->op1;
+      		op2 = c->op2;
+    	} else {
+      		op1 = c->op2;
+      		op2 = c->op1;
+    	}
+	fetch_operand(op1);
+	if (op2->type == CONST) {
+		fetch_const_operand(op2, op1->valueo->gettype());
+	} else {
+		fetch_operand(op2);
+        	if (op1->valueo && op2->valueo) {
+		        dts_typeid op1type = op1->valueo->gettype();
+			dts_typeid op2type = op2->valueo->gettype();
+			if (op1type != op2type) {
+				//fprintf(stderr, "cast to %s to %s\n", dts->typename_bynum(op2type), dts->typename_bynum(op1type));
+				DtsObject cast = op2->valueo->getfield(dts->typename_bynum(op1type));
+				if (cast) {
+					op2->valueo = cast;
+				} else {
+					fprintf(stderr, "Warning cannot cast %s to %s; trying reverse\n", dts->typename_bynum(op2type), dts->typename_bynum(op1type));
+					op1->valueo = op1->valueo->getfield(dts->typename_bynum(op2type));
+				}
+			}
+		}
+	}
     }
-    
     break;
 
   case NOT:
