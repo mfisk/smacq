@@ -13,7 +13,7 @@ sed 's/  */ /g' "$@" | smacqq -g -q "\
 exit
 
 #
-# This one uses a time-based window
+# This one uses a time-based window, but time parsing is VERY slow
 #
 sed 's/  */ /g' "$@" | smacqq -g -q  "\
 	print a.time.ctime a.6 a.11 b.14 b.15 \
