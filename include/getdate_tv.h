@@ -2,19 +2,24 @@
 BEGIN_C_DECLS
 #include <getdate.h>
 
-static inline bool get_date_tv (struct timeval * t, char const * s, struct timeval const * now) {
-	struct timespec ts, tsnow;
+static struct timespec now = {0, 0};
+
+static inline bool get_date_tv (struct timeval * t, char const * s) {
+	struct timespec ts;
 	ts.tv_sec = t->tv_sec;
 	ts.tv_nsec = t->tv_usec*1000;
-	tsnow.tv_sec = now->tv_sec;
-	tsnow.tv_nsec = now->tv_usec*1000;
-	if (get_date(&ts, s, &tsnow)) {
+
+	// Do gettime() one and only once; then cache and reuse
+	if (now.tv_sec == 0) 
+		assert(gettime(&now) == 0);
+
+	if (get_date(&ts, s, &now)) {
 		t->tv_sec = ts.tv_sec;
 		t->tv_usec = ts.tv_nsec / 1000;
 		return true;
-    } else {
+    	} else {
 		return false;
-	}
+    	}
 }
 
 END_C_DECLS	
