@@ -6,7 +6,7 @@
 sed 's/  */ /g' "$@" | smacqq -g -q "\
 	print a.month a.day a.time a.6 a.11 b.14 b.15 \
 	from (expr('count + 150') from count(-a) from tabularinput(-d ' ' month day time host logger msgid)) \
-		a until (a.expr < new.a.count), \
+		a until (new.a), \
 		b until (b.expr < new.b.count) \
 	where a.msgid=b.msgid and substr(a.10,'X-PerlMx-Virus-Detected:') and substr(b.7, 'from=') "
 
