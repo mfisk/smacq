@@ -9,7 +9,7 @@ static int smacqtype_ubyte_get_string(DtsObject o, DtsObject field) {
   return 1;
 }
 
-static int parse_ubyte(char * buf,  DtsObject d) {
+static int parse_ubyte(const char* buf,  DtsObject d) {
   return dts_set(d, unsigned char, atol(buf));
 }
 

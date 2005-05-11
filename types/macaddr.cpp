@@ -17,7 +17,7 @@ static int smacqtype_macaddr_get_string(DtsObject o, DtsObject field) {
   return 1;
 }
 
-static int parse_macaddr(char * buf,  DtsObject d) {
+static int parse_macaddr(const char* buf,  DtsObject d) {
   unsigned char * c;
 
   d->setsize(6);

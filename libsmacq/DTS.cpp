@@ -193,7 +193,7 @@ int DTS::dts_lt(int type, void * p1, int len1, void * p2, int len2) {
 DTS::DTS() : max_type(0), max_field(0), warnings(true) {
 }
 
-DtsObject DTS::construct_fromstring(dts_typeid type, char * data) {
+DtsObject DTS::construct_fromstring(dts_typeid type, const char * data) {
   DtsObject o = this->newObject(type);
 
   if (o->set_fromstring(data)) {

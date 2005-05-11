@@ -20,7 +20,7 @@ static int smacqtype_ipproto_get_string(DtsObject obj, DtsObject field) {
   return 1;
 }
 
-static int parse_ipproto(char * buf,  DtsObject d) {
+static int parse_ipproto(const char * buf,  DtsObject d) {
   unsigned char us;
   struct protoent * p = getprotobyname(buf);
   if (p) {

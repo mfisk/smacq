@@ -13,7 +13,7 @@ static int smacqtype_double_get_string(DtsObject o, DtsObject field) {
   return 1;
 }
 
-static int parse_string(char * buf,  DtsObject d) {
+static int parse_string(const char* buf,  DtsObject d) {
   double dbl;
   char * left = NULL;
   dbl = strtod(buf, &left);

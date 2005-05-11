@@ -46,7 +46,7 @@ static int smacqtype_timeval_get_date(DtsObject o, DtsObject field) {
   return 1;
 }
 
-static int parse_timeval(char * buf,  DtsObject d) {
+static int parse_timeval(const char* buf,  DtsObject d) {
   struct timeval tv;
   assert(get_date_tv(&tv, buf));
   return dts_set(d, struct timeval, tv);

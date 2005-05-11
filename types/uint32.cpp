@@ -21,7 +21,7 @@ static int smacqtype_uint32_get_double(DtsObject o, DtsObject field) {
   return dts_set(field, double, d);
 }
 
-static int parse_string(char * buf, DtsObject d) {
+static int parse_string(const char* buf, DtsObject d) {
         unsigned long val;
         char * left = NULL;
         val = strtoul(buf, &left, 10);

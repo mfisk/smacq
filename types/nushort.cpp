@@ -23,7 +23,7 @@ static int smacqtype_nushort_get_double(DtsObject o, DtsObject field) {
 	return dts_set(field, double, ntohs(dts_data_as(o, ushort)));
 }
 
-static int parse_nushort(char * buf,  DtsObject d) {
+static int parse_nushort(const char* buf,  DtsObject d) {
   return dts_set(d, ushort, htons(atol(buf)));
 }
 

@@ -10,7 +10,7 @@ static int smacqtype_ip_get_string(DtsObject datum, DtsObject data) {
   return (0 != inet_ntop(AF_INET, datum->getdata(), (char*)data->getdata(), INET_ADDRSTRLEN));
 }
 
-static int parse_ip(char * buf,  DtsObject d) {
+static int parse_ip(const char* buf,  DtsObject d) {
   d->setsize(sizeof(struct in_addr));
   if (inet_pton(AF_INET, buf, d->getdata()) == 1) {
 	return 1; /* Success */

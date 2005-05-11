@@ -23,7 +23,7 @@ typedef boost::intrusive_ptr<DtsObject_> DtsObject;
 #include <DtsField.h>
 
 typedef int smacqtype_lt_fn(void *, int, void *, int);
-typedef int smacqtype_fromstring_fn(char *, DtsObject);
+typedef int smacqtype_fromstring_fn(const char *, DtsObject);
 typedef int smacqtype_getfield_fn(DtsObject, DtsObject, dts_field_element);
 
 #endif

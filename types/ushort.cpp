@@ -17,7 +17,7 @@ static int smacqtype_ushort_get_string(DtsObject o, DtsObject field) {
   return 1;
 }
 
-static int parse_ushort(char * buf,  DtsObject d) {
+static int parse_ushort(const char* buf,  DtsObject d) {
   return dts_set(d, ushort, atol(buf));
 }
 

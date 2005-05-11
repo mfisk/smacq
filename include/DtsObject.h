@@ -78,7 +78,7 @@ class DtsObject_ {
 	/// @{
 	void setdata(void * data) { this->data = data; }
 	void setdatacopy(const void * src);
-	int set_fromstring(char * datastr);
+	int set_fromstring(const char * datastr);
 	/// @}
 
 	/// @name Field Access
@@ -244,7 +244,7 @@ inline DtsObject_::DtsObject_(DTS * dts, int size, int type)
   this->init(size, type);
 }
 
-inline int DtsObject_::set_fromstring(char * datastr) {
+inline int DtsObject_::set_fromstring(const char * datastr) {
   struct dts_type * t = dts->type_bynum(this->type);
 
   if (!t) return 0;

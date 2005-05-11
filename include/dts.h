@@ -23,7 +23,7 @@ static inline char * dts_fieldname_append(const char * old, const char * newf) {
 }
 
 typedef int smacqtype_lt_fn(void *, int, void *, int);
-typedef int smacqtype_fromstring_fn(char *, DtsObject);
+typedef int smacqtype_fromstring_fn(const char *, DtsObject);
 typedef int smacqtype_getfield_fn(DtsObject, DtsObject, dts_field_element);
 
 struct dts_type_info {
@@ -87,7 +87,7 @@ class DTS {
 
   	/// Construct a new object with data parsed from the given string.
   	/// The input string should be format accordingly for the given typeid.
-  DtsObject construct_fromstring(dts_typeid type, char * data);
+  DtsObject construct_fromstring(dts_typeid type, const char * data);
 
   	/// Return a new object of the given type
   DtsObject newObject(dts_typeid);
@@ -98,7 +98,7 @@ class DTS {
   DtsObject readObject(struct pickle * pickle, int fd);
   ///@}
 
-  int fromstring(dts_typeid, char * datastr, DtsObject data);
+  int fromstring(dts_typeid, const char * datastr, DtsObject data);
   
   int dts_lt(int type, void * p1, int len1, void * p2, int len2);
   ///@name Field IDs 
