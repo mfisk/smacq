@@ -145,10 +145,10 @@ WITH_DOCDIR
 ## libgda
 ##
 PKG_CHECK_MODULES(GDA, libgda,
-	[EXTRA_STATIC_MODULES="${EXTRA_STATIC_MODULES} libsqlinsert.la"
-	OPTIONAL_TESTS="${OPTIONAL_TESTS} sqlinsert.test"
+	[EXTRA_STATIC_MODULES="${EXTRA_STATIC_MODULES} libsmacq_sql.la"
+	OPTIONAL_TESTS="${OPTIONAL_TESTS} sqlinsert.test sqlquery.test"
 	],[echo "$GDA_PKG_ERRORS"
-	echo "Building without sqlinsert module"])
+	echo "Building without modules: sqlinsert sqlquery"])
 
 ##
 ## Profiling
@@ -330,7 +330,7 @@ if test "X$with_python" = "Xyes"; then
 	fi
 	AC_MSG_RESULT($LIBINST_PYTHON)
 
-	EXTRA_STATIC_MODULES="${EXTRA_STATIC_MODULES} libpython.la"
+	EXTRA_STATIC_MODULES="${EXTRA_STATIC_MODULES} libsmacq_python.la"
 	OPTIONAL_TESTS="${OPTIONAL_TESTS} python.test"
 
 	rm -f $PYCONF

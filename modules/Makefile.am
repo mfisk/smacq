@@ -1,9 +1,9 @@
 SUBDIRS=substr patricia
 noinst_LTLIBRARIES = libsmacq_modules.la libtest_dynamic.la 
-EXTRA_LTLIBRARIES = libpython.la libsqlinsert.la libpcaplive.la
+EXTRA_LTLIBRARIES = libsmacq_python.la libsmacq_sql.la libsmacq_pcaplive.la
 SUFFIXES = .sc
 
-libsmacq_modules_la_SOURCES = print.cpp pcapfile.cpp socket.cpp uniq.cpp count.cpp last.cpp top.cpp head.cpp filter.cpp msgtest.cpp entropy.cpp derivative.cpp encrypt.cpp pdf.cpp fifo.cpp delta.cpp tabularinput.cpp rusage.cpp groupby.cpp flowid.cpp sum.cpp fifodelay.cpp project.cpp rename.cpp mask.cpp const.cpp ndjoin.cpp lor.cpp counter_loop.cpp dfa.cpp expr.cpp equals.cpp cflow.cpp clock.cpp disarm.cpp substr-main.cpp iplookup.cpp streamalias.cpp join.cpp changes.cpp histogram.cpp now.cpp div.cpp private.cpp uniqobj.cpp sort.cpp countobj.cpp
+libsmacq_modules_la_SOURCES = print.cpp pcapfile.cpp socket.cpp uniq.cpp count.cpp last.cpp top.cpp head.cpp filter.cpp msgtest.cpp entropy.cpp derivative.cpp encrypt.cpp pdf.cpp fifo.cpp delta.cpp tabularinput.cpp rusage.cpp groupby.cpp flowid.cpp sum.cpp fifodelay.cpp project.cpp rename.cpp mask.cpp const.cpp ndjoin.cpp lor.cpp counter_loop.cpp dfa.cpp expr.cpp equals.cpp cflow.cpp clock.cpp disarm.cpp substr-main.cpp iplookup.cpp streamalias.cpp join.cpp changes.cpp histogram.cpp now.cpp div.cpp private.cpp uniqobj.cpp sort.cpp countobj.cpp 
 
 libsmacq_modules_la_DEPENDENCIES = substr/libsubstr.la patricia/libpatricia.la libpcaplive.la @EXTRA_STATIC_MODULES@
 libsmacq_modules_la_LIBADD = $(libsmacq_modules_la_DEPENDENCIES)
@@ -22,17 +22,17 @@ libsmacq_modules_la_LDFLAGS = -rpath /bogus
 #
 # Per module link requirements
 # 
-libpython_la_SOURCES = python.cpp
-libpython_la_LIBS = @PYTHON_LIBADD@
-libpython_la_LDFLAGS = @LDFLAGS_PYTHON@
-libpython_la_CPPFLAGS = @CFLAGS_PYTHON@ 
+libsmacq_python_la_SOURCES = python.cpp
+libsmacq_python_la_LIBS = @PYTHON_LIBADD@
+libsmacq_python_la_LDFLAGS = @LDFLAGS_PYTHON@
+libsmacq_python_la_CPPFLAGS = @CFLAGS_PYTHON@ 
 
-libsqlinsert_la_SOURCES = sqlinsert.cpp
-libsqlinsert_la_LIBADD = @GDA_LIBS@
-libsqlinsert_la_CPPFLAGS = @GDA_CFLAGS@
+libsmacq_sql_la_SOURCES = sqlinsert.cpp sqlquery.cpp
+libsmacq_sql_la_LIBADD = @GDA_LIBS@
+libsmacq_sql_la_CPPFLAGS = @GDA_CFLAGS@
 
-libpcaplive_la_SOURCES = pcaplive.cpp
-libpcaplive_la_LIBS = -lpcap
+libsmacq_pcaplive_la_SOURCES = pcaplive.cpp
+libsmacq_pcaplive_la_LIBS = -lpcap
 
 #libbench_field_la_SOURCES = bench_field-main.c bench_field-virtual.C 
 
