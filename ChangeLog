@@ -1,5 +1,6 @@
 VERSION 2.2 - unreleased
 ========================
+2005-05 - sqlquery module added
 2005-03 - sort module added
 2005-03 - const module: -t and -f options
 2005-03 - ported to gcc 3.4
