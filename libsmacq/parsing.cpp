@@ -795,7 +795,7 @@ SmacqGraph * joinlist2graph(joinlist * joinlist, SmacqGraph * where) {
 
     DtsField thisfield = parse_dts->requirefield(joinlist->name);
     if (where) {
-      SmacqGraph * invariants = where->get_invariants_over_field(parse_dts, parse_sched, thisfield);
+      SmacqGraph * invariants = where->getInvariants(parse_dts, parse_sched, thisfield);
       //assert(invariants);
       if (invariants) newalias->add_child(invariants);
     }
