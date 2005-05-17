@@ -3,7 +3,7 @@
 DB=`pwd`/sqlitedb
 
 rm -f $DB
-sqlite $DB << EOM
+sqlite3 $DB << EOM
 create table foo(ts varchar(80), srcip varchar(32), dstip varchar(32));
 insert into foo values ("a", "b", "c");
 EOM
