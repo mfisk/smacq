@@ -29,8 +29,6 @@ else in that chain.
 class DTS;
 class SmacqGraph;
 
-typedef void smacq_filter_callback_fn(char * operation, int argc, char ** argv, void * data);
-
 #include <SmacqGraphNode.h>
 
 /// A graph of SmacqGraphNode nodes. 
@@ -59,6 +57,8 @@ class SmacqGraph : public SmacqGraphNode {
 
   bool live_children();
   bool live_parents();
+
+  const std::vector<std::vector<SmacqGraph_ptr> > getChildren() const { return children; }
 
   /// @}
 
@@ -102,21 +102,20 @@ class SmacqGraph : public SmacqGraphNode {
   /// @name Invariant Optimization
   /// @{
 
-  /// Callback function is called for each downstream filter.	
-  void downstream_filters(smacq_filter_callback_fn callback, void * data);
-
   /// Return a subgraph containing only invariants over the specified field.
   /// The subgraph will contain only stateless filters that are applied to
   /// all objects in the graph (e.g. not within an OR) and that do NOT use 
   /// the specified field.  The returned graph is newly allocated.
-  SmacqGraph * get_invariants_over_field(DTS*, SmacqScheduler*, DtsField&);
+  SmacqGraph * getInvariants(DTS*, SmacqScheduler*, DtsField&);
+
+  /// Same as getInvariants() but operates only on the graph's children
+  SmacqGraph * getChildInvariants(DTS*, SmacqScheduler*, DtsField&);
 
   /// @}
 
   void optimize();
 
  private:
-  void downstream_filter_one(smacq_filter_callback_fn callback, void * data);
   void init_node_one(DTS *, SmacqScheduler *);
   int print_one(FILE * fh, int indent);
   void add_parent(SmacqGraph * parent);
@@ -370,31 +369,6 @@ inline void SmacqGraph::add_parent(SmacqGraph * parent) {
   this->parent[this->numparents++] = parent;
 }		
 
-inline void SmacqGraph::downstream_filter_one(smacq_filter_callback_fn callback, void * data) {
-  if (!strcmp(argv[0], "where") || !strcmp(argv[0], "equals")) {
-    //fprintf(stderr, "downstream_filters got a known op: %s\n", argv[0]);
-    callback(argv[0], argc, argv, data);
-  } else {
-    //fprintf(stderr, "don't know anything about %s\n", argv[0]);
-    return;
-  }
-
-  /* Now do children */
-  if (children.size() > 1 || children[0].size() != 1) {
-    /* XXX: Lazy for now.  should look for invariants across children */
-    return;
-  } else {
-    children[0][0]->downstream_filter_one(callback, data);
-  }
-}
-
-inline void SmacqGraph::downstream_filters(smacq_filter_callback_fn callback, void * data) {
-  /* XXX: Lazy for now.  should look for invariants across children */
-  if (children.size() == 1 && children[0].size() == 1) {
-    children[0][0]->downstream_filter_one(callback, data);
-  }
-}
-
 inline void SmacqGraph::share_children_of(SmacqGraph * g) {
   assert(g->children.size() == 1);
   if (!g->children[0].size()) return;
@@ -432,18 +406,21 @@ inline void SmacqGraph::replace(SmacqGraph * g) {
   numparents = 0;
 }
 
-inline SmacqGraph * SmacqGraph::get_invariants_over_field(DTS * dts, SmacqScheduler * sched, DtsField & field) {
-  SmacqGraph * more;
+inline SmacqGraph * SmacqGraph::getChildInvariants(DTS* dts, SmacqScheduler* sched, DtsField& field) {
+	if (children.size() == 1 && children[0].size() == 1) {
+		return children[0][0]->getInvariants(dts, sched, field);
+      	} else {
+		return NULL;
+ 	}
+}
+
+inline SmacqGraph * SmacqGraph::getInvariants(DTS * dts, SmacqScheduler * sched, DtsField & field) {
   if (!algebra.stateless) {
     //fprintf(stderr, "%s is not stateless, so stopping invariant search\n", argv[0]);
     return NULL;
   }
 
-  if (children.size() == 1 && children[0].size() == 1) {
-    more = children[0][0]->get_invariants_over_field(dts, sched, field);
-  } else {
-    more = NULL;
-  }
+  SmacqGraph * more = getChildInvariants(dts, sched, field);
 
   if (!instance) 
     init(dts, sched);
