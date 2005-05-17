@@ -46,7 +46,12 @@ SMACQ_MODULE(disarm,
   int get_line(char ** buf, struct get_line * s);
   int server_init(struct sockaddr_in * addrp);
   int client_init(int port, char * hostname, char ** ipstr);
-  static void filter_callback(char * op, int argc, char ** argv, void * data);
+
+  private:
+
+  void processInvariants(SmacqGraph*);
+  void get_my_invariants(SmacqModule::smacq_init * context, char* name);
+
 );
 
 static struct smacq_options options[] = {
@@ -267,19 +272,30 @@ int disarmModule::client_init(int port, char * hostname, char ** ipstr) {
   return(client_fd);
 }
 
-void disarmModule::filter_callback(char * op, int argc, char ** argv, void * data) {
-  disarmModule * ths = (disarmModule*)data;
-  if (!strcmp(op, "equals") && argc == 3) {
+void disarmModule::get_my_invariants(SmacqModule::smacq_init * context, char* name) {
+	DtsField field = dts->requirefield(name);
+	processInvariants(context->self->getChildInvariants(dts, context->scheduler, field));
+}
+
+void disarmModule::processInvariants(SmacqGraph * i) {
+  if (!i ) return;
+
+  char ** argv = i->getArgv();
+  int argc = i->getArgc();
+
+  if (!strcmp(argv[0], "equals") && argc == 3) {
 	  if (!strcmp(argv[1], "srcip")) {
-		  ths->srcip_string = strdup(argv[2]);
+		  srcip_string = strdup(argv[2]);
 		  //fprintf(stderr, "Desired srcip is %s\n", argv[2]);
-	  } else if (!strcmp(argv[1], "date")) {
-		  ths->date_string = strdup(argv[2]);
+	  } else if (!strcmp(argv[1], "start")) {
+		  date_string = strdup(argv[2]);
 	          //fprintf(stderr, "Desired date is %s\n", argv[2]);
 	  }
   } else {
-	fprintf(stderr, "Unknown filter callback: %s + %d args\n", op, argc);
+	fprintf(stderr, "Unknown filter callback: %s + %d args\n", argv[0], argc);
   }
+
+  processInvariants(i->getChildren()[0][0].get());
 }
 
 disarmModule::disarmModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
@@ -323,7 +339,12 @@ disarmModule::disarmModule(struct SmacqModule::smacq_init * context) : SmacqModu
   }
 
   /* Get downstream filters before we apply args */
-  self->downstream_filters(filter_callback, this);
+  get_my_invariants(context, "srcip");
+  get_my_invariants(context, "dstip");
+  get_my_invariants(context, "srcport");
+  get_my_invariants(context, "dstport");
+  get_my_invariants(context, "start");
+  get_my_invariants(context, "end");
 
   sv4_type = dts->requiretype("sv4");
 
