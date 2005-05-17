@@ -9,8 +9,16 @@ class SmacqGraphNode{
  public:
   SmacqGraphNode();
   ~SmacqGraphNode();
-  bool set(int argc, char ** argv);
   void init(struct SmacqModule::smacq_init &);
+
+  /// (Re-)Initialize module
+  bool set(int argc, char ** argv);
+
+  /// Return argc
+  const int getArgc() const { return argc; }
+
+  /// Return argv (do not modify)
+  char ** const getArgv() const { return argv; }
 
  protected:
   char ** argv;  // set by set()
