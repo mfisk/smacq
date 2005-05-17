@@ -10,6 +10,11 @@ static int smacqtype_ip_get_string(DtsObject datum, DtsObject data) {
   return (0 != inet_ntop(AF_INET, datum->getdata(), (char*)data->getdata(), INET_ADDRSTRLEN));
 }
 
+static int smacqtype_ip_get_nuint32(DtsObject datum, DtsObject data) {
+  dts_data_as(data, uint32_t) = dts_data_as(datum, uint32_t);
+  return 1;
+}
+
 static int parse_ip(const char* buf,  DtsObject d) {
   d->setsize(sizeof(struct in_addr));
   if (inet_pton(AF_INET, buf, d->getdata()) == 1) {
@@ -33,6 +38,7 @@ static int parse_ip(const char* buf,  DtsObject d) {
 
 struct dts_field_spec dts_type_ip_fields[] = {
         { "string",    "string",	smacqtype_ip_get_string },
+        { "nuint32",    "nuint32",	smacqtype_ip_get_nuint32 },
         { NULL,        NULL,     	NULL }
 };
 
