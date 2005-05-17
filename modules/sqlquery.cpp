@@ -15,7 +15,7 @@ SMACQ_MODULE(sqlquery,
   GdaCommand * gda_cmd;  
   GdaClient * gda_client;
   GdaConnection * gda_connection;
-  GdaDataModel * results;
+  GdaDataModel * results, * schema;
 
   std::string querystr, where;
 
@@ -26,7 +26,7 @@ SMACQ_MODULE(sqlquery,
 
   dts_typeid string_type, empty_type, double_type, int_type, uint32_type;
 
-  static void filter_callback(char * op, int argc, char ** argv, void * data);
+  void processInvariants(int, SmacqGraph *);
 );
 
 static struct smacq_options options[] = {
@@ -55,16 +55,32 @@ static void print_gda_errors(GdaConnection * conn) {
     }
 }
 
-void sqlqueryModule::filter_callback(char * op, int argc, char ** argv, void * data) {
-	sqlqueryModule * ths = (sqlqueryModule*)data;
-	if (!strcmp(op, "equals") && argc == 3) {
-		if (ths->where.length()) ths->where += " AND ";
-		ths->where += "(";
-		ths->where += argv[1];
-		ths->where += "= '";
-		ths->where += argv[2];
-		ths->where += "')";
+void sqlqueryModule::processInvariants(int column, SmacqGraph * g) {
+	if (!g) return;
+
+	int const argc = g->getArgc();
+	char ** argv = g->getArgv();
+
+	if (!strcmp(argv[0], "equals") && argc == 3) {
+		if (where.length()) where += " AND ";
+		where += "(";
+		where += argv[1];
+		where += "=";
+
+		// Don't put quotes around numbers
+ 		GdaValue * val = (GdaValue*)gda_data_model_get_value_at(schema, column, 0);
+		if (gda_value_is_number(val)) {
+			where += argv[2];
+		} else {
+			where += "'";
+			where += argv[2];
+			where += "'";
+		}
+
+		where += ")";
 	}
+
+//	processInvariants(i, g->getChildren()[0][0].get());
 }
 
 smacq_result sqlqueryModule::produce(DtsObject & datum, int & outchan) {
@@ -73,6 +89,7 @@ smacq_result sqlqueryModule::produce(DtsObject & datum, int & outchan) {
 	return SMACQ_END;
  }
 
+ fprintf(stderr, "getting row %d of %d\n", row_number, num_rows);
  GdaRow * row = (GdaRow*)gda_data_model_get_row(results, row_number++);
  assert(row);
  assert(gda_row_get_length(row) == num_columns);
@@ -89,8 +106,11 @@ smacq_result sqlqueryModule::produce(DtsObject & datum, int & outchan) {
 
 	switch (gda_value_get_type(val)) {
 		case GDA_VALUE_TYPE_NULL:	continue;
+		case GDA_VALUE_TYPE_TINYUINT: 	GET(int_type, int, tinyuint);
 		case GDA_VALUE_TYPE_TINYINT: 	GET(int_type, int, tinyint);
+		case GDA_VALUE_TYPE_SMALLUINT: 	GET(int_type, int, smalluint);
 		case GDA_VALUE_TYPE_SMALLINT: 	GET(int_type, int, smallint);
+		case GDA_VALUE_TYPE_UINTEGER: 	GET(uint32_type, uint32_t, uinteger);
 		case GDA_VALUE_TYPE_INTEGER: 	GET(int_type, int, integer);
 		case GDA_VALUE_TYPE_STRING:	f=dts->construct_fromstring(string_type, gda_value_get_string(val)); break;
 
@@ -146,17 +166,50 @@ sqlqueryModule::sqlqueryModule(struct SmacqModule::smacq_init * context)
 				   GDA_COMMAND_OPTION_STOP_ON_ERRORS);
 
   querystr = "SELECT * FROM ";
+  std::string schemastr = querystr;
+
+  // 
+  // Query the table for 1 row to get types
+  //
+  schemastr += argv[0];
+  schemastr += " limit 1";
+  gda_command_set_text(gda_cmd, schemastr.c_str());
+  schema = gda_connection_execute_single_command(gda_connection, gda_cmd, NULL);
+  if (schema == NULL) {
+    	fprintf(stderr, "Error executing SQL command: %s\n\t", gda_command_get_text(gda_cmd));
+    	print_gda_errors(gda_connection);
+  }
+  num_rows = gda_data_model_get_n_rows(schema);
+  if (num_rows > 0) {
+  	num_columns = gda_data_model_get_n_columns(schema);
+  	columns.resize(num_columns);
+
+  	for (int i = 0; i < num_columns; i++) {
+		columns[i] = dts->requirefield((gchar*)gda_data_model_get_column_title(schema, i));
+
+		SmacqGraph * invars = context->self->getChildInvariants(dts, context->scheduler, columns[i]);
+		processInvariants(i, invars);
+		
+		fprintf(stderr, "column %d is %s\n", i, gda_data_model_get_column_title(schema, i));
+	 	if (invars) {
+			fprintf(stderr, "\tthere are filters\n");
+		} else {
+			fprintf(stderr, "\tno filters\n");
+		}
+  	}
+  }
+
+  // 
+  // Now prepare the real query
+  //
   for (int i = 0; i < argc; i++) {
 	querystr += argv[i];
 	querystr += " ";
   }
 
-  self->downstream_filters(filter_callback, this);
   if (where.length()) {
 	querystr += " WHERE " + where;
   }
-	
-
   fprintf(stderr, "sqlquery: %s\n", querystr.c_str());
   
   gda_command_set_text(gda_cmd, querystr.c_str());
@@ -165,19 +218,11 @@ sqlqueryModule::sqlqueryModule(struct SmacqModule::smacq_init * context)
     	fprintf(stderr, "Error executing SQL command: %s\n\t", gda_command_get_text(gda_cmd));
     	print_gda_errors(gda_connection);
   }
-
-  /* Get schema */
   num_rows = gda_data_model_get_n_rows(results);
-  if (num_rows > 0) {
-  	num_columns = gda_data_model_get_n_columns(results);
-  	columns.resize(num_columns);
 
-  	for (int i = 0; i < num_columns; i++) {
-		fprintf(stderr, "column %d is %s\n", i, gda_data_model_get_column_title(results, i));
-		columns[i] = dts->requirefield((gchar*)gda_data_model_get_column_title(results, i));
-  	}
-  }
-
+  // 
+  // Setup some types we'll need
+  //
   empty_type = dts->requiretype("empty");
   string_type = dts->requiretype("string");
   double_type = dts->requiretype("double");
@@ -189,6 +234,7 @@ sqlqueryModule::~sqlqueryModule() {
   gda_command_free(gda_cmd);
   gda_client_close_all_connections(gda_client);
   if (results) g_object_unref(results);
+  if (schema) g_object_unref(schema);
   if (gda_client) g_object_unref(G_OBJECT(gda_client));
 }
 
