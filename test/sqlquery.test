@@ -1,0 +1,14 @@
+#!/bin/sh
+
+DB=`pwd`/sqlitedb
+
+rm -f $DB
+sqlite $DB << EOM
+create table foo(ts varchar(80), srcip varchar(32), dstip varchar(32));
+insert into foo values ("a", "b", "c");
+EOM
+
+${BINDIR}smacqq -m -g <<EOF 
+print from sqlquery -d "URI=$DB" foo
+EOF
+
