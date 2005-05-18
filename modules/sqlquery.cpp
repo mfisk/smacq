@@ -27,6 +27,10 @@ SMACQ_MODULE(sqlquery,
   dts_typeid string_type, empty_type, double_type, int_type, uint32_type;
 
   void processInvariants(int, SmacqGraph *);
+  void endClause();
+  void startClause();
+  void addConstant(int column, char * constant);
+
 );
 
 static struct smacq_options options[] = {
@@ -55,6 +59,27 @@ static void print_gda_errors(GdaConnection * conn) {
     }
 }
 
+inline void sqlqueryModule::startClause() {
+	if (where.length()) where += " AND ";
+	where += "(";
+}
+
+inline void sqlqueryModule::endClause() {
+	where += ")";
+}
+
+inline void sqlqueryModule::addConstant(int column, char * constant) {
+	// Don't put quotes around numbers
+ 	GdaValue * val = (GdaValue*)gda_data_model_get_value_at(schema, column, 0);
+	if (gda_value_is_number(val)) {
+		where += constant;
+	} else {
+		where += "'";
+		where += constant;
+		where += "'";
+	}
+}
+
 void sqlqueryModule::processInvariants(int column, SmacqGraph * g) {
 	if (!g) return;
 
@@ -62,25 +87,21 @@ void sqlqueryModule::processInvariants(int column, SmacqGraph * g) {
 	char ** argv = g->getArgv();
 
 	if (!strcmp(argv[0], "equals") && argc == 3) {
-		if (where.length()) where += " AND ";
-		where += "(";
+		startClause();
 		where += argv[1];
 		where += "=";
-
-		// Don't put quotes around numbers
- 		GdaValue * val = (GdaValue*)gda_data_model_get_value_at(schema, column, 0);
-		if (gda_value_is_number(val)) {
-			where += argv[2];
-		} else {
-			where += "'";
-			where += argv[2];
-			where += "'";
-		}
-
-		where += ")";
+		addConstant(column, argv[2]);
+		endClause();
+	} else if (!strcmp(argv[0], "filter") && argc == 2) {
+		startClause();
+		where += argv[1];
+		endClause();
+	} else {
+		fprintf(stderr, "Cannot eagerly perform %s (%d args)\n", argv[0], argc);
 	}
 
-//	processInvariants(i, g->getChildren()[0][0].get());
+	if (g->getChildren()[0].size()) 
+		processInvariants(column, g->getChildren()[0][0].get());
 }
 
 smacq_result sqlqueryModule::produce(DtsObject & datum, int & outchan) {
@@ -89,7 +110,7 @@ smacq_result sqlqueryModule::produce(DtsObject & datum, int & outchan) {
 	return SMACQ_END;
  }
 
- fprintf(stderr, "getting row %d of %d\n", row_number, num_rows);
+ //fprintf(stderr, "getting row %d of %d\n", row_number, num_rows);
  GdaRow * row = (GdaRow*)gda_data_model_get_row(results, row_number++);
  assert(row);
  assert(gda_row_get_length(row) == num_columns);
@@ -189,13 +210,15 @@ sqlqueryModule::sqlqueryModule(struct SmacqModule::smacq_init * context)
 
 		SmacqGraph * invars = context->self->getChildInvariants(dts, context->scheduler, columns[i]);
 		processInvariants(i, invars);
-		
+	
+		/*	
 		fprintf(stderr, "column %d is %s\n", i, gda_data_model_get_column_title(schema, i));
 	 	if (invars) {
 			fprintf(stderr, "\tthere are filters\n");
 		} else {
 			fprintf(stderr, "\tno filters\n");
 		}
+		*/
   	}
   }
 

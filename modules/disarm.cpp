@@ -47,8 +47,6 @@ SMACQ_MODULE(disarm,
   int server_init(struct sockaddr_in * addrp);
   int client_init(int port, char * hostname, char ** ipstr);
 
-  private:
-
   void processInvariants(SmacqGraph*);
   void get_my_invariants(SmacqModule::smacq_init * context, char* name);
 
@@ -295,7 +293,9 @@ void disarmModule::processInvariants(SmacqGraph * i) {
 	fprintf(stderr, "Unknown filter callback: %s + %d args\n", argv[0], argc);
   }
 
-  processInvariants(i->getChildren()[0][0].get());
+  if (i->getChildren()[0].size()) {
+  	processInvariants(i->getChildren()[0][0].get());
+  }
 }
 
 disarmModule::disarmModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
