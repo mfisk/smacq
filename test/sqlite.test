@@ -1,0 +1,17 @@
+#!/bin/sh 
+DB=`pwd`/sqlitedb
+
+rm -f $DB
+
+#sqlite3 $DB << EOM
+#create table foo(ts varchar(80), srcip varchar(32), dstip varchar(32));
+#EOM
+
+${BINDIR}smacqq -m -g <<EOF 
+sqlinsert -t foo -d "URI=$DB" ts srcip dstip from (uniq srcip, dstip from pcapfile($TEST/0325@1112-snort.pcap))
+EOF
+
+${BINDIR}smacqq -m -g <<EOF 
+print -v ts srcip dstip from sqlquery(-d "URI=$DB" foo)
+EOF
+

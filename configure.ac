@@ -146,7 +146,7 @@ WITH_DOCDIR
 ##
 PKG_CHECK_MODULES(GDA, libgda,
 	[EXTRA_STATIC_MODULES="${EXTRA_STATIC_MODULES} libsmacq_sql.la"
-	OPTIONAL_TESTS="${OPTIONAL_TESTS} sqlinsert.test sqlquery.test"
+	OPTIONAL_TESTS="${OPTIONAL_TESTS} sqlite.test"
 	],[echo "$GDA_PKG_ERRORS"
 	echo "Building without modules: sqlinsert sqlquery"])
 
