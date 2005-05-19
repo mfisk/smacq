@@ -1,9 +1,6 @@
-//#include <stdio.h>
-//#include <stdlib.h>
 #include <string>
 #include <SmacqModule.h>
 #include <FastBit.h>
-//#include <SmacqGraph.h>
 
 SMACQ_MODULE(fastbit,
   PROTO_CTOR(fastbit);
@@ -80,6 +77,7 @@ fastbitModule::fastbitModule(struct SmacqModule::smacq_init * context) : SmacqMo
   processInvariants(context->self->getChildInvariants(dts, context->scheduler, attribute_field));
  
   FastBit::init();
+  fprintf(stderr, "Calling FastBit::evaluateQuery(%s, %s, %s)\n", infile.string_t, where.c_str(), attribute.string_t);
   FastBit::evaluateQuery(infile.string_t, where.c_str(), attribute.string_t, hits);
   numRows = hits.size();
 }
