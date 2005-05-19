@@ -26,7 +26,7 @@ SMACQ_MODULE(sqlquery,
 
   dts_typeid string_type, empty_type, double_type, int_type, uint32_type;
 
-  void processInvariants(int, SmacqGraph *);
+  void processInvariants(int, SmacqGraph_ptr);
   void endClause();
   void startClause();
   void addConstant(int column, char * constant);
@@ -208,7 +208,7 @@ sqlqueryModule::sqlqueryModule(struct SmacqModule::smacq_init * context)
   	for (int i = 0; i < num_columns; i++) {
 		columns[i] = dts->requirefield((gchar*)gda_data_model_get_column_title(schema, i));
 
-		SmacqGraph * invars = context->self->getChildInvariants(dts, context->scheduler, columns[i]);
+		SmacqGraph_ptr invars = context->self->getChildInvariants(dts, context->scheduler, columns[i]);
 		processInvariants(i, invars);
 	
 		/*	
