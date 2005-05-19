@@ -217,6 +217,19 @@ fi
 AC_SUBST(ETHEREAL_LIBRARY)
 AC_SUBST(ETHEREAL_DIR)
 
+##
+## LBL FastBit
+##
+AC_ARG_WITH([fastbit], 
+	AC_HELP_STRING([--with-fastbit],
+			[Include FastBit indexing]),
+	[CFLAGS_FASTBIT="-I$withval"
+	 LDFLAGS_FASTBIT="-L$withval"
+	 EXTRA_STATIC_MODULES="${EXTRA_STATIC_MODULES} libsmacq_fastbit.la"
+        ])
+
+AC_SUBST(CFLAGS_FASTBIT)
+AC_SUBST(LDFLAGS_FASTBIT)
 
 ##
 ## Python
