@@ -3,9 +3,7 @@
 #include <assert.h>
 #include <libgda/libgda.h>
 #include <string>
-
 #include <SmacqModule.h>
-#define BUFSIZE 8192
 
 SMACQ_MODULE(sqlquery,
   PROTO_CTOR(sqlquery);
