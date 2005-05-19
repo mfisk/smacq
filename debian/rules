@@ -24,10 +24,10 @@ else
 	CFLAGS += -O2
 endif
 
-config.status: configure
+config.status: $(top_srcdir)configure .ALWAYS
 	dh_testdir
 	# Add here commands to configure the package.
-	CFLAGS="$(CFLAGS)" ./configure --host=$(DEB_HOST_GNU_TYPE) --build=$(DEB_BUILD_GNU_TYPE) --prefix=/usr --mandir=\$${prefix}/share/man --infodir=\$${prefix}/share/info
+	CFLAGS="$(CFLAGS)" $(top_srcdir)configure --host=$(DEB_HOST_GNU_TYPE) --build=$(DEB_BUILD_GNU_TYPE) --prefix=/usr --mandir=\$${prefix}/share/man --infodir=\$${prefix}/share/info
 
 
 build: build-stamp
@@ -73,7 +73,7 @@ binary-indep: build install
 # Build architecture-dependent files here.
 binary-arch: build install
 	dh_testdir
-	dh_installchangelogs ChangeLog
+	dh_installchangelogs $(top_srcdir)ChangeLog
 	dh_installdocs
 	dh_installexamples
 #	dh_install
@@ -102,3 +102,4 @@ binary-arch: build install
 
 binary: binary-indep binary-arch
 .PHONY: build clean binary-indep binary-arch binary install 
+.ALWAYS: 
