@@ -10,11 +10,12 @@ SMACQ_MODULE(fastbit,
   PROTO_PRODUCE();
 
   std::vector<float> hits;
-  dts_typeid double_type;
+  dts_typeid double_type, empty_type;
   DtsField attribute_field;
-  unsigned long numRows;
-  processInvariants(SmacqGraph_ptr g);
+  unsigned long numRows, iterator;
   std::string where;
+
+  void processInvariants(SmacqGraph_ptr g);
 );
 
 static struct smacq_options options[] = {
@@ -23,19 +24,19 @@ static struct smacq_options options[] = {
   END_SMACQ_OPTIONS
 };
 
-smacq_result disarmModule::produce(DtsObject & datump, int & outchan) {
+smacq_result fastbitModule::produce(DtsObject & datump, int & outchan) {
   double value = hits[iterator++];
-  datum = dts->construct(empty_type, NULL);
-  datum->attach_field(attribute_field, dts->construct(double_type, &value));
+  datump = dts->construct(empty_type, NULL);
+  datump->attach_field(attribute_field, dts->construct(double_type, &value));
 
-  if (hits >= numRows) {
+  if (iterator >= numRows) {
 	return SMACQ_PASS|SMACQ_END;
   } else {
 	return SMACQ_PASS|SMACQ_PRODUCE;
   }
 }
 
-fastbitModule::processInvariants(SmacqGraph_ptr g) {
+void fastbitModule::processInvariants(SmacqGraph_ptr g) {
   if (!g) return;
 
   int const argc = g->getArgc();
@@ -55,10 +56,10 @@ fastbitModule::processInvariants(SmacqGraph_ptr g) {
   }
 
   if (g->getChildren()[0].size()) 
-    processInvariants(column, g->getChildren()[0][0].get());
+    processInvariants(g->getChildren()[0][0].get());
 }
 
-fastbitModule::fastbitModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
+fastbitModule::fastbitModule(struct SmacqModule::smacq_init * context) : SmacqModule(context), iterator(0) {
   smacq_opt infile, attribute;
 
   struct smacq_optval optvals[] = {
@@ -72,6 +73,7 @@ fastbitModule::fastbitModule(struct SmacqModule::smacq_init * context) : SmacqMo
 				 options, optvals);
 
   double_type = dts->requiretype("double");
+  empty_type = dts->requiretype("empty");
   assert(infile.string_t);
   assert(attribute.string_t);
   attribute_field = dts->requirefield(attribute.string_t);
