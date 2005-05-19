@@ -223,8 +223,8 @@ AC_SUBST(ETHEREAL_DIR)
 AC_ARG_WITH([fastbit], 
 	AC_HELP_STRING([--with-fastbit],
 			[Include FastBit indexing]),
-	[CFLAGS_FASTBIT="-I$withval"
-	 LDFLAGS_FASTBIT="-L$withval"
+	[CFLAGS_FASTBIT="-I$withval -I$withval/../stork/ibis"
+	 LDFLAGS_FASTBIT="-L$withval -lfastbit"
 	 EXTRA_STATIC_MODULES="${EXTRA_STATIC_MODULES} libsmacq_fastbit.la"
         ])
 
