@@ -22,15 +22,15 @@ static struct smacq_options options[] = {
 };
 
 smacq_result fastbitModule::produce(DtsObject & datump, int & outchan) {
+  if (iterator >= numRows) {
+	return SMACQ_END;
+  }
+
   double value = hits[iterator++];
   datump = dts->construct(empty_type, NULL);
   datump->attach_field(attribute_field, dts->construct(double_type, &value));
 
-  if (iterator >= numRows) {
-	return SMACQ_PASS|SMACQ_END;
-  } else {
-	return SMACQ_PASS|SMACQ_PRODUCE;
-  }
+  return SMACQ_PASS|SMACQ_PRODUCE;
 }
 
 void fastbitModule::processInvariants(SmacqGraph_ptr g) {
@@ -91,8 +91,9 @@ fastbitModule::fastbitModule(struct SmacqModule::smacq_init * context) : SmacqMo
   string_strip(where, "\"");
  
   FastBit::init();
-  fprintf(stderr, "\nCalling FastBit::evaluateQuery(%s, %s, %s)\n", infile.string_t, where.c_str(), attribute.string_t);
+  fprintf(stderr, "\n");
+  //fprintf(stderr, "\nCalling FastBit::evaluateQuery(%s, %s, %s)\n", infile.string_t, where.c_str(), attribute.string_t);
   FastBit::evaluateQuery(infile.string_t, where.c_str(), attribute.string_t, hits);
   numRows = hits.size();
-  fprintf(stderr, "Result set has %d entries\n", hits.size());
+  //fprintf(stderr, "Result set has %d entries\n", hits.size());
 }
