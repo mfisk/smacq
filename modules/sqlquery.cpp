@@ -80,7 +80,7 @@ inline void sqlqueryModule::addConstant(int column, char * constant) {
 	}
 }
 
-void sqlqueryModule::processInvariants(int column, SmacqGraph * g) {
+void sqlqueryModule::processInvariants(int column, SmacqGraph_ptr g) {
 	if (!g) return;
 
 	int const argc = g->getArgc();
