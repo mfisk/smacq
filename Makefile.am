@@ -8,4 +8,5 @@ quiet:
 	$(MAKE) all >/dev/null
 
 deb: 
-	fakeroot debian/rules binary
+	cp -pr $(top_srcdir)/debian .
+	fakeroot make -f debian/rules top_srcdir=$(top_srcdir)/ binary
