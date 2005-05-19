@@ -56,6 +56,15 @@ void fastbitModule::processInvariants(SmacqGraph_ptr g) {
     processInvariants(g->getChildren()[0][0].get());
 }
 
+static void string_strip(std::string & str, const std::string & strip) {
+  std::string::size_type pos = 0;
+  while (1) { 
+	 pos = str.find(strip, pos);
+	 if (pos == std::string::npos) return;
+	 str.replace(pos, 1, " ");
+  }
+}
+	 
 fastbitModule::fastbitModule(struct SmacqModule::smacq_init * context) : SmacqModule(context), iterator(0) {
   smacq_opt infile, attribute;
 
@@ -75,9 +84,15 @@ fastbitModule::fastbitModule(struct SmacqModule::smacq_init * context) : SmacqMo
   assert(attribute.string_t);
   attribute_field = dts->requirefield(attribute.string_t);
   processInvariants(context->self->getChildInvariants(dts, context->scheduler, attribute_field));
+  assert(where.length());
+ 
+  string_strip(where, "(");
+  string_strip(where, ")");
+  string_strip(where, "\"");
  
   FastBit::init();
-  fprintf(stderr, "Calling FastBit::evaluateQuery(%s, %s, %s)\n", infile.string_t, where.c_str(), attribute.string_t);
+  fprintf(stderr, "\nCalling FastBit::evaluateQuery(%s, %s, %s)\n", infile.string_t, where.c_str(), attribute.string_t);
   FastBit::evaluateQuery(infile.string_t, where.c_str(), attribute.string_t, hits);
   numRows = hits.size();
+  fprintf(stderr, "Result set has %d entries\n", hits.size());
 }
