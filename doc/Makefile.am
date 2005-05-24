@@ -28,7 +28,7 @@ api/refman.pdf: api api/latex/refman.tex
 	(make -C $(srcdir)/api/latex && cp $(srcdir)/api/latex/refman.pdf $(srcdir)/api/) || \
 	(cat $(srcdir)/api/latex/refman.log 1>&2 && false)
 
-$(srcdir)/api/man3/*.3: api
+$(srcdir)/api/man3/[^_]*.3: api
 #api/man3: api
 api/html: api
 
