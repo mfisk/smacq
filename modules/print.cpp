@@ -131,12 +131,13 @@ smacq_result printModule::consume(DtsObject datum, int & outchan) {
     }
       
   } else {
+    if (mysql) {
+	  // Record header
+	  fwrite("\001\000\000", 3, 1, outputfh);
+    }
     for (int i = 0; i < argc; i++) {
       field = datum->getfield(fields[i]);
       if (binary) {
-	if (mysql) 
-	  fwrite("\001\000\000", 3, 1, outputfh);
-
 	if (field) 
 	  fwrite(field->getdata(), field->getsize(), 1, outputfh);
       } else { 
