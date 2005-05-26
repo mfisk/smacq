@@ -9,7 +9,6 @@ static struct smacq_options options[] = {
   {"histdev", {double_t:0.8}, "Standard Deviation history", SMACQ_OPT_TYPE_DOUBLE},
   {"f", {string_t:"severity"}, "Report severity of change as this field", SMACQ_OPT_TYPE_STRING},
   {"t", {double_t:-1}, "Threshold (in standard deviations)", SMACQ_OPT_TYPE_DOUBLE},
-  {"idle", {boolean_t:0}, "Only update fields when data is seen --- not during idle periods", SMACQ_OPT_TYPE_BOOLEAN},
   {"i", {string_t:NULL}, "Identify field", SMACQ_OPT_TYPE_STRING},
   {"a", {boolean_t:0}, "Add mean and sigma fields to each feature", SMACQ_OPT_TYPE_BOOLEAN},
   {"base", {double_t:1}, "Feature value is log with this base", SMACQ_OPT_TYPE_DOUBLE},
