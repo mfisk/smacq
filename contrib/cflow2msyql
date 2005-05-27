@@ -3,7 +3,6 @@ DB=test
 LFAP=/n/lfap/flows
 MYSQLDIR=/var/lib/mysql/test
 TEMPTABLE=tempips
-#MYSQLDIR=/rad/mysql/lfap_i
 HIST=/home/mfisk/hist
 SCHEMA="rip int unsigned not null, sip int unsigned not null, dip int unsigned not null, input smallint unsigned not null, output smallint unsigned not null, srcport smallint unsigned not null, dstport smallint unsigned not null, packets int unsigned not null, bytes int unsigned not null, nip int unsigned not null, start timestamp not null, end timestamp not null, ipprotocol tinyint unsigned not null, mtime timestamp not null"
 INDICES="INDEX sip (sip), INDEX dip (dip), INDEX start (start), INDEX end (end), INDEX srcport (srcport), INDEX dstport (dstport)"
@@ -38,21 +37,6 @@ load_all() {
   done
 }
 
-#table_chk() {
-#	find $MYSQLDIR -name ip_\*.MYD > /tmp/$$.list
-#	copy_sfx MYI &
-#	copy_sfx frm &
-#	wait
-#	sed 's/.MYD/.MYI/' /tmp/$$.list | xargs -L1000 myisamchk -ssr
-#}
-
-#fix_metadata() {
-	#for sfx in MYI frm; do
-		#cp $MYSQLDIR/${TEMPLATETABLE}.$sfx $MYSQLDIR/${TEMPTABLE}.$sfx
-	#done
-	#myisamchk -qssr $MYSQLDIR/${TEMPTABLE}
-#}
-
 move_into() {
 	echo Moving data from $TEMPTABLE to $1 ....
 	time mysql <<EOM
@@ -84,7 +68,7 @@ EOM
 }
 
 load_continuous() {
-	tail -c 100000000000 -F $LFAP/flows.current | load_batch
+	tail -c 10000000000000 -F $LFAP/flows.current | load_batch
 }
 
 load_continuous
