@@ -2,11 +2,14 @@
 #define _FILE_OFFSET_BITS 64
 #define _LARGEFILE64_SOURCE
 #endif
+#define __STDC_LIMIT_MACROS
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <dts.h>
 #include <SmacqModule.h>
+#include <stdint.h>
+#include <math.h>
 
 SMACQ_MODULE(print, 
 	     PROTO_CTOR(print);
@@ -132,8 +135,33 @@ smacq_result printModule::consume(DtsObject datum, int & outchan) {
       
   } else {
     if (mysql) {
-	  // Record header
-	  fwrite("\001\000\000", 3, 1, outputfh);
+	  // Write record header
+	  //
+	  // The MyISAM record header is described in:
+	  // 	 http://dev.mysql.com/doc/internals/en/myisam-introduction.html
+	  // Iff there are NULL columns, it is a bitmask for each column plus a least 
+	  // significant bit describing whether the row is deleted.  Iff there are no 
+	  // NULL columns, the header is truncated to the least significant byte
+	  
+	  // This does the right thing for a non-truncated header:
+	  //int numbytes = lround(ceil((1+argc)/8.0));
+	  
+	  // This does the right thing for a truncated header:
+	  int numbytes = 1;  // Since we don't support NULL colums
+
+	  for (int b = numbytes; b > 0; b--) {
+		  unsigned int val = 0;  //Need a 0 for each non-NULL column
+		  if (b == numbytes) {
+			  int nonpadbits = ((1+argc) % 8);
+			  //fprintf(stderr, "nonpadbits is %d for %d args\n", nonpadbits, argc);
+			  val = ~0;
+			  val <<= nonpadbits;  //Need a 0 for each non-NULL column
+		  }
+		  if (b == 1) {
+			  val |= 1;  //LSB is 1 for not-deleted record
+		  }
+	  	  fwrite(&val, 1, 1, outputfh);
+	  }
     }
     for (int i = 0; i < argc; i++) {
       field = datum->getfield(fields[i]);
