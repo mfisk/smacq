@@ -35,6 +35,9 @@ public:
   /// Return false iff error.
   bool busy_loop();
 
+  /// Handle everything on the consume queue.
+  void consume_all();
+
   /// Handle an object produced by the specified node
   void queue_children(SmacqGraph * f, DtsObject d, int outchan);
 
@@ -85,7 +88,7 @@ inline void IterativeScheduler::queue_children(SmacqGraph * f, DtsObject d, int 
     }
   } else {
     //fprintf(stderr, "queueing %p falling off leaf %s (%p)\n", d.get(), f->name, f);
-    consumeq.runable(NULL, d);
+    produceq.runable(NULL, d);
   }
 }
 
@@ -213,6 +216,22 @@ inline bool IterativeScheduler::run_consume(SmacqGraph * f, DtsObject d) {
   return status;
 }
 
+/// Process all items in the consume queue
+inline void IterativeScheduler::consume_all() {
+  SmacqGraph_ptr f;
+  DtsObject d;
+  while (consumeq.pop_runable(f, d)) {
+    assert(f);
+    if (!f->shutdown) {
+       if (!d) {
+               do_shutdown(f.get());
+       } else {
+               run_consume(f.get(), d);
+       }
+    }
+  }
+}
+
 
 /// Handle one thing on the run queue.
 /// Return SMACQ_PASS iff an object falls off the end of the graph.
@@ -223,11 +242,7 @@ inline smacq_result IterativeScheduler::element(DtsObject &dout) {
   DtsObject d;
  
   if (consumeq.pop_runable(f,d)) {
-      if (!f) {
-    	// Datum fell off end of data-flow graph 
-    	dout = d;
-    	return SMACQ_PASS;
-      } else if (!f->shutdown) {
+      if (!f->shutdown) {
 	if (!d) {
 		do_shutdown(f.get());
 	} else {
@@ -235,7 +250,11 @@ inline smacq_result IterativeScheduler::element(DtsObject &dout) {
 	}
       }
   } else if (produceq.pop_runable(f,d)) {
-      if (!f->shutdown) {
+      if (!f) {
+       // Datum fell off end of data-flow graph
+       dout = d;
+       return SMACQ_PASS;
+      } else if (!f->shutdown) {
         run_produce(f.get());
       }
   } else {
