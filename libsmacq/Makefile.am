@@ -5,7 +5,7 @@ noinst_LTLIBRARIES=libsmacq.la @ETHEREAL_LIBRARY@
 EXTRA_LTLIBRARIES=#libethereal.la
 #libethereal_la_SOURCES=`find @ETHEREAL_DIR@ \( -name plugins -prune \) , \( -name \*.lo -print \)` 
 
-libsmacq_la_SOURCES=mem.c args.c pickle.cpp optimize.cpp filter.cpp ThreadedSmacqModule.cpp dynloader.c parsing.cpp cmalloc.c parser.ym scanner.lpp filter-parser.ym expr-parser.ym strucio.cpp DTS.cpp DtsObject.cpp smacq_result.cpp 
+libsmacq_la_SOURCES=mem.c args.c pickle.cpp optimize.cpp filter.cpp ThreadedSmacqModule.cpp dynloader.c parsing.cpp cmalloc.c parser.ym scanner.lpp filter-parser.ym expr-parser.ym DTS.cpp DtsObject.cpp smacq_result.cpp 
 
 AM_CPPFLAGS=@GLIB_CFLAGS@
 noinst_HEADERS=grammer.ypp
