@@ -5,12 +5,18 @@ Quick & Dirty:
 --------------
 Type "make".  If everything works, you will have a "bin/smacqq" executable.
 
-
 Supported Platforms:
 --------------------
 Debian GNU/Linux and MacOS/X + Fink are the primary development platforms.  
 SMACQ has also been built on FreeBSD and various buggy versions of RedHat.
 GCC 3.3 is the compiler we usually use.
+
+Packaging:
+----------
+We suggest using epm from http://www.easysw.com/epm/ to build RPM, Debian, 
+BSD, MacOS/X, Solaris, and other packages.  A smacq.list file is included 
+for those purposes.  An RPM spec file is also included, but may not be 
+maintained in the future.
 
 Optional functionality:
 -----------------------

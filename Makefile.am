@@ -1,5 +1,5 @@
 SUBDIRS = include libgnu libsmacq types modules bin doc test
-EXTRA_DIST = misc test smacq.spec debian
+EXTRA_DIST = misc test smacq.spec smacq.list debian
 ACLOCAL_AMFLAGS = -I $(top_srcdir)/libgnu/m4
 
 test: check
@@ -7,6 +7,16 @@ test: check
 quiet:
 	$(MAKE) all >/dev/null
 
-deb: 
+native inst slackware setld depot swinstall tardist osx aix bsd rpm deb: smacq.list
+	srcdir=$(top_srcdir) epm -v -f $@ --output-dir . smacq $<
+
+fink: smacq.list
+	fink=yes srcdir=$(top_srcdir) epm -f deb -a darwin-`uname -p` --output-dir . smacq $<
+
+tarball: all
+	$(MAKE) DESTDIR=install/ install
+
+	
+deb.real: 
 	cp -pr $(top_srcdir)/debian .
 	fakeroot make -f debian/rules top_srcdir=$(top_srcdir)/ binary
