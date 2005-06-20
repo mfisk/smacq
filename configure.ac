@@ -32,6 +32,7 @@ AC_CHECK_LIB([m], [pow])
 AC_CHECK_LIB([pcap], [pcap_open_live])
 AC_CHECK_LIB([pthread], [pthread_exit])
 AC_CHECK_LIB([z], [gzopen])
+AC_CHECK_LIB([bz2], [BZ2_bzopen])
 
 ##
 ## Platform specific compiler flag defaults
@@ -93,6 +94,16 @@ AC_FUNC_MMAP
 AC_FUNC_SELECT_ARGTYPES
 AC_FUNC_STRFTIME
 AC_CHECK_FUNCS([floor gethostbyname gettimeofday inet_ntoa localtime_r memmove memset pow select socket strchr strdup strerror strtol malloc memcmp realloc strtod])
+
+##
+## Defines for makefiles
+##
+MAN1_MANS="\$(top_srcdir)/doc/smacq.1 \$(top_srcdir)/doc/smacqq.1"
+MAN3_MANS="\$(top_srcdir)/doc/dts-modules.3 \$(top_srcdir)/doc/api/man3/*.3"
+DOCS="smacq.1.pdf smacqq.1.pdf index.html gotsmacq.png icon.png api/refman.pdf api/html/*"
+AC_SUBST(MAN1_MANS)
+AC_SUBST(MAN3_MANS)
+AC_SUBST(DOCS)
 
 ##
 ## module manifest
@@ -399,5 +410,6 @@ AC_CONFIG_FILES([Makefile
                  modules/substr/Makefile
                  modules/patricia/Makefile
                  test/Makefile
-                 types/Makefile])
+                 types/Makefile
+		 ])
 AC_OUTPUT
