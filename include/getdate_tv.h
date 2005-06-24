@@ -6,8 +6,8 @@ static struct timespec now = {0, 0};
 
 static inline bool get_date_tv (struct timeval * t, char const * s) {
 	struct timespec ts;
-	ts.tv_sec = t->tv_sec;
-	ts.tv_nsec = t->tv_usec*1000;
+	//ts.tv_sec = t->tv_sec;
+	//ts.tv_nsec = t->tv_usec*1000;
 
 	// Do gettime() one and only once; then cache and reuse
 	if (now.tv_sec == 0) 

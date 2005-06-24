@@ -20,7 +20,7 @@
 * Support routines
 */
 
-#define field_offset(s,f) ((int)&(((struct s *)0)->f))
+#define field_offset(s,f) (long int)(&(((struct s *)0)->f))
 
 static inline struct dts_pkthdr * get_pcap(DtsObject datum) {
 	return (struct dts_pkthdr*)datum->getdata();
@@ -89,7 +89,7 @@ static inline int getipfield(DtsObject datum, DtsObject data, int offset) {
 * Methods
 */
 int dts_pkthdr_get_packet(DtsObject datum, DtsObject data) {
-	data->setdata((void *)( (int)datum->getdata() + sizeof(struct dts_pkthdr)));
+	data->setdata(datum->getdata() + sizeof(struct dts_pkthdr));
 	data->setsize(get_pcap(datum)->pcap_pkthdr.caplen);
 	return 1;
 }

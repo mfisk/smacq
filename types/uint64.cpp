@@ -5,13 +5,22 @@
 
 static int smacqtype_uint64_get_string(DtsObject o, DtsObject field) {
   field->setsize(64); // Only has to hold log10(2**64)
+#if __WORDSIZE==64
+  snprintf((char*)field->getdata(), 64, "%lu", dts_data_as(o, uint64_t));
+#else
   snprintf((char*)field->getdata(), 64, "%llu", dts_data_as(o, uint64_t));
+#endif
+
   return 1;
 }
 
 static int smacqtype_uint64_get_hexstring(DtsObject o, DtsObject field) {
   field->setsize(16); // 4 bytes -> 8 chars + 3 = 11
+#if __WORDSIZE==64
+  snprintf((char*)field->getdata(), 64, "0x%lx", dts_data_as(o, uint64_t));
+#else
   snprintf((char*)field->getdata(), 64, "0x%llx", dts_data_as(o, uint64_t));
+#endif
   return 1;
 }
 

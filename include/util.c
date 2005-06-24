@@ -15,7 +15,7 @@ static inline void * crealloc(void * ptr, int newsize, int oldsize) {
   void * newp = realloc(ptr, newsize);
   //fprintf(stderr, "crealloc of %p from %d to %d\n", ptr, oldsize, newsize);
   if (!newp) return NULL;
-  memset((void *)((int)newp+oldsize), 0, newsize-oldsize);
+  memset((unsigned char*)newp+oldsize, 0, newsize-oldsize);
   return newp;
 }
 

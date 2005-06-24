@@ -66,7 +66,7 @@ inline void IterativeScheduler::seed_produce(SmacqGraph * startf) {
 }
 
 inline void IterativeScheduler::input(SmacqGraph * g, DtsObject din) {
-  assert ((unsigned int)g->instance > 1000);
+  assert (g->instance > (void*)1000);
 
   for(; g; g=g->nextGraph()) {
     consumeq.runable(g, din);
@@ -77,7 +77,7 @@ inline void IterativeScheduler::input(SmacqGraph * g, DtsObject din) {
 inline void IterativeScheduler::queue_children(SmacqGraph * f, DtsObject d, int outchan) {
   assert(outchan < (int)f->children.size());
 
-  assert ((unsigned int)f->instance > 1000);
+  assert (f->instance > (void*)1000);
 
   if (f->children[outchan].size()) {
     //fprintf(stderr, "queueing %p for children of %s (%p)\n", d.get(), f->name, f);

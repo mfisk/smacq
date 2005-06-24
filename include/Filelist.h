@@ -1,6 +1,6 @@
 #ifdef linux
 #define _FILE_OFFSET_BITS 64
-#define _LARGEFILE64_SOURCE
+#define _LARGEFILE64_SOURCE 1
 #endif
 
 #include <stdio.h>
