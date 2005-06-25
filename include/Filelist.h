@@ -11,6 +11,7 @@
 class Filelist {
  public:
   virtual char * nextfilename() = 0;
+  virtual ~Filelist() = 0;
 };
 
 /// Return filenames from an index file.

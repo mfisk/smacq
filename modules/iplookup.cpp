@@ -112,7 +112,7 @@ smacq_result iplookupModule::consume(DtsObject datum, int & outchan) {
      node = patricia_search_best(mybatch->trie, prefix);
      Deref_Prefix(prefix);	 
      if (node) {
-	  	outchan = (int)node->data;
+	  	outchan = (long int)node->data;
 		if (matched) {
 			enqueue(datum, outchan);
 			

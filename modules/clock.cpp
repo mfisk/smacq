@@ -37,14 +37,11 @@ smacq_result clockModule::consume(DtsObject datum, int & outchan) {
   double ts;
   long int tick;
 
-  {
-      	DtsObject time;
-	time = datum->getfield(timefield);
-  	if (!time) return SMACQ_PASS;
+  DtsObject time;
+  time = datum->getfield(timefield);
+  if (!time) return SMACQ_PASS;
 
-  	ts = dts_data_as(time, double);
-  	
-  }
+  ts = dts_data_as(time, double);
   tick = (int)(ts / period);
   /* fprintf(stderr, "got time tick %ld (period %f)\n", tick, period); */
 

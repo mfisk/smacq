@@ -124,7 +124,7 @@ smacq_result substrModule::consume(DtsObject datum, int & outchan) {
   struct substr_search_result res;
   DtsObject field;
   int matched = 0;
-  int chan;
+  long int chan;
   int i;
 
   assert(datum);
@@ -144,7 +144,7 @@ smacq_result substrModule::consume(DtsObject datum, int & outchan) {
 	  if (! substr_search(mybatch->set, field->getdata(), field->getsize(), &res)) 
 		  break;
 
-	  chan = (int)res.p->handle;
+	  chan = (long int)res.p->handle;
 
 #ifdef DEBUG
 	  fprintf(stderr, "pattern match '%.*s' at offset %d output %d\n", res.p->len, res.p->pattern, res.shift, chan);
