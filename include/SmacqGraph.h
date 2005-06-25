@@ -47,6 +47,10 @@ class SmacqGraph : public SmacqGraphNode {
 
   void replace(SmacqGraph *);
 
+  /// Insert a new graph between my parents and me
+  void insert(SmacqGraph *);
+
+  /// Add a new graph as one of my children
   void add_child(SmacqGraph * child, unsigned int channel = 0);
   void remove_parent(SmacqGraph * parent);
   void remove_child(int, int);
@@ -210,6 +214,17 @@ inline void SmacqGraph::add_graph(SmacqGraph * b) {
 /// Recursively initalize nodes in graph.
 inline void SmacqGraph::init(DTS * dts, SmacqScheduler * sched, bool do_optimize) {
   for (SmacqGraph * g = this; g; g=g->nextGraph()) {
+    // Insert a blank node before head so that it can use insert()
+    if (argc) {
+    	SmacqGraph * newg = new SmacqGraph(argc, argv);
+    	newg->children = children;
+    	newg->next_graph = NULL;
+    	g->children.clear();
+    	g->add_child(newg);
+    	g->argc = 0;
+    }
+
+    // Already a blank node
     g->init_node_one(dts, sched);
   }
 
@@ -219,13 +234,15 @@ inline void SmacqGraph::init(DTS * dts, SmacqScheduler * sched, bool do_optimize
 inline void SmacqGraph::init_node_one(DTS * dts, SmacqScheduler * sched) {
   struct SmacqModule::smacq_init context;
 
-  context.islast = !(children[0].size());
-  context.isfirst = (!numparents);
-  context.dts = dts;
-  context.self = this;
-  context.scheduler = sched;
+  if (argc) {
+  	context.islast = !(children[0].size());
+  	context.isfirst = (!numparents);
+  	context.dts = dts;
+  	context.self = this;
+  	context.scheduler = sched;
 
-  this->SmacqGraphNode::init(context);
+  	this->SmacqGraphNode::init(context);
+  }
 
   FOREACH_CHILD(this, child->init(dts, sched));
 }
@@ -378,8 +395,23 @@ inline void SmacqGraph::share_children_of(SmacqGraph * g) {
   }
 }
 
+inline void SmacqGraph::insert(SmacqGraph * g) {
+  // Tell parents to use new graph instead of me
+  assert(numparents > 0);
+
+  for (int i = 0; i < numparents; i++) {
+    parent[i]->replace_child(this, g);
+    parent[i] = NULL;
+  }
+
+  // And make me a child of the new graph
+  g->join(this);
+}
+
 /// Modify parent(s) and children to replace myself with the specified graph.
 inline void SmacqGraph::replace(SmacqGraph * g) {
+  // XXX. this doesn't tell parents!
+
   //parent[0]->print(stderr, 0);
 
   if (children[0].size()) {

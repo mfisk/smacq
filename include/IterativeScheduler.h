@@ -57,10 +57,14 @@ public:
 #include <SmacqGraph.h>
 
 inline void IterativeScheduler::seed_produce(SmacqGraph * startf) {
-  while(startf) {
-    //fprintf(stderr, "produce_first for %p\n", startf);
-    /* Force first guy to produce */
-    produceq.runable(startf, NULL);
+  while (startf) {
+    // Force first guy to produce
+    // We may be a stub and should pass this to children
+    assert(!startf->argc);
+    FOREACH_CHILD(startf, produceq.runable(child, NULL));
+   
+    //produceq.runable(startf, NULL); // iff argc
+
     startf = startf->nextGraph();
   }
 }
@@ -200,7 +204,7 @@ inline bool IterativeScheduler::run_consume(SmacqGraph * f, DtsObject d) {
 
   //fprintf(stderr, "consume %p by %s (%p)\n", d.get(), f->name, f);
 
-  //assert(f && f->instance);
+  assert(f && f->instance);
   retval = f->instance->consume(d, outchan);
 
   if (retval & SMACQ_PASS) {
