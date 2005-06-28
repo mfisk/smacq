@@ -231,16 +231,7 @@ struct smacq_functions {
 #include <SmacqScheduler.h>
 
 inline void SmacqModule::enqueue(DtsObject & datum, int outchan) {
-  scheduler->queue_children(self, datum, outchan);
-
-  /* 
-   * Since we added work, surrender to the scheduler.
-   * This really should be a co-routine sort of thing, but instead we take the simpler
-   * approach of using a special entry point to the scheduler that will drain
-   * the consume queue, but won't handle work that requires returning data
-   * to the caller of the scheduler that called us.  
-   */
-  scheduler->consume_all();
+  scheduler->enqueue(self, datum, outchan);
 }
 
 #endif	
