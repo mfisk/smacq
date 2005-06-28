@@ -99,7 +99,7 @@ AC_CHECK_FUNCS([floor gethostbyname gettimeofday inet_ntoa localtime_r memmove m
 ## Defines for makefiles
 ##
 MAN1_MANS="\$(top_srcdir)/doc/smacq.1 \$(top_srcdir)/doc/smacqq.1"
-MAN3_MANS="\$(top_srcdir)/doc/dts-modules.3 \$(top_srcdir)/doc/api/man3/*.3"
+#MAN3_MANS="\$(top_srcdir)/doc/dts-modules.3 \$(top_srcdir)/doc/api/man3/[^_]*.3"
 DOCS="smacq.1.pdf smacqq.1.pdf index.html gotsmacq.png icon.png api/refman.pdf api/html/*"
 AC_SUBST(MAN1_MANS)
 AC_SUBST(MAN3_MANS)
