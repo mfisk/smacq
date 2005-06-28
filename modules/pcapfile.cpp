@@ -8,8 +8,8 @@
 #include <dts.h>
 #include <dts_packet.h>
 
-SMACQ_MODULE(pcapread, 
-  PROTO_CTOR(pcapread);
+SMACQ_MODULE(pcapfile, 
+  PROTO_CTOR(pcapfile);
   PROTO_CONSUME();
 
   void fixup_pcap(struct old_pcap_pkthdr * hdr);
@@ -57,7 +57,7 @@ static inline void swap_hdr(struct pcap_file_header *hp)
 #define TCPDUMP_MAGIC 0xa1b2c3d4
 #define TCPDUMP_MAGIC_NEW 0xa1b2cd34
 
-void pcapreadModule::parse_pcapfile(struct pcap_file_header * hdr) {
+void pcapfileModule::parse_pcapfile(struct pcap_file_header * hdr) {
   swapped = 0;
   extended = 0;
 
@@ -95,7 +95,7 @@ void pcapreadModule::parse_pcapfile(struct pcap_file_header * hdr) {
   assert(snaplen_o);
 }
 
-void pcapreadModule::fixup_pcap(struct old_pcap_pkthdr * hdr) {
+void pcapfileModule::fixup_pcap(struct old_pcap_pkthdr * hdr) {
   if (swapped) {
     hdr->caplen = SWAPLONG(hdr->caplen);
     hdr->len = SWAPLONG(hdr->len);
@@ -117,18 +117,18 @@ void pcapreadModule::fixup_pcap(struct old_pcap_pkthdr * hdr) {
   }
 }
 
-smacq_result pcapreadModule::consume(DtsObject fileo, int & outchan) {
+smacq_result pcapfileModule::consume(DtsObject fileo, int & outchan) {
   StrucioStream * fh = StrucioStream::Open(fileo);
   if (fh) {
     if (sizeof(struct pcap_file_header) != fh->Read(&pcap_file_header, sizeof(struct pcap_file_header))) {
-      perror("pcapread");
+      perror("pcapfileModule");
       exit(-1);
     }
   
     parse_pcapfile(&pcap_file_header);
 
     //  fprintf(stderr, "pcapfile: Opening %s for read ( ", filename);
-    fprintf(stderr, "pcapread: Opening file ( ");
+    fprintf(stderr, "pcapfile: Opening file ( ");
 
     if (swapped) fprintf(stderr, "byte-swapped ");
     else fprintf(stderr, "host-byte-order ");
@@ -143,7 +143,7 @@ smacq_result pcapreadModule::consume(DtsObject fileo, int & outchan) {
  return SMACQ_FREE;
 }
 
-void pcapreadModule::parse_packets(StrucioStream * fh) {
+void pcapfileModule::parse_packets(StrucioStream * fh) {
   struct old_pcap_pkthdr * hdrp;
   struct dts_pkthdr * pkt;
 
@@ -183,7 +183,7 @@ void pcapreadModule::parse_packets(StrucioStream * fh) {
   
     //fprintf(stderr, "reading packet of caplen %d\n", hdrp->caplen);
     if (!fh->Read(hdrp + 1, hdrp->caplen)) {
-      fprintf(stderr, "pcapread: Error: Premature end of file\n");
+      fprintf(stderr, "pcapfile: Error: Premature end of file\n");
       return;
     }
 
@@ -191,7 +191,7 @@ void pcapreadModule::parse_packets(StrucioStream * fh) {
   }
 }
 
-pcapreadModule::pcapreadModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
+pcapfileModule::pcapfileModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
   StrucioStream::FileModule(context);
 
   snaplen_type = dts->requiretype("int");
