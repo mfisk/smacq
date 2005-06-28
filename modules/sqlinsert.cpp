@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <libgda/libgda.h>
+#include <string>
 
 #include <SmacqModule.h>
 #define BUFSIZE 8192
@@ -14,7 +15,7 @@ SMACQ_MODULE(sqlinsert,
   GdaCommand * gda_cmd;  
   GdaClient * gda_client;
   GdaConnection * gda_connection;
-  char insert_format[BUFSIZE];
+  std::string insert_format;
 
   char ** argv;
   int argc;
@@ -48,26 +49,25 @@ static void print_gda_errors(GdaConnection * conn) {
 
 
 smacq_result sqlinsertModule::consume(DtsObject datum, int & outchan) {
-  char values [BUFSIZE] = "";
-  char query [BUFSIZE] = "";
+  std::string values, query;
   int i, gdares;
   DtsObject field;
   assert(datum);
 
   for (i = 0; i < argc; i++) {
     if (i)
-      strncat(values, ",", BUFSIZE);
+  	values += ",";
 
     field = datum->getfield(fields[i]);
     if (field) {
-      strncat(values, "'", BUFSIZE);
-      strncat(values, (char *)field->getdata(), BUFSIZE);
-      strncat(values, "'", BUFSIZE);
+      values += "'";
+      values += (char *)field->getdata();
+      values += "'";
     } else
-      strncat(values,  "NULL", BUFSIZE);
+      values += "NULL";
   }
   
-  snprintf(query, BUFSIZE, insert_format, values);
+  snprintf(query, BUFSIZE, insert_format.c_str(), values.c_str());
 
   gda_command_set_text(gda_cmd, query);
   gdares = gda_connection_execute_non_query(gda_connection, gda_cmd, NULL);
@@ -84,7 +84,7 @@ smacq_result sqlinsertModule::consume(DtsObject datum, int & outchan) {
 sqlinsertModule::sqlinsertModule(struct SmacqModule::smacq_init * context)
   : SmacqModule(context)
 {
-  char qbuf[BUFSIZE];
+  std::string qbuf;
   smacq_opt table_name, database_name, provider_name;
   int i;
 
@@ -120,24 +120,29 @@ sqlinsertModule::sqlinsertModule(struct SmacqModule::smacq_init * context)
   gda_cmd = gda_command_new("", GDA_COMMAND_TYPE_SQL, 
 				   GDA_COMMAND_OPTION_STOP_ON_ERRORS);
 
-  snprintf(insert_format, BUFSIZE, "INSERT INTO %s(", table_name.string_t);
+  insert_format = "INSERT INTO ";
+  insert_format += table_name.string_t;
+  insert_format += "(";
+
   /* Would use "IF NOT EXISTS", but sqlite doesn't take it */
-  snprintf(qbuf, BUFSIZE, "create table %s (", table_name.string_t);
-  
+  qbuf = "CREATE TABLE ";
+  qbuf += table_name.string_t;
+  qbuf += "(";
+
   for (i = 0; i < argc; i++) {
     fields[i] = dts->requirefield(dts_fieldname_append(argv[i],"string")); 
 
     if (i) { /* Not first column */
-	strncat(insert_format, ",", BUFSIZE);
-    	strncat(qbuf, ",", BUFSIZE);
+	insert_format += ",";
+	qbuf += ",";
     }
-    strncat(insert_format, argv[i], BUFSIZE);
-    strncat(qbuf, argv[i], BUFSIZE);
-    strncat(qbuf, " varchar(255) ", BUFSIZE);
+    insert_format += argv[i];
+    qbuf += argv[i];
+    qbuf += " varchar(255) ";
   }
 
-  strncat(insert_format, ") VALUES (%s)", BUFSIZE);
-  strncat(qbuf, ");", BUFSIZE);
+  insert_format += ") VALUES (%s)";
+  qbuf += ");";
 
   gda_command_set_text(gda_cmd, qbuf);
   if (-1 == gda_connection_execute_non_query(gda_connection, gda_cmd, NULL)) {
