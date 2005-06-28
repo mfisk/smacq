@@ -123,7 +123,7 @@ joinModule::joinModule(SmacqModule::smacq_init * context)
   Aliases.resize((context->argc-2)/2);
   where = (SmacqGraph*)strtol(context->argv[context->argc-1], NULL, 0);
   if (where) {
-    where->init(dts, sched);
+    where->init_all(dts, sched);
     //where->print(stderr, 4);
   }
 
@@ -135,7 +135,7 @@ joinModule::joinModule(SmacqModule::smacq_init * context)
 
     a.until = (SmacqGraph*)strtol(context->argv[i+1], NULL, 0);
     if (a.until) { // can be NULL
-      a.until->init(dts, sched);	
+      a.until->init_all(dts, sched);	
     }
   }
 

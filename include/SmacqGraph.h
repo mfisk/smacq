@@ -40,7 +40,7 @@ class SmacqGraph : public SmacqGraphNode {
   SmacqGraph(int argc, char ** argv);
 
   /// This method must be called before a graph is used.
-  void init(DTS *, SmacqScheduler *, bool do_optimize = true);
+  void init_all(DTS *, SmacqScheduler *, bool do_optimize = true);
 
   /// @name Parent/Child Relationships
   /// @{
@@ -48,7 +48,7 @@ class SmacqGraph : public SmacqGraphNode {
   void replace(SmacqGraph *);
 
   /// Insert a new graph between my parents and me
-  void insert(SmacqGraph *);
+  void dynamic_insert(SmacqGraph *, DTS *, SmacqScheduler *);
 
   /// Add a new graph as one of my children
   void add_child(SmacqGraph * child, unsigned int channel = 0);
@@ -120,7 +120,8 @@ class SmacqGraph : public SmacqGraphNode {
   void optimize();
 
  private:
-  void init_node_one(DTS *, SmacqScheduler *);
+  void init_node(DTS *, SmacqScheduler *);
+  void init_node_recursively(DTS *, SmacqScheduler *);
   int print_one(FILE * fh, int indent);
   void add_parent(SmacqGraph * parent);
 
@@ -212,7 +213,7 @@ inline void SmacqGraph::add_graph(SmacqGraph * b) {
 }
 
 /// Recursively initalize nodes in graph.
-inline void SmacqGraph::init(DTS * dts, SmacqScheduler * sched, bool do_optimize) {
+inline void SmacqGraph::init_all(DTS * dts, SmacqScheduler * sched, bool do_optimize) {
   for (SmacqGraph * g = this; g; g=g->nextGraph()) {
     // Insert a blank node before head so that it can use insert()
     if (argc) {
@@ -224,14 +225,13 @@ inline void SmacqGraph::init(DTS * dts, SmacqScheduler * sched, bool do_optimize
     	g->argc = 0;
     }
 
-    // Already a blank node
-    g->init_node_one(dts, sched);
+    g->init_node_recursively(dts, sched);
   }
 
   if (do_optimize) optimize();
 }
 
-inline void SmacqGraph::init_node_one(DTS * dts, SmacqScheduler * sched) {
+inline void SmacqGraph::init_node(DTS * dts, SmacqScheduler * sched) {
   struct SmacqModule::smacq_init context;
 
   if (argc) {
@@ -243,8 +243,12 @@ inline void SmacqGraph::init_node_one(DTS * dts, SmacqScheduler * sched) {
 
   	this->SmacqGraphNode::init(context);
   }
+}
 
-  FOREACH_CHILD(this, child->init(dts, sched));
+inline void SmacqGraph::init_node_recursively(DTS * dts, SmacqScheduler * sched) {
+  init_node(dts, sched);
+
+  FOREACH_CHILD(this, child->init_node_recursively(dts, sched));
 }
   
 
@@ -395,7 +399,7 @@ inline void SmacqGraph::share_children_of(SmacqGraph * g) {
   }
 }
 
-inline void SmacqGraph::insert(SmacqGraph * g) {
+inline void SmacqGraph::dynamic_insert(SmacqGraph * g, DTS * dts, SmacqScheduler * sched) {
   // Tell parents to use new graph instead of me
   assert(numparents > 0);
 
@@ -406,6 +410,9 @@ inline void SmacqGraph::insert(SmacqGraph * g) {
 
   // And make me a child of the new graph
   g->join(this);
+
+  // Go ahead and init 
+  g->init_node(dts, sched);
 }
 
 /// Modify parent(s) and children to replace myself with the specified graph.
@@ -455,7 +462,7 @@ inline SmacqGraph * SmacqGraph::getInvariants(DTS * dts, SmacqScheduler * sched,
   SmacqGraph * more = getChildInvariants(dts, sched, field);
 
   if (!instance) 
-    init(dts, sched);
+    init_node_recursively(dts, sched);
 
   if (!instance->usesOtherFields(field)) {
     SmacqGraph * result = new SmacqGraph(argc, argv);

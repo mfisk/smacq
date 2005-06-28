@@ -53,6 +53,6 @@ histogramModule::histogramModule(struct SmacqModule::smacq_init * context)
   fprintf(stderr, "Histogram translated to: %s\n", query);
   SmacqGraph * g = SmacqGraph::newQuery(dts, context->scheduler, 1, &query);
   assert(g);
-  g->init(dts, context->scheduler);
+  g->init_all(dts, context->scheduler);
   context->self->replace(g);
 }

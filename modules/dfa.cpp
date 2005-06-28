@@ -217,7 +217,7 @@ int dfaModule::parse_dfa(char * filename) {
 	  exit(-1);
 	}
 
-	transition.graph->init(dts, sched);
+	transition.graph->init_all(dts, sched);
 
 	/*
 	  fprintf(stderr, "transition from %s(%d) to %s(%d)\n", 

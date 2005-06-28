@@ -86,7 +86,7 @@ ndjoinModule::ndjoinModule(struct SmacqModule::smacq_init * context)
   join.right_key = dts->requirefield(dts_fieldname_append(argv[1], "double"));
   join.field = dts->requirefield(argv[2]);
   join.graph = SmacqGraph::newQuery(dts, sched, argc-3, argv+3);
-  join.graph->init(dts, sched);
+  join.graph->init_all(dts, sched);
   sched->seed_produce(join.graph.get());
   assert(join.graph);
 }

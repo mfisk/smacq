@@ -56,6 +56,6 @@ lorModule::lorModule(struct SmacqModule::smacq_init * context)
     }
   }
 
-  graphs->init(dts, context->scheduler);
+  graphs->init_all(dts, context->scheduler);
   context->self->replace(graphs.get());
 }

@@ -44,7 +44,7 @@ inline SmacqGraph_ptr groupbyModule::get_partition() {
   if (!partition) {
     partition = mastergraph->clone(NULL);
     partition->share_children_of(self.get());
-    partition->init(dts, sched, false);
+    partition->init_all(dts, sched, false);
     outTable[fieldvec] = partition;
   } 
 

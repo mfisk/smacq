@@ -156,6 +156,6 @@ inline void StrucioStream::FileModule(SmacqModule::smacq_init * context) {
   //memcpy(argv+1, context->argv+1, context->argc-1 * sizeof(char*));
  
   SmacqGraph * g = new SmacqGraph(context->argc, argv);
-  context->self->insert(g);
+  context->self->dynamic_insert(g, context->dts, context->scheduler);
 }
 
