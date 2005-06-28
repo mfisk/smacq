@@ -3,3 +3,9 @@
 .libs
 *.sw?
 Makefile.in
+expr-parser.cpp
+filter-parser.cpp
+parser.cpp
+parser.h
+scanner.cpp
+
