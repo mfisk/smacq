@@ -120,7 +120,7 @@ int main(int argc, char ** argv) {
       graphs->print(stderr, 8);
   }
 
-  graphs->init(&dts, &s);
+  graphs->init_all(&dts, &s);
 
   if (showgraph.boolean_t) {
       graphs->print(stderr, 8);
