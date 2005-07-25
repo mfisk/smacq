@@ -11,7 +11,7 @@
 class Filelist {
  public:
   virtual char * nextfilename() = 0;
-  virtual ~Filelist() = 0;
+  virtual ~Filelist() {};
 };
 
 /// Return filenames from an index file.
@@ -19,6 +19,9 @@ class FilelistBounded : public Filelist {
  public:
   FilelistBounded(char * root, long long lower, long long upper);
   char * nextfilename();
+  ~FilelistBounded() {
+	if (index_fh) fclose(index_fh);
+  }
 
  protected:
   char * indexfile;
