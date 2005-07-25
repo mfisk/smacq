@@ -1,11 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
-#include <pcap.h>
 
 #include <StrucioStream.h>
 #include <SmacqModule.h>
 #include <dts.h>
+
 #include <dts_packet.h>
 
 SMACQ_MODULE(pcapfile, 

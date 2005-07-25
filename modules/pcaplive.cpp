@@ -1,3 +1,4 @@
+
 #undef WRAP_PCAP
 #ifdef WRAP_PCAP
 #define pcap_loop __real_pcap_loop
@@ -19,7 +20,7 @@
 #include <sys/types.h>
 #include <net/ethernet.h>
 #include <SmacqModule.h>
-#include <pcap.h>
+
 #include <dts_packet.h>
  
 static struct smacq_options options[] = {
