@@ -9,27 +9,35 @@
 #include <dts-module.h>
 #include "getdate_tv.h"
 
+// 64-bit Linux (probably others) uses 64-bit values for struct timeval.
+// This is a 32-bit timeval regardless of platform, so we use our own struct.
+
+struct timeval_32 {
+	uint32_t tv_sec;
+	uint32_t tv_usec;
+};
+
 static int smacqtype_timeval_get_sec(DtsObject o, DtsObject field) {
-  struct timeval * t = (struct timeval *)o->getdata();
+  struct timeval_32 * t = (struct timeval_32 *)o->getdata();
   unsigned long sec = t->tv_sec;
   return dts_set(field, unsigned long, sec);
 }
 
 static int smacqtype_timeval_get_double(DtsObject o, DtsObject field) {
-  struct timeval * t = (struct timeval *)o->getdata();
+  struct timeval_32 * t = (struct timeval_32 *)o->getdata();
   double dbl = (double)t->tv_sec + 1e-6 * (double)t->tv_usec;
   return dts_set(field, double, dbl);
 }
 
 static int smacqtype_timeval_get_string(DtsObject o, DtsObject field) {
-  struct timeval * t = (struct timeval *)o->getdata();
+  struct timeval_32 * t = (struct timeval_32 *)o->getdata();
   field->setsize(64);
   snprintf((char*)field->getdata(), 64, "%lu.%06lu", (unsigned long)t->tv_sec, (unsigned long)t->tv_usec);
   return 1;
 }
 
 static int smacqtype_timeval_get_ctime(DtsObject o, DtsObject field) {
-  struct timeval * t = (struct timeval *)o->getdata();
+  struct timeval_32 * t = (struct timeval_32 *)o->getdata();
   struct tm tm;
   field->setsize(32);
   strftime((char*)field->getdata(), 32, "%T", localtime_r((time_t*)&(t->tv_sec), &tm));
@@ -38,7 +46,7 @@ static int smacqtype_timeval_get_ctime(DtsObject o, DtsObject field) {
 }
 
 static int smacqtype_timeval_get_date(DtsObject o, DtsObject field) {
-  struct timeval * t = (struct timeval *)o->getdata();
+  struct timeval_32 * t = (struct timeval_32 *)o->getdata();
   struct tm tm;
   field->setsize(32);
   strftime((char*)field->getdata(), 32, "%Y-%m-%d", localtime_r((time_t*)&(t->tv_sec), &tm));
@@ -49,20 +57,27 @@ static int smacqtype_timeval_get_date(DtsObject o, DtsObject field) {
 static int parse_timeval(const char* buf,  DtsObject d) {
   struct timeval tv;
   assert(get_date_tv(&tv, buf));
-  return dts_set(d, struct timeval, tv);
+  if (sizeof(struct timeval) != sizeof(struct timeval_32)) {
+  	struct timeval_32 tv32;
+  	tv32.tv_sec = tv.tv_sec;
+  	tv32.tv_usec = tv.tv_usec;
+  	return dts_set(d, struct timeval_32, tv32);
+  } else {
+  	return dts_set(d, struct timeval, tv);
+  }
 }
 
-int timeval_ge(struct timeval x, struct timeval y) {
+int timeval_ge(struct timeval_32 x, struct timeval_32 y) {
   if (x.tv_sec > y.tv_sec) return 1;
   if ((x.tv_sec == y.tv_sec) && (x.tv_usec >= y.tv_usec)) return 1;
   return 0;
 }
 
 static int timeval_lt(void * p1, int len1, void * p2, int len2) {
-  assert(len1 == sizeof(struct timeval));
-  assert(len2 == sizeof(struct timeval));
+  assert(len1 == sizeof(struct timeval_32));
+  assert(len2 == sizeof(struct timeval_32));
 
-  return(!timeval_ge(*(struct timeval*)p1, *(struct timeval*)p2));
+  return(!timeval_ge(*(struct timeval_32*)p1, *(struct timeval_32*)p2));
 }
 
 struct dts_field_spec dts_type_timeval_fields[] = {
@@ -76,7 +91,7 @@ struct dts_field_spec dts_type_timeval_fields[] = {
 };
 
 struct dts_type_info dts_type_timeval_table = {
-  size:sizeof(struct timeval),
+  size:sizeof(struct timeval_32), 
   fromstring:parse_timeval,
   lt:timeval_lt,
 };
