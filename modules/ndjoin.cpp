@@ -10,7 +10,6 @@ struct join {
   SmacqGraph_ptr graph;
   DtsField field;
   DtsField left_key, right_key;
-  struct runq * runq;
   double next_val;
   DtsObject next_dobj;
 };
