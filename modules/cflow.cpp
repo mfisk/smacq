@@ -27,5 +27,5 @@ smacq_result cflowModule::consume(DtsObject datum, int & outchan) {
 cflowModule::cflowModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
  StrucioStream::FileModule(context);
 
-  cflow_type = dts->requiretype("cflow");
+ cflow_type = dts->requiretype("cflow");
 }
