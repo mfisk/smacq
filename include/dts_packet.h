@@ -1,5 +1,14 @@
 #ifndef FLOWTYPE_PACKET_H
 #define FLOWTYPE_PACKET_H
+
+#include <stdint.h>
+
+// Always 32-bit timevals, even on 64-mit machines.
+struct timeval_32 {
+	uint32_t tv_sec;
+	uint32_t tv_usec;
+};
+
 #include <pcap.h>
 #include <smacq.h>
 
@@ -9,7 +18,7 @@
  * packet interfaces.
  */
 struct old_pcap_pkthdr {
-        struct timeval ts;      /* time stamp */
+        struct timeval_32 ts;      /* time stamp */
         bpf_u_int32 caplen;     /* length of portion present */
         bpf_u_int32 len;        /* length this packet (off wire) */
 };

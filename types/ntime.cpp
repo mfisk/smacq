@@ -8,26 +8,26 @@
 #include <getdate_tv.h>
 
 static int smacqtype_ntime_get_double(DtsObject o, DtsObject field) {
-  time_t t = dts_data_as(o, time_t);
+  uint32_t t = dts_data_as(o, uint32_t);
   double d = ntohl(t);
   return dts_set(field, double, d);
 }
 
 static int smacqtype_ntime_get_time(DtsObject o, DtsObject field) {
-  time_t t = dts_data_as(o, time_t);
-  return dts_set(field, time_t, ntohl(t));
+  uint32_t t = dts_data_as(o, uint32_t);
+  return dts_set(field, uint32_t, ntohl(t));
 }
 
 static int smacqtype_ntime_get_string(DtsObject o, DtsObject field) {
-  time_t t = dts_data_as(o, time_t);
+  uint32_t t = dts_data_as(o, uint32_t);
   field->setsize(64);
-  snprintf((char*)field->getdata(), 64, "%lu", (time_t)ntohl(t));
+  snprintf((char*)field->getdata(), 64, "%u", (uint32_t)ntohl(t));
   return 1;
 }
 
 static int smacqtype_ntime_get_ctime(DtsObject o, DtsObject field) {
   struct tm tm;
-  time_t t = ntohl(dts_data_as(o, time_t));
+  time_t t = ntohl(dts_data_as(o, uint32_t));
   field->setsize(32);
   strftime((char*)field->getdata(), 32, "%T", localtime_r(&t, &tm));
  
@@ -36,7 +36,7 @@ static int smacqtype_ntime_get_ctime(DtsObject o, DtsObject field) {
 
 static int smacqtype_ntime_get_date(DtsObject o, DtsObject field) {
   struct tm tm;
-  time_t t = ntohl(dts_data_as(o, time_t));
+  time_t t = ntohl(dts_data_as(o, uint32_t));
   field->setsize(32);
   strftime((char*)field->getdata(), 32, "%F", localtime_r(&t, &tm));
  
@@ -47,7 +47,7 @@ static int parse_timeval(const char* buf,  DtsObject d) {
   struct timeval tv;
   assert(get_date_tv(&tv, buf));
   tv.tv_sec = htonl(tv.tv_sec);
-  return dts_set(d, time_t, tv.tv_sec);
+  return dts_set(d, uint32_t, tv.tv_sec);
 } 
 
 struct dts_field_spec dts_type_ntime_fields[] = {
@@ -60,6 +60,6 @@ struct dts_field_spec dts_type_ntime_fields[] = {
 };
 
 struct dts_type_info dts_type_ntime_table = {
-  size: sizeof(time_t),
+  size: sizeof(uint32_t),
   fromstring: parse_timeval
 };
