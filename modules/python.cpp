@@ -170,17 +170,26 @@ static PyObject *PyDtsObject_getvalue(PyObject *p, void *closure)
 
   if (strcmp(dtsname, "ubyte") == 0) {
     pRet = PyInt_FromLong((long)*((unsigned char *)data));
+
   } else if (strcmp(dtsname, "ushort") == 0) {
     pRet = PyInt_FromLong((long)*((unsigned short *)data));
+
   } else if (strcmp(dtsname, "nushort") == 0) {
     pRet = PyInt_FromLong((long)ntohs(*((unsigned short *)data)));
+
   } else if (strcmp(dtsname, "uint32") == 0) {
-    pRet = PyLong_FromLongLong((long long)*((unsigned long *)data));
+    // An uint32 may overflow a signed Python Long, so use LongLong
+    pRet = PyLong_FromLongLong((long long)*((uint32_t *)data));
+
   } else if (strcmp(dtsname, "nuint32") == 0) {
-    pRet = PyLong_FromLongLong((long long)ntohl(*((unsigned long *)data)));
+    // An uint32 may overflow a signed Python Long, so use LongLong
+    pRet = PyLong_FromLongLong((long long)ntohl(*((uint32_t *)data)));
+
   } else if (strcmp(dtsname, "ntime") == 0) {
-    /* Time, in network byte-order */
-    pRet = PyLong_FromLongLong((long long)ntohl(*((unsigned long *)data)));
+    // 32-bit Time, in network byte-order 
+    // An uint32 may overflow a signed Python Long, so use LongLong
+    pRet = PyLong_FromLongLong((long long)ntohl(*((uint32_t long *)data)));
+
   } else if (strcmp(dtsname, "ip") == 0) {
     /* We presume that "ip" means "ipv4" */
     char str[INET_ADDRSTRLEN];
