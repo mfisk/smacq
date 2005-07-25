@@ -1,5 +1,5 @@
 #!/bin/sh
 
 ${BINDIR}smacqq -m <<EOF 
-print ts from pcapfile($TEST/0325@1112-snort.pcap) where ts > "100 years ago" and ts < "1 fortnight ago"
+print ts from pcapfile($TEST/0325@1112-snort.pcap) where ts > "30 years ago" and ts < "1 fortnight ago"
 EOF
