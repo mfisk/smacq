@@ -381,8 +381,8 @@ void appendString(char *s, int len)
      * and then allocate len + 1, and then do a memcpy, with the data
      * in recvBuffer.
      */
-     strechString(s,len+1);
-     strncpy(s,recvBuffer + recvPointer,len);
+     stretchString(s,len+1);
+     strlcpy(s,recvBuffer + recvPointer,len);
 }
 
 int putbytes(int clientSocket, const char *s, size_t len)
@@ -504,11 +504,11 @@ void dummyParse(char *str)
 {
     /*
      * blah - move a pointer, maybe?
-     * strechString? by how much?
+     * stretchString? by how much?
      */
 }
 
-void strechString(char *s, int neededLen)
+void stretchString(char *s, int neededLen)
 {
     static int len_alloced = QUERYSIZE;
     
@@ -787,8 +787,8 @@ int findWord(char * buf,char * word) {
 	    while ((buf[j] != '\t')&&(buf[j] != '\n')) {
 		j++;
 	    }
-	    //strncpy(word,buf + i,j+1);
-	    strncpy(word,buf + i,j);
+	    //strlcpy(word,buf + i,j+1);
+	    strlcpy(word,buf + i,j);
 	    if ((*(buf+i+j)) =='\n') {
 		word[j] = '\0';
 		return EOF;
