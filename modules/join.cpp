@@ -40,7 +40,7 @@ SMACQ_MODULE(join,
 //
 void joinModule::for_all_but(unsigned int is_alias, DtsObject o, unsigned int alias) {
   if (alias == Aliases.size()) {
-    // Okay, test this join.
+    // Base case; test this join.
     if (!where || (SMACQ_PASS == sched->decide(where.get(), o))) {
       // Dup the object, because we're about to assign new alias values.
       DtsObject cpy = o->dup();
@@ -63,6 +63,7 @@ void joinModule::for_all_but(unsigned int is_alias, DtsObject o, unsigned int al
 }
   
 smacq_result joinModule::consume(DtsObject datum, int & outchan) {
+  int call = 0;
   // Find which alias we just got a new input for
   unsigned int num_aliases = Aliases.size();
   for (unsigned int i=0; i < num_aliases; i++) {
@@ -99,15 +100,16 @@ smacq_result joinModule::consume(DtsObject datum, int & outchan) {
     ;
 
     // Test pending joins with this object
-    for_all_but(i, datum, 0);
+	// Dup before this because the passed argument will get all aliases attached to it.
+	// That would be okay for datum, since we always SMACQ_FREE it, except that
+	// future iterations of this for loop would then register false aliases.
+    DtsObject join = datum->dup();
+    for_all_but(i, join, 0);
 		
     // Save this object.
-    // XXX.  Should save only if it passes the appropriate non-relational filters.
     a.objects.push_back(o);
 
-    //fprintf(stderr, "got alias #%d of %d\n", i, Aliases.size());
-
-    break;
+    fprintf(stderr, "call %d: obj %p had alias #%d of %d\n", call++, datum.get(), i, num_aliases);
   }
 
   return SMACQ_FREE;

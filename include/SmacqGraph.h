@@ -216,9 +216,10 @@ inline void SmacqGraph::add_graph(SmacqGraph * b) {
 inline void SmacqGraph::init_all(DTS * dts, SmacqScheduler * sched, bool do_optimize) {
   for (SmacqGraph * g = this; g; g=g->nextGraph()) {
     // Insert a blank node before head so that it can use insert()
-    if (argc) {
-    	SmacqGraph * newg = new SmacqGraph(argc, argv);
-    	newg->children = children;
+    if (g->argc) {
+    	SmacqGraph * newg = new SmacqGraph(g->argc, g->argv);
+	//fprintf(stderr, "Inserting %p after %p\n", newg, this);
+    	newg->children = g->children;
     	newg->next_graph = NULL;
     	g->children.clear();
     	g->add_child(newg);
@@ -236,7 +237,15 @@ inline void SmacqGraph::init_node(DTS * dts, SmacqScheduler * sched) {
 
   if (argc) {
   	context.islast = !(children[0].size());
-  	context.isfirst = (!numparents);
+
+	// Figure out if we have (non-stub) parent(s)
+  	context.isfirst = true;
+	for (std::vector<SmacqGraph_ptr>::iterator i = parent.begin(); i != parent.end(); ++i) {
+		if ((*i)->argc) {
+			context.isfirst = false;
+			break;
+		}
+	}
   	context.dts = dts;
   	context.self = this;
   	context.scheduler = sched;
@@ -462,7 +471,7 @@ inline SmacqGraph * SmacqGraph::getInvariants(DTS * dts, SmacqScheduler * sched,
   SmacqGraph * more = getChildInvariants(dts, sched, field);
 
   if (!instance) 
-    init_node_recursively(dts, sched);
+    init_node(dts, sched);
 
   if (!instance->usesOtherFields(field)) {
     SmacqGraph * result = new SmacqGraph(argc, argv);
