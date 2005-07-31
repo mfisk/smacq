@@ -63,7 +63,6 @@ void joinModule::for_all_but(unsigned int is_alias, DtsObject o, unsigned int al
 }
   
 smacq_result joinModule::consume(DtsObject datum, int & outchan) {
-  int call = 0;
   // Find which alias we just got a new input for
   unsigned int num_aliases = Aliases.size();
   for (unsigned int i=0; i < num_aliases; i++) {
