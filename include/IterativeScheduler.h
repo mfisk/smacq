@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <smacq.h>
 #include <RunQ.h>
+#include <SmacqGraph.h>
 #include <set>
 
 /// This is currently the only scheduler implementation.
