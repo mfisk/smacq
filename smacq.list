@@ -52,16 +52,18 @@ f 0444 root sys ${mandir}/man3/ ${srcdir}/doc/*.3
 
 %system   debian
 %requires 		zlib1g
+%requires 		libbz2-1.0
 %requires 		libglib2.0
 %requires 		libpcap0
-#Build-Depends: zlib1g-dev, libglib2.0-dev, libpcap-dev | libpcap0.8-dev | libpcap0.7-dev, debhelper (>= 4.0.0)
+#Build-Depends: zlib1g-dev, libbz2-dev, libglib2.0-dev, libpcap-dev | libpcap0.8-dev | libpcap0.7-dev, debhelper (>= 4.0.0)
 
 %system   redhat
 %requires 		libgda 
 %requires 		glib2 
 %requires 		zlib 
+%requires 		bzip2-libs 
 %requires 		libpcap
-#BuildRequires: gcc-c++, libgda-devel, glib2-devel, zlib-devel
+#BuildRequires: bzip2-devel, gcc-c++, libgda-devel, glib2-devel, zlib-devel
 
 %system   freebsd
 %requires 		gmake 
