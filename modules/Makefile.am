@@ -6,7 +6,7 @@ SUFFIXES = .sc
 libsmacq_modules_la_SOURCES = print.cpp pcapfile.cpp pcapwrite.cpp socket.cpp uniq.cpp count.cpp last.cpp top.cpp head.cpp filter.cpp msgtest.cpp entropy.cpp derivative.cpp encrypt.cpp pdf.cpp fifo.cpp delta.cpp tabularinput.cpp rusage.cpp groupby.cpp flowid.cpp sum.cpp fifodelay.cpp project.cpp rename.cpp mask.cpp const.cpp ndjoin.cpp lor.cpp counter_loop.cpp dfa.cpp expr.cpp equals.cpp cflow.cpp clock.cpp disarm.cpp substr-main.cpp iplookup.cpp streamalias.cpp join.cpp changes.cpp histogram.cpp now.cpp div.cpp private.cpp uniqobj.cpp sort.cpp countobj.cpp file.cpp
 
 libsmacq_modules_la_DEPENDENCIES = substr/libsubstr.la patricia/libpatricia.la libsmacq_pcaplive.la @EXTRA_STATIC_MODULES@
-libsmacq_modules_la_LIBADD = $(libsmacq_modules_la_DEPENDENCIES)
+libsmacq_modules_la_LIBADD = $(libsmacq_modules_la_DEPENDENCIES) -lbz2
 
 libtest_dynamic_la_SOURCES = noop.cpp
 
