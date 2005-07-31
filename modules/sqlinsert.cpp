@@ -49,7 +49,8 @@ static void print_gda_errors(GdaConnection * conn) {
 
 
 smacq_result sqlinsertModule::consume(DtsObject datum, int & outchan) {
-  std::string values, query;
+  std::string values;
+  char query[BUFSIZE];
   int i, gdares;
   DtsObject field;
   assert(datum);
@@ -67,7 +68,7 @@ smacq_result sqlinsertModule::consume(DtsObject datum, int & outchan) {
       values += "NULL";
   }
   
-  snprintf(query, BUFSIZE, insert_format.c_str(), values.c_str());
+  snprintf(query, BUFSIZE-1, insert_format.c_str(), values.c_str());
 
   gda_command_set_text(gda_cmd, query);
   gdares = gda_connection_execute_non_query(gda_connection, gda_cmd, NULL);
@@ -144,7 +145,7 @@ sqlinsertModule::sqlinsertModule(struct SmacqModule::smacq_init * context)
   insert_format += ") VALUES (%s)";
   qbuf += ");";
 
-  gda_command_set_text(gda_cmd, qbuf);
+  gda_command_set_text(gda_cmd, qbuf.c_str());
   if (-1 == gda_connection_execute_non_query(gda_connection, gda_cmd, NULL)) {
     	fprintf(stderr, "Error executing SQL command: %s\n\t", gda_command_get_text(gda_cmd));
     	print_gda_errors(gda_connection);
