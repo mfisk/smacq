@@ -109,7 +109,7 @@ smacq_result joinModule::consume(DtsObject datum, int & outchan) {
     // Save this object.
     a.objects.push_back(o);
 
-    fprintf(stderr, "call %d: obj %p had alias #%d of %d\n", call++, datum.get(), i, num_aliases);
+    //fprintf(stderr, "call %d: obj %p had alias #%d of %d\n", call++, datum.get(), i, num_aliases);
   }
 
   return SMACQ_FREE;
