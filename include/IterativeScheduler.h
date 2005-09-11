@@ -41,6 +41,20 @@ public:
   void enqueue(SmacqGraph * f, DtsObject d, int outchan);
 
  private:
+  struct ConsumeItem {
+    SmacqGraph_ptr g;
+    DtsObject d;
+   
+    // Constructor 
+    ConsumeItem() {};
+  
+    // Copy constructor
+    ConsumeItem(ConsumeItem & old) : g(old.g), d(old.d) {};
+
+    // The runq class will set to NULL to remove references
+    ConsumeItem(void * v) { assert(!v);};
+  };
+
   /// Place something on the consume queue
   void runable(SmacqGraph *f, DtsObject d);
 
@@ -48,7 +62,7 @@ public:
   void do_delete (SmacqGraph * f);
 
   smacq_result run_produce(SmacqGraph * f);
-  void run_consume(SmacqGraph * f, DtsObject d);
+  void run_consume(ConsumeItem i);
 
   /// Process a single action or object
   smacq_result element(DtsObject &dout);
@@ -58,18 +72,8 @@ public:
 
   smacq_result decide_children(SmacqGraph * g, DtsObject din, int outchan);
 
-  struct ConsumeItem {
-    SmacqGraph_ptr g;
-    DtsObject d;
-    
-    ConsumeItem() {};
-
-    // The runq class will set to NULL to remove references
-    ConsumeItem(void * v) { assert(!v);};
-  };
-
   runq<struct ConsumeItem> consumeq;
-  runq<SmacqGraph_ptr> produceq, shutdownq;
+  runq<SmacqGraph_ptr> produceq;
   runq<DtsObject> outputq;
 
   std::set<SmacqGraph*> enqueue_stack;
@@ -113,18 +117,10 @@ inline void IterativeScheduler::enqueue(SmacqGraph * caller, DtsObject d, int ou
 
   // Schedule some consumes until we would recursively call one of the
   // modules already running. 
-  ConsumeItem i;
+  IterativeScheduler::ConsumeItem i;
   while (consumeq.peek(i) && !enqueue_stack.count(i.g.get())) {
     consumeq.pop(i);
-    run_consume(i.g.get(), i.d);
-  }
-
-  // Do some shutdowns only if the consumeq is empty.
-  // Otherwise, there might be more pending work for them.
-  SmacqGraph_ptr g;
-  while (consumeq.empty() && shutdownq.peek(g) && !enqueue_stack.count(g.get())) {
-    shutdownq.pop(g);
-    do_shutdown(g.get());
+    run_consume(i);
   }
 
   // Don't use produce or output queues here.
@@ -135,14 +131,15 @@ inline void IterativeScheduler::enqueue(SmacqGraph * caller, DtsObject d, int ou
 }
 
 inline void IterativeScheduler::runable(SmacqGraph *f, DtsObject d) {
-  ConsumeItem i;
+  IterativeScheduler::ConsumeItem i;
   i.g = f;
   i.d = d;
   consumeq.enqueue(i);
 }
 
 inline void IterativeScheduler::queue_children(SmacqGraph * f, DtsObject d, int outchan) {
-  assert(outchan < (int)f->children.size());
+  //fprintf(stderr, "Output channel was %d of %u\n", outchan, f->children.size());
+  assert((outchan < (int)f->children.size()) || (!f->children.size() && !outchan));
 
   assert (f->instance > (void*)1000);
 
@@ -191,7 +188,7 @@ inline void IterativeScheduler::do_shutdown(SmacqGraph * f) {
 	// If we're the last parent to shutdown, and child is already
 	// shutdown, then free the child.
 	//fprintf(stderr, "delete child %p\n", child);
-	do_delete(f);
+	do_delete(child);
       } 
   });
     
@@ -202,6 +199,7 @@ inline void IterativeScheduler::do_shutdown(SmacqGraph * f) {
       // This shutdown should be processed soon even if there are pending objects for the child.
       // Callee will remove parent/child relationship for us.
       do_shutdown(f->parent[i].get());
+      i--; 
     }
   }
 
@@ -229,7 +227,10 @@ inline bool IterativeScheduler::graphs_alive (SmacqGraph * f) {
 
 inline void IterativeScheduler::sched_shutdown(SmacqGraph * f) {
     //fprintf(stderr, "shutdown started for %s(%p)\n", f->argv[0], f);
-    shutdownq.enqueue(f);
+    ConsumeItem i;
+    i.g = f;
+    i.d = NULL;
+    consumeq.enqueue(i);
 }
 
 /// This should destroy the argument, so caller must not refer to it after call.
@@ -259,31 +260,31 @@ inline smacq_result IterativeScheduler::run_produce(SmacqGraph * f) {
     
 /// Return true iff the datum was passed.
 /// This should destroy the argument, so caller must not refer to it after call.
-inline void IterativeScheduler::run_consume(SmacqGraph * f, DtsObject d) {
+inline void IterativeScheduler::run_consume(ConsumeItem i) {
+  assert(i.g && i.g->instance);
+
   // Handle already-shutdown case
-  if (f->shutdown) {
+  if (i.g->shutdown) {
+	return;
+  }
+  if (!i.d) {
+	do_shutdown(i.g.get());
 	return;
   }
 
-  smacq_result retval;
+  //fprintf(stderr, "consume %p by %s (%p)\n", i.d.get(), i.g->argv[0], i.g.get());
 
-  //fprintf(stderr, "consume %p by %s (%p)\n", d.get(), f->name, f);
-
-  assert(f && f->instance);
-
-  int outchan;
-  retval = f->instance->consume(d, outchan);
+  int outchan = 0;
+  smacq_result retval = i.g->instance->consume(i.d, outchan);
 
   if (retval & SMACQ_PASS) {
-    //fprintf(stderr, "Pass on %p by %p\n", d.get(), f);
-    queue_children(f, d, outchan);
+    //fprintf(stderr, "Pass on %p to chan %d by %p\n", i.d.get(), outchan, i.g.get());
+    queue_children(i.g.get(), i.d, outchan);
   }
 	
   if (retval & SMACQ_END) {
-    do_shutdown(f);
+    do_shutdown(i.g.get());
   }
-
-  return;
 }
 
 /// Handle one thing on the run queue.
@@ -295,16 +296,8 @@ inline smacq_result IterativeScheduler::element(DtsObject &dout) {
   ConsumeItem i;
 
   if (consumeq.pop(i)) {
-    run_consume(i.g.get(), i.d);
+    run_consume(i);
 	
-  } else if (shutdownq.pop(f)) {
-    // Handle shutdown case.  To avoid doing a shutdown for something
-    // that has pending input, we only do shutdown if consumeq is
-    // empty.  However this can make the shutdown queue grow without
-    // bound for a long time.
- 
-    if (!f->shutdown) do_shutdown(f.get());
-    
   } else if (produceq.pop(f)) {
     // Only produce if we have nothing else
     if (!f->shutdown) run_produce(f.get());
