@@ -153,8 +153,11 @@ class SmacqGraph : public SmacqGraphNode {
   int refcount;
   friend void intrusive_ptr_add_ref(SmacqGraph *o) { o->refcount++; }
 
-  friend void intrusive_ptr_release(SmacqGraph *o) { o->refcount--; }
-
+  friend void intrusive_ptr_release(SmacqGraph *o) { 
+	if(0 == --o->refcount) {
+		delete o;
+	}
+  }
 };
 
 class fanout : public DynamicArray<SmacqGraph_ptr> {};
@@ -264,7 +267,7 @@ inline void SmacqGraph::init_node_recursively(DTS * dts, SmacqScheduler * sched)
 inline SmacqGraph::SmacqGraph(int argc, char ** argv) 
   : next_graph(NULL), children(1), numparents(0), refcount(0)
 {
-  children.resize(1);
+  children.resize(1);  /// Redundant with initializer?
   SmacqGraphNode::set(argc, argv);
 }
 
