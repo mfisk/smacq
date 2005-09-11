@@ -28,9 +28,10 @@
 %token SELECT
 %token AS
 %token HAVING
+%token YYDEFINE
 %token UNION
 %token UNTIL
-%token YYSTRING YYID YYNUMBER
+%token YYSTRING YYID YYNUMBER YYCAPID
 %token YYNEQ YYLEQ YYGEQ
 
 %token YYSTOP YYOR YYAND YYNOT
@@ -58,7 +59,10 @@
   enum dts_arith_operand_type arithop;
   dts_comparison * comp;
   struct dts_operand * operand;
-  joinlist * join_list;
+  struct reflist_element ref;
+  TermList * termlist;
+  struct joinlist * join_list;
+  DatalogNamespace * nmspace;
 }
 %%
 
@@ -77,6 +81,7 @@ string:	YYSTRING 	{ $$ = yystring; }
 	;
 
 id:	YYID 		{ $$ = yystring; }
+	| YYCAPID 	{ $$ = yystring; }
         | YYOR          { $$ = "or"; }
         | YYAND         { $$ = "and"; }
         ;

@@ -25,6 +25,7 @@ digits		[0-9e\.]
 toksymbols	[\|\,\=\<\>\(\)\[\]]|{arithop}
 number		{sign}{digits}+
 id		[^\!\'\"\,\=\<\>\(\)[:space:]\|]+
+capid		[A-Z]{id}
 
 %x xdquote
 %x xquote
@@ -46,6 +47,7 @@ having|HAVING	return HAVING;
 "<="		return YYLEQ;
 "!="		return YYNEQ;
 "=="		return '=';
+":-"		return YYDEFINE;
 
 {quote}		BEGIN(xquote);
 <xquote>{
@@ -91,6 +93,11 @@ having|HAVING	return HAVING;
 {id}	{ 
 			yystring = strdup((char *)yytext); 
 			return YYID; 
+	}
+
+{capid}	{ 
+			yystring = strdup((char *)yytext); 
+			return YYCAPID; 
 	}
 
 .	{ fprintf(stderr, "Unexpected character \"%s\"\n", yytext); return -1; }
