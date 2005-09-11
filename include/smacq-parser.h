@@ -21,6 +21,19 @@ struct arglist {
     int isfunc;
 };
 
+class DatalogNamespace : public std::map<char*,SmacqGraph *> {
+  public:
+    void add_graph(SmacqGraph * g) {
+	if (graph) {
+		graph->add_graph(g);
+	} else {
+		graph = g;
+	}
+    }
+
+    SmacqGraph * graph;
+};
+
 class joinlist {
  public:
         joinlist(char * n, SmacqGraph * g, SmacqGraph * u)
@@ -37,6 +50,18 @@ class joinlist {
         SmacqGraph * graph;
         char * name;
 	SmacqGraph * until;	
+};
+
+struct reflist_element {
+      char * refname;
+      char * aliasname;
+      SmacqGraph * until; 
+};
+
+struct TermList {
+    dts_comparison * bools;
+    joinlist * joins;
+    std::vector<reflist_element> refs;
 };
 
 struct vphrase {
