@@ -13,16 +13,18 @@ Tail() {
 }
 
 Run() {
-	tst="${TOP_SRCDIR}/test/$basetest"
 	if [ -x "$tst" ]; then
+		# Test is executable, so run it
 		(set -e; $tst)
 	else
-		$SMACQQ -m -f $tst
+		# Test is not executable, so treat it as smacqq input
+		$SMACQQ -g -m -f $tst
 	fi
 }
 
 basetest=`basename $1`
 
+tst="${TOP_SRCDIR}/test/$basetest"
 out=$SRCDIR/$basetest.out 
 run=$OUTDIR/$basetest.run 
 err=$OUTDIR/$basetest.err
@@ -30,17 +32,28 @@ gdbout=$OUTDIR/$basetest.gdb
 diffout=$OUTDIR/$basetest.diff
 
 cd $SRCDIR
-SMACQQ="bindir/bin/smacqq" Run < /dev/null > $run 2>$err
+
+# Run test case
+SMACQQ="$BINDIR/smacqq" Run < /dev/null > $run 2>$err
+
+# See if the output was as expected or not
 diff -U3 $out $run > $diffout 
 stat="$?"
 if [ "$stat" != "0" ]; then 
+	# This test failed...
+
+	# Display some differences in output
+	Tail 20 $diffout
+	#Tail 20 $err
+
+	# Now run under gdb
 	if [ "$interactive" = "yes" ]; then
+		cat "$tst"
 		echo "Running gdb...."
 		SMACQQ="gdb -args $BINDIR/smacqq" Run 
 	else 
+		# Run under batch gdb to get a stack trace at time of failure
 		SMACQQ="gdb -quiet -batch -x ${TOP_SRCDIR}/misc/gdbcmds -args $BINDIR/smacqq" Run < /dev/null > $gdbout 2>&1
-		Tail 20 $diffout
-		#Tail 20 $err
 		Tail 20 $gdbout
 	fi
 	#echo "======== End of errors from $basetest ========"
