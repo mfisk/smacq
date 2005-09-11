@@ -253,7 +253,7 @@ inline StrucioStream * StrucioStream::MagicOpen(DtsObject fo) {
   //assert(fo->gettype() = fo->dts->requiretype("string"));
   char * filename = (char *)fo->getdata();
   StrucioStream * o = MagicOpen(filename);
-  DtsObject doFollow = fo->getfield("doFollow");
+  DtsObject doFollow = fo->getfield("doFollow", false);
   if (doFollow) {
 	o->Follow();
   }
