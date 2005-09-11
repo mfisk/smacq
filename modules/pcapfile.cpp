@@ -118,7 +118,7 @@ void pcapfileModule::fixup_pcap(struct old_pcap_pkthdr * hdr) {
 }
 
 smacq_result pcapfileModule::consume(DtsObject fileo, int & outchan) {
-  StrucioStream * fh = StrucioStream::Open(fileo);
+  StrucioStream * fh = StrucioStream::MagicOpen(fileo);
   if (fh) {
     if (sizeof(struct pcap_file_header) != fh->Read(&pcap_file_header, sizeof(struct pcap_file_header))) {
       perror("pcapfileModule");
@@ -192,7 +192,7 @@ void pcapfileModule::parse_packets(StrucioStream * fh) {
 }
 
 pcapfileModule::pcapfileModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
-  StrucioStream::FileModule(context);
+  SmacqFileModule(context);
 
   snaplen_type = dts->requiretype("int");
   linktype_type = dts->requiretype("int");
