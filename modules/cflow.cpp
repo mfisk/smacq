@@ -6,15 +6,11 @@ SMACQ_MODULE(cflow,
   PROTO_CTOR(cflow);
   PROTO_CONSUME();
 
-  int argc;
-  char ** argv;
-
   int cflow_type;
-  int cflow_type_size;
 );
 
 smacq_result cflowModule::consume(DtsObject datum, int & outchan) {
-  StrucioStream * fh = StrucioStream::Open(datum);
+  StrucioStream * fh = StrucioStream::MagicOpen(datum);
   DtsObject o;
   if (fh) {
 	while ((o = fh->construct(dts, cflow_type))) {
@@ -25,7 +21,7 @@ smacq_result cflowModule::consume(DtsObject datum, int & outchan) {
 }
 
 cflowModule::cflowModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
- StrucioStream::FileModule(context);
+ SmacqFileModule(context);
 
  cflow_type = dts->requiretype("cflow");
 }
