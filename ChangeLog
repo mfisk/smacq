@@ -1,5 +1,16 @@
 VERSION 2.2 - unreleased
 ========================
+2005-09 - Datalog parser added
+2005-08 - File input system:
+	   - Input modules use SmacqFileModule() to insert "file" module
+	   - "file" module generates stream of files (string objects)
+	   - Modules use StrucioStream::MagicOpen() to process file objects
+	   - Input modules then iterate over resulting StrucioStream object
+	   - StrucioStream abstracts compressed files, tailing files, etc.
+	   - StrucioStream supports bz2 files
+2005-08 - When a module calls enqueue(), it surrenders control to scheduler
+	   - Scheduler honors fact that modules aren't reentrant
+2005-08 - SmacqGraph graphs are now reference counted
 2005-05 - sqlquery module added
 2005-03 - sort module added
 2005-03 - const module: -t and -f options
