@@ -76,7 +76,6 @@ int dfaModule::try_transition(DtsObject datum, struct transition & t) {
   DtsObject output;
   smacq_result more;
 
-  t.graph->print(stderr, 2);
   more = sched->decide(t.graph.get(), datum);
 
   if ((SMACQ_END|SMACQ_ERROR) & more) {
@@ -210,14 +209,13 @@ int dfaModule::parse_dfa(char * filename) {
 
 	transition.graph = SmacqGraph::newQuery(dts, sched, 2, args);
 
-	//transition.graph->print(stderr, 2);
 	
 	if (!transition.graph) {
 	  fprintf(stderr, "error: dfa: cannot parse test %s\n", test);
 	  exit(-1);
 	}
-
 	transition.graph->init_all(dts, sched);
+	transition.graph->print(stderr, 2);
 
 	/*
 	  fprintf(stderr, "transition from %s(%d) to %s(%d)\n", 
@@ -225,6 +223,7 @@ int dfaModule::parse_dfa(char * filename) {
 		next_state_name, transition.next_state);
 	*/
       }
+
     }
     assert(this_state_num > -1);
 
