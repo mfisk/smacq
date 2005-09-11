@@ -261,12 +261,15 @@ inline smacq_result IterativeScheduler::run_produce(SmacqGraph * f) {
 /// Return true iff the datum was passed.
 /// This should destroy the argument, so caller must not refer to it after call.
 inline void IterativeScheduler::run_consume(ConsumeItem i) {
-  assert(i.g && i.g->instance);
+  assert(i.g);
 
   // Handle already-shutdown case
   if (i.g->shutdown) {
 	return;
   }
+
+  assert(i.g->instance);
+
   if (!i.d) {
 	do_shutdown(i.g.get());
 	return;
