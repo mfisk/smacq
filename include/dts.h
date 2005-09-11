@@ -218,6 +218,7 @@ class DTS {
   void make_fields_doubles(struct dts_operand * operand);
 
   friend int yysmacql_parse();
+  friend int yydatalogparse();
   friend int yyfilterparse();
   friend int yyexprparse();
 };
