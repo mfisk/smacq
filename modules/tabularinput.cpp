@@ -62,7 +62,7 @@ smacq_result tabularinputModule::produce(DtsObject & datump, int & outchan) {
   
   result = fgets(line, MAX_STR, fh);
   if (!result) {
-    return SMACQ_END;
+    return SMACQ_FREE|SMACQ_END;
   }
   stopp = index(line, '\n');
   if (!stopp) {
@@ -112,7 +112,7 @@ smacq_result tabularinputModule::produce(DtsObject & datump, int & outchan) {
   }
 
   datump = datum;
-  return (smacq_result)(SMACQ_PASS|SMACQ_PRODUCE);
+  return (SMACQ_PASS|SMACQ_PRODUCE);
 }
 
 tabularinputModule::tabularinputModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
