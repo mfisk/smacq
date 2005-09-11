@@ -1,7 +1,1 @@
-#!/bin/sh
-
-TESTFILE=$TEST/0325@1112-snort.pcap
-
-${BINDIR}smacqq -m <<EOF
-print srcip dstip from uniq(srcip dstip) from pcapfile($TESTFILE)
-EOF
+print srcip dstip from uniq(srcip dstip) from pcapfile(0325@1112-snort.pcap)

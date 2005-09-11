@@ -1,5 +1,1 @@
-#!/bin/sh
-
-${BINDIR}smacqq -g -m <<EOF 
-print srcip, count() from pcapfile($TEST/0325@1112-snort.pcap) group by srcip
-EOF
+print srcip, count() from pcapfile(0325@1112-snort.pcap) group by srcip

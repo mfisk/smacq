@@ -1,4 +1,1 @@
-#!/bin/sh
-
-${BINDIR}smacqq "print ts from pcapfile($TEST/0325@1112-snort.pcap)" 
-
+print ts from pcapfile(0325@1112-snort.pcap)

@@ -1,6 +1,1 @@
-#!/bin/sh
-TESTFILE=$TEST/maillogjoin.data
-
-${BINDIR}smacqq -g -q -m <<EOF 
-print a.6 a.11 b.14 b.15 from tabularinput(-d " " -f $TESTFILE) a until (b.6=a.6 and substr(b.7, "to=")), b until (b.6=a.6 and substr(a.7, "to=")) where a.6=b.6 and substr(a.10,"X-PerlMx-Virus-Detected:") and substr(b.7, "from=") 
-EOF
+print a.6 a.11 b.14 b.15 from tabularinput(-d " " -f maillogjoin.data) a until (b.6=a.6 and substr(b.7, "to=")), b until (b.6=a.6 and substr(a.7, "to=")) where a.6=b.6 and substr(a.10,"X-PerlMx-Virus-Detected:") and substr(b.7, "from=") 

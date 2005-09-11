@@ -23,22 +23,28 @@ Set them in the CONFIG environment variable before running make:
 	CONFIG="--enable-debug" make
 	CONFIG="--enable-profile --enable-debug" make
 
-Other build targets:
+Build targets:
 --------------------
+The default is equivalent to:
+	make all check
+
 To run the regression tests:
         make check
+
+To build a profiling version:
+	make profile
+
+To build a debugging version:
+	make debug
+
+To run gdb on any failed regression tests (using the "debug" build):
+	make gdb
 
 To only see warning output (less verbose):
         make warn
 
 To generate documentation and a tarball for distribution:
         make dist
-
-To build a debugging version:
-	make debug
-
-To build a profiling version:
-	make profile
 
 Dependencies:
 -------------

@@ -1,20 +1,48 @@
 #!/bin/sh 
 
+Tail() {
+	lines=$1
+	file=$2
+	if [ `wc -l $file | cut -c1-9` -gt 22 ]; then
+		echo "======= $file (end only; see $file) ======"
+		tail -20 $file
+	else
+		echo "======= $file ======"
+		cat $file
+	fi
+}
+
+Run() {
+	tst="${TOP_SRCDIR}/test/$basetest"
+	if [ -x "$tst" ]; then
+		(set -e; $tst)
+	else
+		$SMACQQ -m -f $tst
+	fi
+}
+
 basetest=`basename $1`
-test=`basename $1`
 
-out=$srcdir/$basetest.out 
-run=`basename $basetest`.run 
-err=`basename $basetest`.err
+out=$SRCDIR/$basetest.out 
+run=$OUTDIR/$basetest.run 
+err=$OUTDIR/$basetest.err
+gdbout=$OUTDIR/$basetest.gdb
+diffout=$OUTDIR/$basetest.diff
 
-export TEST=$srcdir
-
-(set -e; ${TOP_SRCDIR}/test/$test) > $run 2>$err
-diff -U3 $out $run; 
+cd $SRCDIR
+SMACQQ="bindir/bin/smacqq" Run < /dev/null > $run 2>$err
+diff -U3 $out $run > $diffout 
 stat="$?"
 if [ "$stat" != "0" ]; then 
-	echo "======== Errors from $basetest: ========"
-	cat $err
+	if [ "$interactive" = "yes" ]; then
+		echo "Running gdb...."
+		SMACQQ="gdb -args $BINDIR/smacqq" Run 
+	else 
+		SMACQQ="gdb -quiet -batch -x ${TOP_SRCDIR}/misc/gdbcmds -args $BINDIR/smacqq" Run < /dev/null > $gdbout 2>&1
+		Tail 20 $diffout
+		#Tail 20 $err
+		Tail 20 $gdbout
+	fi
 	#echo "======== End of errors from $basetest ========"
 	exit $stat
 fi

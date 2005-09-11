@@ -4,6 +4,9 @@ ACLOCAL_AMFLAGS = -I $(top_srcdir)/libgnu/m4
 
 test: check
 
+gdb:
+	interactive=yes $(MAKE) check
+
 quiet:
 	$(MAKE) all >/dev/null
 

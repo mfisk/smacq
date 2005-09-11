@@ -9,6 +9,9 @@ config/config.guess:
 debug:
 	BUILDNAME=debug CONFIG="--enable-debug" misc/buildarch 
 
+gdb:
+	interactive=yes BUILDNAME=debug CONFIG="--enable-debug" misc/buildarch gdb
+
 profile:
 	BUILDNAME=profile CONFIG="--enable-profile" misc/buildarch 
 

@@ -1,6 +1,2 @@
-#!/bin/sh
-
-${BINDIR}smacqq -g -m <<EOM
-pcapfile $TEST/0325@1112-snort.pcap | iplookup srcip 192.168.0.0/24 | const -f label shadownet | print label srcip dstip 
-pcapfile $TEST/0325@1112-snort.pcap | iplookup srcip 192.168.0.54/32 | const -f label foohost | print label srcip dstip 
-EOM
+pcapfile 0325@1112-snort.pcap | iplookup srcip 192.168.0.0/24 | const -f label shadownet | print label srcip dstip 
+pcapfile 0325@1112-snort.pcap | iplookup srcip 192.168.0.54/32 | const -f label foohost | print label srcip dstip 

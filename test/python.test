@@ -1,9 +1,9 @@
 #! /bin/sh
 
-TESTFILE=$TEST/0325@1112-snort.pcap
+TESTFILE=0325@1112-snort.pcap
 PYTHONPATH=$TEST; export PYTHONPATH
 
-${BINDIR}smacqq -m <<EOF 
+$SMACQQ -m <<EOF 
 pcapfile $TESTFILE | python("pythontest.Dumper", "foobar") | print ts
 EOF
 
