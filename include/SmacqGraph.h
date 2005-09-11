@@ -267,7 +267,6 @@ inline void SmacqGraph::init_node_recursively(DTS * dts, SmacqScheduler * sched)
 inline SmacqGraph::SmacqGraph(int argc, char ** argv) 
   : next_graph(NULL), children(1), numparents(0), refcount(0)
 {
-  children.resize(1);  /// Redundant with initializer?
   SmacqGraphNode::set(argc, argv);
 }
 
