@@ -121,6 +121,9 @@ class DTS {
   	/// Return the name of the specified field.
   char * field_getname(DtsField &f);
 
+  	/// Return the name of the specified field.
+  char * field_getname(dts_field_element f) { return(fields_bynum[f]); }
+
   ///@}
 
   ///@name Type IDs 
