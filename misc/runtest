@@ -7,7 +7,7 @@ Break() {
 Tail() {
 	lines=$1
 	file=$2
-	if [ `wc -l $file | cut -c1-9` -gt 22 ]; then
+	if [ `wc -l $file | awk '{print $1;}'` -gt 22 ]; then
 		Break "$file (last 20 lines only)"
 		tail -20 "$file"
 	else
@@ -17,7 +17,8 @@ Tail() {
 }
 
 Run() {
-	if [ -x "$tst" ]; then
+	set -x
+	if [ `expr "$tst" : ".*\.sh$"` != 0 ]; then
 		# Test is executable, so run it
 		(set -e; $tst)
 	else
