@@ -204,40 +204,44 @@ AC_ARG_ENABLE(small,
 ##
 AC_ARG_ENABLE(efence,
 	AC_HELP_STRING([--enable-efence],
-		       [Enable electric-fence memory debugging]),
-		       [LDFLAGS="$LDFLAGS -lefence"])
+		       [Enable electric-fence memory debugging]))
+
+if test "X$with_efence" != "X"; then
+   LDFLAGS="$LDFLAGS -lefence";
+fi
 
 ##
 ## Ethereal
 ##
 AC_ARG_WITH([ethereal], 
 	AC_HELP_STRING([--with-ethereal],
-			[Include Ethereal packet decoding]),
-	[with_ethereal="$withval"],
-	[with_ethereal=no])
+			[Include Ethereal packet decoding]))
 
-if test "X$with_ethereal" = "Xno"; then
-	ETHEREAL_LIBRARY=
-	ETHEREAL_DIR=
-else
-	ETHEREAL_LIBRARY=libethereal.la
-	ETHEREAL_DIR=${with_ethereal}
-	CPPFLAGS="$CPPFLAGS -DWITH_ETHEREAL -I$ETHEREAL_DIR"
+if test "X$with_ethereal" != "X"; then
+	if test "X$with_ethereal" = "yes"; then
+		AC_MSG_ERROR([Must specify path to source with --with-ethereal=])
+	fi
+	ETHEREAL_LIBRARY=-lethereal
+	ETHEREAL_DIR=$withval
+	ETHEREAL_CFLAGS="-DWITH_ETHEREAL -I$withval"
 fi
 
 AC_SUBST(ETHEREAL_LIBRARY)
 AC_SUBST(ETHEREAL_DIR)
+AC_SUBST(ETHEREAL_CFLAGS)
 
 ##
 ## LBL FastBit
 ##
 AC_ARG_WITH([fastbit], 
 	AC_HELP_STRING([--with-fastbit],
-			[Include FastBit indexing]),
-	[CFLAGS_FASTBIT="-I$withval -I$withval/../stork/ibis"
-	 LDFLAGS_FASTBIT="-L$withval -lfastbit"
-	 EXTRA_STATIC_MODULES="${EXTRA_STATIC_MODULES} libsmacq_fastbit.la"
-        ])
+			[Include FastBit indexing]))
+
+if test "X$with_fastbit" != "X"; then
+	CFLAGS_FASTBIT="-I$withval -I$withval/../stork/ibis"
+	LDFLAGS_FASTBIT="-L$withval -lfastbit"
+	EXTRA_STATIC_MODULES="${EXTRA_STATIC_MODULES} libsmacq_fastbit.la"
+fi
 
 AC_SUBST(CFLAGS_FASTBIT)
 AC_SUBST(LDFLAGS_FASTBIT)
@@ -251,16 +255,14 @@ AC_CHECK_PROGS([PYTHON], [python2.3 python], :)
 AC_ARG_WITH([python],
 	AC_HELP_STRING([--with-python], 
 			[Include Python (default=use if available)]),
-	[with_python="$withval"],
-	[with_python=auto])
-
-# Try to detect whether or not to build with python
-if test "X$with_python" = "Xauto"; then
-	if test "X$PYTHON" = "X:"; then
-		AC_MSG_NOTICE([Building without Python; use PYTHON=/path/to/python2.3 to include it])
-		with_python=no
-	fi
-fi
+	[],
+	[
+		# Try to auto detect whether or not to build with python
+		if test "X$PYTHON" = "X:"; then
+			AC_MSG_NOTICE([Building without Python; use PYTHON=/path/to/python2.3 to include it])
+			with_python=no
+		fi
+	])
 
 if test "X$with_python" != "Xno"; then
 	PYCONF=ac_config.py
