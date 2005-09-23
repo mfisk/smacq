@@ -9,7 +9,8 @@
 #include <zlib.h>
 #include <bzlib.h>
 #include <DtsObject.h>
-#include <SmacqModule.h>
+#include <SmacqModule-interface.h>
+#include <SmacqGraph-interface.h>
 
 /// Pure-virtual base class for input streams.
 class StrucioStream {
@@ -274,6 +275,6 @@ inline void SmacqFileModule(SmacqModule::smacq_init * context) {
   //memcpy(argv+1, context->argv+1, context->argc-1 * sizeof(char*));
  
   SmacqGraph * g = new SmacqGraph(context->argc, argv);
-  context->self->dynamic_insert(g, context->dts, context->scheduler);
+  context->self->dynamic_insert(g, context->dts);
 }
 
