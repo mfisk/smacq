@@ -1,14 +1,18 @@
 #!/bin/sh 
 
+Break() {
+	echo "====== $@ ======"
+}
+
 Tail() {
 	lines=$1
 	file=$2
 	if [ `wc -l $file | cut -c1-9` -gt 22 ]; then
-		echo "======= $file (end only; see $file) ======"
-		tail -20 $file
+		Break "$file (last 20 lines only)"
+		tail -20 "$file"
 	else
-		echo "======= $file ======"
-		cat $file
+		Break "$file"
+		cat "$file"
 	fi
 }
 
@@ -18,7 +22,7 @@ Run() {
 		(set -e; $tst)
 	else
 		# Test is not executable, so treat it as smacqq input
-		$SMACQQ -g -m -f $tst
+		$SMACQQ --pregraph -g -m -f $tst
 	fi
 }
 
@@ -48,8 +52,9 @@ if [ "$stat" != "0" ]; then
 
 	# Now run under gdb
 	if [ "$interactive" = "yes" ]; then
+		Break "$tst"
 		cat "$tst"
-		echo "Running gdb...."
+		Break "Running gdb...."
 		SMACQQ="gdb -args $BINDIR/smacqq" Run 
 	else 
 		# Run under batch gdb to get a stack trace at time of failure
