@@ -1,90 +1,12 @@
 #ifndef ITERATIVE_SCHEDULER_H
 #define ITERATIVE_SCHEDULER_H
-#include <stdlib.h>
-#include <smacq.h>
-#include <RunQ.h>
-#include <SmacqGraph.h>
-#include <set>
-
-/// This is currently the only scheduler implementation.
-class IterativeScheduler {
-public:
-  
-  /// A default graph must be specified.  Graph graph's init() method
-  /// is called before anything else is done.  Iff produce_first is
-  IterativeScheduler() {};
-
-  /// Cue the head(s) of the given graph to start producing data.
-  /// Otherwise data must be provided using the input() method.
-  void seed_produce(SmacqGraph*);
-
-  /// Queue an object for input to the specified graph.
-  void input(SmacqGraph * g, DtsObject din);
-
-  /// Queue a shutdown for the specified graph.
-  void sched_shutdown(SmacqGraph * f);
-
-  /// Perform an immediate shutdown for the specified graph.  The argument is invalidated.
-  void do_shutdown(SmacqGraph * f);
-
-  /// Run until an output object is ready.
-  smacq_result get(DtsObject &dout);
-
-  /// Process a single action or object
-  smacq_result IterativeScheduler::decide(SmacqGraph *, DtsObject din);
-
-  /// Run to completion.  
-  /// Return false iff error.
-  bool busy_loop();
-
-  /// Handle an object produced by a currently running node
-  void enqueue(SmacqGraph * f, DtsObject d, int outchan);
-
- private:
-  struct ConsumeItem {
-    SmacqGraph_ptr g;
-    DtsObject d;
-   
-    // Constructor 
-    ConsumeItem() {};
-  
-    // Copy constructor
-    ConsumeItem(ConsumeItem & old) : g(old.g), d(old.d) {};
-
-    // The runq class will set to NULL to remove references
-    ConsumeItem(void * v) { assert(!v);};
-  };
-
-  /// Place something on the consume queue
-  void runable(SmacqGraph *f, DtsObject d);
-
-  bool graphs_alive (SmacqGraph * f);
-  void do_delete (SmacqGraph * f);
-
-  smacq_result run_produce(SmacqGraph * f);
-  void run_consume(ConsumeItem i);
-
-  /// Process a single action or object
-  smacq_result element(DtsObject &dout);
-
-  /// Handle an object produced by the specified node
-  void queue_children(SmacqGraph * f, DtsObject d, int outchan);
-
-  smacq_result decide_children(SmacqGraph * g, DtsObject din, int outchan);
-
-  runq<struct ConsumeItem> consumeq;
-  runq<SmacqGraph_ptr> produceq;
-  runq<DtsObject> outputq;
-
-  std::set<SmacqGraph*> enqueue_stack;
-};
-
+#include <IterativeScheduler-interface.h>
 #include <SmacqGraph.h>
 
 inline void IterativeScheduler::seed_produce(SmacqGraph * startf) {
   while (startf) {
     // Force first guy to produce
-    // We should be a stub and should pass this to children
+    // We should be a etub and should pass this to children
     assert(!startf->argc);
     FOREACH_CHILD(startf, produceq.enqueue(child));
    
@@ -156,13 +78,7 @@ inline void IterativeScheduler::queue_children(SmacqGraph * f, DtsObject d, int 
   }
 }
 
-/// Try to delete f
-inline void IterativeScheduler::do_delete(SmacqGraph * f) {
-    assert(!f->numparents);
-    FOREACH_CHILD(f, assert(!child));
-}
-
-/// This should destroy the argument, so caller must not refer to it after call.
+/// This may destroy the argument, so caller must not refer to it after call.
 inline void IterativeScheduler::do_shutdown(SmacqGraph * f) {
   if (f->shutdown) {
     // Already shutdown, so do nothing 
@@ -173,67 +89,27 @@ inline void IterativeScheduler::do_shutdown(SmacqGraph * f) {
   delete f->instance; // Call the destructor, which may callback to enqueue()
   f->instance = NULL;
 
-  FOREACH_CHILD(f, {
-      // Couldn't remove until after instance destroyed.
-      // Now it won't matter if we start to look like a leaf.
-      f->remove_child(i,j);
-      j--; //fixup iterator
-      
-      if (!child->shutdown && !child->live_parents()) {
-	// XXX. Child could also be a head that shouldn't be shutdown!
-	// This shutdown should occur AFTER any pending objects are processed by the child.
-	sched_shutdown(child);
+  // Remove all children.
+  f->remove_children();
 
-      } else if (!child->numparents && child->shutdown) {
-	// If we're the last parent to shutdown, and child is already
-	// shutdown, then free the child.
-	//fprintf(stderr, "delete child %p\n", child);
-	do_delete(child);
-      } 
-  });
-    
   // Propagate to parents
-  for (int i=0; i < f->numparents; i++) {
+  while (f->numparents) {
+    // Work from end of list up.
+    int i = f->numparents - 1;
+
+    // Parents will still have references (e.g. scheduler queues), so 
+    // reference counting won't shutdown our parents.  
+    // So, we act like a SIGPIPE and shutdown useless parents right 
+    // away.
     if (!f->parent[i]->shutdown && !f->parent[i]->live_children()) {
-      // No reason to live! 
-      // This shutdown should be processed soon even if there are pending objects for the child.
-      // Callee will remove parent/child relationship for us.
-      do_shutdown(f->parent[i].get());
-      i--; 
+      // No reason to live if all former children gone! 
+
+      // Callee will remove parent from our parent list.
+      do_shutdown(f->parent[i]);
     }
-  }
-
-  if (!f->numparents) {
-    // Nobody should reference us anymore
-    do_delete(f);
-  }
+  } 
 }
 
-inline bool IterativeScheduler::graphs_alive (SmacqGraph * f) {
-  if (! f->shutdown) {
-    return true;
-  }
-  
-  FOREACH_CHILD(f, {
-      if (child) {
-	if (graphs_alive(child)) {
-	  return true;
-	}
-      }
-    })
-
-    return false;
-}
-
-inline void IterativeScheduler::sched_shutdown(SmacqGraph * f) {
-    //fprintf(stderr, "shutdown started for %s(%p)\n", f->argv[0], f);
-    ConsumeItem i;
-    i.g = f;
-    i.d = NULL;
-    consumeq.enqueue(i);
-}
-
-/// This should destroy the argument, so caller must not refer to it after call.
 inline smacq_result IterativeScheduler::run_produce(SmacqGraph * f) {
   int outchan = 0;
   DtsObject d = NULL;
@@ -260,7 +136,7 @@ inline smacq_result IterativeScheduler::run_produce(SmacqGraph * f) {
     
 /// Return true iff the datum was passed.
 /// This should destroy the argument, so caller must not refer to it after call.
-inline void IterativeScheduler::run_consume(ConsumeItem i) {
+inline void IterativeScheduler::run_consume(ConsumeItem & i) {
   assert(i.g);
 
   // Handle already-shutdown case
@@ -269,11 +145,7 @@ inline void IterativeScheduler::run_consume(ConsumeItem i) {
   }
 
   assert(i.g->instance);
-
-  if (!i.d) {
-	do_shutdown(i.g.get());
-	return;
-  }
+  assert(i.d); // No more scheduled shutdowns
 
   //fprintf(stderr, "consume %p by %s (%p)\n", i.d.get(), i.g->argv[0], i.g.get());
 
