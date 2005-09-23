@@ -107,6 +107,10 @@ class SmacqGraph : public SmacqGraphNode {
 
   /// @}
 
+  /// Shutdown a graph node (will propagate to parents and children).
+  /// The node may be destroyed by this call.
+  static void do_shutdown(SmacqGraph * f);
+
   void optimize();
 
  private:

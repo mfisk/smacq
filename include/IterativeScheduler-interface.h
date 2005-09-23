@@ -19,9 +19,6 @@ public:
   /// Queue an object for input to the specified graph.
   void input(SmacqGraph * g, DtsObject din);
 
-  /// Perform an immediate shutdown for the specified graph.  The argument is invalidated.
-  void do_shutdown(SmacqGraph * f);
-
   /// Run until an output object is ready.
   smacq_result get(DtsObject &dout);
 

@@ -4,13 +4,11 @@
 #include <IterativeScheduler-interface.h>
 
 inline SmacqGraph::~SmacqGraph() {
-  if (scheduler) {
-	scheduler->do_shutdown(this);
-  }
-  children.clear();
-  parent.clear();
-  numparents = 0;
-  next_graph = NULL;
+  do_shutdown(this);
+  //children.clear();
+  //parent.clear();
+  //numparents = 0;
+  //next_graph = NULL;
 }
 
 /// Establish a parent/child relationship on the specified channel
@@ -389,30 +387,51 @@ inline bool SmacqGraph::live_parents() {
   return false;
 }
 
+/// The caller should not refer to instance after this method is called.
+/// The call may result in the object being destroyed.
+inline void SmacqGraph::do_shutdown(SmacqGraph * f) {
+  if (f->shutdown) {
+    // Already shutdown, so do nothing
+    return;
+  }
+
+  fprintf(stderr, "do_shutdown(%p)\n", f);
+
+  f->shutdown = true;
+  delete f->instance; // Call the destructor, which may callback to enqueue()
+  f->instance = NULL;
+
+  // Remove all children.
+  f->remove_children();
+
+  // Propagate to parents
+  while (f->numparents) {
+    // Work from end of list up.
+    int i = f->numparents - 1; 
+
+    // Parents will still have references (e.g. scheduler queues), so
+    // reference counting won't shutdown our parents.
+    // So, we act like a SIGPIPE and shutdown useless parents right
+    // away.
+    if (!f->parent[i]->shutdown && !f->parent[i]->live_children()) {
+      // No reason to live if all former children gone!
+
+      // Callee will remove parent from our parent list.
+      do_shutdown(f->parent[i]);
+    }
+  }
+
+  //o->next_graph = NULL;
+}
+
 /// Decrement the reference count.
 /// If the refcount is 0, then clean-up references and destroy 
 inline void intrusive_ptr_release(SmacqGraph *o) { 
-	o->refcount--;
-
-	if (! o->refcount) {
+	if (! --o->refcount) {
 		fprintf(stderr, "Auto shutdown %p\n", o);
-  		if (o->scheduler) {
-			// do_shutdown will remove child and parent 
-			// references to us.
-			o->scheduler->do_shutdown(o);
-			
-			// XXX.  These can be removed
-			assert(o->children.size() <= 1);
-	 		if (o->children.size()) 
-				assert(o->children[0].size() == 0);
-			assert(!o->numparents);
-  		} else {
-			o->remove_children();
-		}
-
-  		//o->next_graph = NULL;
-		//delete o;  next_graph may still reference us
+		SmacqGraph::do_shutdown(o);
 	}
+  	// delete f;
 }
 #endif
 

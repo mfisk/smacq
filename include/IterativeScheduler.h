@@ -78,38 +78,6 @@ inline void IterativeScheduler::queue_children(SmacqGraph * f, DtsObject d, int 
   }
 }
 
-/// This may destroy the argument, so caller must not refer to it after call.
-inline void IterativeScheduler::do_shutdown(SmacqGraph * f) {
-  if (f->shutdown) {
-    // Already shutdown, so do nothing 
-    return;
-  }
-
-  f->shutdown = true;
-  delete f->instance; // Call the destructor, which may callback to enqueue()
-  f->instance = NULL;
-
-  // Remove all children.
-  f->remove_children();
-
-  // Propagate to parents
-  while (f->numparents) {
-    // Work from end of list up.
-    int i = f->numparents - 1;
-
-    // Parents will still have references (e.g. scheduler queues), so 
-    // reference counting won't shutdown our parents.  
-    // So, we act like a SIGPIPE and shutdown useless parents right 
-    // away.
-    if (!f->parent[i]->shutdown && !f->parent[i]->live_children()) {
-      // No reason to live if all former children gone! 
-
-      // Callee will remove parent from our parent list.
-      do_shutdown(f->parent[i]);
-    }
-  } 
-}
-
 inline smacq_result IterativeScheduler::run_produce(SmacqGraph * f) {
   int outchan = 0;
   DtsObject d = NULL;
@@ -128,7 +96,7 @@ inline smacq_result IterativeScheduler::run_produce(SmacqGraph * f) {
   if (pretval & SMACQ_END) {
     assert(!(pretval & (SMACQ_PRODUCE|SMACQ_CANPRODUCE)));
 
-    do_shutdown(f);
+    SmacqGraph::do_shutdown(f);
   }
 
   return pretval;
@@ -158,7 +126,7 @@ inline void IterativeScheduler::run_consume(ConsumeItem & i) {
   }
 	
   if (retval & SMACQ_END) {
-    do_shutdown(i.g.get());
+    SmacqGraph::do_shutdown(i.g.get());
   }
 }
 
