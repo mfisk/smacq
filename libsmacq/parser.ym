@@ -47,7 +47,7 @@ void yysmacql_error(char*);
 #include <SmacqGraph.h>
 
 static SmacqGraph * nullgraph = NULL;
-SmacqGraph_ptr Graph;
+SmacqGraph * Graph;
 extern int yylex();
 %}
 %defines
@@ -74,19 +74,19 @@ query:
            {
 	   	$$ = $2;
 		if ($3.args) {
-			graph_join(&($$), newgroup($3, $1));
+			graph_join($$, newgroup($3, $1));
 		} else {
-			graph_join(&($$), $1);
+			graph_join($$, $1);
 		}
 	   }
 	| query '|' action where group
            {
 	   	$$ = $1;
-		graph_join(&($$), $4);
+		graph_join($$, $4);
 		if ($5.args) {
-			graph_join(&($$), newgroup($5, $3));
+			graph_join($$, newgroup($5, $3));
 		} else {
-			graph_join(&($$), $3);
+			graph_join($$, $3);
 		}
 	   }
         | WHERE boolean { $$ = optimize_bools($2); }
@@ -96,7 +96,7 @@ fromwhere:
 	from0 where 
 	   { 
 		$$=$1; 
-		graph_join(&($$), $2); 
+		graph_join($$, $2); 
 	   }
 	| FROM newjoin ',' joins WHERE boolean 
 	   {
@@ -137,7 +137,7 @@ from:
 	FROM action from0
            {
 	   	$$ = $3;
-		graph_join(&($$), $2);
+		graph_join($$, $2);
 	   }
 	;
 
