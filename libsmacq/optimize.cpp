@@ -24,17 +24,17 @@ inline bool SmacqGraph::equiv(SmacqGraph * a, SmacqGraph * b) {
 }
 
 inline void SmacqGraph::merge_tails() {
-  std::set<SmacqGraph_ptr> list;
-  std::set<SmacqGraph_ptr>::iterator lpa, lpb;
+  std::set<SmacqGraph*> list;
+  std::set<SmacqGraph*>::iterator lpa, lpb;
   list_tails(list);
 
   /* n**2 comparison between each tails */
   for (lpa = list.begin(); lpa != list.end(); lpa++) {
     for (lpb = lpa; lpb != list.end(); lpb++) {
-      if (*lpa != *lpb && equiv(lpa->get(), lpb->get())) {
-	fprintf(stderr, "tails %p and %p merging\n", lpa->get(), lpb->get());
+      if (*lpa != *lpb && equiv(*lpa, *lpb)) {
+	fprintf(stderr, "tails %p and %p merging\n", *lpa, *lpb);
 	while ((*lpb)->numparents) {
-	  (*lpb)->parent[0]->replace_child(lpb->get(), lpa->get());
+	  (*lpb)->parent[0]->replace_child(*lpb, *lpa);
 	}
 
 	list.erase(lpb);
@@ -160,17 +160,17 @@ bool SmacqGraph::merge_redundant_parents() {
   for (int i = 0; i < numparents; i++) {
     if (parent[i]->algebra.stateless) {
       for (int j = i+1; j < numparents; j++) {
-	if (parent[i] != parent[j] && equiv(parent[i].get(), parent[j].get()) && 
-	    same_children(parent[i].get(), parent[j].get())) {
+	if (parent[i] != parent[j] && equiv(parent[i], parent[j]) && 
+	    same_children(parent[i], parent[j])) {
 
 	  //fprintf(stderr, "merging redundant parents %p and %p\n", parent[i], parent[j]);
 
 	  // Tell grandparents to replace j
-	  SmacqGraph_ptr departing = parent[j];
+	  SmacqGraph * departing = parent[j];
 	  while (departing->numparents) {
 	    assert(departing->parent[0] != parent[i]);
-	    departing->parent[0]->add_child(parent[i].get());
-	    departing->parent[0]->remove_child(departing.get());
+	    departing->parent[0]->add_child(parent[i]);
+	    departing->parent[0]->remove_child(departing);
 	  }
 	  
 	  // Now that nothing will come from j, we can remove it
@@ -203,7 +203,7 @@ void SmacqGraph::merge_heads() {
     for (bp = ap->next_graph; bp; bp=bp->nextGraph()) {
       if (merge_nodes(ap.get(), bp.get())) {
 	// Remove bp from list
-	bprev->next_graph = bp->next_graph;\
+	bprev->next_graph = bp->next_graph;
 
 	// Fixup iterator
 	bp = bprev;
@@ -220,16 +220,31 @@ void SmacqGraph::optimize() {
   print(stderr, 8);
 #endif
 
+  //fprintf(stderr, "Before optimize: \n");
+  //this->print(stderr, 15);
+
   merge_heads();
+
+  //fprintf(stderr, "Merged heads\n");
+  //this->print(stderr, 15);
 
   /* Do the merge again from the tails up */
   merge_tails();
 
+  //fprintf(stderr, "Merged tails\n");
+  //this->print(stderr, 15);
+
   // From the bottoms up, identify redundant parents
   while (merge_redundant_parents()) ;
 
+  //fprintf(stderr, "Merged parents\n");
+  //this->print(stderr, 15);
+
   // From the top down, identify redundant (twin) children
   merge_redundant_children();
+
+  //fprintf(stderr, "Merged children\n");
+  //this->print(stderr, 15);
 
 #ifdef SMACQ_DEBUG
   fprintf(stderr, "--- final is ---\n");
