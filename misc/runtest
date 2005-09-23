@@ -17,7 +17,6 @@ Tail() {
 }
 
 Run() {
-	set -x
 	if [ `expr "$tst" : ".*\.sh$"` != 0 ]; then
 		# Test is executable, so run it
 		(set -e; $tst)
