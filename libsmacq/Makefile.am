@@ -5,7 +5,7 @@ noinst_LTLIBRARIES=libsmacq.la @ETHEREAL_LIBRARY@
 EXTRA_LTLIBRARIES=#libethereal.la
 #libethereal_la_SOURCES=`find @ETHEREAL_DIR@ \( -name plugins -prune \) , \( -name \*.lo -print \)` 
 
-libsmacq_la_SOURCES=mem.c args.c pickle.cpp optimize.cpp filter.cpp ThreadedSmacqModule.cpp dynloader.c parsing.cpp cmalloc.c datalog-parser.ym parser.ym scanner.lpp filter-parser.ym expr-parser.ym DTS.cpp DtsObject.cpp smacq_result.cpp 
+libsmacq_la_SOURCES=mem.c args.c pickle.cpp optimize.cpp filter.cpp ThreadedSmacqModule.cpp dynloader.c parsing.cpp cmalloc.c parser.ym scanner.lpp filter-parser.ym expr-parser.ym DTS.cpp DtsObject.cpp smacq_result.cpp 
 
 AM_CPPFLAGS=@GLIB_CFLAGS@
 noinst_HEADERS=grammer.ypp
@@ -23,5 +23,5 @@ expr-parser.ypp: grammer.ypp
 parser.ypp: grammer.ypp
 
 .ym.ypp:  grammer.ypp
-	m4 -I$(srcdir) -P -DBUILDDATE="`date`" < $< > $@
+	m4 -s -I$(srcdir) -P -DBUILDDATE="`date`" $< | sed 's|^\(#line.*\)$$|/*\1*/|' > $@
 
