@@ -5,7 +5,7 @@
 
 #define SMACQ_MODULE_IS_STATELESS 1
 #include <SmacqModule.h>
-#include <SmacqGraph.h>
+#include <SmacqGraph-interface.h>
 
 SMACQ_MODULE(lor,
 	     PROTO_CTOR(lor);

@@ -14,7 +14,7 @@
 #include <arpa/inet.h>
 #include <signal.h>
 #include <netdb.h>
-#include <SmacqGraph.h>
+#include <SmacqGraph-interface.h>
 
 #define MAX_LINE 10000000 /* 10MB */
 

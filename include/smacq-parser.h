@@ -2,7 +2,7 @@
 #define SMACQ_PARSER_H
 
 #include <smacq.h>
-#include <SmacqGraph.h>
+#include <SmacqGraph-interface.h>
 #include <pthread.h>
 #include <dts-filter.h>
 
@@ -78,7 +78,7 @@ enum argtype { WORD, FUNCTION };
 
 char * expression2fieldname(struct dts_operand * expr);
 SmacqGraph * newmodule(char * module, struct arglist * alist);
-void graph_join(SmacqGraph ** graph, SmacqGraph * newg);
+void graph_join(SmacqGraph * & graph, SmacqGraph * newg);
 SmacqGraph * newgroup(struct group, SmacqGraph * vphrase);
 void arglist2argv(struct arglist * al, int * argc, char *** argv);
 char * arglist2str(struct arglist * al);
