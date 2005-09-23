@@ -1,7 +1,7 @@
 #ifndef SMACQGRAPHNODE_H
 #define SMACQGRAPHNODE_H
 
-#include <SmacqModule.h>
+#include <SmacqModule-interface.h>
 #define RINGSIZE 4
 
 /// A node in a SmacqGraph.  Holds instance arguments, meta-data, etc.

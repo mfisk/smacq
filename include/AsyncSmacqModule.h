@@ -1,4 +1,4 @@
-#include <SmacqModule.h>
+#include <SmacqModule-interface.h>
 #include <setjmp.h>
 #include <signal.h> /* Needed on MacOS for ucontext.h */
 #include <ucontext.h>

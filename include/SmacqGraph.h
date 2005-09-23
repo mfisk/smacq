@@ -224,6 +224,25 @@ inline void SmacqGraph::remove_child(SmacqGraph * oldchild) {
     });
  }
 
+// Remove all children.
+inline void SmacqGraph::remove_children() {
+  // Reference counting will cause orphaned children to shutdown 
+  // automatically (after any more scheduled consumptions).
+  while (children.size()) {
+        // Work from last element up
+        unsigned int el = children.size() - 1;
+  
+        // Remove all children of element "el"
+        while (children[el].size()) {
+                unsigned int el2 = children[el].size() - 1;
+                remove_child(el,el2);
+        }
+        children.pop_back();
+  }
+  children.resize(1); // Size is always supposed to be >= 1.
+}
+
+
 inline double SmacqGraph::count_nodes() {
   double count = 1;
 
@@ -368,24 +387,6 @@ inline bool SmacqGraph::live_parents() {
     if (!parent[i]->shutdown) return true;
   }
   return false;
-}
-
-// Remove all children.
-void SmacqGraph::remove_children() {
-  // Reference counting will cause orphaned children to shutdown 
-  // automatically (after any more scheduled consumptions).
-  while (children.size()) {
-        // Work from last element up
-        unsigned int el = children.size() - 1;
-  
-        // Remove all children of element "el"
-        while (children[el].size()) {
-                unsigned int el2 = children[el].size() - 1;
-                remove_child(el,el2);
-        }
-        children.pop_back();
-  }
-  children.resize(1); // Size is always supposed to be >= 1.
 }
 
 /// Decrement the reference count.
