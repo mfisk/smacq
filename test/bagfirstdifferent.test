@@ -1,0 +1,1 @@
+print -v srcip from (pcapfile(0325@1112-snort.pcap) + tabularinput(-d " " -f maillogjoin.data 1 2 3 srcip))
