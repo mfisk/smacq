@@ -1,4 +1,3 @@
-#!/bin/sh
-print cmd from tabularinput(-f, $TEST/multistr.test, cmd, arg) where substr(cmd, "print")
-print cmd from tabularinput(-f, $TEST/multistr.test, cmd, arg) where substr(cmd, "print")
-print cmd from tabularinput(-d, " ", -f, $TEST/multistr.test, cmd, arg) where substr(cmd, "bin")
+print cmd from tabularinput(-f, multistr.test, cmd, arg) where substr(cmd, "print")
+print cmd from tabularinput(-f, multistr.test, cmd, arg) where substr(cmd, "print")
+print cmd from tabularinput(-d, " ", -f, multistr.test, cmd, arg) where substr(cmd, "bin")

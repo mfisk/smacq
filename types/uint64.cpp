@@ -32,7 +32,7 @@ static int smacqtype_uint64_get_double(DtsObject o, DtsObject field) {
 static int parse_string(const char* buf, DtsObject d) {
         uint64_t val;
         char * left = NULL;
-        val = strtol(buf, &left, 10);
+        val = strtoull(buf, &left, 10);
         if (left == buf) {
                 return(0);
         }

@@ -31,7 +31,7 @@ int main(int argc, char ** argv) {
   char ** qargv;
   DTS dts;
   FILE * fh;
-  SmacqGraph_ptr graphs;
+  SmacqGraph * graphs = NULL;
   DtsObject product;
 
   if (argc <= 1) {
@@ -92,7 +92,7 @@ int main(int argc, char ** argv) {
       }
 
       while(fgets(queryline, MAX_QUERY_SIZE, fh)) {
-	      SmacqGraph_ptr newgraph;
+	      SmacqGraph * newgraph;
 
 	      /* Chomp newline */
 	      if (queryline[strlen(queryline)-1] == '\n')
@@ -104,7 +104,7 @@ int main(int argc, char ** argv) {
 		      exit(-1);
 	      }
       	      if (graphs) {
-		graphs->add_graph(newgraph.get());
+		graphs->add_graph(newgraph);
 	      } else {
 		graphs = newgraph;
 	      }
@@ -126,7 +126,7 @@ int main(int argc, char ** argv) {
       graphs->print(stderr, 8);
   }
 
-  s.seed_produce(graphs.get());
+  s.seed_produce(graphs);
   return (! s.busy_loop());
 }
 

@@ -122,7 +122,7 @@ joinModule::joinModule(SmacqModule::smacq_init * context)
 
   // Size per-alias data-structures
   Aliases.resize((context->argc-2)/2);
-  where = (SmacqGraph*)strtol(context->argv[context->argc-1], NULL, 0);
+  where = (SmacqGraph*)strtoul(context->argv[context->argc-1], NULL, 0);
   if (where) {
     where->init_all(dts, sched);
     //where->print(stderr, 4);
@@ -134,7 +134,7 @@ joinModule::joinModule(SmacqModule::smacq_init * context)
     a.field = dts->requirefield(context->argv[i]);
     a.newfield = dts->requirefield("new");
 
-    a.until = (SmacqGraph*)strtol(context->argv[i+1], NULL, 0);
+    a.until = (SmacqGraph*)strtoul(context->argv[i+1], NULL, 0);
     if (a.until) { // can be NULL
       a.until->init_all(dts, sched);	
     }

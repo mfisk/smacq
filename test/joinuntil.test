@@ -1,2 +1,1 @@
-# This query prints out objects where b.srcip=192.168.0.200 and a.srcip is the a.srcip most recently seen before the packet from 192.168.0.200
 print -v a.srcip b.srcip a.ipid b.ipid from pcapfile(0325@1112-snort.pcap) a until (new.a), b until (new.b) where (a.srcip=192.168.0.54 and b.srcip=192.168.0.200)

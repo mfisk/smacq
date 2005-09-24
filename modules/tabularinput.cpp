@@ -144,7 +144,8 @@ tabularinputModule::tabularinputModule(struct SmacqModule::smacq_init * context)
   }
 
   fields = argc;
-  field_type = (int*)calloc(argc, sizeof(int));
+  if (argc) 
+  	field_type = (int*)calloc(argc, sizeof(int));
   
   for (i = 0; i < argc; i++) {
     char * name = strdup(argv[i]);

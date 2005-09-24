@@ -44,7 +44,7 @@ public:
     ConsumeItem(ConsumeItem & old) : g(old.g), d(old.d) {};
 
     // The runq class will set to NULL to remove references
-    ConsumeItem(void * v) { assert(!v);};
+    ConsumeItem(void * v) : g(NULL), d(NULL) { assert(!v);};
   };
 
   /// Place something on the consume queue

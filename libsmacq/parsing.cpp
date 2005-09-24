@@ -3,7 +3,7 @@
 #include <SmacqGraph.h>
 #include <dts.h>
 
-#define tmalloc(type, number) (type*)malloc(number*sizeof(type))
+#define tmalloc(type, number) ((number) ? ((type*)malloc(number*sizeof(type))) : NULL)
 
 /* Some glue to deal with a plain-C, non-thread-safe parser: */
 

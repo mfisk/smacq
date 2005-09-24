@@ -72,8 +72,6 @@ inline void SmacqGraph::init_all(DTS * dts, SmacqScheduler * sched, bool do_opti
     if (g->argc) {
 	// Actually copy ourselves, insert copy after us, make us stub
     	SmacqGraph * newg = new SmacqGraph(g->argc, g->argv);
-	SmacqGraph_ptr save1 = newg; /// Try without
-	SmacqGraph_ptr save2 = g; /// Try without
     	newg->next_graph = NULL;
 	//fprintf(stderr, "Inserting %p after %p\n", newg, this);
 
@@ -89,8 +87,6 @@ inline void SmacqGraph::init_all(DTS * dts, SmacqScheduler * sched, bool do_opti
 
     g->init_node_recursively(dts, sched);
   }
-
-  this->print(stderr, 15);
 
   if (do_optimize) optimize();
 }
@@ -210,7 +206,8 @@ inline void SmacqGraph::remove_child(int i, int j) {
 
   children[i][j]->remove_parent(this);
   children[i][j] = children[i][max];
-  children[i].resize(max);
+  children[i][max] = NULL; // Remove refcount
+  children[i].pop_back();
 }
 
 inline void SmacqGraph::remove_child(SmacqGraph * oldchild) {
@@ -299,16 +296,18 @@ inline void SmacqGraph::dynamic_insert(SmacqGraph * g, DTS * dts) {
   assert(numparents > 0);
 
   // replace_child could terminate me, so keep a ref
-  SmacqGraph_ptr me = this;
+//  SmacqGraph_ptr me = this;
+
+  // Make me a child of the new graph
+  g->join(this);
 
   // Tell my parents to orphan me (will also tell my children 
   // about their new parents)
-  while (numparents) {
-    parent[0]->replace_child(this, g);
+  while (numparents > 1) {
+    if (parent[0] != g) {
+    	parent[0]->replace_child(this, g);
+    }
   }
-
-  // And make me a child of the new graph
-  g->join(this);
 
   // Go ahead and init 
   g->init_node(dts, this->scheduler);
@@ -317,24 +316,25 @@ inline void SmacqGraph::dynamic_insert(SmacqGraph * g, DTS * dts) {
 /// Modify parent(s) and children to replace myself with the specified graph.
 inline void SmacqGraph::replace(SmacqGraph * g) {
   if (children[0].size()) {
-    assert(children.size() == 1);
+    assert(children.size() == 1); // XXX
 
     // Add children to join set
     SmacqGraph * down = NULL;
     for (unsigned int i = 0; i < children[0].size(); i++) {
-      children[0][0]->remove_parent(this);
       if (down) { 
-	down->add_graph(children[0][0].get());
+	children[0][i]->next_graph = NULL; // Just in case
+	down->add_graph(children[0][i].get());
       } else {
-        down = children[0][0].get();
+        down = children[0][i].get();
+	down->next_graph = NULL; // Just in case
       }
     }
 
     // Join new graph with my children
     g->join(down);
 
-    // Now safe to remove old references to children
-    children[0].clear();
+    // Now safe to remove me as old parent
+    remove_children();
   }
 
   while (numparents) {
@@ -392,6 +392,7 @@ inline bool SmacqGraph::live_parents() {
 inline void SmacqGraph::do_shutdown(SmacqGraph * f) {
   if (f->shutdown) {
     // Already shutdown, so do nothing
+    fprintf(stderr, "do_shutdown(%p) already done\n", f);
     return;
   }
 
@@ -428,10 +429,10 @@ inline void SmacqGraph::do_shutdown(SmacqGraph * f) {
 /// If the refcount is 0, then clean-up references and destroy 
 inline void intrusive_ptr_release(SmacqGraph *o) { 
 	if (! --o->refcount) {
-		fprintf(stderr, "Auto shutdown %p\n", o);
+		//fprintf(stderr, "Auto shutdown %p\n", o);
 		SmacqGraph::do_shutdown(o);
+  		delete o;
 	}
-  	// delete f;
 }
 #endif
 

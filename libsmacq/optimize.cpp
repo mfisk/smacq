@@ -33,7 +33,7 @@ inline void SmacqGraph::merge_tails() {
     for (lpb = lpa; lpb != list.end(); lpb++) {
       if (*lpa != *lpb && equiv(*lpa, *lpb)) {
 	fprintf(stderr, "tails %p and %p merging\n", *lpa, *lpb);
-	while ((*lpb)->numparents) {
+	for (unsigned int i = (*lpb)->numparents; i; i--) {
 	  (*lpb)->parent[0]->replace_child(*lpb, *lpa);
 	}
 
@@ -77,7 +77,7 @@ inline bool SmacqGraph::merge_nodes(SmacqGraph * a, SmacqGraph * b) {
   if ( (a==b) // Can't merge self with self
        // Can only merge stateless
        || !a->algebra.stateless || !b->algebra.stateless 
-       // If the name's not event the same, forget it
+       // If the name's not even the same, forget it
        || !compare_element_names(a,b)
        ) 
     {
@@ -103,11 +103,11 @@ inline bool SmacqGraph::merge_nodes(SmacqGraph * a, SmacqGraph * b) {
 void SmacqGraph::merge_redundant_children() {
   for (unsigned int k = 0; k < children.size(); k++) {
     for (unsigned int i = 0; i < children[k].size(); i++) {
-      SmacqGraph_ptr twina = children[k][i];
+      SmacqGraph * twina = children[k][i].get();
       // Look for twins among siblings
       for (unsigned int j = 0; j < children[k].size(); j++) {
-	SmacqGraph_ptr twinb = children[k][j];	
-	if (merge_nodes(twina.get(), twinb.get())) {
+	SmacqGraph * twinb = children[k][j].get();	
+	if (merge_nodes(twina, twinb)) {
 	  // Remove twin 
 	  remove_child(k,j);
 	  
@@ -195,15 +195,16 @@ bool SmacqGraph::merge_redundant_parents() {
 
 void SmacqGraph::merge_heads() {
 #ifndef SMACQ_OPT_NOHEADS
-  SmacqGraph_ptr ap, bp;
+  SmacqGraph * ap, * bp;
 
   /* Merge identical heads */
   for (ap = this; ap ; ap = ap->next_graph) {
-    SmacqGraph_ptr bprev = ap;
+    SmacqGraph * bprev = ap;
     for (bp = ap->next_graph; bp; bp=bp->nextGraph()) {
-      if (merge_nodes(ap.get(), bp.get())) {
+      if (merge_nodes(ap, bp)) {
 	// Remove bp from list
 	bprev->next_graph = bp->next_graph;
+	bp->next_graph = NULL;
 
 	// Fixup iterator
 	bp = bprev;
@@ -220,13 +221,13 @@ void SmacqGraph::optimize() {
   print(stderr, 8);
 #endif
 
-  //fprintf(stderr, "Before optimize: \n");
-  //this->print(stderr, 15);
+  fprintf(stderr, "Before optimize: \n");
+  this->print(stderr, 15);
 
   merge_heads();
 
-  //fprintf(stderr, "Merged heads\n");
-  //this->print(stderr, 15);
+  fprintf(stderr, "Merged heads\n");
+  this->print(stderr, 15);
 
   /* Do the merge again from the tails up */
   merge_tails();

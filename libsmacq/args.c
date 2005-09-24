@@ -114,7 +114,7 @@ int parse_opt(struct smacq_options * options, struct smacq_optval * optvals,
 		return 1;
 	    break;
 	  case SMACQ_OPT_TYPE_UINT32:
-	    val->location->uint32_t = strtoll(nextarg, NULL, 0);
+	    val->location->uint32_t = strtoul(nextarg, NULL, 0);
 		return 1;
 	    break;
 	  case SMACQ_OPT_TYPE_DOUBLE:
@@ -164,12 +164,12 @@ int smacq_getoptsbyname( int argc, char ** argv,
 	    }
 	  } else if (argv[i][0] == '-' && argv[i][1] == '-') {
 		char * nextarg;
-		if (i < argc) {
+		if (i < (argc-1)) {
 			nextarg = argv[i+1];
 		} else {
 			nextarg = NULL;
 		}
-		i += parse_opt(options, optvals, argv[i]+2, i < argc ? argv[i+1] : NULL);
+		i += parse_opt(options, optvals, argv[i]+2, i < (argc-1) ? argv[i+1] : NULL);
 	  } else {
 		char * o;
 		char opt[2] = "\0\0";

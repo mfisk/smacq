@@ -1,2 +1,1 @@
-# This query makes it clear how inputs are interleaved when there are multiple sources
 print a.srcip b.srcip from ( (streamalias(a) + streamalias(b)) from pcapfile 0325@1112-snort.pcap) 

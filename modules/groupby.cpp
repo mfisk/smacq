@@ -27,7 +27,7 @@ SMACQ_MODULE(groupby,
 	  
   FieldVec fieldvec;
   SmacqGraph_ptr mastergraph;
-  SmacqGraph_ptr self;
+  SmacqGraph * self;
 
   FieldVecHash<SmacqGraph_ptr> outTable;
 
@@ -43,7 +43,7 @@ inline SmacqGraph_ptr groupbyModule::get_partition() {
   partition = outTable[fieldvec];
   if (!partition) {
     partition = mastergraph->clone(NULL);
-    partition->share_children_of(self.get());
+    partition->share_children_of(self);
     partition->init_all(dts, sched, false); // Already optimized
     fprintf(stderr, "new partition instance:\n");
     partition->print(stderr, 30);
@@ -60,7 +60,7 @@ inline void groupbyModule::handle_invalidate(DtsObject datum) {
   for (i=outTable.begin(); i != outTable.end();) {
     if (i->first.masks(fieldvec)) {
       for (SmacqGraph * g = i->second.get(); g; g=g->nextGraph()) {
-      	sched->do_shutdown(g); 
+      	SmacqGraph::do_shutdown(g); 
       }
       prev = i++;
       outTable.erase(prev);
@@ -89,7 +89,7 @@ smacq_result groupbyModule::consume(DtsObject datum, int & outchan) {
 groupbyModule::~groupbyModule() {
   OutputsIterator i;
   for (i=outTable.begin(); i != outTable.end(); ++i) {
-    sched->do_shutdown(i->second.get());
+    SmacqGraph::do_shutdown(i->second.get());
   }
   outTable.clear();
 }
