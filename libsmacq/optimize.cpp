@@ -32,7 +32,7 @@ inline void SmacqGraph::merge_tails() {
   for (lpa = list.begin(); lpa != list.end(); lpa++) {
     for (lpb = lpa; lpb != list.end(); lpb++) {
       if (*lpa != *lpb && equiv(*lpa, *lpb)) {
-	fprintf(stderr, "tails %p and %p merging\n", *lpa, *lpb);
+	//fprintf(stderr, "tails %p and %p merging\n", *lpa, *lpb);
 	for (unsigned int i = (*lpb)->numparents; i; i--) {
 	  (*lpb)->parent[0]->replace_child(*lpb, *lpa);
 	}
@@ -221,13 +221,13 @@ void SmacqGraph::optimize() {
   print(stderr, 8);
 #endif
 
-  fprintf(stderr, "Before optimize: \n");
-  this->print(stderr, 15);
+  //fprintf(stderr, "Before optimize: \n");
+  //this->print(stderr, 15);
 
   merge_heads();
 
-  fprintf(stderr, "Merged heads\n");
-  this->print(stderr, 15);
+  //fprintf(stderr, "Merged heads\n");
+  //this->print(stderr, 15);
 
   /* Do the merge again from the tails up */
   merge_tails();
