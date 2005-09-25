@@ -19,7 +19,7 @@ Tail() {
 Run() {
 	if [ `expr "$tst" : ".*\.sh$"` != 0 ]; then
 		# Test is executable, so run it
-		(set -e; $tst)
+		(set -e; SMACQQ=$BINDIR/smacqq $tst)
 	else
 		# Test is not executable, so treat it as smacqq input
 		$SMACQQ --pregraph -g -m -f $tst
