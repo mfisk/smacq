@@ -182,7 +182,7 @@ void pcapfileModule::parse_packets(StrucioStream * fh) {
     }
   
     //fprintf(stderr, "reading packet of caplen %d\n", hdrp->caplen);
-    if (!fh->Read(hdrp + 1, hdrp->caplen)) {
+    if (hdrp->caplen != fh->Read(hdrp + 1, hdrp->caplen)) {
       fprintf(stderr, "pcapfile: Error: Premature end of file\n");
       return;
     }
