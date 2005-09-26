@@ -23,20 +23,16 @@ struct arglist {
 
 class DatalogNamespace : public std::map<char*,SmacqGraph *> {
   public:
-    void add_graph(SmacqGraph * g) {
-	if (graph) {
-		graph->add_graph(g);
-	} else {
-		graph = g;
-	}
-    }
+    SmacqGraphContainer graphs;
 
-    SmacqGraph * graph;
+    void add_graph(SmacqGraph * g) {
+	graphs.add_graph(g);
+    }
 };
 
 class joinlist {
  public:
-        joinlist(char * n, SmacqGraph * g, SmacqGraph * u)
+        joinlist(char * n, SmacqGraphContainer * g, SmacqGraphContainer * u)
                 : next(NULL), graph(g), name(n), until(u) 
 		{}
 
@@ -47,9 +43,9 @@ class joinlist {
         }
 
         joinlist * next;
-        SmacqGraph * graph;
+        SmacqGraphContainer * graph;
         char * name;
-	SmacqGraph * until;	
+	SmacqGraphContainer * until;	
 };
 
 struct reflist_element {
@@ -77,15 +73,15 @@ struct group {
 enum argtype { WORD, FUNCTION };
 
 char * expression2fieldname(struct dts_operand * expr);
-SmacqGraph * newmodule(char * module, struct arglist * alist);
-void graph_join(SmacqGraph * & graph, SmacqGraph * newg);
-SmacqGraph * newgroup(struct group, SmacqGraph * vphrase);
+SmacqGraphContainer * newmodule(char * module, struct arglist * alist);
+void graph_join(SmacqGraphContainer * & graph, SmacqGraphContainer * newg);
+SmacqGraphContainer * newgroup(struct group, SmacqGraphContainer * vphrase);
 void arglist2argv(struct arglist * al, int * argc, char *** argv);
 char * arglist2str(struct arglist * al);
 struct arglist * newarg(char * arg, enum argtype argtype, struct arglist * func_args);
 struct arglist * arglist_append(struct arglist * tail, struct arglist * addition);
 struct vphrase newvphrase(char * verb, struct arglist * args);
-SmacqGraph * optimize_bools(dts_comparison *);
+SmacqGraphContainer * optimize_bools(dts_comparison *);
 dts_comparison * comp_join(dts_comparison *, dts_comparison *, dts_compare_operation);
 struct dts_operand * comp_operand(enum dts_operand_type type, char * str);
 dts_comparison * comp_new(dts_compare_operation op, struct dts_operand *, struct dts_operand *);
@@ -95,7 +91,7 @@ char * print_operand(struct dts_operand * op);
 
 extern DTS * parse_dts;
 
-SmacqGraph * joinlist2graph(joinlist * joinlist, SmacqGraph * where);
+SmacqGraphContainer * joinlist2graph(joinlist * joinlist, SmacqGraphContainer * where);
 END_C_DECLS
 
 #endif

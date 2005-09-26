@@ -41,8 +41,13 @@ class SmacqGraphContainer {
   /// This method must be called before the graphs are used.
   void init(DTS *, SmacqScheduler *, bool do_optimize = true);
 
-  /// Shutdown all graphs
+  /// Shutdown all graphs.
   void shutdown();
+
+  /// Erase container.
+  void clear() { 
+	head.clear();
+  }
 
   /// Print the graphs
   void print(FILE * fh, int indent);
