@@ -74,7 +74,7 @@ inline bool SmacqGraphNode::set(int argc, char ** argv) {
   smacq_pthread_cond_init(&this->ring_notempty, NULL);
 #endif
 
-  if (!this->load_module()) {
+  if (argc && !this->load_module()) {
     exit(-1);
     return false;
   }
@@ -114,6 +114,7 @@ inline void SmacqGraphNode::init(struct SmacqModule::smacq_init & context) {
   context.argv = argv;
 
   assert(constructor);
+  instance = (SmacqModule*)1; // This will prevent us from recursively initing ourselves
   instance = constructor(&context);
 
   if (! instance) {
