@@ -18,9 +18,82 @@
 class DTS;
 class SmacqGraph;
 
+template <class T>
+class PointerVector : public std::vector<T> {
+  public:
+        void erase(unsigned int i) {
+           // Swap, drop, and roll...
+           unsigned int last = size() - 1;
+           if (i < last) {
+                (*this)[i] = (*this)[last];
+	   }
+           (*this)[last] = NULL;
+           pop_back();
+        }
+};
+
+class SmacqGraphContainer {
+  friend class SmacqGraph;
+  friend class IterativeScheduler;
+
+  public:
+    
+  /// This method must be called before the graphs are used.
+  void init(DTS *, SmacqScheduler *, bool do_optimize = true);
+
+  /// Shutdown all graphs
+  void shutdown();
+
+  /// Print the graphs
+  void print(FILE * fh, int indent);
+
+  /// @name Combining Graphs
+  /// A container can have multiple heads and tails and
+  /// may even be disconnected. 
+  /// @{
+  
+  /// Attach the specified graph onto the tail(s) of the graph(s).
+  void join(SmacqGraph *);
+
+  /// Attach the specified graph onto the tail(s) of the graph(s).
+  void join(SmacqGraphContainer *, bool dofree=false);
+
+  /// Add a new graph head.
+  void add_graph(SmacqGraph *);
+
+  /// Add new graph heads.
+  void add_graph(SmacqGraphContainer *, bool dofree=false);
+
+  /// Children of the specified graph will also become children of this
+  void share_children_of(SmacqGraph *);
+
+  /// @}
+
+  /// Recursively clone a graph.  The clone is made a child of
+  /// newParent, unless newParent is NULL.
+  SmacqGraphContainer * clone(SmacqGraph * newParent);
+
+  /// Return a subgraph containing only invariants over the specified field.
+  /// The subgraph will contain only stateless filters that are applied to
+  /// all objects in the graph (e.g. not within an OR) and that do NOT use 
+  /// the specified field.  The returned graph is newly allocated.
+  SmacqGraph * getInvariants(DTS*, SmacqScheduler*, DtsField&);
+
+  /// Preoptimize graph (unnecessary after init)
+  void optimize();
+
+  private:
+    PointerVector<SmacqGraph_ptr> head;
+
+    void merge_heads();
+    void merge_tails();
+    void list_tails(std::set<SmacqGraph*> &);
+};
+
 /// A graph of SmacqGraphNode nodes. 
 class SmacqGraph : public SmacqGraphNode {
   friend class IterativeScheduler;
+  friend class SmacqGraphContainer;
 
  public:
   SmacqGraph(int argc, char ** argv);
@@ -28,12 +101,17 @@ class SmacqGraph : public SmacqGraphNode {
   ~SmacqGraph();
 
   /// This method must be called before a graph is used.
-  void init_all(DTS *, SmacqScheduler *, bool do_optimize = true);
+  /// The graph may be modified as a side-effect, so the
+  /// caller should replace the called object with the return pointer.
+  SmacqGraph * init(DTS *, SmacqScheduler *);
 
   /// @name Parent/Child Relationships
   /// @{
 
-  void replace(SmacqGraph *);
+  /// Attach the specified graph onto the tail(s) of the graph(s).
+  void join(SmacqGraph *);
+
+  void replace(SmacqGraphContainer *);
 
   /// Insert a new graph between my parents and me
   void dynamic_insert(SmacqGraph *, DTS *);
@@ -44,42 +122,25 @@ class SmacqGraph : public SmacqGraphNode {
   void remove_child(int, int);
   void remove_child(SmacqGraph *);
   void replace_child(int, int, SmacqGraph * newchild);
+  void replace_child(int, int, SmacqGraphContainer * newchild);
   void replace_child(SmacqGraph * oldchild, SmacqGraph * newchild);
+  void replace_child(SmacqGraph * oldchild, SmacqGraphContainer * newchild);
   static void move_children(SmacqGraph * from, SmacqGraph * to, bool addvector=false);
   void remove_children();
 
   bool live_children();
   bool live_parents();
 
-  const std::vector<std::vector<SmacqGraph_ptr> > getChildren() const { return children; }
+  const std::vector<PointerVector<SmacqGraph_ptr> > getChildren() const { return children; }
 
   /// @}
 
-
-  /// @name Combining Graphs
-  /// A SmacqGraph can have multiple heads and tails and
-  /// may even be disconnected. 
-  /// @{
-  
-  /// Attach the specified graph onto the tail(s) of the graph.
-  void join(SmacqGraph * g);
-
-  /// Add a new graph head.
-  void add_graph(SmacqGraph * b);
-
-  /// Get the next graph head.
-  SmacqGraph * nextGraph() const { return next_graph; }
-
-  /// Children of the specified graph will also become children of this
-  void share_children_of(SmacqGraph *);
-
-  /// @}
 
   /// @name Factories
   /// @{
 
   /// Parse a query and construct a new graph to execute it 
-  static SmacqGraph * newQuery(DTS*, SmacqScheduler*, int argc, char ** argv);
+  static SmacqGraphContainer * newQuery(DTS*, SmacqScheduler*, int argc, char ** argv);
 
   /// Construct a new graph using the given arguments.  The new graph
   /// is automatically attached as a child of the current graph.
@@ -90,8 +151,7 @@ class SmacqGraph : public SmacqGraphNode {
   SmacqGraph * clone(SmacqGraph * newParent);
   /// @}
 
-  double count_nodes();
-  int print(FILE * fh, int indent);
+  void print(FILE * fh, int indent);
 
   /// @name Invariant Optimization
   /// @{
@@ -111,43 +171,28 @@ class SmacqGraph : public SmacqGraphNode {
   /// The node may be destroyed by this call.
   static void do_shutdown(SmacqGraph * f);
 
-  void optimize();
-
  private:
   void init_node(DTS *, SmacqScheduler *);
   void init_node_recursively(DTS *, SmacqScheduler *);
   int print_one(FILE * fh, int indent);
   void add_parent(SmacqGraph * parent);
 
-  friend SmacqGraph * smacq_graph_add_graph(SmacqGraph * a, SmacqGraph * b) {
-    if (!a) return b;
-    a->add_graph(b);
-    return a;
-  }
-  
   void list_tails(std::set<SmacqGraph*> &);
-  void list_tails_recurse(std::set<SmacqGraph*> &list);
   static bool compare_element_names(SmacqGraph * a, SmacqGraph * b);
   static bool equiv(SmacqGraph * a, SmacqGraph * b);
   static bool same_children(SmacqGraph * a, SmacqGraph * b);
   bool merge_redundant_parents();
   void merge_redundant_children();
-  void merge_tails();
-  void merge_heads();
   static bool merge_nodes(SmacqGraph * a, SmacqGraph * b);
   void add_args(SmacqGraph * b);
-
-  /// Iff a module node:
-  SmacqGraph * next_graph;
 
   /// Iff initializied
   SmacqScheduler * scheduler;
 
-  std::vector<std::vector<SmacqGraph_ptr> > children;
+  std::vector<PointerVector<SmacqGraph_ptr> > children;
 
   /// Don't use a refcounted pointer because if we're the only ones that know, it should be GC'd
-  DynamicArray<SmacqGraph*> parent;
-  int numparents;
+  PointerVector<SmacqGraph*> parent;
 
   /// Number of things that can give us input.
   /// This is not a full reference count, but when it decrements to 0

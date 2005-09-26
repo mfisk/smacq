@@ -3,24 +3,20 @@
 #include <IterativeScheduler-interface.h>
 #include <SmacqGraph.h>
 
-inline void IterativeScheduler::seed_produce(SmacqGraph * startf) {
-  while (startf) {
+inline void IterativeScheduler::seed_produce(SmacqGraphContainer * startf) {
+  for (unsigned int h = 0; h < startf->head.size(); h++) {
     // Force first guy to produce
-    // We should be a etub and should pass this to children
-    assert(!startf->argc);
-    FOREACH_CHILD(startf, produceq.enqueue(child));
-   
-    //produceq.enqueue(startf); // iff argc
-
-    startf = startf->nextGraph();
+    // We should be a stub and should pass this to children
+    assert(!startf->head[h]->argc);
+    FOREACH_CHILD(startf->head[h], produceq.enqueue(child));
   }
 }
 
-inline void IterativeScheduler::input(SmacqGraph * g, DtsObject din) {
-  for(; g; g=g->nextGraph()) {
+inline void IterativeScheduler::input(SmacqGraphContainer * c, DtsObject din) {
+  for (unsigned int h = 0; h < c->head.size(); h++) {
+    SmacqGraph * g = c->head[h].get();
     if (g->argc) {
     	assert (g->instance > (void*)1000);
- 	//struct ConsumeItem i = {g, din};
     	runable(g, din);
     } else {
 	// stub
@@ -202,6 +198,17 @@ inline smacq_result IterativeScheduler::decide_children(SmacqGraph * g, DtsObjec
       if (SMACQ_PASS == decide(g->children[outchan][i].get(), din)) {
 	return SMACQ_PASS;
       }
+  }
+  return SMACQ_FREE;
+}
+
+/// Take an input and run it through a boolean graph.
+/// Return SMACQ_PASS or SMACQ_FREE.
+inline smacq_result IterativeScheduler::decide(SmacqGraphContainer * g, DtsObject din) {
+  for (unsigned int i = 0; i < g->head.size(); i++) {
+	if (SMACQ_PASS == decide(g->head[i].get(), din)) {
+		return SMACQ_PASS;
+	};
   }
   return SMACQ_FREE;
 }

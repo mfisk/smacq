@@ -12,7 +12,7 @@
 struct alias {
   DtsField field;
   DtsField newfield;
-  SmacqGraph_ptr until;
+  SmacqGraphContainer * until;
   std::vector<DtsObject> objects;
 };
 
@@ -22,8 +22,7 @@ SMACQ_MODULE(join,
 
 	     private:
 
-	     SmacqScheduler * sched;
-	     SmacqGraph_ptr where;
+	     SmacqGraphContainer * where;
 	     dts_typeid emptytype;
 
 	     std::vector<struct alias> Aliases;
@@ -41,7 +40,7 @@ SMACQ_MODULE(join,
 void joinModule::for_all_but(unsigned int is_alias, DtsObject o, unsigned int alias) {
   if (alias == Aliases.size()) {
     // Base case; test this join.
-    if (!where || (SMACQ_PASS == sched->decide(where.get(), o))) {
+    if (!where || (SMACQ_PASS == scheduler->decide(where, o))) {
       // Dup the object, because we're about to assign new alias values.
       DtsObject cpy = o->dup();
       //fprintf(stderr, "passing joined obj %p\n", cpy.get());
@@ -84,7 +83,7 @@ smacq_result joinModule::consume(DtsObject datum, int & outchan) {
         // Build test join
         t->attach_field(a.field, a.objects[j]);
 
-        if (SMACQ_PASS == sched->decide(a.until.get(), t)) {
+        if (SMACQ_PASS == scheduler->decide(a.until, t)) {
 	  // Remove j'th element
 	  // (by swapping and shrinking)
 	  a.objects[j] = a.objects.back();
@@ -115,16 +114,15 @@ smacq_result joinModule::consume(DtsObject datum, int & outchan) {
 }
 
 joinModule::joinModule(SmacqModule::smacq_init * context) 
-  : SmacqModule(context), 
-    sched(context->scheduler)
+  : SmacqModule(context)
 {
   emptytype = dts->requiretype("empty");
 
   // Size per-alias data-structures
   Aliases.resize((context->argc-2)/2);
-  where = (SmacqGraph*)strtoul(context->argv[context->argc-1], NULL, 0);
+  where = (SmacqGraphContainer*)strtoul(context->argv[context->argc-1], NULL, 0);
   if (where) {
-    where->init_all(dts, sched);
+    where->init(dts, scheduler);
     //where->print(stderr, 4);
   }
 
@@ -134,9 +132,9 @@ joinModule::joinModule(SmacqModule::smacq_init * context)
     a.field = dts->requirefield(context->argv[i]);
     a.newfield = dts->requirefield("new");
 
-    a.until = (SmacqGraph*)strtoul(context->argv[i+1], NULL, 0);
+    a.until = (SmacqGraphContainer*)strtoul(context->argv[i+1], NULL, 0);
     if (a.until) { // can be NULL
-      a.until->init_all(dts, sched);	
+      a.until->init(dts, scheduler);	
     }
   }
 

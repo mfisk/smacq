@@ -23,7 +23,7 @@ inline bool SmacqGraph::equiv(SmacqGraph * a, SmacqGraph * b) {
   return true;
 }
 
-inline void SmacqGraph::merge_tails() {
+inline void SmacqGraphContainer::merge_tails() {
   std::set<SmacqGraph*> list;
   std::set<SmacqGraph*>::iterator lpa, lpb;
   list_tails(list);
@@ -31,13 +31,11 @@ inline void SmacqGraph::merge_tails() {
   /* n**2 comparison between each tails */
   for (lpa = list.begin(); lpa != list.end(); lpa++) {
     for (lpb = lpa; lpb != list.end(); lpb++) {
-      if (*lpa != *lpb && equiv(*lpa, *lpb)) {
+      if (*lpa != *lpb && SmacqGraph::equiv(*lpa, *lpb)) {
 	//fprintf(stderr, "tails %p and %p merging\n", *lpa, *lpb);
-	for (unsigned int i = (*lpb)->numparents; i; i--) {
+	while ((*lpb)->parent.size()) {
 	  (*lpb)->parent[0]->replace_child(*lpb, *lpa);
 	}
-
-	list.erase(lpb);
 
 	merge_tails(); // iterators hosed; start over
 	return;
@@ -120,8 +118,6 @@ void SmacqGraph::merge_redundant_children() {
       children[k][i]->merge_redundant_children();
     }
   }
-  
-  if (next_graph) next_graph->merge_redundant_children();
 }
 
 inline bool SmacqGraph::same_children(SmacqGraph * a, SmacqGraph * b) {
@@ -153,13 +149,10 @@ bool SmacqGraph::merge_redundant_parents() {
   FOREACH_CHILD(this, {
       if (child->merge_redundant_parents()) return true;
     });
-  if (next_graph) {
-    while (next_graph->merge_redundant_parents()) ;
-  }
 
-  for (int i = 0; i < numparents; i++) {
+  for (unsigned int i = 0; i < parent.size(); i++) {
     if (parent[i]->algebra.stateless) {
-      for (int j = i+1; j < numparents; j++) {
+      for (unsigned int j = i+1; j < parent.size(); j++) {
 	if (parent[i] != parent[j] && equiv(parent[i], parent[j]) && 
 	    same_children(parent[i], parent[j])) {
 
@@ -167,7 +160,7 @@ bool SmacqGraph::merge_redundant_parents() {
 
 	  // Tell grandparents to replace j
 	  SmacqGraph * departing = parent[j];
-	  while (departing->numparents) {
+	  while (departing->parent.size()) {
 	    assert(departing->parent[0] != parent[i]);
 	    departing->parent[0]->add_child(parent[i]);
 	    departing->parent[0]->remove_child(departing);
@@ -181,7 +174,7 @@ bool SmacqGraph::merge_redundant_parents() {
 	    });
 	    
 	  // Free j
-	  assert(departing->numparents == 0);
+	  assert(departing->parent.size() == 0);
 	  FOREACH_CHILD(departing, assert(!child));
 
 	  return true; // Iterators hosed, so ask to be restarted
@@ -193,21 +186,29 @@ bool SmacqGraph::merge_redundant_parents() {
   return false;
 }
 
-void SmacqGraph::merge_heads() {
-#ifndef SMACQ_OPT_NOHEADS
-  SmacqGraph * ap, * bp;
+class GraphVector : public std::vector<SmacqGraph*> {
+  public:
+	void erase(unsigned int i) {
+	   // Swap, drop, and roll...
+	   unsigned int last = size() - 1;
+	   if (i < last) 
+	   	(*this)[i] = (*this)[last];
+	   (*this)[last] = NULL;
+	   resize(last);
+	}
+};
 
+void SmacqGraphContainer::merge_heads() {
+#ifndef SMACQ_OPT_NOHEADS
   /* Merge identical heads */
-  for (ap = this; ap ; ap = ap->next_graph) {
-    SmacqGraph * bprev = ap;
-    for (bp = ap->next_graph; bp; bp=bp->nextGraph()) {
-      if (merge_nodes(ap, bp)) {
-	// Remove bp from list
-	bprev->next_graph = bp->next_graph;
-	bp->next_graph = NULL;
+  for (unsigned int i = 0; i < head.size(); i++) {
+    for (unsigned int j = 0; j < head.size(); j++) {
+      if (SmacqGraph::merge_nodes(head[i].get(), head[j].get())) {
+	// Remove j from list
+	head.erase(j);
 
 	// Fixup iterator
-	bp = bprev;
+	j--;
       }
     }
   }
@@ -216,7 +217,7 @@ void SmacqGraph::merge_heads() {
 #endif
 }
 
-void SmacqGraph::optimize() {
+void SmacqGraphContainer::optimize() {
 #if defined(SMACQ_DEBUG2) && !defined(SMACQ_NO_OPT)
   print(stderr, 8);
 #endif
@@ -236,13 +237,17 @@ void SmacqGraph::optimize() {
   //this->print(stderr, 15);
 
   // From the bottoms up, identify redundant parents
-  while (merge_redundant_parents()) ;
+  for (unsigned int i = 0; i < head.size(); i++) {
+    while (head[i]->merge_redundant_parents()) ;
+  }
 
   //fprintf(stderr, "Merged parents\n");
   //this->print(stderr, 15);
 
   // From the top down, identify redundant (twin) children
-  merge_redundant_children();
+  for (unsigned int i = 0; i < head.size(); i++) {
+  	head[i]->merge_redundant_children();
+  }
 
   //fprintf(stderr, "Merged children\n");
   //this->print(stderr, 15);

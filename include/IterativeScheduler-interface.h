@@ -3,6 +3,7 @@
 #include <smacq.h>
 #include <RunQ.h>
 #include <set>
+#include <SmacqGraph-interface.h>
 
 /// This is currently the only scheduler implementation.
 class IterativeScheduler {
@@ -14,16 +15,19 @@ public:
 
   /// Cue the head(s) of the given graph to start producing data.
   /// Otherwise data must be provided using the input() method.
-  void seed_produce(SmacqGraph*);
+  void seed_produce(SmacqGraphContainer*);
 
   /// Queue an object for input to the specified graph.
-  void input(SmacqGraph * g, DtsObject din);
+  void input(SmacqGraphContainer * g, DtsObject din);
 
   /// Run until an output object is ready.
   smacq_result get(DtsObject &dout);
 
   /// Process a single action or object
-  smacq_result IterativeScheduler::decide(SmacqGraph *, DtsObject din);
+  smacq_result decide(SmacqGraph *, DtsObject din);
+
+  /// Process a single action or object
+  smacq_result decide(SmacqGraphContainer *, DtsObject din);
 
   /// Run to completion.  
   /// Return false iff error.
@@ -37,12 +41,8 @@ public:
     SmacqGraph_ptr g;
     DtsObject d;
    
-    // Constructor 
-    ConsumeItem() {};
-  
-    // Copy constructor
-    ConsumeItem(ConsumeItem & old) : g(old.g), d(old.d) {};
-
+    ConsumeItem() : g(NULL), d(NULL) {};
+ 
     // The runq class will set to NULL to remove references
     ConsumeItem(void * v) : g(NULL), d(NULL) { assert(!v);};
   };
@@ -64,7 +64,7 @@ public:
 
   smacq_result decide_children(SmacqGraph * g, DtsObject din, int outchan);
 
-  runq<struct ConsumeItem> consumeq;
+  runq<ConsumeItem> consumeq;
   runq<SmacqGraph_ptr> produceq;
   runq<DtsObject> outputq;
 

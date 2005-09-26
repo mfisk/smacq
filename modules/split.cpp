@@ -42,7 +42,7 @@ smacq_result splitModule::consume(DtsObject datum, int & outchan) {
 	bucket = bucket++;
 	//fprintf(stderr, "Cloning %d\n", bucket);
         newClone = self->clone_tree(NULL);
-	newClone->init_all(dts);
+	newClone->init(dts);
 
 	// 0 return value is error, so everything is inflated by 1
     	hashtable[fieldvec] = bucket;

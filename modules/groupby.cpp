@@ -16,35 +16,32 @@ static struct smacq_options options[] = {
   END_SMACQ_OPTIONS
 };
 
-typedef FieldVecHash<SmacqGraph_ptr>::iterator OutputsIterator;
+typedef FieldVecHash<SmacqGraphContainer*>::iterator OutputsIterator;
 
 SMACQ_MODULE(groupby,
   PROTO_CTOR(groupby);
   PROTO_DTOR(groupby);
   PROTO_CONSUME();
 
-  SmacqScheduler * sched;
-	  
   FieldVec fieldvec;
-  SmacqGraph_ptr mastergraph;
+  SmacqGraphContainer * mastergraph;
   SmacqGraph * self;
 
-  FieldVecHash<SmacqGraph_ptr> outTable;
+  FieldVecHash<SmacqGraphContainer*> outTable;
 
   int refresh_type;
 
   void handle_invalidate(DtsObject datum);
-  SmacqGraph_ptr get_partition();
+  SmacqGraphContainer * get_partition();
 ); 
 
-inline SmacqGraph_ptr groupbyModule::get_partition() {
-  SmacqGraph_ptr partition;
+inline SmacqGraphContainer * groupbyModule::get_partition() {
+  SmacqGraphContainer * partition = outTable[fieldvec];
 
-  partition = outTable[fieldvec];
   if (!partition) {
     partition = mastergraph->clone(NULL);
     partition->share_children_of(self);
-    partition->init_all(dts, sched, false); // Already optimized
+    partition->init(dts, scheduler, false); // Already optimized
     fprintf(stderr, "new partition instance:\n");
     partition->print(stderr, 30);
     outTable[fieldvec] = partition;
@@ -59,9 +56,8 @@ inline void groupbyModule::handle_invalidate(DtsObject datum) {
 
   for (i=outTable.begin(); i != outTable.end();) {
     if (i->first.masks(fieldvec)) {
-      for (SmacqGraph * g = i->second.get(); g; g=g->nextGraph()) {
-      	SmacqGraph::do_shutdown(g); 
-      }
+      i->second->shutdown();
+      delete i->second;
       prev = i++;
       outTable.erase(prev);
     } else {
@@ -79,8 +75,8 @@ smacq_result groupbyModule::consume(DtsObject datum, int & outchan) {
   if (datum->gettype() == refresh_type) {
     handle_invalidate(datum);
   } else {
-    SmacqGraph_ptr p = get_partition();
-    sched->input(p.get(), datum);
+    SmacqGraphContainer * p = get_partition();
+    scheduler->input(p, datum);
   }
 
   return SMACQ_FREE;
@@ -89,15 +85,16 @@ smacq_result groupbyModule::consume(DtsObject datum, int & outchan) {
 groupbyModule::~groupbyModule() {
   OutputsIterator i;
   for (i=outTable.begin(); i != outTable.end(); ++i) {
-    SmacqGraph::do_shutdown(i->second.get());
+    i->second->shutdown();
+    delete i->second;
   }
   outTable.clear();
+
+  delete mastergraph;
 }
 
 groupbyModule::groupbyModule(struct SmacqModule::smacq_init * context) 
-  : SmacqModule(context), 
-    sched(context->scheduler),
-    self(context->self)
+  : SmacqModule(context), self(context->self)
 {
   int argc;
   char ** argv;
@@ -114,7 +111,7 @@ groupbyModule::groupbyModule(struct SmacqModule::smacq_init * context)
 			       options, optvals);
 
 	if (ptr.uint32_t) {
-		mastergraph = (SmacqGraph*)ptr.uint32_t;
+		mastergraph = (SmacqGraphContainer*)ptr.uint32_t;
 		if (print_graph.boolean_t) 
 			mastergraph->print(stderr, 15);
 		mastergraph->optimize();  // optimize now, before cloning

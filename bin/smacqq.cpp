@@ -9,11 +9,6 @@
 
 #define MAX_QUERY_SIZE 4096*100
 
-struct thread_args {
-  SmacqGraph_ptr f;
-  struct SmacqModule::smacq_init * context;
-};
-
 static struct smacq_options options[] = {
   {"t", {string_t:NULL}, "Describe the specified type", SMACQ_OPT_TYPE_STRING},
   {"m", {boolean_t:0}, "Multiple queries on STDIN", SMACQ_OPT_TYPE_BOOLEAN},
@@ -31,7 +26,7 @@ int main(int argc, char ** argv) {
   char ** qargv;
   DTS dts;
   FILE * fh;
-  SmacqGraph * graphs = NULL;
+  SmacqGraphContainer * graphs = NULL;
   DtsObject product;
 
   if (argc <= 1) {
@@ -92,19 +87,17 @@ int main(int argc, char ** argv) {
       }
 
       while(fgets(queryline, MAX_QUERY_SIZE, fh)) {
-	      SmacqGraph * newgraph;
-
 	      /* Chomp newline */
 	      if (queryline[strlen(queryline)-1] == '\n')
 		      queryline[strlen(queryline)-1] = '\0';
 
-	      newgraph = SmacqGraph::newQuery(&dts, &s, 1, &queryline);
+	      SmacqGraphContainer * newgraph = SmacqGraph::newQuery(&dts, &s, 1, &queryline);
 	      if (!newgraph) {
 		      fprintf(stderr, "Fatal error at line %d\n", qno);
 		      exit(-1);
 	      }
       	      if (graphs) {
-		graphs->add_graph(newgraph);
+		graphs->add_graph(newgraph, true);
 	      } else {
 		graphs = newgraph;
 	      }
@@ -120,7 +113,7 @@ int main(int argc, char ** argv) {
       graphs->print(stderr, 8);
   }
 
-  graphs->init_all(&dts, &s);
+  graphs->init(&dts, &s);
 
   if (showgraph.boolean_t) {
       graphs->print(stderr, 8);

@@ -10,14 +10,14 @@
 SMACQ_MODULE(lor,
 	     PROTO_CTOR(lor);
 	     
-	     SmacqGraph_ptr graphs;
+	     SmacqGraphContainer * graphs;
 	     SmacqScheduler * sched;
 	     void build_clause(char ** argv, int num);
 );
 
 void lorModule::build_clause(char ** argv, int num) {
   /* End of query */
-  SmacqGraph * g;
+  SmacqGraphContainer * g;
 
   //fprintf(stderr, "Build clause from %s(%p)+%d ... %s\n", argv[0], argv, num, argv[num-1]);
 
@@ -56,6 +56,6 @@ lorModule::lorModule(struct SmacqModule::smacq_init * context)
     }
   }
 
-  graphs->init_all(dts, context->scheduler);
-  context->self->replace(graphs.get());
+  graphs->init(dts, context->scheduler);
+  context->self->replace(graphs);
 }

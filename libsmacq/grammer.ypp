@@ -50,7 +50,7 @@
 %type <arithop> arithop
 
 %union {
-  SmacqGraph * graph;
+  SmacqGraphContainer * graph;
   struct arglist * arglist;
   struct vphrase vphrase;
   char * string;
