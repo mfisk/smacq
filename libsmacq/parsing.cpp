@@ -405,7 +405,7 @@ char * print_comparison(dts_comparison * comp) {
 
 SmacqGraphContainer * optimize_bools(dts_comparison * c) {
   struct arglist * arglist = NULL;
-  SmacqGraphContainer * g;
+  SmacqGraphContainer * g = NULL;
 
   if (c) {
     if (c->op == AND) {
@@ -768,7 +768,7 @@ SmacqGraphContainer * joinlist2graph(joinlist * joinlist, SmacqGraphContainer * 
   char gp[32];
   struct arglist * arglist = NULL;
   SmacqGraphContainer aliases;
-  SmacqGraphContainer * thisgraph;
+  SmacqGraphContainer * thisgraph = NULL;
   SmacqGraphContainer * graphs = new SmacqGraphContainer;
 
   for (; joinlist; joinlist=joinlist->next) {
@@ -789,6 +789,7 @@ SmacqGraphContainer * joinlist2graph(joinlist * joinlist, SmacqGraphContainer * 
     if (!joinlist->next || joinlist->next->graph) {
       // Last alias for this graph
 
+      assert(thisgraph);
       thisgraph->join(&aliases);
       aliases.clear();
 
