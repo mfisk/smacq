@@ -1,6 +1,6 @@
 #ifndef INTRUSIVE_PTR_HPP_INCLUDED
 #define INTRUSIVE_PTR_HPP_INCLUDED
-#define REFINFO
+//#define REFINFO
 
 // Keep optional debugging info 
 #ifdef REFINFO
