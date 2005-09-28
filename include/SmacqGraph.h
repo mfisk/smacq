@@ -436,11 +436,11 @@ inline void SmacqGraph::do_shutdown(SmacqGraph * f) {
   if (f->shutdown) {
     // Already shutdown, so do nothing
     // (This will happen when our children are shutdown).
-    fprintf(stderr, "do_shutdown(%p) already done\n", f);
+    //fprintf(stderr, "do_shutdown(%p) already done\n", f);
     return;
   }
 
-  fprintf(stderr, "do_shutdown(%p)\n", f);
+  //fprintf(stderr, "do_shutdown(%p)\n", f);
 
   f->shutdown = true;
   delete f->instance; // Call the destructor, which may callback to enqueue()
@@ -466,7 +466,7 @@ inline void SmacqGraph::do_shutdown(SmacqGraph * f) {
     }
   }
 
-  fprintf(stderr, "do_shutdown(%p) done\n", f);
+  //fprintf(stderr, "do_shutdown(%p) done\n", f);
 }
 
 /// Decrement the reference count.
