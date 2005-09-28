@@ -139,10 +139,14 @@ class DtsObject_ {
 	void decref();
 
 	/// Used by DtsObject (boost::intrusive_ptr)
-        friend void intrusive_ptr_add_ref(DtsObject_*o) { o->incref(); }
+        friend void intrusive_ptr_add_ref(DtsObject_*o) { 
+		o->incref(); 
+	}
 
 	/// Used by DtsObject (boost::intrusive_ptr)
-        friend void intrusive_ptr_release(DtsObject_*o) { o->decref(); }
+        friend void intrusive_ptr_release(DtsObject_*o) { 
+		o->decref(); 
+	}
 
 	/// Plain-C Wrapper
 	//friend void dts_decref(DtsObject d) { d->decref(); }
@@ -153,7 +157,7 @@ class DtsObject_ {
 	/// Increment refcount by the given number
 	//void incref(int);
 
-    void lock();
+     	void lock();
 	void unlock();
 
 	//int getrefcount() const { return refcount; }
@@ -278,6 +282,8 @@ inline void DtsObject_::decref() {
   --refcount;
   unlock();
 
+  //fprintf(stderr, "%p now %d, %d\n", this, refcount, usecount);
+
   if (refcount && refcount == usecount) {
     /* All of the things that refer to us have us as a "uses".
 	   Flush our fieldcache sense it's unnecessary.  
@@ -293,7 +299,6 @@ inline void DtsObject_::decref() {
 	refcount++;
 	fields.clear();
 	refcount--;
-	//fprintf(stderr, "now %d, %d\n", refcount, usecount);
   }
 
   if (!refcount) {
