@@ -19,10 +19,6 @@ class Counter {
 typedef std::map<void*,std::map<void*, Counter> > RefMap;
 extern RefMap REFS;
 
-#define INCREF ++REFS[this][p_];
-#define DECREF --REFS[this][p_];
-#else
-#define INCREF
 #endif
 
 //
@@ -64,6 +60,24 @@ private:
 
     typedef intrusive_ptr this_type;
 
+    void incref() {
+        if(p_ != 0) {
+		intrusive_ptr_add_ref(p_);
+#ifdef REFINFO
+		++REFS[this][p_];
+#endif
+	}
+    }
+
+    void decref() {
+        if(p_ != 0) {
+		intrusive_ptr_release(p_);
+#ifdef REFINFO
+		--REFS[this][p_];
+#endif
+	}
+    }
+
 public:
 
     typedef T element_type;
@@ -74,38 +88,26 @@ public:
 
     intrusive_ptr(T * p, bool add_ref = true): p_(p)
     {
-        if(p_ != 0 && add_ref) {
-		intrusive_ptr_add_ref(p_);
-		INCREF;
-	}
+	if (add_ref) incref();
     }
 
 #if !defined(BOOST_NO_MEMBER_TEMPLATES) || defined(BOOST_MSVC6_MEMBER_TEMPLATES)
 
     template<class U> intrusive_ptr(intrusive_ptr<U> const & rhs): p_(rhs.get())
     {
-        if(p_ != 0) {
-		intrusive_ptr_add_ref(p_);
-		INCREF;
-	}
+	incref();
     }
 
 #endif
 
     intrusive_ptr(intrusive_ptr const & rhs): p_(rhs.p_)
     {
-        if(p_ != 0) {
-		intrusive_ptr_add_ref(p_);
-		INCREF;
-	}
+        incref();
     }
 
     ~intrusive_ptr()
     {
-        if(p_ != 0) {
-		intrusive_ptr_release(p_);
-		DECREF;
-	}
+	decref();
     }
 
 #if !defined(BOOST_NO_MEMBER_TEMPLATES) || defined(BOOST_MSVC6_MEMBER_TEMPLATES)
@@ -114,11 +116,9 @@ public:
     {
 #ifdef REFINFO
 	// This is not exception safe
-	intrusive_ptr_release(p_);
-	DECREF;
+	decref();
 	p_ = rhs.p_;
-	intrusive_ptr_add_ref(p_);
-	INCREF;
+	incref();
 #else
         this_type(rhs).swap(*this);
 #endif
@@ -131,11 +131,9 @@ public:
     {
 #ifdef REFINFO
 	// This is not exception safe
-	intrusive_ptr_release(p_);
-	DECREF;
+	decref();
 	p_ = rhs.p_;
-	intrusive_ptr_add_ref(p_);
-	INCREF;
+	incref();
 #else
         this_type(rhs).swap(*this);
 #endif
@@ -146,11 +144,9 @@ public:
     {
 #ifdef REFINFO
 	// This is not exception safe
-	intrusive_ptr_release(p_);
-	DECREF;
+	decref();
 	p_ = rhs;
-	intrusive_ptr_add_ref(p_);
-	INCREF;
+	incref();
 #else
         this_type(rhs).swap(*this);
 #endif
