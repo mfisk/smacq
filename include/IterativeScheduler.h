@@ -35,7 +35,7 @@ inline void IterativeScheduler::enqueue(SmacqGraph * caller, DtsObject d, int ou
 
   // Schedule some consumes until we would recursively call one of the
   // modules already running. 
-  IterativeScheduler::ConsumeItem i;
+  ConsumeItem i;
   while (consumeq.peek(i) && !enqueue_stack.count(i.g.get())) {
     consumeq.pop(i);
     run_consume(i);
