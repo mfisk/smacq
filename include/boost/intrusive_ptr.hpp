@@ -1,5 +1,29 @@
 #ifndef INTRUSIVE_PTR_HPP_INCLUDED
 #define INTRUSIVE_PTR_HPP_INCLUDED
+#define REFINFO
+
+// Keep optional debugging info 
+#ifdef REFINFO
+
+// We just need an int that initializes to 0
+class Counter {
+   public:
+        Counter() : count(0) {};
+
+        short int operator++() { return ++count; }
+        short int operator--() { return --count; }
+
+        short int count;
+};
+#include <map>
+typedef std::map<void*,std::map<void*, Counter> > RefMap;
+extern RefMap REFS;
+
+#define INCREF ++REFS[this][p_];
+#define DECREF --REFS[this][p_];
+#else
+#define INCREF
+#endif
 
 //
 //  intrusive_ptr.hpp
@@ -50,33 +74,54 @@ public:
 
     intrusive_ptr(T * p, bool add_ref = true): p_(p)
     {
-        if(p_ != 0 && add_ref) intrusive_ptr_add_ref(p_);
+        if(p_ != 0 && add_ref) {
+		intrusive_ptr_add_ref(p_);
+		INCREF;
+	}
     }
 
 #if !defined(BOOST_NO_MEMBER_TEMPLATES) || defined(BOOST_MSVC6_MEMBER_TEMPLATES)
 
     template<class U> intrusive_ptr(intrusive_ptr<U> const & rhs): p_(rhs.get())
     {
-        if(p_ != 0) intrusive_ptr_add_ref(p_);
+        if(p_ != 0) {
+		intrusive_ptr_add_ref(p_);
+		INCREF;
+	}
     }
 
 #endif
 
     intrusive_ptr(intrusive_ptr const & rhs): p_(rhs.p_)
     {
-        if(p_ != 0) intrusive_ptr_add_ref(p_);
+        if(p_ != 0) {
+		intrusive_ptr_add_ref(p_);
+		INCREF;
+	}
     }
 
     ~intrusive_ptr()
     {
-        if(p_ != 0) intrusive_ptr_release(p_);
+        if(p_ != 0) {
+		intrusive_ptr_release(p_);
+		DECREF;
+	}
     }
 
 #if !defined(BOOST_NO_MEMBER_TEMPLATES) || defined(BOOST_MSVC6_MEMBER_TEMPLATES)
 
     template<class U> intrusive_ptr & operator=(intrusive_ptr<U> const & rhs)
     {
+#ifdef REFINFO
+	// This is not exception safe
+	intrusive_ptr_release(p_);
+	DECREF;
+	p_ = rhs.p_;
+	intrusive_ptr_add_ref(p_);
+	INCREF;
+#else
         this_type(rhs).swap(*this);
+#endif
         return *this;
     }
 
@@ -84,13 +129,31 @@ public:
 
     intrusive_ptr & operator=(intrusive_ptr const & rhs)
     {
+#ifdef REFINFO
+	// This is not exception safe
+	intrusive_ptr_release(p_);
+	DECREF;
+	p_ = rhs.p_;
+	intrusive_ptr_add_ref(p_);
+	INCREF;
+#else
         this_type(rhs).swap(*this);
+#endif
         return *this;
     }
 
     intrusive_ptr & operator=(T * rhs)
     {
+#ifdef REFINFO
+	// This is not exception safe
+	intrusive_ptr_release(p_);
+	DECREF;
+	p_ = rhs;
+	intrusive_ptr_add_ref(p_);
+	INCREF;
+#else
         this_type(rhs).swap(*this);
+#endif
         return *this;
     }
 

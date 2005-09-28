@@ -19,6 +19,25 @@ static struct smacq_options options[] = {
   END_SMACQ_OPTIONS
 };
 
+#ifdef REFINFO
+
+#include <signal.h>
+RefMap REFS;
+
+inline void print_refs(int x) {
+        FILE * fh = fopen("/tmp/smacq.refs", "w");
+        std::map<void*,std::map<void*, Counter> >::iterator i;
+        std::map<void*, Counter>::iterator j;
+        for (i=REFS.begin(); i != REFS.end(); ++i) {
+           for (j=i->second.begin(); j != i->second.end(); ++j) {
+                if (j->second.count) {
+                   fprintf(fh, "%p\t%p\t%hd\n", i->first, j->first, j->second.count);
+                }
+           }
+        }
+        fclose(fh);
+}
+#endif
 
 int main(int argc, char ** argv) {
   smacq_opt multiple, optimize, qfile, showpregraph, showgraph, showtype, quiet;
@@ -28,6 +47,10 @@ int main(int argc, char ** argv) {
   FILE * fh;
   SmacqGraphContainer * graphs = NULL;
   DtsObject product;
+
+#ifdef REFINFO
+  signal(SIGUSR1, print_refs);
+#endif REFINFO
 
   if (argc <= 1) {
 	  fprintf(stderr, "Usage: %s [-m] query\n", argv[0]);
