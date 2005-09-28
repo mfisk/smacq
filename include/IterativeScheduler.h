@@ -120,6 +120,10 @@ inline void IterativeScheduler::run_consume(ConsumeItem & i) {
     //fprintf(stderr, "Pass on %p to chan %d by %p\n", i.d.get(), outchan, i.g.get());
     queue_children(i.g.get(), i.d, outchan);
   }
+
+  if (retval & (SMACQ_PRODUCE|SMACQ_CANPRODUCE)) {
+    run_produce(i.g.get());
+  }
 	
   if (retval & SMACQ_END) {
     SmacqGraph::do_shutdown(i.g.get());
