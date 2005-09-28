@@ -50,7 +50,7 @@ int main(int argc, char ** argv) {
 
 #ifdef REFINFO
   signal(SIGUSR1, print_refs);
-#endif REFINFO
+#endif
 
   if (argc <= 1) {
 	  fprintf(stderr, "Usage: %s [-m] query\n", argv[0]);
