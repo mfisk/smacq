@@ -3,12 +3,19 @@
 #include <IterativeScheduler-interface.h>
 #include <SmacqGraph.h>
 
+inline void IterativeScheduler::seed_produce(SmacqGraph * startf) {
+   produceq.enqueue(startf);
+}
+	
 inline void IterativeScheduler::seed_produce(SmacqGraphContainer * startf) {
   for (unsigned int h = 0; h < startf->head.size(); h++) {
     // Force first guy to produce
     // We should be a stub and should pass this to children
-    assert(!startf->head[h]->argc);
-    FOREACH_CHILD(startf->head[h], produceq.enqueue(child));
+    if (!startf->head[h]->argc) {
+    	FOREACH_CHILD(startf->head[h], produceq.enqueue(child));
+    } else {
+	seed_produce(startf->head[h].get());
+    }
   }
 }
 
