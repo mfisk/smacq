@@ -4,11 +4,24 @@
 #include <dts-module.h>
 
 static int smacqtype_bytes_get_string(DtsObject o, DtsObject field) {
-  field->setsize(o->getsize()+1);
-  memcpy(field->getdata(), o->getdata(), o->getsize());
+  field->setsize((4*o->getsize())+1);
+  
+  char * p = (char*)o->getdata();
+  char * end = p + o->getsize();
+  char * dp = (char*)field->getdata();
+
+  while (p < end) {
+     if (*p < 0x20 || *p > 0x7E) { // Not human-readable
+	// Hex escape it
+	dp += sprintf(dp, "\\x%.2hhx", *p);
+	p++;
+     } else {
+	*dp++ = *p++;
+     }
+  }
 
   /* Make sure it's NULL terminated */
-  memset(field->getdata() + o->getsize(), '\0', 1); 
+  *dp++ = '\0';
 
   return 1;
 }
@@ -20,9 +33,9 @@ static int smacqtype_bytes_url_decode(DtsObject o, DtsObject field) {
 
   hex[2] = '\0';
   field->setsize(o->getsize());
-  p = (unsigned char*)o->getdata();
+  p = o->getdata();
   end = p + o->getsize();
-  dp = (unsigned char*)field->getdata();
+  dp = field->getdata();
 
   while (p < end) {
 	  if (*p == '%' && (p+2 < end)) {
