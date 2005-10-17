@@ -150,16 +150,12 @@ smacq_result pcapfileModule::consume(DtsObject fileo, int & outchan) {
 }
 
 smacq_result pcapfileModule::produce(DtsObject &datum, int & outchan) {
-    fprintf(stderr, "pcapfile produce\n");
     if (!fh) return SMACQ_FREE;
 
     struct old_pcap_pkthdr * hdrp;
     struct dts_pkthdr * pkt;
 
-    datum  = dts->newObject(dts_pkthdr_type, 
-			 pcap_file_header.snaplen 
-			 + sizeof(struct dts_pkthdr) 
-			 + sizeof(struct extended_pkthdr));
+    datum  = dts->newObject(dts_pkthdr_type, pcap_file_header.snaplen + hdr_size);
 
     pkt = (struct dts_pkthdr*)datum->getdata();
 
@@ -170,8 +166,7 @@ smacq_result pcapfileModule::produce(DtsObject &datum, int & outchan) {
     }
 
     fixup_pcap(hdrp);
-    datum->setsize(datum->getsize() + hdrp->caplen - pcap_file_header.snaplen);
-  
+
     datum->attach_field(linktype_field, linktype_o);
     datum->attach_field(snaplen_field, snaplen_o);
 
@@ -195,6 +190,9 @@ smacq_result pcapfileModule::produce(DtsObject &datum, int & outchan) {
       return SMACQ_FREE;
     }
 
+    // Shrink size to caplen plus metadata
+    datum->setsize(hdrp->caplen + sizeof(*hdrp));
+  
     return SMACQ_PASS|SMACQ_PRODUCE;
 }
 
