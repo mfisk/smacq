@@ -36,6 +36,15 @@ static int smacqtype_timeval_get_string(DtsObject o, DtsObject field) {
   return 1;
 }
 
+static int smacqtype_timeval_get_sql(DtsObject o, DtsObject field) {
+  struct timeval_32 * t = (struct timeval_32 *)o->getdata();
+  struct tm tm;
+  field->setsize(32);
+  strftime((char*)field->getdata(), 32, "%Y-%m-%d %T", localtime_r((time_t*)&(t->tv_sec), &tm));
+  
+  return 1;
+}
+
 static int smacqtype_timeval_get_ctime(DtsObject o, DtsObject field) {
   struct timeval_32 * t = (struct timeval_32 *)o->getdata();
   struct tm tm;
@@ -84,6 +93,7 @@ struct dts_field_spec dts_type_timeval_fields[] = {
   { "string",		"string",	smacqtype_timeval_get_string },
   { "string",		"ctime",	smacqtype_timeval_get_ctime },
   { "string",		"date",	smacqtype_timeval_get_date },
+  { "string",		"sql",	smacqtype_timeval_get_sql },
   { "double", 	"double",	smacqtype_timeval_get_double },
   { "uint32", 	"sec",	smacqtype_timeval_get_sec },
   { "time", 	"time",	smacqtype_timeval_get_sec },

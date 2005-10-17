@@ -34,6 +34,15 @@ static int smacqtype_ntime_get_ctime(DtsObject o, DtsObject field) {
   return 1;
 }
 
+static int smacqtype_ntime_get_sql(DtsObject o, DtsObject field) {
+  struct tm tm;
+  time_t t = ntohl(dts_data_as(o, uint32_t));
+  field->setsize(32);
+  strftime((char*)field->getdata(), 32, "%Y-%m-%d %T", localtime_r(&t, &tm));
+ 
+  return 1;
+}
+
 static int smacqtype_ntime_get_date(DtsObject o, DtsObject field) {
   struct tm tm;
   time_t t = ntohl(dts_data_as(o, uint32_t));
@@ -53,6 +62,7 @@ static int parse_timeval(const char* buf,  DtsObject d) {
 struct dts_field_spec dts_type_ntime_fields[] = {
   { "time",	"time",		smacqtype_ntime_get_time },
   { "string",	"string",	smacqtype_ntime_get_string },
+  { "string",	"sql",		smacqtype_ntime_get_sql },
   { "string",	"ctime",	smacqtype_ntime_get_ctime },
   { "string",	"date",		smacqtype_ntime_get_date },
   { "double",	"double",	smacqtype_ntime_get_double },
