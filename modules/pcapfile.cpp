@@ -170,6 +170,7 @@ smacq_result pcapfileModule::produce(DtsObject &datum, int & outchan) {
     }
 
     fixup_pcap(hdrp);
+    datum->setsize(datum->getsize() + hdrp->caplen - pcap_file_header.snaplen);
   
     datum->attach_field(linktype_field, linktype_o);
     datum->attach_field(snaplen_field, snaplen_o);
