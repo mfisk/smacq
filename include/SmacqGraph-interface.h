@@ -37,7 +37,13 @@ class SmacqGraphContainer {
   friend class IterativeScheduler;
 
   public:
-    
+   
+  /// Default CTOR
+  SmacqGraphContainer::SmacqGraphContainer() { }
+
+  /// Construct from a vector of Children
+  SmacqGraphContainer::SmacqGraphContainer(PointerVector<SmacqGraph_ptr> & children); 
+ 
   /// This method must be called before the graphs are used.
   void init(DTS *, SmacqScheduler *, bool do_optimize = true);
 
@@ -51,6 +57,9 @@ class SmacqGraphContainer {
 
   /// Print the graphs
   void print(FILE * fh, int indent);
+
+  /// Print the graph in re-parsable syntax
+  std::string print_query();
 
   /// @name Combining Graphs
   /// A container can have multiple heads and tails and
@@ -79,7 +88,7 @@ class SmacqGraphContainer {
   SmacqGraphContainer * clone(SmacqGraph * newParent);
 
   /// Return a subgraph containing only invariants over the specified field.
-  /// The subgraph will contain only stateless filters that are applied to
+  /// The subgraph will contain only boolean filters that are applied to
   /// all objects in the graph (e.g. not within an OR) and that do NOT use 
   /// the specified field.  The returned graph is newly allocated.
   SmacqGraph * getInvariants(DTS*, SmacqScheduler*, DtsField&);
@@ -93,6 +102,7 @@ class SmacqGraphContainer {
     void merge_heads();
     void merge_tails();
     void list_tails(std::set<SmacqGraph*> &);
+
 };
 
 /// A graph of SmacqGraphNode nodes. 
@@ -156,7 +166,11 @@ class SmacqGraph : public SmacqGraphNode {
   SmacqGraph * clone(SmacqGraph * newParent);
   /// @}
 
+  /// Print the graph
   void print(FILE * fh, int indent);
+
+  /// Print the graph in re-parsable syntax
+  std::string print_query();
 
   /// @name Invariant Optimization
   /// @{
@@ -176,7 +190,14 @@ class SmacqGraph : public SmacqGraphNode {
   /// The node may be destroyed by this call.
   static void do_shutdown(SmacqGraph * f);
 
+  /// Attempt to distribute children of this graph.  Return true iff successful.
+  bool distribute_children(DTS *);
+
  private:
+  /// Print a node and recurse up.
+  std::string print_query_tail();
+
+  SmacqGraphContainer * distribute_rejoin();
   void init_node(DTS *, SmacqScheduler *);
   void init_node_recursively(DTS *, SmacqScheduler *);
   int print_one(FILE * fh, int indent);
