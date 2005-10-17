@@ -1,3 +1,4 @@
+#define SMACQ_MODULE_IS_STATELESS 1
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -11,6 +12,8 @@
 SMACQ_MODULE(pcapfile, 
   PROTO_CTOR(pcapfile);
   PROTO_CONSUME();
+  PROTO_PRODUCE();
+  PROTO_DTOR(pcapfile);
 
   void fixup_pcap(struct old_pcap_pkthdr * hdr);
   void parse_pcapfile(struct pcap_file_header * hdr);
@@ -21,6 +24,8 @@ SMACQ_MODULE(pcapfile,
   /* Booleans */
   bool swapped;
   bool extended;
+
+  StrucioStream * fh;
 
   unsigned int hdr_size;
   struct pcap_file_header pcap_file_header;
@@ -118,38 +123,39 @@ void pcapfileModule::fixup_pcap(struct old_pcap_pkthdr * hdr) {
 }
 
 smacq_result pcapfileModule::consume(DtsObject fileo, int & outchan) {
-  StrucioStream * fh = StrucioStream::MagicOpen(fileo);
-  if (fh) {
-    if (sizeof(struct pcap_file_header) != fh->Read(&pcap_file_header, sizeof(struct pcap_file_header))) {
-      perror("pcapfileModule");
-      exit(-1);
-    }
+  fh = StrucioStream::MagicOpen(fileo);
+
+  if (!fh) {
+    return SMACQ_FREE;
+  }
+
+  if (sizeof(struct pcap_file_header) != fh->Read(&pcap_file_header, sizeof(struct pcap_file_header))) {
+    perror("pcapfileModule");
+    exit(-1);
+  }
   
-    parse_pcapfile(&pcap_file_header);
+  parse_pcapfile(&pcap_file_header);
 
-    //  fprintf(stderr, "pcapfile: Opening %s for read ( ", filename);
-    fprintf(stderr, "pcapfile: Opening file ( ");
+  //  fprintf(stderr, "pcapfile: Opening %s for read ( ", filename);
+  fprintf(stderr, "pcapfile: Opening file ( ");
 
-    if (swapped) fprintf(stderr, "byte-swapped ");
-    else fprintf(stderr, "host-byte-order ");
+  if (swapped) fprintf(stderr, "byte-swapped ");
+  else fprintf(stderr, "host-byte-order ");
 
-    if (extended) fprintf(stderr, "extended-header ");
+  if (extended) fprintf(stderr, "extended-header ");
 
-    fprintf(stderr, ")\n");
+  fprintf(stderr, ")\n");
 
-    parse_packets(fh);
- }
-
- return SMACQ_FREE;
+  return SMACQ_FREE|SMACQ_PRODUCE;
 }
 
-void pcapfileModule::parse_packets(StrucioStream * fh) {
-  struct old_pcap_pkthdr * hdrp;
-  struct dts_pkthdr * pkt;
+smacq_result pcapfileModule::produce(DtsObject &datum, int & outchan) {
+    fprintf(stderr, "pcapfile produce\n");
+    if (!fh) return SMACQ_FREE;
 
-  DtsObject datum;
+    struct old_pcap_pkthdr * hdrp;
+    struct dts_pkthdr * pkt;
 
-  while (1) {
     datum  = dts->newObject(dts_pkthdr_type, 
 			 pcap_file_header.snaplen 
 			 + sizeof(struct dts_pkthdr) 
@@ -159,7 +165,8 @@ void pcapfileModule::parse_packets(StrucioStream * fh) {
 
     hdrp = &pkt->pcap_pkthdr;
     if (hdr_size != fh->Read(hdrp, hdr_size)) {
-	return;
+	// fprintf(stderr, "pcapfile: error reading packet header\n");  // Probably normal EOF
+	return SMACQ_FREE;
     }
 
     fixup_pcap(hdrp);
@@ -184,14 +191,13 @@ void pcapfileModule::parse_packets(StrucioStream * fh) {
     //fprintf(stderr, "reading packet of caplen %d\n", hdrp->caplen);
     if (hdrp->caplen != fh->Read(hdrp + 1, hdrp->caplen)) {
       fprintf(stderr, "pcapfile: Error: Premature end of file\n");
-      return;
+      return SMACQ_FREE;
     }
 
-    enqueue(datum);
-  }
+    return SMACQ_PASS|SMACQ_PRODUCE;
 }
 
-pcapfileModule::pcapfileModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
+pcapfileModule::pcapfileModule(struct SmacqModule::smacq_init * context) : SmacqModule(context), fh(NULL) {
   SmacqFileModule(context);
 
   snaplen_type = dts->requiretype("int");
@@ -212,3 +218,6 @@ pcapfileModule::pcapfileModule(struct SmacqModule::smacq_init * context) : Smacq
   assert(dts_pkthdr_type);
 }
 
+pcapfileModule::~pcapfileModule() {
+  if (fh) delete fh;
+}
