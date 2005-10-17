@@ -2,6 +2,7 @@
 #define SMACQ_GRAPH_H
 #include <SmacqGraph-interface.h>
 #include <IterativeScheduler-interface.h>
+#include <string>
 
 inline SmacqGraph::~SmacqGraph() {
   do_shutdown(this);
@@ -314,6 +315,71 @@ inline void SmacqGraphContainer::print(FILE * fh, int indent) {
   }
 }
 
+inline std::string SmacqGraph::print_query_tail() {
+  std::string s("((");
+  for (int i = 0; i < argc; ++i) {
+	s += argv[i];
+	s += " ";
+  }
+  s += ")";
+
+  // Recurse updwards
+  if (parent.size()) {
+	s += "from (";
+  	for (unsigned int i = 0; i < parent.size(); ++i) {
+		if (i > 0) {
+			s += " + ";
+		}
+		s += parent[i]->print_query_tail();
+	}
+	s += ")";
+  }
+
+  s += ")";
+
+  return s;
+}
+
+inline std::string SmacqGraph::print_query() {
+  std::string s;
+  std::set<SmacqGraph*> list;
+  std::set<SmacqGraph*>::iterator i;
+  list_tails(list);
+  bool first = true;
+
+  for(i = list.begin(); i != list.end(); ++i) {
+	if (!first) {
+	  s += " + ";
+	} else {
+	  first = false;
+        }
+		
+	s += (*i)->print_query_tail();
+  }
+  return s;
+}
+
+/// This function is IDENTICAL to SmacqGraph::print_query().
+/// So much for polymorphism
+inline std::string SmacqGraphContainer::print_query() {
+  std::string s;
+  std::set<SmacqGraph*> list;
+  std::set<SmacqGraph*>::iterator i;
+  list_tails(list);
+  bool first = true;
+
+  for(i = list.begin(); i != list.end(); ++i) {
+	if (!first) {
+	  s += " + ";
+	} else {
+	  first = false;
+        }
+		
+	s += (*i)->print_query_tail();
+  }
+  return s;
+}
+
 inline void SmacqGraph::add_parent(SmacqGraph * p) {
   parent.push_back(p);
 }		
@@ -483,5 +549,12 @@ inline void intrusive_ptr_release(SmacqGraph *o) {
 		}
 	}
 }
+
+inline SmacqGraphContainer::SmacqGraphContainer(PointerVector<SmacqGraph_ptr> & children) {
+  for (unsigned int i = 0; i > children.size(); ++i) {
+	add_graph(children[i].get());
+  }
+}
+
 #endif
 
