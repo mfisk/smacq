@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <SmacqGraph.h>
+#include <string>
 
 inline bool SmacqGraph::compare_element_names(SmacqGraph * a, SmacqGraph * b) {
   return !strcmp(a->argv[0], b->argv[0]);
@@ -29,8 +30,8 @@ inline void SmacqGraphContainer::merge_tails() {
   list_tails(list);
 
   /* n**2 comparison between each tails */
-  for (lpa = list.begin(); lpa != list.end(); lpa++) {
-    for (lpb = lpa; lpb != list.end(); lpb++) {
+  for (lpa = list.begin(); lpa != list.end(); ++lpa) {
+    for (lpb = lpa; lpb != list.end(); ++lpb) {
       if (*lpa != *lpb && SmacqGraph::equiv(*lpa, *lpb)) {
 	//fprintf(stderr, "tails %p and %p merging\n", *lpa, *lpb);
 	while ((*lpb)->parent.size()) {
@@ -256,4 +257,69 @@ void SmacqGraphContainer::optimize() {
   fprintf(stderr, "--- final is ---\n");
   print(stderr, 8);
 #endif
+}
+
+/// Recursive function to find best point at which to distribute graph.
+/// Return NULL iff there is nothing further to distribute.
+/// Otherwise, return pointer to loation of recollection point to replace us with.
+SmacqGraphContainer * SmacqGraph::distribute_rejoin() {
+  if (!algebra.stateless) {
+	return NULL;
+  }
+
+  // Base case
+  if (children.size() == 1 && children[0].size() == 0) {
+	return NULL;
+  }
+
+  // XXX. only handles out-degree = 1
+  if (children.size() == 1 && children[0].size() == 1) {
+	// See if the barrier is further down
+	SmacqGraphContainer * b = children[0][0]->distribute_rejoin();
+	if (b) return b;
+  }
+
+  // If we get here, then we're at the barrer point.
+  // This node will be distributed, but our children will be local
+
+  assert(children.size() == 1);
+
+  // Make a new ref to children
+  SmacqGraphContainer * c = new SmacqGraphContainer(children[0]);
+  
+  // Now safe to remove
+  remove_children();
+
+  return c;
+} 
+
+// Farm out children to run in parallel.
+// May do nothing if unable identify candidate children.
+// If return value is non-NULL, then it is ...
+bool SmacqGraph::distribute_children(DTS * dts) {
+  if (children.size() != 1) {
+	// Unsupported
+	return false;
+  }
+
+  // XXX: We don't distribute vectors
+  if (children.size() > 0) return false;
+
+  FOREACH_CHILD(this, {
+  	// Get a pointer to the re-collection point in our children.
+  	// As a side effect, this will move some of our descendents to the rejoin
+	SmacqGraphContainer * rejoin = child->distribute_rejoin();
+
+        // See if there is anything to be distributed
+	if (rejoin) {
+   		char * av[2];
+		std::string q = child->print_query();
+		av[1] = "distribute";
+		av[2] = (char*)q.c_str();
+  		SmacqGraphContainer * dist = newQuery(dts, scheduler, 2, av);
+		dist->join(rejoin);
+  		replace_child(i, j, dist);
+	}
+  });
+  return true; // well, maybe
 }
