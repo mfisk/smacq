@@ -90,28 +90,32 @@ static inline int getipfield(DtsObject datum, DtsObject data, int offset) {
 */
 int dts_pkthdr_get_packet(DtsObject datum, DtsObject data) {
 	data->setdata(datum->getdata() + sizeof(struct dts_pkthdr));
-	data->setsize(get_pcap(datum)->pcap_pkthdr.caplen);
+	data->setsize(datum->getsize() - sizeof(struct dts_pkthdr));
+	//fprintf(stderr, "packet is %d bytes vs. caplen of %d bytes\n", data->getsize(), get_pcap(datum)->pcap_pkthdr.caplen);
+
 	return 1;
 }
 
 int dts_pkthdr_get_payload(DtsObject datum, DtsObject data) {
 	//struct ip * iphdr = get_ip(datum);
 	struct tcphdr * tcphdr = get_tcp(datum);
-	struct udphdr * udphdr;
 
 	if (tcphdr) {
 		data->setdata(((char*)tcphdr) + tcphdr->th_off * 4);
 		data->setsize(datum->getsize() + (unsigned long)datum->getdata() - (unsigned long)data->getdata());
+		//fprintf(stderr, "payload is %d bytes of %d at %p of %p\n", data->getsize(), datum->getsize(), data->getdata(), datum->getdata());
 		return 1;
 	}
 
-	udphdr = get_udp(datum);
+	struct udphdr * udphdr = get_udp(datum);
 
 	if (udphdr) {
 		data->setdata(udphdr+1);
 		data->setsize(datum->getsize() + (unsigned long)datum->getdata() - (unsigned long)data->getdata());
 		return 1;
 	}
+
+	// Give up decoding (XXX: Handle ICMP echo)
 	return 0;
 }
 
