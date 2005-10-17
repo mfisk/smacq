@@ -17,6 +17,9 @@ public:
   /// Otherwise data must be provided using the input() method.
   void seed_produce(SmacqGraphContainer*);
 
+  /// Cue the graph to start producing data
+  void seed_produce(SmacqGraph * startf);
+
   /// Queue an object for input to the specified graph.
   void input(SmacqGraphContainer * g, DtsObject din);
 
