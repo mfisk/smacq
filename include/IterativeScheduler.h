@@ -69,10 +69,10 @@ inline void IterativeScheduler::queue_children(SmacqGraph * f, DtsObject d, int 
   assert (f->instance > (void*)1000);
 
   if (f->children[outchan].size()) {
-    //fprintf(stderr, "queueing %p for children of %s (%p)\n", d.get(), f->name, f);
+    //fprintf(stderr, "queueing %p for children of %s (%p)\n", d.get(), f->argv[0], f);
     for (unsigned int i=0; i < f->children[outchan].size(); i++) {
       assert(f->children[outchan][i]);
-      //fprintf(stderr, "\tchild %d: %s (%p)\n", i, f->children[outchan][i]->name, f->children[outchan][i]);
+      //fprintf(stderr, "\tchild %d: %s (%p)\n", i, f->children[outchan][i]->argv[0], f->children[outchan][i].get());
       runable(f->children[outchan][i].get(), d);
     }
   } else {
@@ -85,24 +85,23 @@ inline smacq_result IterativeScheduler::run_produce(SmacqGraph * f) {
   int outchan = 0;
   DtsObject d = NULL;
 
-  smacq_result pretval = f->instance->produce(d, outchan);
+  while (1) {
+    smacq_result pretval = f->instance->produce(d, outchan);
 
-  if (pretval & SMACQ_PASS) {
-    queue_children(f, d, outchan);		
+    if (pretval & SMACQ_PASS) {
+      queue_children(f, d, outchan);		
+    }
+
+    if (pretval & SMACQ_END) {
+      //assert(!(pretval & (SMACQ_PRODUCE|SMACQ_CANPRODUCE)));
+  
+      SmacqGraph::do_shutdown(f);
+    } else if (pretval & (SMACQ_PRODUCE|SMACQ_CANPRODUCE)) {
+      continue; // Keep producing
+    }
+
+    return pretval;
   }
-
-  if (pretval & (SMACQ_PRODUCE|SMACQ_CANPRODUCE)) {
-    /* Come back for more */
-    produceq.enqueue(f);
-  }
-
-  if (pretval & SMACQ_END) {
-    assert(!(pretval & (SMACQ_PRODUCE|SMACQ_CANPRODUCE)));
-
-    SmacqGraph::do_shutdown(f);
-  }
-
-  return pretval;
 }
     
 /// Return true iff the datum was passed.
