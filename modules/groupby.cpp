@@ -42,8 +42,8 @@ inline SmacqGraphContainer * groupbyModule::get_partition() {
     partition = mastergraph->clone(NULL);
     partition->share_children_of(self);
     partition->init(dts, scheduler, false); // Already optimized
-    fprintf(stderr, "new partition instance:\n");
-    partition->print(stderr, 30);
+    //fprintf(stderr, "new partition instance:\n");
+    //partition->print(stderr, 30);
     outTable[fieldvec] = partition;
   } 
 
@@ -67,8 +67,7 @@ inline void groupbyModule::handle_invalidate(DtsObject datum) {
 }
 
 smacq_result groupbyModule::consume(DtsObject datum, int & outchan) {
-  //fprintf(stderr , "groupby got %p a type %d (refresh is %d)\n", 
-  //datum.get(), datum->gettype(), refresh_type);
+  // fprintf(stderr , "groupby got %p a type %d (refresh is %d)\n", datum.get(), datum->gettype(), refresh_type);
 
   if (! fieldvec.getfields(datum)) return SMACQ_FREE;
 
@@ -83,8 +82,10 @@ smacq_result groupbyModule::consume(DtsObject datum, int & outchan) {
 }
 
 groupbyModule::~groupbyModule() {
+  // fprintf(stderr, "groupby: shutddown\n");
   OutputsIterator i;
   for (i=outTable.begin(); i != outTable.end(); ++i) {
+    // fprintf(stderr, "groupby: shutddown %p\n", i->second);
     i->second->shutdown();
     delete i->second;
   }
