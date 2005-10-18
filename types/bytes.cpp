@@ -4,14 +4,14 @@
 #include <dts-module.h>
 
 static int smacqtype_bytes_get_string(DtsObject o, DtsObject field) {
-  field->setsize((4*o->getsize())+1);
+  field->setsize((4 * o->getsize()) +1); // Worst case is all hex plus a NULL terminator
   
   char * p = (char*)o->getdata();
   char * end = p + o->getsize();
   char * dp = (char*)field->getdata();
 
   while (p < end) {
-     if (*p < 0x20 || *p > 0x7E) { // Not human-readable
+     if (*p < 0x20 || *p > 0x7E || *p == '\\') { // Not human-readable
 	// Hex escape it
 	dp += sprintf(dp, "\\x%.2hhx", *p);
 	p++;
