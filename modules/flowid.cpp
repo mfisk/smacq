@@ -23,6 +23,8 @@ static struct smacq_options options[] = {
 
 class SrcStat {
  public:
+  SrcStat() : byte_count(0), byte_count_back(0), packet_count(0), packet_count_back(0), hash_entry(NULL), timer_entry(NULL) {}
+
   struct timeval starttime, lasttime, timer_index;
   int id;
 
