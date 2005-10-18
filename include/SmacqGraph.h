@@ -112,9 +112,9 @@ inline void SmacqGraphContainer::init(DTS * dts, SmacqScheduler * sched, bool do
 
 /// Shutdown graphs
 inline void SmacqGraphContainer::shutdown() {
-  for (unsigned int i = 0; i < head.size(); i++) {
-	SmacqGraph::do_shutdown(head[i].get());
-	head.erase(i);
+  while (head.size()) {
+	SmacqGraph::do_shutdown(head[0].get());
+	head.erase(0);
   }
 }
 
@@ -287,6 +287,7 @@ inline void SmacqGraph::remove_children() {
         // Remove all children of element "el"
         while (children[el].size()) {
                 unsigned int el2 = children[el].size() - 1;
+		//fprintf(stderr, "remove_children %p of %p\n", children[el][el2].get(), this);
                 remove_child(el,el2);
         }
         children.pop_back();
