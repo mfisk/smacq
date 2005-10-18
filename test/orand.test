@@ -1,1 +1,1 @@
-print srcip, ipid, payload from pcapfile(0325@1112-snort.pcap) where ipid < 1000 or (ipid > 1000 and mask(srcip, 192.168.0.200/32))
+print srcip, ipid from pcapfile(0325@1112-snort.pcap) where ipid < 1000 or (ipid > 1000 and mask(srcip, 192.168.0.200/32))
