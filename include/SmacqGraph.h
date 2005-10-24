@@ -264,6 +264,15 @@ inline void SmacqGraph::replace_child(int i, int j, SmacqGraph * newchild) {
 inline void SmacqGraph::remove_child(int i, int j) {
   //assert(!algebra.demux && !algebra.vector); //okay when called from shutdown
   children[i][j]->remove_parent(this);
+
+  /*
+  // Debugging output
+  fprintf(stderr, "child %p losing parent %p, whose refcount is down to %d\n", children[i][j].get(), this, children[i][j]->refcount);
+  if (children[i][j]->parent.size()) {
+	fprintf(stderr, "child %p still has parent %p\n", children[i][j].get(), children[i][j]->parent[0]);
+  }
+  */
+  
   children[i].erase(j);
 }
 
