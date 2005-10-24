@@ -793,7 +793,7 @@ SmacqGraphContainer * joinlist2graph(joinlist * joinlist, SmacqGraphContainer * 
       thisgraph->join(&aliases);
       aliases.clear();
 
-      graphs->add_graph(thisgraph);
+      graphs->add_graph(thisgraph, true);
     }
 
     arglist = arglist_append(arglist, newarg(joinlist->name, (argtype)0, NULL));
