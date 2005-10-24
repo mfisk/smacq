@@ -166,7 +166,7 @@ parenquery:
 	| function			{ $$ = newmodule($1, NULL); }
 	| '(' parenquery '+' moreparenquery ')'
 	   {
-		$2->add_graph($4);
+		$2->add_graph($4, true);
 		$$ = $2;
 	   }
 	;
@@ -175,7 +175,7 @@ moreparenquery:
 	parenquery
 	| parenquery '+' moreparenquery
 	   {
-		$1->add_graph($3);
+		$1->add_graph($3, true);
 		$$ = $1;
 	   }
 	;
