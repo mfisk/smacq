@@ -159,24 +159,16 @@ bool SmacqGraph::merge_redundant_parents() {
 
 	  //fprintf(stderr, "merging redundant parents %p and %p\n", parent[i], parent[j]);
 
+	  SmacqGraph_ptr departing = parent[j];
+
 	  // Tell grandparents to replace j
-	  SmacqGraph * departing = parent[j];
 	  while (departing->parent.size()) {
 	    assert(departing->parent[0] != parent[i]);
 	    departing->parent[0]->add_child(parent[i]);
-	    departing->parent[0]->remove_child(departing);
+	    departing->parent[0]->remove_child(departing.get());
 	  }
 	  
-	  // Now that nothing will come from j, we can remove it
-	  FOREACH_CHILD(departing, {
-	      assert(child);  // Remove compiler warning
-	      departing->remove_child(i,j);
-	      j--; // Fixup iterator
-	    });
-	    
-	  // Free j
-	  assert(departing->parent.size() == 0);
-	  FOREACH_CHILD(departing, assert(!child));
+	  departing->remove_children();
 
 	  return true; // Iterators hosed, so ask to be restarted
 	}
