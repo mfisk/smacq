@@ -273,6 +273,7 @@ SmacqGraphContainer * SmacqGraph::distribute_rejoin() {
 
   // If we get here, then we're at the barrer point.
   // This node will be distributed, but our children will be local
+  fprintf(stderr, "Distributing at node %p: %s\n", this, argv[0]);
 
   assert(children.size() == 1);
 
@@ -290,12 +291,10 @@ SmacqGraphContainer * SmacqGraph::distribute_rejoin() {
 // If return value is non-NULL, then it is ...
 bool SmacqGraph::distribute_children(DTS * dts) {
   if (children.size() != 1) {
+  	// XXX: We don't distribute vectors
 	// Unsupported
 	return false;
   }
-
-  // XXX: We don't distribute vectors
-  if (children.size() > 0) return false;
 
   FOREACH_CHILD(this, {
   	// Get a pointer to the re-collection point in our children.
@@ -304,13 +303,24 @@ bool SmacqGraph::distribute_children(DTS * dts) {
 
         // See if there is anything to be distributed
 	if (rejoin) {
-   		char * av[2];
-		std::string q = child->print_query();
-		av[1] = "distribute";
-		av[2] = (char*)q.c_str();
+   		char ** av = (char**)malloc(sizeof(char*)*3);
+		SmacqGraph_ptr c = child;
+		remove_child(i, j);  j--;
+		std::string q = c->print_query();
+		av[0] = "distribute";
+		av[1] = (char*)q.c_str();
+		av[2] = NULL;
   		SmacqGraphContainer * dist = newQuery(dts, scheduler, 2, av);
-		dist->join(rejoin);
-  		replace_child(i, j, dist);
+		dist->join(rejoin, true);
+  		this->join(dist, true);
+
+		/*
+		fprintf(stderr, "portion to distribute:\n");
+		child->print(stderr, 40);
+		*/
+		fprintf(stderr, "my new children:\n");
+		dist->print(stderr, 40);
+	
 	}
   });
   return true; // well, maybe
