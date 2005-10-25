@@ -39,10 +39,10 @@ class SmacqGraphContainer {
   public:
    
   /// Default CTOR
-  SmacqGraphContainer::SmacqGraphContainer() { }
+  SmacqGraphContainer() { }
 
   /// Construct from a vector of Children
-  SmacqGraphContainer::SmacqGraphContainer(PointerVector<SmacqGraph_ptr> & children); 
+  SmacqGraphContainer(PointerVector<SmacqGraph_ptr> & children); 
  
   /// This method must be called before the graphs are used.
   void init(DTS *, SmacqScheduler *, bool do_optimize = true);
@@ -126,6 +126,9 @@ class SmacqGraph : public SmacqGraphNode {
   /// Attach the specified graph onto the tail(s) of the graph(s).
   void join(SmacqGraph *);
 
+  /// Attach the specified graph onto the tail(s) of the graph(s).
+  void join(SmacqGraphContainer *, bool dofree=false);
+
   void replace(SmacqGraphContainer *);
 
   /// Insert a new graph between my parents and me
@@ -133,6 +136,7 @@ class SmacqGraph : public SmacqGraphNode {
 
   /// Add a new graph as one of my children
   void add_child(SmacqGraph * child, unsigned int channel = 0);
+  void add_child(SmacqGraphContainer * child, unsigned int channel = 0);
   void remove_parent(SmacqGraph * parent);
   void remove_child(int, int);
   void remove_child(SmacqGraph *);
