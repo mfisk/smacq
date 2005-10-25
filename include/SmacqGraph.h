@@ -20,6 +20,13 @@ inline void SmacqGraph::add_child(SmacqGraph * newo, unsigned int channel) {
   newo->add_parent(this);
 }
 
+/// Establish a parent/child relationship on the specified channel
+inline void SmacqGraph::add_child(SmacqGraphContainer * newo, unsigned int channel) {
+  for (unsigned int i = 0; i < newo->head.size(); ++i) {
+	add_child(newo->head[i].get(), channel);
+  }
+}
+
 /// Recursively initialize a list of all the tails of this bag of graphs
 inline void SmacqGraphContainer::list_tails(std::set<SmacqGraph *> &list) {
   for (unsigned int i = 0; i < head.size(); i++) {
@@ -53,6 +60,22 @@ inline void SmacqGraph::join(SmacqGraph * newg) {
   }
 }
 
+inline void SmacqGraph::join(SmacqGraphContainer * newg, bool dofree) {
+  if (!newg) { return; }
+
+  std::set<SmacqGraph *> list;
+  std::set<SmacqGraph *>::iterator i;
+  list_tails(list);
+
+  for(i = list.begin(); i != list.end(); ++i) {
+	(*i)->add_child(newg);
+  }
+
+  if (dofree) {
+	delete newg;
+  }
+}
+
 inline void SmacqGraphContainer::join(SmacqGraphContainer * newg, bool dofree) {
   if (!newg) return;
 
@@ -70,8 +93,9 @@ inline void SmacqGraphContainer::join(SmacqGraphContainer * newg, bool dofree) {
   	}
   }
 
-  if (dofree) delete newg;
-  
+  if (dofree) {
+	delete newg;
+  }
 }
 
 inline void SmacqGraphContainer::join(SmacqGraph * newg) {
@@ -290,14 +314,10 @@ inline void SmacqGraph::remove_children() {
   // Reference counting will cause orphaned children to shutdown 
   // automatically (after any more scheduled consumptions).
   while (children.size()) {
-        // Work from last element up
-        unsigned int el = children.size() - 1;
-  
         // Remove all children of element "el"
-        while (children[el].size()) {
-                unsigned int el2 = children[el].size() - 1;
+        while (children[0].size()) {
 		//fprintf(stderr, "remove_children %p of %p\n", children[el][el2].get(), this);
-                remove_child(el,el2);
+                remove_child(0,0);
         }
         children.pop_back();
   }
@@ -326,17 +346,20 @@ inline void SmacqGraphContainer::print(FILE * fh, int indent) {
 }
 
 inline std::string SmacqGraph::print_query_tail() {
-  std::string s("((");
+  std::string s("(");
   for (int i = 0; i < argc; ++i) {
+	s += "'";
 	s += argv[i];
-	s += " ";
+	s += "' ";
   }
-  s += ")";
 
-  // Recurse updwards
+  // Recurse upwards
   if (parent.size()) {
 	s += "from (";
   	for (unsigned int i = 0; i < parent.size(); ++i) {
+		if (! parent[i]->argc) {
+			break; // Stub
+		}
 		if (i > 0) {
 			s += " + ";
 		}
