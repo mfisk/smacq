@@ -4,7 +4,8 @@ AM_CXXFLAGS = @CFLAGS@ -DSMACQ_BUILD_DATE=\"`date '+%Y-%m-%d'`\"
 bin_PROGRAMS = smacqq #pgsmacqd #smacqq_static smacqq_dynamic #iterative-example
 CCLD=$(CXX)  #Use C++ even if daemon code is plain C (libraries are C++)
 
-smacqq_SOURCES = smacqq.cpp
+smacqq_SOURCES = smacqq.cpp smacq.cpp
+psmacqq_SOURCES = psmacqq.cpp smacq.cpp
 #EXTRA_DIST = pgsmacqd.h
 
 AM_LDFLAGS = @LDFLAGS@ $(BUILTINS) -export-dynamic -static $(FRAMEWORKADD)
