@@ -7,6 +7,10 @@
 #include <smacq.h>
 #include <dts-module.h>
 
+#ifdef USE_GASNET
+#include <GASNet.h>
+#endif
+
 #ifdef SMACQ_DEBUG_MEM
 # define SMDEBUG(x) x
 #else
@@ -58,14 +62,31 @@ char * DTS::field_getname(DtsField &f) {
 }
 
 dts_field_element DTS::requirefield_single(char * name) {
+  lock();
   std::map<const char*, int, ltstr>::iterator i = fields_byname.find(name); 
   if (i != fields_byname.end()) {
+	unlock();
 	return ((*i).second);
   } else {
 	name = strdup(name);
-	fields_byname[name] = ++max_field;
-    fields_bynum[max_field] = name;
-    return max_field;
+	int f;
+#ifdef USE_GASNET
+	if (isProxy) {
+		f = 0;
+		unlock();
+		gasnet_AMRequestMediumM(0, AM_GETFIELD, name, strlen(name), &f);
+		GASNET_BLOCKUNTIL(f);
+		lock();
+	} else {
+#else
+	{
+#endif
+		f = ++max_field;
+	}
+	fields_byname[name] = f;
+    	fields_bynum[f] = name;
+	unlock();
+    	return f;
   }
 }
 
@@ -146,7 +167,17 @@ dts_typeid DTS::requiretype(const char * name) {
     return 0;
   }
 
-  t->num = ++max_type;
+#if USE_GASNET
+  if (isProxy) {
+	t->num = 0;
+	gasnet_AMRequestMediumM(0, AM_GETTYPE, name, strlen(name), &t->num);
+	GASNET_BLOCKUNTIL(t->num);
+  } else {
+#else
+  {
+#endif
+  	t->num = ++max_type;
+  }
   
   types[t->num] = t;
   //fprintf(stderr, "added type %s as %d, up from %d\n", t->name, t->num, max_type);
@@ -190,7 +221,7 @@ int DTS::dts_lt(int type, void * p1, int len1, void * p2, int len2) {
   return t->info.lt(p1, len1, p2, len2);
 }
 
-DTS::DTS() : max_type(0), max_field(0), warnings(true) {
+DTS::DTS() : max_type(0), max_field(0), warnings(true), isProxy(false) {
 }
 
 DtsObject DTS::construct_fromstring(dts_typeid type, const char * data) {
@@ -273,6 +304,3 @@ DtsObject DTS::msg_check(DtsObject o, dts_field_element field) {
 
   return NULL;
 }
-
-
-
