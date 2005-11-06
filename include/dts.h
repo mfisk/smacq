@@ -16,6 +16,10 @@
 #include <map>
 #include <DynamicArray.h>
 
+#ifdef USE_GASNET
+# include <GASNet.h>
+#endif
+
 static inline char * dts_fieldname_append(const char * old, const char * newf) {
   char * ret = (char*)malloc(strlen(old) + strlen(newf) + 2);
   sprintf(ret, "%s.%s", old, newf);
@@ -197,10 +201,14 @@ class DTS {
     bool warn_missing_fields() { return warnings; }
   ///@}
 
+  /// Make field and type values the same as a master process
+  void use_master() { isProxy = true; }
+
  private:
   int max_type; 
   int max_field; 
   bool warnings;
+  bool isProxy;
 
   std::map<const char *, struct dts_type *, ltstr> types_byname;
   std::map<const char *, int, ltstr> fields_byname;
@@ -211,6 +219,16 @@ class DTS {
   //  	DtsField double_field;
   //  	int double_type;
   
+  void lock() {
+#ifdef USE_GASNET
+	gasnet_hold_interrupts();
+#endif
+  }
+  void unlock() {
+#ifdef USE_GASNET
+	gasnet_release_interrupts();
+#endif
+  }
   dts_field_element requirefield_single(char * name);
   
   int pickle_getnewtype(int fd, struct sockdatum * hdr, struct pickle * pickle);

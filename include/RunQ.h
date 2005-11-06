@@ -2,6 +2,10 @@
 #define RUNQ_H
 #include <DtsObject.h>
 
+#ifdef USE_GASNET
+# include <gasnet.h>
+#endif
+
 template<typename T>	
 class runq {
  public:
@@ -23,15 +27,22 @@ class runq {
 
   /// Copy the first element from the runq.  Set f & d accordingly.
   bool peek(T& val) {
+    lock();
+
     if (!this->head) {
+      unlock();
       return false;
+    } else {
+      val = this->head->val;
+      unlock();
+      return true;
     }
-    val = this->head->val;
-    return true;
   }
 
   /// Remove the first element from the runq.  Set f & d accordingly.
   bool pop(T& val) {
+    lock();
+
     if (!this->head) {
       //fprintf(stderr, "queue %p/%p empty\n", this, this->head);
       return false;
@@ -46,11 +57,15 @@ class runq {
       /* Ring is empty */
       this->head = NULL;
     }
+
+    unlock();
     return true;
   }
 
   /// Add a new element to the end of the runq.
   void enqueue(T val) {
+    lock();
+
     struct qel * el = insertion_point();
 
     el->val = val;
@@ -58,10 +73,14 @@ class runq {
     if (!this->head) {
       this->head = el;
     }
+
+    unlock();
   }
 
   /// Print the contents of the runq.
   void print(FILE * fh) {
+    lock();
+
     fprintf(fh, "Runq:");
     if (head) {
       for (struct qel * el = head; el != tail; el = el->next) {
@@ -69,9 +88,22 @@ class runq {
       }
     }
     fprintf(fh, "\n");
+
+    unlock();
   }
 
  protected:
+  void lock() { 
+#ifdef USE_GASNET
+	gasnet_hold_interrupts(); 
+#endif
+  }
+
+  void unlock() { 
+#ifdef USE_GASNET
+	gasnet_resume_interrupts(); 
+#endif
+  }
 
   struct qel {
     T val;
@@ -153,7 +185,5 @@ class runq {
     }
     return false;
   }
-
-
 };
 #endif
