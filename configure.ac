@@ -59,7 +59,7 @@ AC_SUBST(LIBGNU_CFLAGS)
 PKG_CHECK_MODULES(GLIB, glib-2.0 gmodule-2.0)
 	# Pretty much everybody needs the include files, thanks to smacq.h,
 	# so don't make it specific to targets that use GLIB_CFLAGS
-CPPFLAGS="$CPPFLAGS ${GLIB_CFLAGS}"
+ADDCFLAGS="$ADDCFLAGS ${GLIB_CFLAGS}"
 GLIB_CFLAGS=
 AC_SUBST(GLIB_CFLAGS GLIB_LIBS)
 
@@ -208,6 +208,44 @@ AC_ARG_ENABLE(efence,
 
 if test "X$with_efence" != "X"; then
    LDFLAGS="$LDFLAGS -lefence";
+fi
+
+##
+## GASNet
+##
+AC_ARG_WITH([gasnet], 
+	AC_HELP_STRING([--with-gasnet],
+			[Build parallel smacq using GASnet]))
+
+gasnet_config() {
+make -s -f - <<EOM
+all: force
+	@echo \$($2)
+
+include $1
+
+force:
+EOM
+}
+
+if test "X$with_gasnet" != "X"; then
+	if test "X$with_gasnet" = "yes"; then
+		AC_MSG_ERROR([Must specify path to gasnet installation with --with-gasnet=])
+	fi
+	mak=$withval/include/smp-conduit/smp-par.mak
+
+	AC_MSG_CHECKING([GASNET_CPPFLAGS])
+	GASNET_CPPFLAGS=`gasnet_config $mak GASNET_CPPFLAGS`
+	AC_MSG_RESULT($GASNET_CPPFLAGS) 
+	
+	#GASNET_LDFLAGS=`gasnet_config $mak GASNET_LDFLAGS`
+
+	AC_MSG_CHECKING([GASNET_LIBS])
+	GASNET_LIBS=`gasnet_config $mak GASNET_LIBS`
+	AC_MSG_RESULT($GASNET_LIBS)
+	
+	ADDCFLAGS="$ADDCFLAGS -DUSE_GASNET $GASNET_CPPFLAGS"
+	LDFLAGS="$LDFLAGS $GASNET_LIBS"
 fi
 
 ##
