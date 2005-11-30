@@ -21,10 +21,10 @@ SMACQ_MODULE(distribute,
   PROTO_PRODUCE();
 
   int nodes;
-  int node_iterator ni;
+  int ni;
 ); 
 
-smacq_result groupbyModule::consume(DtsObject datum, int & outchan) {
+smacq_result distributeModule::consume(DtsObject datum, int & outchan) {
   // Send object to all other nodes
   Gasnet.RequestMedium(ni, AM_DTSOBJECT, datum->getdata(), datum->getsize(), datum->gettype());
 
@@ -32,19 +32,20 @@ smacq_result groupbyModule::consume(DtsObject datum, int & outchan) {
   return SMACQ_FREE;
 }
 
-groupbyModule::~groupbyModule() {
-  Gasnet.RequestShort(i, AM_ENDPOINT);
+distributeModule::~distributeModule() {
+  for (int i = 0; i < nodes; ++i)
+  	Gasnet.RequestShort(i, AM_ENDINPUT, 0);
 }
 
-groupbyModule::groupbyModule(struct SmacqModule::smacq_init * context) 
-  : SmacqModule(context), self(context->self), ni(1);
+distributeModule::distributeModule(struct SmacqModule::smacq_init * context) 
+  : SmacqModule(context), ni(1)
 {
   int argc;
   char ** argv;
 
   smacq_opt seed;
   struct smacq_optval optvals[] = {
-		{"seed", &ptr},
+		{"seed", &seed},
     		{NULL, NULL}
   };
   smacq_getoptsbyname(context->argc-1, context->argv+1,
@@ -52,8 +53,8 @@ groupbyModule::groupbyModule(struct SmacqModule::smacq_init * context)
 			       options, optvals);
 
   // Distribute query to all other nodes
-  for (unsigned int i = 1; i < nodes; ++i) {
-  	Gasnet.RequestMedium(i, AM_QUERY, argv[0], strlen(argv[0])+1, seed.bool_t, context->self);
+  for (int i = 1; i < nodes; ++i) {
+  	Gasnet.RequestMedium(i, AM_QUERY, argv[0], strlen(argv[0])+1, seed.boolean_t, context->self);
   }
 
   nodes = gasnet_nodes();
