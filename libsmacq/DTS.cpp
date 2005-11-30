@@ -8,7 +8,7 @@
 #include <dts-module.h>
 
 #ifdef USE_GASNET
-#include <GASNet.h>
+#include <smacq_am.h>
 #endif
 
 #ifdef SMACQ_DEBUG_MEM
@@ -74,7 +74,7 @@ dts_field_element DTS::requirefield_single(char * name) {
 	if (isProxy) {
 		f = 0;
 		unlock();
-		gasnet_AMRequestMediumM(0, AM_GETFIELD, name, strlen(name), &f);
+		Gasnet.RequestMedium(0, AM_GETFIELD, name, strlen(name), 1, &f);
 		GASNET_BLOCKUNTIL(f);
 		lock();
 	} else {
@@ -170,7 +170,7 @@ dts_typeid DTS::requiretype(const char * name) {
 #if USE_GASNET
   if (isProxy) {
 	t->num = 0;
-	gasnet_AMRequestMediumM(0, AM_GETTYPE, name, strlen(name), &t->num);
+	Gasnet.RequestMedium(0, AM_GETTYPE, (void*)name, strlen(name), 1, &t->num);
 	GASNET_BLOCKUNTIL(t->num);
   } else {
 #else
