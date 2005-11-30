@@ -17,7 +17,7 @@
 #include <DynamicArray.h>
 
 #ifdef USE_GASNET
-# include <GASNet.h>
+# include <smacq_gasnet.h>
 #endif
 
 static inline char * dts_fieldname_append(const char * old, const char * newf) {
@@ -226,7 +226,7 @@ class DTS {
   }
   void unlock() {
 #ifdef USE_GASNET
-	gasnet_release_interrupts();
+	gasnet_resume_interrupts();
 #endif
   }
   dts_field_element requirefield_single(char * name);
