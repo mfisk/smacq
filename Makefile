@@ -7,16 +7,16 @@ config/config.guess:
 	$(MAKE) bootstrap
 
 debug:
-	BUILDNAME=debug CONFIG="--enable-debug" misc/buildarch 
+	BUILDNAME=debug CONFIG="$$CONFIG --enable-debug" misc/buildarch 
 
 gdb:
-	interactive=yes BUILDNAME=debug CONFIG="--enable-debug" misc/buildarch gdb
+	interactive=yes BUILDNAME=debug CONFIG="$$CONFIG --enable-debug" misc/buildarch gdb
 
 profile:
-	BUILDNAME=profile CONFIG="--enable-profile" misc/buildarch 
+	BUILDNAME=profile CONFIG="$$CONFIG --enable-profile" misc/buildarch 
 
 small:
-	BUILDNAME=small CONFIG="--enable-small" misc/buildarch
+	BUILDNAME=small CONFIG="$$CONFIG --enable-small" misc/buildarch
 
 tarball:
 	(set -ex; d=/tmp/$$$$.install/usr; mkdir -p $$d; misc/buildarch prefix=$$d install; cd $$d/..; tar -czvf smacq.tar.gz usr)
