@@ -3,3 +3,5 @@
 .libs
 *.sw?
 Makefile.in
+.deps
+Makefile

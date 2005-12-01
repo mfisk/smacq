@@ -1,6 +1,7 @@
 *.lo
 *.la
 .libs
+.deps
 *.sw?
 smacqp
 smacqq
@@ -10,3 +11,4 @@ smacqp-dynamic
 smacqq-dynamic
 iterative-example
 Makefile.in
+Makefile

@@ -1,11 +1,13 @@
 *.lo
 *.la
 .libs
+.deps
 *.sw?
 Makefile.in
-expr-parser.cpp
-filter-parser.cpp
-parser.cpp
+Makefile
+expr-parser.?pp
+filter-parser.?pp
+parser.?pp
 parser.h
 scanner.cpp
 
