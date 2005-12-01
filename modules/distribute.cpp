@@ -18,7 +18,6 @@ SMACQ_MODULE(distribute,
   PROTO_CTOR(distribute);
   PROTO_DTOR(distribute);
   PROTO_CONSUME();
-  PROTO_PRODUCE();
 
   int nodes;
   int ni;
