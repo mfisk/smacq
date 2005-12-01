@@ -108,6 +108,9 @@ static inline void smacq_log(char * name, enum smacq_log_level level, char * msg
 
 BEGIN_C_DECLS
 
+/// Parse a query and run to completion
+int smacqq(int argc, char ** argv);
+
 void * smacq_find_module(GModule ** gmodulep, char * envvar, char * envdefault, char * modformat, char * symformat, char * sym);
 
 #include "util.c"

@@ -1,12 +1,13 @@
 EXTRA_DIST = parser.h
 SUFFIXES = .ypp .ym
+AM_CXXFLAGS = @CFLAGS@ -DSMACQ_BUILD_DATE=\"`date '+%Y-%m-%d'`\"
 
 noinst_LTLIBRARIES=libsmacq.la @ETHEREAL_LIBRARY@
 EXTRA_LTLIBRARIES=libethereal.la
 libethereal_la_SOURCES=
 libethereal_la_DEPENDENCIES=$(shell find @ETHEREAL_DIR@ \( \-name plugins \-prune \) , \( \-name \*.lo \-print \) ) 
 
-libsmacq_la_SOURCES=mem.c args.c pickle.cpp optimize.cpp filter.cpp ThreadedSmacqModule.cpp dynloader.c parsing.cpp cmalloc.c parser.ym scanner.lpp filter-parser.ym expr-parser.ym DTS.cpp DtsObject.cpp smacq_result.cpp #datalog-parser.ym
+libsmacq_la_SOURCES=smacqq.cpp mem.c args.c pickle.cpp optimize.cpp filter.cpp ThreadedSmacqModule.cpp dynloader.c parsing.cpp cmalloc.c parser.ym scanner.lpp filter-parser.ym expr-parser.ym DTS.cpp DtsObject.cpp smacq_result.cpp am.cpp #datalog-parser.ym
 
 AM_CPPFLAGS=@GLIB_CFLAGS@
 noinst_HEADERS=grammer.ypp
