@@ -39,6 +39,12 @@ public:
   /// Handle an object produced by a currently running node
   void enqueue(SmacqGraph * f, DtsObject d, int outchan);
 
+  /// Handle an object produced by the specified node
+  void queue_children(SmacqGraph * f, DtsObject d, int outchan);
+
+  /// Process a single action or object
+  smacq_result element(DtsObject &dout);
+
  private:
   struct ConsumeItem {
     SmacqGraph_ptr g;
@@ -58,12 +64,6 @@ public:
 
   /// Process a consumeq element
   void run_consume(ConsumeItem & i);
-
-  /// Process a single action or object
-  smacq_result element(DtsObject &dout);
-
-  /// Handle an object produced by the specified node
-  void queue_children(SmacqGraph * f, DtsObject d, int outchan);
 
   smacq_result decide_children(SmacqGraph * g, DtsObject din, int outchan);
 
