@@ -35,7 +35,7 @@ autom4te.cache
 aclocal.m4
 ac_config.py
 config
-Makefile.in
+Makefile
 Makefile.in
 configure
 libtool
