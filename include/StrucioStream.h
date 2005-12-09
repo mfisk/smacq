@@ -15,6 +15,9 @@
 /// Pure-virtual base class for input streams.
 class StrucioStream {
  public:
+  // We're happy with the default destructor, but gcc 4.0 requires a virtual destructor for virtual classes...
+  virtual ~StrucioStream() {};
+
   /// Construct by name.
   StrucioStream(const char * fname, const char * fmode = "rb") 
     : follow(false), filename(fname) 

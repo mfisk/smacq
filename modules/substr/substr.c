@@ -16,7 +16,7 @@
 ** Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 */
 
-/* $Id: substr.c,v 1.3 2003/03/20 04:12:13 mfisk Exp $ */
+/* $Id: substr.c,v 1.4 2003/06/26 03:58:07 mfisk Exp $ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -135,7 +135,7 @@ horspool_compile(substr_object * obj)
 
   for (p=obj->patterns; p; p=p->next) {
     /* Compute bad suffix table */
-    p->bad = (unsigned int*)malloc(ALPHABETSIZE * sizeof(unsigned int));
+    p->bad = (int*)malloc(ALPHABETSIZE * sizeof(unsigned int));
     if (!p->bad) return 0;
 
     for (i=0; i<ALPHABETSIZE; i++) p->bad[i] = p->len;
@@ -168,7 +168,7 @@ set_compile(substr_object * obj)
     SETMIN( obj->shortest, p->len );
 
   /* Compute bad character table */
-  obj->bad = (unsigned int*)malloc(ALPHABETSIZE * sizeof(unsigned int));
+  obj->bad = (int*)malloc(ALPHABETSIZE * sizeof(unsigned int));
   if (!obj->bad) return 0;
   for (i=0; i<ALPHABETSIZE; i++) obj->bad[i] = obj->shortest;
 
@@ -369,7 +369,7 @@ bm_search(substr_object * obj, unsigned char * hay, int len,
 	  struct substr_search_result * stat)
 {
   struct pattern * p = stat->p;
-  char * startp;
+  unsigned char * startp;
   int shift = stat->resume.left;
   len--;
   if (len < 0) return 0;
@@ -406,7 +406,7 @@ horspool_search(substr_object * obj, unsigned char * hay, int len,
 	  struct substr_search_result * stat)
 {
   struct pattern * p = stat->p;
-  char * startp;
+  unsigned char * startp;
   int shift = stat->resume.left;
   len--;
   if (len < 0) return 0;
@@ -461,7 +461,7 @@ set_search(substr_object * obj, unsigned char * hay, int len,
   unsigned char * hp, * endp, * stop;
   struct trie ** mtries;
   struct trie * t;
-  unsigned int * bad = obj->bad;
+  int * bad = obj->bad;
   struct pattern * p;
 
   if (len <= 0) return 0;
