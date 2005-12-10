@@ -1,5 +1,6 @@
 #include <execinfo.h>
 #include <string>
+#include <vector>
 
 #define MAX_STACK_DEPTH 500
 class StackException {

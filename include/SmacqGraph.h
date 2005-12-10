@@ -346,8 +346,13 @@ inline void SmacqGraphContainer::print(FILE * fh, int indent) {
 }
 
 inline std::string SmacqGraph::print_query_tail() {
-  std::string s("(");
-  for (int i = 0; i < argc; ++i) {
+  std::string s;
+  if (argc > 0) {
+	s += argv[0];
+	s += " ";
+  }
+
+  for (int i = 1; i < argc; ++i) {
 	s += "'";
 	s += argv[i];
 	s += "' ";
@@ -367,8 +372,6 @@ inline std::string SmacqGraph::print_query_tail() {
 	}
 	s += ")";
   }
-
-  s += ")";
 
   return s;
 }

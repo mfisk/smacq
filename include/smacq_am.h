@@ -6,7 +6,7 @@
 #define AM_GETTYPE 203
 #define AM_INT_REPLY 204
 #define AM_QUERY 205
-#define AM_DTSOBJECT_TOCHILDREN 205
+#define AM_DTSOBJECT_TOCHILDREN 206
 
 extern GASNet Gasnet;
 //extern DTS AM_DTS;
