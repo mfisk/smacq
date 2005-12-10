@@ -44,7 +44,7 @@ if test -n "$GCC"; then
 			CO="-fast"
 			;;
 		powerpc-apple-darwin*)
-			ADDCFLAGS="$ADDCFLAGS -force_flat_namespace"
+			AM_CPPFLAGS="$AM_CPPFLAGS -force_flat_namespace"
 			LIBGNU_CFLAGS="-Wno-long-double"
 			CO="-fast -fPIC -mcpu="`machine | sed 's/ppc//'`
 			DEBUG_LDFLAGS="-lMallocDebug"
@@ -59,7 +59,7 @@ AC_SUBST(LIBGNU_CFLAGS)
 PKG_CHECK_MODULES(GLIB, glib-2.0 gmodule-2.0)
 	# Pretty much everybody needs the include files, thanks to smacq.h,
 	# so don't make it specific to targets that use GLIB_CFLAGS
-ADDCFLAGS="$ADDCFLAGS ${GLIB_CFLAGS}"
+AM_CPPFLAGS="$AM_CPPFLAGS ${GLIB_CFLAGS}"
 GLIB_CFLAGS=
 AC_SUBST(GLIB_CFLAGS GLIB_LIBS)
 
@@ -70,7 +70,7 @@ AC_HEADER_STDC
 AC_HEADER_SYS_WAIT
 AC_CHECK_HEADERS([arpa/inet.h inttypes.h netdb.h netinet/in.h stddef.h stdint.h stdlib.h string.h sys/socket.h sys/time.h unistd.h])
 	# Thank you Red Hat (version 8 or something):
-AC_CHECK_HEADER(pcap/pcap.h, CPPFLAGS="$CPPFLAGS -I/usr/include/pcap")
+AC_CHECK_HEADER(pcap/pcap.h, AM_CPPFLAGS="$AM_CPPFLAGS -I/usr/include/pcap")
 
 ##
 ## Checks for typedefs, structures, and compiler characteristics.
@@ -167,8 +167,8 @@ PKG_CHECK_MODULES(GDA, libgda,
 AC_ARG_ENABLE(profile,
 	AC_HELP_STRING([--enable-profile],
 			[enable gprof profiling]),
-		ADDCFLAGS="$ADDCFLAGS -pg"
-		LDFLAGS="$LDFLAGS -pg"
+		AM_CPPFLAGS="$AM_CPPFLAGS -pg"
+		AM_LDFLAGS="$AM_LDFLAGS -pg"
 	],)
 
 ##
@@ -177,15 +177,15 @@ AC_ARG_ENABLE(profile,
 AC_ARG_ENABLE(debug,
 	AC_HELP_STRING([--enable-debug],
 			[enable debugging options]),
-	[CPPFLAGS="$CPPFLAGS -D_GLIBCXX_DEBUG";
+	[AM_CPPFLAGS="$AM_CPPFLAGS -D_GLIBCXX_DEBUG";
 	 if test -n "$GCC"; then
 		CO="-O0"
 		# Hard to debug when everything is inlined
-		ADDCFLAGS="$ADDCFLAGS -g -fno-inline"
-		LDFLAGS="$LDFLAGS ${DEBUG_LDFLAGS}"
+		AM_CPPFLAGS="$AM_CPPFLAGS -g -fno-inline"
+		AM_LDFLAGS="$AM_LDFLAGS ${DEBUG_LDFLAGS}"
 	else
 		CO="-O0"
-		ADDCFLAGS="$ADDCFLAGS -g"
+		AM_CPPFLAGS="$AM_CPPFLAGS -g"
 	fi],
 	[CO="-O9"])
 
@@ -207,15 +207,15 @@ AC_ARG_ENABLE(efence,
 		       [Enable electric-fence memory debugging]))
 
 if test "X$with_efence" != "X"; then
-   LDFLAGS="$LDFLAGS -lefence";
+   AM_LDFLAGS="$AM_LDFLAGS -lefence";
 fi
 
 ##
-## GASNet
+## GASNet/UPC
 ##
-AC_ARG_WITH([gasnet], 
-	AC_HELP_STRING([--with-gasnet],
-			[Build parallel smacq using GASnet]))
+AC_ARG_WITH([upc], 
+	AC_HELP_STRING([--with-upc],
+			[Build parallel smacq using UPC]))
 
 gasnet_config() {
 make -s -f - <<EOM
@@ -228,25 +228,31 @@ force:
 EOM
 }
 
-if test "X$with_gasnet" != "X"; then
-	if test "X$with_gasnet" = "yes"; then
-		AC_MSG_ERROR([Must specify path to gasnet installation with --with-gasnet=])
+if test "X$with_upc" != "X"; then
+	if test "X$with_upc" = "yes"; then
+		AC_MSG_ERROR([Must specify path to upc installation with --with-upc=])
 	fi
-	mak=$withval/include/smp-conduit/smp-par.mak
-
+	network="smp"
+	platform=${network}-seq
+	mak=$withval/include/smp-conduit/${platform}.mak
+	UPCC=$withval/bin/upcc
+	
 	AC_MSG_CHECKING([GASNET_CPPFLAGS])
+	#GASNET_CPPFLAGS=-I`$UPCC -print-include-dir`
 	GASNET_CPPFLAGS=`gasnet_config $mak GASNET_CPPFLAGS`
 	AC_MSG_RESULT($GASNET_CPPFLAGS) 
 	
-	#GASNET_LDFLAGS=`gasnet_config $mak GASNET_LDFLAGS`
-
 	AC_MSG_CHECKING([GASNET_LIBS])
-	GASNET_LIBS=`gasnet_config $mak GASNET_LIBS`
+	upcc_opts=`$UPCC -network=$network --version`
+	GASNET_LIBS=`for word in $upcc_opts; do case $word in -l*|-L*) echo -n "$word ";; esac; done`
+	#GASNET_LIBS=`gasnet_config $mak GASNET_LIBS`
 	AC_MSG_RESULT($GASNET_LIBS)
-	
-	ADDCFLAGS="$ADDCFLAGS -DUSE_GASNET $GASNET_CPPFLAGS"
-	LDFLAGS="$LDFLAGS $GASNET_LIBS"
+
+	AM_CPPFLAGS="$AM_CPPFLAGS -DUSE_GASNET $GASNET_CPPFLAGS"
+	AM_LDFLAGS="$AM_LDFLAGS $GASNET_LIBS"
 fi
+
+AM_CONDITIONAL(GASNET, [test "$GASNET_CPPFLAGS" != ""])
 
 ##
 ## Ethereal
@@ -414,7 +420,7 @@ AM_CONDITIONAL(USE_PYTHON, test x$with_python = xyes)
 ##
 gl_SOURCE_BASE(libgnu)
 gl_M4_BASE(libgnu/m4)
-CPPFLAGS="${CPPFLAGS} -I\${top_srcdir}/libgnu"
+AM_CPPFLAGS="${AM_CPPFLAGS} -I\${top_srcdir}/libgnu"
 gl_MODULES(gettime getdate)
 gl_INIT
 
@@ -422,9 +428,9 @@ gl_INIT
 ##
 ## Compiler flags
 ##
-CPPFLAGS="$CPPFLAGS -I\${top_srcdir}/include -D_GNU_SOURCE -D_ISOC99_SOURCE"
+AM_CPPFLAGS="$AM_CPPFLAGS -I\${top_srcdir}/include -D_GNU_SOURCE -D_ISOC99_SOURCE"
 if test -n "$GCC"; then
-	ADDCFLAGS="$ADDCFLAGS -Wall -Werror"
+	AM_CPPFLAGS="$AM_CPPFLAGS -Wall -Werror"
 fi
 
 ##
@@ -433,8 +439,10 @@ fi
 if test -z "$CO"; then
  	CO="-O9"
 fi
-CFLAGS="$CFLAGS $ADDCFLAGS $CO"
-CXXFLAGS="$CXXFLAGS $ADDCFLAGS $CO"
+AM_CPPFLAGS="$AM_CPPFLAGS $CO"
+
+AC_SUBST(AM_CPPFLAGS)
+AC_SUBST(AM_LDFLAGS)
 
 ##
 ## Doit

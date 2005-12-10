@@ -17,26 +17,26 @@ libtest_dynamic_la_SOURCES = noop.cpp
 # with a "--whole-archive" flag.  However, libtool doesn't do "--whole-archive"
 # on convenience libraries, so we make libtool think this is a module that
 # we can preopen
-libsmacq_modules_la_LDFLAGS = -rpath /bogus
+libsmacq_modules_la_LDFLAGS = $(AM_LDFLAGS) -rpath /bogus
 
 #
 # Per module link requirements
 # 
 libsmacq_python_la_SOURCES = python.cpp
 libsmacq_python_la_LIBS = @PYTHON_LIBADD@
-libsmacq_python_la_LDFLAGS = @LDFLAGS_PYTHON@
-libsmacq_python_la_CPPFLAGS = @CFLAGS_PYTHON@ 
+libsmacq_python_la_LDFLAGS = $(AM_LDFLAGS) @LDFLAGS_PYTHON@
+libsmacq_python_la_CPPFLAGS = $(AM_CPPFLAGS) @CFLAGS_PYTHON@ 
 
 libsmacq_sql_la_SOURCES = sqlinsert.cpp sqlquery.cpp
 libsmacq_sql_la_LIBADD = @GDA_LIBS@
-libsmacq_sql_la_CPPFLAGS = @GDA_CFLAGS@
+libsmacq_sql_la_CPPFLAGS = $(AM_CPPFLAGS) @GDA_CFLAGS@
 
 libsmacq_pcaplive_la_SOURCES = pcaplive.cpp
 libsmacq_pcaplive_la_LIBS = -lpcap
 
 libsmacq_fastbit_la_SOURCES = fastbit.cpp
-libsmacq_fastbit_la_LDFLAGS = @LDFLAGS_FASTBIT@
-libsmacq_fastbit_la_CPPFLAGS = @CFLAGS_FASTBIT@
+libsmacq_fastbit_la_LDFLAGS = $(AM_LDFLAGS) @LDFLAGS_FASTBIT@
+libsmacq_fastbit_la_CPPFLAGS = $(AM_CPPFLAGS) @CFLAGS_FASTBIT@
 
 #libbench_field_la_SOURCES = bench_field-main.c bench_field-virtual.C 
 
