@@ -52,6 +52,10 @@ fileModule::fileModule(struct SmacqModule::smacq_init * context) : SmacqModule(c
    	DtsObject o = dts->construct_fromstring(string_type, "-");
 	enqueue(o);
   }
+
+#ifdef USE_GASNET
+  context->self->distribute_children(dts);
+#endif
 }
 
 smacq_result fileModule::produce(DtsObject & o, int & outchan) {
