@@ -23,12 +23,12 @@ class PointerVector : public std::vector<T> {
   public:
         void erase(unsigned int i) {
            // Swap, drop, and roll...
-           unsigned int last = size() - 1;
+           unsigned int last = std::vector<T>::size() - 1;
            if (i < last) {
                 (*this)[i] = (*this)[last];
 	   }
            (*this)[last] = NULL;
-           pop_back();
+           std::vector<T>::pop_back();
         }
 };
 
