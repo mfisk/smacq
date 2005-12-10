@@ -273,7 +273,7 @@ SmacqGraphContainer * SmacqGraph::distribute_rejoin() {
 
   // If we get here, then we're at the barrer point.
   // This node will be distributed, but our children will be local
-  fprintf(stderr, "Distributing at node %p: %s\n", this, argv[0]);
+  //fprintf(stderr, "Distributing at node %p: %s\n", this, argv[0]);
 
   assert(children.size() == 1);
 
@@ -310,6 +310,7 @@ bool SmacqGraph::distribute_children(DTS * dts) {
 		av[0] = "distribute";
 		av[1] = (char*)q.c_str();
 		av[2] = NULL;
+		fprintf(stderr, "distribute %s\n", av[1]);
   		SmacqGraphContainer * dist = newQuery(dts, scheduler, 2, av);
 		dist->join(rejoin, true);
   		this->join(dist, true);
@@ -317,9 +318,9 @@ bool SmacqGraph::distribute_children(DTS * dts) {
 		/*
 		fprintf(stderr, "portion to distribute:\n");
 		child->print(stderr, 40);
-		*/
 		fprintf(stderr, "my new children:\n");
 		dist->print(stderr, 40);
+		*/
 	
 	}
   });

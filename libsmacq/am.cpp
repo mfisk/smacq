@@ -37,7 +37,7 @@ void am_type_handler(gasnet_token_t token, void * buf, size_t nbytes, gasnet_han
 }
 
 void am_query_handler(gasnet_token_t token, void * querybuf, size_t nbytes, gasnet_handlerarg_t seed_produce, SmacqGraph * node) {
-        SmacqGraphContainer * g = SmacqGraph::newQuery(&am_dts, &am_sched, 1, &(char*)querybuf);
+        SmacqGraphContainer * g = SmacqGraph::newQuery(&am_dts, &am_sched, 1, (char**)&querybuf);
 	CallingGraph = node;
 
 	if (seed_produce) {
@@ -79,11 +79,15 @@ void init_am(int * argc, char *** argv) {
 	Gasnet.registerHandler((handler_t)am_dtsobject_handler, AM_DTSOBJECT);
 	Gasnet.registerHandler((handler_t)am_dtsobject_tochildren_handler, AM_DTSOBJECT_TOCHILDREN);
 	Gasnet.registerHandler((handler_t)am_endinput_handler, AM_ENDINPUT);
-	Gasnet.attach(argc, argv);
+
+	//Gasnet.attach(argc, argv);
+
+	fprintf(stderr, "Parallel SMACQ using %d nodes\n", gasnet_nodes());
 }
 
 // Slave processes go here
 void smacq_am_slave_loop() {
+	fprintf(stderr, "Slave node %d ready\n", gasnet_mynode());
 	for (;;) {
 		DtsObject dout;
 		smacq_result r;
@@ -98,3 +102,13 @@ void smacq_am_slave_loop() {
 		}
 	}
 }
+
+extern "C" {
+	gasnet_handlerentry_t * upcri_get_handlertable() {
+		return NULL;
+	}
+	gasnet_handlerentry_t * upcri_get_handlertable_count() {
+		return 0;
+	}
+}
+

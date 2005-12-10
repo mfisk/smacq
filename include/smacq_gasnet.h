@@ -105,8 +105,6 @@ inline void GASNet::registerHandler(handler_t handler, const int ref)
  */
 inline void GASNet::attach(int * argc, char *** argv)
 {
-	testException("gasnet_init", gasnet_init(argc, argv));
-
 	//		First, we need an array of handlers for gasnet_attach()
 
 	//	allocate some space
