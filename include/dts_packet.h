@@ -10,7 +10,6 @@ struct timeval_32 {
 };
 
 #include <pcap.h>
-#include <smacq.h>
 
 /*
  * Each packet in the dump file is prepended with this generic header.

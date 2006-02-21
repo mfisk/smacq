@@ -6,6 +6,7 @@ libdts_modules_la_DEPENDENCIES = libdts_packet.la
 libdts_modules_la_LIBADD = $(libdts_modules_la_DEPENDENCIES)
 libdts_modules_la_LDFLAGS = $(AM_LDFLAGS) -rpath /bogus
 
-libdts_packet_la_SOURCES = packet.cpp packet_epan.c
-libdts_packet_la_CPPFLAGS = $(AM_CPPFLAGS) @ETHEREAL_CFLAGS@ -I/home/mfisk/ethereal-0.10.12/epan -I/home/mfisk/ethereal-0.10.12/epan -I/home/mfisk/smacq/libgnu 
+libdts_packet_la_SOURCES = packet.cpp
+libdts_packet_la_CPPFLAGS = $(AM_CPPFLAGS) @ETHEREAL_CPPFLAGS@ #-Ilibgnu
+libdts_packet_la_LDFLAGS = @ETHEREAL_LDFLAGS@ 
 

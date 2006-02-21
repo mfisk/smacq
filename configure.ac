@@ -265,14 +265,12 @@ if test "X$with_ethereal" != "X"; then
 	if test "X$with_ethereal" = "yes"; then
 		AC_MSG_ERROR([Must specify path to source with --with-ethereal=])
 	fi
-	ETHEREAL_LIBRARY=-lethereal
-	ETHEREAL_DIR=$withval
-	ETHEREAL_CFLAGS="-DWITH_ETHEREAL -I$withval"
+	ETHEREAL_LDFLAGS=$withval/epan/libethereal.la -lsnmp -lcrypto
+	ETHEREAL_CPPFLAGS="-DWITH_ETHEREAL=$withval -I$withval"
 fi
 
-AC_SUBST(ETHEREAL_LIBRARY)
-AC_SUBST(ETHEREAL_DIR)
-AC_SUBST(ETHEREAL_CFLAGS)
+AC_SUBST(ETHEREAL_LDFLAGS)
+AC_SUBST(ETHEREAL_CPPFLAGS)
 
 ##
 ## LBL FastBit

@@ -144,7 +144,7 @@ DtsObject DtsObject_::getfield_new(dts_field_element fnum) {
     return field;
 
   } else if (t->info.getfield) {
-    field = (DtsObject)dts->newObject(t->num);
+    field = dts->newObject(t->num);
     field->uses = this;
     this->usecount++;
 

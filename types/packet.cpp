@@ -269,21 +269,7 @@ struct dts_type_info dts_type_packet_table = {
 };
 #else
 
-extern "C" {
-	int epan_getfoo(struct dts_pkthdr*, char*);
-}
-
-int epan_getfield(DtsObject packet, DtsObject fieldo, dts_field_element element) {
-  char * dts_name, * p;
-  
-  dts_name = strdup(packet->getDts()->field_getname(element));
-  while ((p = index(dts_name, ':'))) {
-    p[0] = '.';
-  }
-  int retval = epan_getfoo((struct dts_pkthdr*)packet->getdata(), dts_name);
-  free(dts_name);
-  return retval;
-}
+#include "packet_epan.cpp"
 
 struct dts_type_info dts_type_packet_table = {
   size: -1, 
