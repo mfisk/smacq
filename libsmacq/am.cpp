@@ -1,3 +1,4 @@
+#ifdef USE_GASNET
 #include <smacq.h>
 #include <SmacqScheduler.h>
 #include <smacq_am.h>
@@ -111,4 +112,4 @@ extern "C" {
 		return 0;
 	}
 }
-
+#endif

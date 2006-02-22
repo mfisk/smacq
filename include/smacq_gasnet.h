@@ -9,6 +9,8 @@
 #ifndef SMACQ_GASNET_H
 #define SMACQ_GASNET_H
 
+#ifdef USE_GASNET
+
 #include <gasnet.h>
 // Gasnet defines these and that causes problems with libgnu:
 #undef PACKAGE_BUGREPORT
@@ -145,4 +147,5 @@ inline void GASNet::RequestShort(gasnet_node_t dest, gasnet_handler_t handler, i
 
 	testException("gasnet_AMRequestShortM", gasnetc_AMRequestShortM(dest, handler, nargs, args));
 }
+#endif
 #endif

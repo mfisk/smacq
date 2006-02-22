@@ -1,3 +1,4 @@
+#ifdef USE_GASNET
 #include <smacq_gasnet.h>
 
 #define AM_DTSOBJECT 200
@@ -15,4 +16,4 @@ extern GASNet Gasnet;
 
 void init_am(int * argc, char *** argv);
 void smacq_am_slave_loop();
-
+#endif

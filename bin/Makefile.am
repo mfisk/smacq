@@ -6,6 +6,7 @@ if GASNET
 smacqq_SOURCES = psmacqq.cpp 
 smacqq_CPPFLAGS = $(AM_CPPFLAGS) -fpermissive -Wno-error -Wno-unused # GASnet code isn't very pedantic
 else
+smacqq_CPPFLAGS = $(AM_CPPFLAGS)
 smacqq_SOURCES = smacqq.cpp 
 endif
 
