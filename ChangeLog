@@ -2,8 +2,9 @@ VERSION 2.3 - 22 February 2006
 ==============================
 2006-02 - ethereal updates (use new libethereal)
 2005-12 - ported to gcc 4.0
-2005-11 - Gasnet/UPC support begun
-2005-09 - Bugfixes
+2005-11 - Gasnet/UPC support begun; distribute module added
+2005-10	- bytes.string conversion now hex escapes unprintables
+2005-10 - packet.payload had incorrect size
 2005-09 - SmacqGraphContainer replaces SmacqGraph being a linked list
 2005-09 - Datalog parser started
 
