@@ -9,7 +9,7 @@ Supported Platforms:
 --------------------
 Debian GNU/Linux and MacOS/X + Fink are the primary development platforms.  
 SMACQ has also been built on FreeBSD and various buggy versions of RedHat.
-GCC 3.3 is the compiler we usually use.
+GCC 3.3 and 4.0 are the compilers we usually use.
 
 Packaging:
 ----------
@@ -37,7 +37,8 @@ SMACQ can build with the following optional functionality:
 - Ethereal integration
 	The packet data-type can use Ethereal's EPAN system for decoding a 
 	multitude of protocols.  This optional functionality can be included 
-	using the "--with-ethereal" configure option.
+	using the "--with-ethereal" configure option and specifying the path
+	to an ethereal source tree that has already been built..
 
 =============================================================================
 			PREREQUISITES

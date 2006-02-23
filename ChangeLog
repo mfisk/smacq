@@ -1,6 +1,14 @@
-VERSION 2.2 - unreleased
-========================
-2005-09 - Datalog parser added
+VERSION 2.3 - 22 February 2006
+==============================
+2006-02 - ethereal updates (use new libethereal)
+2005-12 - ported to gcc 4.0
+2005-11 - Gasnet/UPC support begun
+2005-09 - Bugfixes
+2005-09 - SmacqGraphContainer replaces SmacqGraph being a linked list
+2005-09 - Datalog parser started
+
+VERSION 2.2 - 1 September 2005
+==============================
 2005-08 - File input system:
 	   - Input modules use SmacqFileModule() to insert "file" module
 	   - "file" module generates stream of files (string objects)
