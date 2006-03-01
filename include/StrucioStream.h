@@ -18,28 +18,28 @@ class StrucioStream {
   // We're happy with the default destructor, but gcc 4.0 requires a virtual destructor for virtual classes...
   virtual ~StrucioStream() {};
 
-  /// Construct by name.
   StrucioStream(const char * fname, const char * fmode = "rb") 
-    : follow(false), filename(fname) 
+    : follow(false), filename(fname), mode(fmode)
     {
-      // want to do the following, but can't:
-      //this->Open(fname, fmode);
+      // want to use a virtual, but can't from the base constructor
+      //this->Open();
     }
     
     /// Construct from open file descriptor
-    StrucioStream(const char * fname, const int fileno, const char * fmode = "rb") 
-      : follow(false), filename(fname) 
-      {
-	// want to do the following, but can't:
-	//	this->Open(fileno, fmode);
-      }
+  StrucioStream(const char * fname, const int fileno, const char * fmode = "rb") 
+    : follow(false), filename(fname), fd(fileno), mode(fmode)
+    {
+      // want to use a virtual, but can't from the base constructor
+      //this->FdOpen();
+    }
       
       /// Tell this stream to follow file changes
       void Follow();
       
       /// Read from stream  
       size_t Read(void * ptr, size_t bytes);
-      
+ 
+      /// Construct a fixed-sized object.  
       DtsObject construct(DTS * dts, dts_typeid t) { 
 	DtsObject o = dts->newObject(t);
 	unsigned int size = o->getsize();
@@ -66,48 +66,56 @@ class StrucioStream {
 
  protected:
       bool follow;
-      const char * filename;
-      int fd;
       ino_t inode;
-      const char * mode;
-      
-      /// Open stream by name.
-      virtual bool Open(const char * filename, const char * mode = "rb") = 0;
-      
-      /// Open stream by file descriptor.
-      virtual bool Open(const int fd, const char * mode = "rb") = 0;
-      
+      const char * filename;
+
       /// Read from stream.
       virtual size_t BasicRead(void * ptr, size_t bytes) = 0;
       
       /// Close stream.
       virtual bool Close() = 0;
+
+   /// We always keep a valid fd number around.
+   int fd;
+
+   /// Desired open mode (fopen syntax)
+   const char * mode;
+
+   virtual bool FdOpen() = 0;
+
+   /// (Re)Open stream by name.
+   bool Open() {
+	fd = open(filename, O_RDONLY, 0);
+	return FdOpen();
+   }
+
+      
 };
 
 
 template <typename filetype>
 class FileStream : public StrucioStream {
  public:
-   FileStream(const char * fname, const int fileno, const char * fmode) :
-     StrucioStream(fname, fileno, fmode) 
+   FileStream(const char * fname, const int fileno, const char * fmode = "rb") :
+     StrucioStream(fname, fileno, fmode)
      {
-       Open(fileno, fmode);
+       FdOpen();
      }
      
-     FileStream(const char * fname, const char * fmode) :
-       StrucioStream(fname, fmode) 
-       {
-	 Open(fname, fmode);
-       }
+   bool Close();
 
-       bool Open(int fd, const char * mode = "rb");
-       bool Open(const char * fn, const char * mode = "rb") ;
-       bool Close();
-       // XXX. this class could use mmap to implement construct() methods.
-       size_t BasicRead(void * ptr, size_t bytes);
-       
+   // XXX. this class could use mmap to implement construct() methods.
+   size_t BasicRead(void * ptr, size_t bytes);
+
+ protected:      
+
+   /// Open stream by file descriptor.
+   bool FdOpen();
+
+
  private:
-       filetype fh;
+
+   filetype fh;
 };
 
 
@@ -117,29 +125,16 @@ class bzFile_t {
    BZFILE * fh;
 };
 
-template<> inline bool FileStream<FILE*>::Open(int fd, const char *mode) {
+template<> inline bool FileStream<FILE*>::FdOpen() {
   fh = fdopen(fd, mode);
   return fh;
 }
-template<> inline bool FileStream<gzFile>::Open(int fd, const char *mode) {
+template<> inline bool FileStream<gzFile>::FdOpen() {
   fh = gzdopen(fd, mode);
   return fh;
 }
-template<> inline bool FileStream<bzFile_t>::Open(int fd, const char *mode) {
+template<> inline bool FileStream<bzFile_t>::FdOpen() {
   fh = BZ2_bzdopen(fd, mode);
-  return fh.fh;
-}
-
-template<> inline bool FileStream<FILE*>::Open(const char * fn, const char *mode) {
-  fh = fopen(fn, mode);
-  return fh;
-}
-template<> inline bool FileStream<gzFile>::Open(const char * fn, const char *mode) {
-  fh = gzopen(fn, mode);
-  return fh;
-}
-template<> inline bool FileStream<bzFile_t>::Open(const char * fn, const char *mode) {
-  fh = BZ2_bzopen(fn, mode);
   return fh.fh;
 }
 
@@ -217,7 +212,7 @@ inline size_t StrucioStream::Read(void * ptr, size_t bytes) {
         if (0==stat(filename, &st) && (st.st_ino != inode)) {
 	  // File has been replaced, use new one.
 	  Close();
-	  this->Open(filename, mode);
+	  Open();
 	  Follow(); // Update inode #
 	  
 	  // We do NOT use any remaining bytes in this file.
