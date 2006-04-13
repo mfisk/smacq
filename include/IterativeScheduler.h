@@ -89,7 +89,7 @@ inline smacq_result IterativeScheduler::run_produce(SmacqGraph * f) {
     smacq_result pretval = f->instance->produce(d, outchan);
 
     if (pretval & SMACQ_PASS) {
-      queue_children(f, d, outchan);		
+      enqueue(f, d, outchan);		
     }
 
     if (pretval & SMACQ_END) {
