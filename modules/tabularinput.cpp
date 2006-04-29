@@ -8,6 +8,8 @@
 #include <assert.h>
 #include <SmacqModule.h>
 
+#define MAX_STR 4096
+
 static struct smacq_options options[] = {
   {"d", {string_t:"\t"}, "Delimiter", SMACQ_OPT_TYPE_STRING},
   {"f", {string_t:"-"}, "Input File", SMACQ_OPT_TYPE_STRING},
@@ -32,7 +34,6 @@ SMACQ_MODULE(tabularinput,
   DtsObject default_parse(char * startp, char * endp);
 );
 
-#define MAX_STR 4096
 
 DtsObject tabularinputModule::default_parse(char * startp, char * endp) {
       char * badp;
