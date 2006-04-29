@@ -81,10 +81,10 @@ class runq {
   void print(FILE * fh) {
     lock();
 
-    fprintf(fh, "Runq:");
+    fprintf(fh, "Queue:");
     if (head) {
       for (struct qel * el = head; el != tail; el = el->next) {
-	fprintf(fh, "\t-> %x\n", el->val);
+	fprintf(fh, "\tslot %p -> %p\n", el, el->val.get());
       }
     }
     fprintf(fh, "\n");

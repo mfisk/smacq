@@ -5,6 +5,7 @@
 #include <string>
 
 inline SmacqGraph::~SmacqGraph() {
+  //fprintf(stderr, "shutdown %p from destructor (e.g. refcount==0)\n", this);
   do_shutdown(this);
   //children.clear();
   //parent.clear();
@@ -562,6 +563,7 @@ inline void SmacqGraph::do_shutdown(SmacqGraph * f) {
     // away.
     if (!f->parent[i]->shutdown && !f->parent[i]->live_children()) {
       // No reason to live if all former children gone!
+      //fprintf(stderr, "do_shutdown %p killing parent %p\n", f, f->parent[i]);
 
       // Callee will remove parent from our parent list.
       do_shutdown(f->parent[i]);
@@ -575,7 +577,7 @@ inline void SmacqGraph::do_shutdown(SmacqGraph * f) {
 /// If the refcount is 0, then clean-up references and destroy 
 inline void intrusive_ptr_release(SmacqGraph *o) { 
 	if (! --o->refcount) {
-		//fprintf(stderr, "Auto shutdown %p\n", o);
+		//fprintf(stderr, "shutdown %p because refcount = 0\n", o);
 		SmacqGraph::do_shutdown(o);
 
 		// do_shutdown() may result in more references, so
