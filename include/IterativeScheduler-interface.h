@@ -60,10 +60,10 @@ public:
   void runable(SmacqGraph *f, DtsObject d);
 
   /// Process a produceq element
-  smacq_result run_produce(SmacqGraph * f);
+  void run_produce(SmacqGraph * f);
 
-  /// Process a consumeq element
-  void run_consume(ConsumeItem & i);
+  /// Process a consumeq element.  Return true iff something could be done.
+  bool run_consume();
 
   smacq_result decide_children(SmacqGraph * g, DtsObject din, int outchan);
 

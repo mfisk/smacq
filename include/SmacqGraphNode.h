@@ -26,6 +26,7 @@ class SmacqGraphNode{
   struct SmacqModule::algebra algebra; // set by load_module()
 
   bool shutdown;
+  bool mustProduce;
 
   SmacqModule * instance;
 
@@ -52,7 +53,7 @@ class SmacqGraphNode{
 };
 
 inline SmacqGraphNode::SmacqGraphNode()
-  : shutdown(false), instance(NULL), q(RINGSIZE) 
+  : shutdown(false), mustProduce(false), instance(NULL), q(RINGSIZE) 
 {}
 
 inline SmacqGraphNode::~SmacqGraphNode() {
