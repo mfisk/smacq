@@ -123,6 +123,8 @@ void pcapfileModule::fixup_pcap(struct old_pcap_pkthdr * hdr) {
 }
 
 smacq_result pcapfileModule::consume(DtsObject fileo, int & outchan) {
+  if (fh) delete fh; // Clean-up previous file
+
   fh = StrucioStream::MagicOpen(fileo);
 
   if (!fh) {

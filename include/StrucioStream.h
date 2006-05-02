@@ -16,7 +16,10 @@
 class StrucioStream {
  public:
   // We're happy with the default destructor, but gcc 4.0 requires a virtual destructor for virtual classes...
-  virtual ~StrucioStream() {};
+  virtual ~StrucioStream() {
+      // want to use a virtual, but can't from the base constructor
+      //this->Close();
+  }
 
   StrucioStream(const char * fname, const char * fmode = "rb") 
     : follow(false), filename(fname), mode(fmode)
@@ -97,10 +100,14 @@ template <typename filetype>
 class FileStream : public StrucioStream {
  public:
    FileStream(const char * fname, const int fileno, const char * fmode = "rb") :
-     StrucioStream(fname, fileno, fmode)
+     StrucioStream(fname, fileno, fmode), fh(NULL)
      {
        FdOpen();
      }
+   
+   ~FileStream() {
+	if (fh) Close();
+   }
      
    bool Close();
 

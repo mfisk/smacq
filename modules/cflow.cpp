@@ -21,6 +21,7 @@ smacq_result cflowModule::produce(DtsObject & datum, int & outchan) {
 }
 
 smacq_result cflowModule::consume(DtsObject datum, int & outchan) {
+  if (fh) delete fh;
   fh = StrucioStream::MagicOpen(datum);
   return SMACQ_FREE|SMACQ_PRODUCE;
 }
