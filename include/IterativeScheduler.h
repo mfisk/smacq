@@ -3,9 +3,13 @@
 #include <IterativeScheduler-interface.h>
 #include <SmacqGraph.h>
 
-inline void IterativeScheduler::seed_produce(SmacqGraph * startf) {
-   startf->mustProduce = true;
-   produceq.enqueue(startf);
+inline void IterativeScheduler::seed_produce(SmacqGraph * f) {
+   f->mustProduce = true;
+   if (f->inputq.empty()) {
+	produceq.enqueue(f);
+   } else {
+	producefirstq.enqueue(f);
+   }
 }
 	
 inline void IterativeScheduler::seed_produce(SmacqGraphContainer * startf) {
@@ -17,6 +21,14 @@ inline void IterativeScheduler::seed_produce(SmacqGraphContainer * startf) {
     } else {
 	seed_produce(startf->head[h].get());
     }
+  }
+}
+
+inline void IterativeScheduler::runable(SmacqGraph_ptr f, DtsObject d) {
+  bool empty = f->inputq.empty();
+  f->inputq.enqueue(d);
+  if (empty && ! f->mustProduce) {
+	consumeq.enqueue(f);
   }
 }
 
@@ -52,13 +64,6 @@ inline void IterativeScheduler::enqueue(SmacqGraph * caller, DtsObject d, int ou
   enqueue_stack.erase(caller);
 }
 
-inline void IterativeScheduler::runable(SmacqGraph *f, DtsObject d) {
-  IterativeScheduler::ConsumeItem i;
-  i.g = f;
-  i.d = d;
-  consumeq.enqueue(i);
-}
-
 inline void IterativeScheduler::queue_children(SmacqGraph * f, DtsObject d, int outchan) {
   //fprintf(stderr, "Output channel was %d of %u\n", outchan, f->children.size());
   assert((outchan < (int)f->children.size()) || (!f->children.size() && !outchan));
@@ -70,7 +75,7 @@ inline void IterativeScheduler::queue_children(SmacqGraph * f, DtsObject d, int 
     for (unsigned int i=0; i < f->children[outchan].size(); i++) {
       assert(f->children[outchan][i]);
       //fprintf(stderr, "\tchild %d: %s (%p)\n", i, f->children[outchan][i]->argv[0], f->children[outchan][i].get());
-      runable(f->children[outchan][i].get(), d);
+      runable(f->children[outchan][i], d);
     }
   } else {
     //fprintf(stderr, "queueing %p falling off leaf %s (%p)\n", d.get(), f->name, f);
@@ -88,96 +93,119 @@ inline void IterativeScheduler::run_produce(SmacqGraph * f) {
   // But we don't want to produce too eagerly before letting other modules
   // consume (or else we may buffer too much stuff in memory).
 
-  f->mustProduce = false; 
+  if (!f->shutdown) {
+    assert(f->instance);
+    pretval = f->instance->produce(d, outchan);
 
-  if (f->shutdown) return;
+    if (pretval & SMACQ_PASS) {
+      queue_children(f, d, outchan);		
+    }
 
-  assert(f->instance);
-  pretval = f->instance->produce(d, outchan);
-
-  if (pretval & SMACQ_PASS) {
-      enqueue(f, d, outchan);		
-  }
-
-  if (pretval & SMACQ_END) {
+    if (pretval & SMACQ_END) {
       //assert(!(pretval & (SMACQ_PRODUCE|SMACQ_CANPRODUCE)));
  
       //fprintf(stderr, "module %p asked for shutdown on produce\n", f); 
       SmacqGraph::do_shutdown(f);
-  } else if (pretval & (SMACQ_PRODUCE|SMACQ_CANPRODUCE)) {
+
+    } else if (pretval & (SMACQ_PRODUCE|SMACQ_CANPRODUCE)) {
       seed_produce(f); // Keep producing
+
+    } else if (!f->inputq.empty()) {
+      // Move to consumeq
+      f->mustProduce = false; 
+      consumeq.enqueue(f);
+    }
   }
 }
     
 /// Return true iff the datum was passed.
 /// This should destroy the argument, so caller must not refer to it after call.
 inline bool IterativeScheduler::run_consume() {
-  ConsumeItem i;
+  SmacqGraph_ptr i;
+
   if (!consumeq.peek(i)) return false;
-  if (enqueue_stack.count(i.g.get())) return false;
-
-  assert(i.g);
-
-  if (i.g->mustProduce) {
-      run_produce(i.g.get());
-      return true;
-  } 
+  if (enqueue_stack.count(i.get())) return false;
 
   consumeq.pop(i);
 
+  if (i->mustProduce) {
+      // This will automatically get rescheduled after the produce
+      return true;
+  } 
+
   // Handle already-shutdown case
-  if (i.g->shutdown) {
+  if (i->shutdown) {
 	return true;
   }
 
-  assert(i.g->instance);
-  assert(i.d); // No more scheduled shutdowns
+  assert(i->instance);
 
   //fprintf(stderr, "consume %p by %s (%p)\n", i.d.get(), i.g->argv[0], i.g.get());
 
-  int outchan = 0;
-  smacq_result retval = i.g->instance->consume(i.d, outchan);
+  DtsObject d;
 
-  if (retval & SMACQ_PASS) {
-    //fprintf(stderr, "Pass on %p to chan %d by %p\n", i.d.get(), outchan, i.g.get());
-    queue_children(i.g.get(), i.d, outchan);
-  }
+  // We're a little greedy here in order to create more locality.
+  // We process all the inputs for this module.
+  while (i->inputq.pop(d)) {
+    int outchan = 0;
+    smacq_result retval = i->instance->consume(d, outchan);
 
-  if (retval & (SMACQ_PRODUCE|SMACQ_CANPRODUCE)) {
-    run_produce(i.g.get());
-  }
+    if (retval & SMACQ_PASS) {
+      //fprintf(stderr, "Pass on %p to chan %d by %p\n", d.get(), outchan, i.g.get());
+      queue_children(i.get(), d, outchan);
+    }
+
+    if (retval & (SMACQ_PRODUCE|SMACQ_CANPRODUCE)) {
+      run_produce(i.get());
+    }
 	
-  if (retval & SMACQ_END) {
-    //fprintf(stderr, "module %p asked for shutdown on consume\n", i.g.get()); 
-    SmacqGraph::do_shutdown(i.g.get());
+    if (retval & SMACQ_END) {
+      //fprintf(stderr, "module %p asked for shutdown on consume\n", i.get()); 
+      SmacqGraph::do_shutdown(i.get());
+    }
   }
 
   return true;
 }
 
-/// Handle one thing on the run queue.
-/// Return SMACQ_PASS iff an object falls off the end of the graph.
-/// Return SMACQ_NONE iff there is no work we can do.
-/// Otherwise, return SMACQ_FREE.
-inline smacq_result IterativeScheduler::element(DtsObject &dout) {
+/// Return true iff we had something to do.
+inline bool IterativeScheduler::do_something() {
   SmacqGraph_ptr f;
 
   if (run_consume()) {
     ;
+
+  } else if (producefirstq.pop(f)) {
+    // Only produce if we have nothing else
+    run_produce(f.get());
+
   } else if (produceq.pop(f)) {
     // Only produce if we have nothing else
     run_produce(f.get());
 
-  } else if (outputq.pop(dout)) {
-    // Datum fell off end of data-flow graph
-    return SMACQ_PASS;
-
   } else {
-    // All done!
-    return SMACQ_NONE;
+    return false;
   }
 
-  // If we did a consume, shutdown, or produce, 
+  return true;
+}
+
+/// Handle one thing on the run queue and return something if possible.
+/// Return SMACQ_PASS iff an object falls off the end of the graph.
+/// Return SMACQ_NONE iff there is no work we can do.
+/// Otherwise, return SMACQ_FREE.
+inline smacq_result IterativeScheduler::element(DtsObject &dout) {
+  if (!do_something()) {
+    if (outputq.pop(dout)) {
+      // Datum fell off end of data-flow graph
+      return SMACQ_PASS;
+
+    } else {
+      // All done!
+      return SMACQ_NONE;
+    }
+  }
+
   // See if we can return something too.
   if (outputq.pop(dout)) {
     return SMACQ_PASS;

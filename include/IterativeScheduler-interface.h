@@ -46,18 +46,8 @@ public:
   smacq_result element(DtsObject &dout);
 
  private:
-  struct ConsumeItem {
-    SmacqGraph_ptr g;
-    DtsObject d;
-   
-    ConsumeItem() : g(NULL), d(NULL) {};
- 
-    // The runq class will set to NULL to remove references
-    ConsumeItem(void * v) : g(NULL), d(NULL) { assert(!v);};
-  };
-
   /// Place something on the consume queue
-  void runable(SmacqGraph *f, DtsObject d);
+  void runable(SmacqGraph_ptr f, DtsObject d);
 
   /// Process a produceq element
   void run_produce(SmacqGraph * f);
@@ -65,9 +55,13 @@ public:
   /// Process a consumeq element.  Return true iff something could be done.
   bool run_consume();
 
+  /// Find something to do and do it.
+  bool do_something();
+
   smacq_result decide_children(SmacqGraph * g, DtsObject din, int outchan);
 
-  runq<ConsumeItem> consumeq;
+  runq<SmacqGraph_ptr> consumeq;
+  runq<SmacqGraph_ptr> producefirstq;
   runq<SmacqGraph_ptr> produceq;
   runq<DtsObject> outputq;
 

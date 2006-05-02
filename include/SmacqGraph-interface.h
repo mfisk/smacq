@@ -4,6 +4,7 @@
 #include <SmacqModule-interface.h>
 #include <SmacqGraphNode.h>
 #include <DynamicArray.h>
+#include <RunQ.h>
 #include <set>
 #include <vector>
 #include <assert.h>
@@ -196,6 +197,9 @@ class SmacqGraph : public SmacqGraphNode {
 
   /// Attempt to distribute children of this graph.  Return true iff successful.
   bool distribute_children(DTS *);
+
+  /// Queue of input items to consume.
+  runq<DtsObject> inputq;
 
  private:
   /// Print a node and recurse up.
