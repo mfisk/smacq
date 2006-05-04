@@ -14,10 +14,8 @@ EXTRA_DIST=api
 DOXYGEN=doxygen
 DOCBOOK2MAN=docbook-to-man
 
-api: .ALWAYS
-	(cd $(srcdir); $(DOXYGEN))
-
-.ALWAYS:
+api: 
+	(cd $(srcdir)/api; $(DOXYGEN))
 
 api/refman.pdf: api api/latex/refman.tex
 	(make -C $(srcdir)/api/latex && cp $(srcdir)/api/latex/refman.pdf $(srcdir)/api/) || \
