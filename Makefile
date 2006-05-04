@@ -18,6 +18,11 @@ profile:
 small:
 	BUILDNAME=small CONFIG="$$CONFIG --enable-small" misc/buildarch
 
+pushrelease: dist rpm
+	@set -x; cd doc && rsync -a -e ssh -Ltv *.pdf *.png *.html api ../ChangeLog smacq.sf.net:smacqweb/
+	@set -x; scp build/*/smacq-*.tar.gz build/*/RPMS/*/smacq*rpm smacq.sf.net:smacqweb/downloads/
+	@set -x; scp build/*/RPMS/*/smacq*rpm packrat1.ds:/var/redhat/netnanny/RPMS/
+
 tarball:
 	(set -ex; d=/tmp/$$$$.install/usr; mkdir -p $$d; misc/buildarch prefix=$$d install; cd $$d/..; tar -czvf smacq.tar.gz usr)
 
