@@ -1,7 +1,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.57)
-AC_INIT(SMACQ, 2.3, mfisk@lanl.gov)
+AC_INIT(SMACQ, 2.4, mfisk@lanl.gov)
 AC_CONFIG_AUX_DIR([config])
 AM_CONFIG_HEADER(include/config.h)
 AM_INIT_AUTOMAKE(1.7)
@@ -263,7 +263,7 @@ AC_ARG_WITH([ethereal],
 			[Include Ethereal packet decoding]))
 
 if test "X$with_ethereal" != "X"; then
-	if test "X$with_ethereal" = "yes"; then
+	if test "X$with_ethereal" = "Xyes"; then
 		AC_MSG_ERROR([Must specify path to source with --with-ethereal=])
 	fi
 	ETHEREAL_LDFLAGS=$withval/epan/libethereal.la -lsnmp -lcrypto
