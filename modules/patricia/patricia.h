@@ -1,5 +1,5 @@
 /*
- * $Id: patricia.h,v 1.1 2004/02/19 23:58:32 mfisk Exp $
+ * $Id: patricia.h,v 1.2 2004/07/05 03:39:24 mfisk Exp $
  * Dave Plonka <plonka@doit.wisc.edu>
  *
  * This product includes software developed by the University of Michigan,
@@ -27,7 +27,6 @@
 
 BEGIN_C_DECLS
 
-/* typedef unsigned int u_int; */
 typedef void (*void_fn_t)();
 /* { from defs.h */
 #define prefix_touchar(prefix) ((u_char *)&(prefix)->add.sin)
@@ -38,21 +37,20 @@ typedef void (*void_fn_t)();
 #define addroute make_and_lookup
 
 #include <netinet/in.h> /* for struct in_addr */
-
 #include <sys/socket.h> /* for AF_INET */
 
 /* { from mrt.h */
 
 typedef struct _prefix4_t {
-    u_short family;		/* AF_INET | AF_INET6 */
-    u_short bitlen;		/* same as mask? */
+    uint16_t family;		/* AF_INET | AF_INET6 */
+    uint16_t bitlen;		/* same as mask? */
     int ref_count;		/* reference count */
     struct in_addr sin;
 } prefix4_t;
 
 typedef struct _prefix_t {
-    u_short family;		/* AF_INET | AF_INET6 */
-    u_short bitlen;		/* same as mask? */
+    uint16_t family;		/* AF_INET | AF_INET6 */
+    uint16_t bitlen;		/* same as mask? */
     int ref_count;		/* reference count */
     union {
 		struct in_addr sin;
@@ -65,7 +63,7 @@ typedef struct _prefix_t {
 /* } */
 
 typedef struct _patricia_node_t {
-   u_int bit;			/* flag if this node used */
+   unsigned int bit;			/* flag if this node used */
    prefix_t *prefix;		/* who we are in patricia tree */
    struct _patricia_node_t *l, *r;	/* left and right children */
    struct _patricia_node_t *parent;/* may be used */
@@ -75,7 +73,7 @@ typedef struct _patricia_node_t {
 
 typedef struct _patricia_tree_t {
    patricia_node_t 	*head;
-   u_int		maxbits;	/* for IP, 32 bit addresses */
+   unsigned int		maxbits;	/* for IP, 32 bit addresses */
    int num_active_node;		/* for debug purpose */
 } patricia_tree_t;
 
