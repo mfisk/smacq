@@ -15,7 +15,7 @@ DOXYGEN=doxygen
 DOCBOOK2MAN=docbook-to-man
 
 api: 
-	(cd $(srcdir)/api; $(DOXYGEN))
+	(mkdir -p $(srcdir)/api && cd $(srcdir) && $(DOXYGEN))
 
 api/refman.pdf: api api/latex/refman.tex
 	(make -C $(srcdir)/api/latex && cp $(srcdir)/api/latex/refman.pdf $(srcdir)/api/) || \
