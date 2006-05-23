@@ -43,11 +43,14 @@ if test -n "$GCC"; then
 		sparc-sun-solaris*)
 			CO="-fast"
 			;;
-		powerpc-apple-darwin*)
+		*-apple-darwin*)
 			AM_CPPFLAGS="$AM_CPPFLAGS -force_flat_namespace"
 			LIBGNU_CFLAGS="-Wno-long-double"
 			CO="-fast -fPIC -mcpu="`machine | sed 's/ppc//'`
 			DEBUG_LDFLAGS="-lMallocDebug"
+
+			# This became necessary when I switched from Fink to DarwinPorts on 10.4 Intel:
+			AM_LDFLAGS="$AM_LDFLAGS -framework CoreFoundation"
 			;;
     esac
 fi
