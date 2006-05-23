@@ -37,7 +37,7 @@ static int time_lt(void * p1, int len1, void * p2, int len2) {
 }
 
 static int parse_timeval(const char* buf,  DtsObject d) {
-  struct timeval tv;
+  struct timeval tv = {0,0};
   assert(get_date_tv(&tv, buf));
   return dts_set(d, uint32_t, tv.tv_sec);
 }

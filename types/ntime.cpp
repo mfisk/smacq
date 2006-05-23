@@ -53,7 +53,7 @@ static int smacqtype_ntime_get_date(DtsObject o, DtsObject field) {
 }
 
 static int parse_timeval(const char* buf,  DtsObject d) {
-  struct timeval tv;
+  struct timeval tv = {0,0};
   assert(get_date_tv(&tv, buf));
   tv.tv_sec = htonl(tv.tv_sec);
   return dts_set(d, uint32_t, tv.tv_sec);

@@ -64,7 +64,7 @@ static int smacqtype_timeval_get_date(DtsObject o, DtsObject field) {
 }
 
 static int parse_timeval(const char* buf,  DtsObject d) {
-  struct timeval tv;
+  struct timeval tv = {0,0};
   assert(get_date_tv(&tv, buf));
   if (sizeof(struct timeval) != sizeof(struct timeval_32)) {
   	struct timeval_32 tv32;
