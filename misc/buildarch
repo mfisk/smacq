@@ -2,7 +2,7 @@
 
 targets="$@"
 if [ "$targets" = "" ]; then
-        targets="all test"
+        targets="check"
 fi
 
 platform=`uname -sm| sed 's/  */-/g'`
