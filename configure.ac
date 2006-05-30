@@ -49,12 +49,19 @@ if test -n "$GCC"; then
 			CO="-fast -fPIC -mcpu="`machine | sed 's/ppc//'`
 			DEBUG_LDFLAGS="-lMallocDebug"
 
-			# This became necessary when I switched from Fink to DarwinPorts on 10.4 Intel:
+			# This became necessary when I switched from Fink to DarwinPorts (on 10.4 Intel):
 			AM_LDFLAGS="$AM_LDFLAGS -framework CoreFoundation"
 			;;
     esac
 fi
 AC_SUBST(LIBGNU_CFLAGS)
+
+##
+## Support DarwinPorts automatically
+##
+if test -d /opt/local/include ; then 
+	AM_CPPFLAGS="$AM_CPPFLAGS -I/opt/local/include"
+fi
 
 ##
 ## pkg-config libraries
@@ -65,6 +72,11 @@ PKG_CHECK_MODULES(GLIB, glib-2.0 gmodule-2.0)
 AM_CPPFLAGS="$AM_CPPFLAGS ${GLIB_CFLAGS}"
 GLIB_CFLAGS=
 AC_SUBST(GLIB_CFLAGS GLIB_LIBS)
+
+##
+## sigc++ does their own sigc-config thing
+##
+##AM_PATH_SIGC(1.0.0, AM_CPPFLAGS="$AM_CPPFLAGS $SIGC_CFLAGS")
 
 ##
 ## Checks for header files.
@@ -180,17 +192,19 @@ AC_ARG_ENABLE(profile,
 AC_ARG_ENABLE(debug,
 	AC_HELP_STRING([--enable-debug],
 			[enable debugging options]),
-	[AM_CPPFLAGS="$AM_CPPFLAGS -D_GLIBCXX_DEBUG";
+	[
+	 AM_CPPFLAGS="$AM_CPPFLAGS -D_GLIBCXX_DEBUG";
 	 if test -n "$GCC"; then
 		CO="-O0"
 		# Hard to debug when everything is inlined
 		AM_CPPFLAGS="$AM_CPPFLAGS -g -fno-inline"
 		AM_LDFLAGS="$AM_LDFLAGS ${DEBUG_LDFLAGS}"
-	else
+	 else
 		CO="-O0"
 		AM_CPPFLAGS="$AM_CPPFLAGS -g"
-	fi],
-	[CO="-O9"])
+	 fi
+	],
+        [CO="-O9"])
 
 ##
 ## Small (-Os)
