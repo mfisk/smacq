@@ -5,7 +5,10 @@ libsmacq_la_CPPFLAGS = $(AM_CPPFLAGS) -DSMACQ_BUILD_DATE=\"`date '+%Y-%m-%d'`\" 
 
 noinst_LTLIBRARIES=libsmacq.la 
 
-libsmacq_la_SOURCES=smacqq.cpp mem.c args.c pickle.cpp optimize.cpp filter.cpp ThreadedSmacqModule.cpp dynloader.c parsing.cpp cmalloc.c parser.ym scanner.lpp filter-parser.ym expr-parser.ym DTS.cpp DtsObject.cpp smacq_result.cpp am.cpp #datalog-parser.ym
+libsmacq.cpp: smacqq.cpp pickle.cpp optimize.cpp filter.cpp ThreadedSmacqModule.cpp parsing.cpp DTS.cpp DtsObject.cpp smacq_result.cpp am.cpp
+	for f in $+; do echo "# 1 \"$$f\""; cat $$f; done > $@
+
+libsmacq_la_SOURCES=libsmacq.cpp mem.c args.c dynloader.c cmalloc.c parser.ym filter-parser.ym expr-parser.ym scanner.lpp #datalog-parser.ym
 
 noinst_HEADERS=grammer.ypp
 BUILT_SOURCES=parser.cpp filter-parser.cpp expr-parser.cpp #datalog-parser.cpp
