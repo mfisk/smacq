@@ -1,22 +1,22 @@
 #AUTOMAKE_VERSION=-1.9
 
 default: config/config.guess
-	misc/buildarch
+	+MAKEFLAGS="$(MAKEFLAGS)" misc/buildarch
 
 config/config.guess: 
-	$(MAKE) bootstrap
+	$(MAKE) $(MAKEFLAGS) bootstrap
 
 debug:
-	BUILDNAME=debug CONFIG="$$CONFIG --enable-debug" misc/buildarch 
+	+MAKEFLAGS="$(MAKEFLAGS)" BUILDNAME=debug CONFIG="$$CONFIG --enable-debug" misc/buildarch 
 
 gdb:
-	interactive=yes BUILDNAME=debug CONFIG="$$CONFIG --enable-debug" misc/buildarch gdb
+	+MAKEFLAGS="$(MAKEFLAGS)" interactive=yes BUILDNAME=debug CONFIG="$$CONFIG --enable-debug" misc/buildarch gdb 
 
 profile:
-	BUILDNAME=profile CONFIG="$$CONFIG --enable-profile" misc/buildarch 
+	+MAKEFLAGS="$(MAKEFLAGS)" BUILDNAME=profile CONFIG="$$CONFIG --enable-profile" misc/buildarch  
 
 small:
-	BUILDNAME=small CONFIG="$$CONFIG --enable-small" misc/buildarch
+	+MAKEFLAGS="$(MAKEFLAGS)" BUILDNAME=small CONFIG="$$CONFIG --enable-small" misc/buildarch 
 
 pushrelease: dist rpm
 	@set -x; cd doc && rsync -a -e ssh -Ltv *.pdf *.png *.html api ../ChangeLog smacq.sf.net:smacqweb/
@@ -49,7 +49,7 @@ cvsinter:
 	cvs commit -m 'intermediate file' *.in `find * -maxdepth 2 -name \*.in` aclocal.m4 configure stamp-h.in config doc/smacq.1* doc/smacqq.1* #libsmacq/parser.h libsmacq/*parser.[yc]pp libsmacq/scanner.cpp
 
 %:
-	misc/buildarch $@
+	+MAKEFLAGS="$(MAKEFLAGS)" misc/buildarch $@
 
 smacq.iso: dist
 	TOPSRCDIR=`pwd` misc/mkiso
