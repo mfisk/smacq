@@ -22,7 +22,7 @@ Run() {
 		(set -e; SMACQQ=$BINDIR/smacqq $tst)
 	else
 		# Test is not executable, so treat it as smacqq input
-		$SMACQQ -v -c 2 --pregraph -g -m -f $tst
+		$SMACQQ --debug -c 2 --pregraph -g -m -f $tst
 	fi
 }
 

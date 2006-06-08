@@ -19,7 +19,7 @@ static struct smacq_options options[] = {
   {"pregraph", {boolean_t:0}, "Show pre-initialization graph", SMACQ_OPT_TYPE_BOOLEAN},
   {"g", {boolean_t:0}, "Show final graph", SMACQ_OPT_TYPE_BOOLEAN},
   {"q", {boolean_t:0}, "Ignore warnings", SMACQ_OPT_TYPE_BOOLEAN},
-  {"v", {boolean_t:0}, "Add verbose diagnostics", SMACQ_OPT_TYPE_BOOLEAN},
+  {"debug", {boolean_t:0}, "Add verbose diagnostics", SMACQ_OPT_TYPE_BOOLEAN},
   END_SMACQ_OPTIONS
 };
 
@@ -54,7 +54,7 @@ void * thread_start(void * arg) {
 }
 
 int smacqq(int argc, char ** argv) {
-  smacq_opt multiple, optimize, qfile, showpregraph, showgraph, cpus, showtype, quiet, verbose;
+  smacq_opt multiple, optimize, qfile, showpregraph, showgraph, cpus, showtype, quiet, debug;
   int qargc;
   char ** qargv;
   DTS dts;
@@ -82,7 +82,7 @@ int smacqq(int argc, char ** argv) {
 		  {"pregraph", &showpregraph},
 		  {"g", &showgraph},
 		  {"q", &quiet},
-		  {"v", &verbose},
+		  {"debug", &debug},
 		  {NULL, NULL}
   };
   smacq_getoptsbyname(argc-1, argv+1, &qargc, &qargv, options, optvals);
@@ -104,7 +104,7 @@ int smacqq(int argc, char ** argv) {
 
   SmacqScheduler s;
 
-  if (verbose.boolean_t) {
+  if (debug.boolean_t) {
 	s.setDebug();
   }
 
