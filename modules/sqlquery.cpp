@@ -98,8 +98,9 @@ void sqlqueryModule::processInvariants(int column, SmacqGraph_ptr g) {
 		fprintf(stderr, "Cannot eagerly perform %s (%d args)\n", argv[0], argc);
 	}
 
-	if (g->getChildren()[0].size()) 
-		processInvariants(column, g->getChildren()[0][0].get());
+	std::vector<ThreadSafeMultiSet<SmacqGraph_ptr> > children = g->getChildren();
+	if (children[0].size()) 
+		processInvariants(column, children[0][0].get());
 }
 
 smacq_result sqlqueryModule::produce(DtsObject & datum, int & outchan) {

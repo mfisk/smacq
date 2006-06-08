@@ -76,7 +76,7 @@ int dfaModule::try_transition(DtsObject datum, struct transition & t) {
   DtsObject output;
   smacq_result more;
 
-  more = sched->decide(t.graph, datum);
+  more = sched->decideContainer(t.graph, datum);
 
   if ((SMACQ_END|SMACQ_ERROR) & more) {
     assert(0);

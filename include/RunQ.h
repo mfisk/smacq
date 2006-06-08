@@ -1,13 +1,14 @@
 #ifndef RUNQ_H
 #define RUNQ_H
 #include <DtsObject.h>
+#include <ThreadSafe.h>
 
 #ifdef USE_GASNET
 # include <gasnet.h>
 #endif
 
 template<typename T>	
-class runq {
+class runq : public PthreadMutex {
  public:
   runq() {
     /* Make a 2 element ring to start */
@@ -27,21 +28,19 @@ class runq {
 
   /// Copy the first element from the runq.  Set f & d accordingly.
   bool peek(T& val) {
-    lock();
+    RecursiveLock l(this);
 
     if (!this->head) {
-      unlock();
       return false;
     } else {
       val = this->head->val;
-      unlock();
       return true;
     }
   }
 
   /// Remove the first element from the runq.  Set f & d accordingly.
   bool pop(T& val) {
-    lock();
+    RecursiveLock l(this);
 
     if (!this->head) {
       //fprintf(stderr, "queue %p/%p empty\n", this, this->head);
@@ -58,13 +57,12 @@ class runq {
       this->head = NULL;
     }
 
-    unlock();
     return true;
   }
 
   /// Add a new element to the end of the runq.
   void enqueue(T val) {
-    lock();
+    RecursiveLock l(this);
 
     struct qel * el = insertion_point();
 
@@ -73,13 +71,11 @@ class runq {
     if (!this->head) {
       this->head = el;
     }
-
-    unlock();
   }
 
   /// Print the contents of the runq.
   void print(FILE * fh) {
-    lock();
+    RecursiveLock l(this);
 
     fprintf(fh, "Queue:");
     if (head) {
@@ -88,22 +84,18 @@ class runq {
       }
     }
     fprintf(fh, "\n");
-
-    unlock();
   }
 
  protected:
-  void lock() { 
 #ifdef USE_GASNET
+  void lock() { 
 	gasnet_hold_interrupts(); 
-#endif
   }
 
   void unlock() { 
-#ifdef USE_GASNET
 	gasnet_resume_interrupts(); 
-#endif
   }
+#endif
 
   struct qel {
     T val;

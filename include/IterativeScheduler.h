@@ -2,98 +2,87 @@
 #define ITERATIVE_SCHEDULER_H
 #include <IterativeScheduler-interface.h>
 #include <SmacqGraph.h>
+#include <ThreadSafe.h>
 
-inline void IterativeScheduler::seed_produce(SmacqGraph * f) {
-   f->mustProduce = true;
-   if (f->inputq.empty()) {
-	produceq.enqueue(f);
-   } else {
-	producefirstq.enqueue(f);
-   }
-}
-	
-inline void IterativeScheduler::seed_produce(SmacqGraphContainer * startf) {
-  for (unsigned int h = 0; h < startf->head.size(); h++) {
-    // Force first guy to produce
-    // We should be a stub and should pass this to children
-    if (!startf->head[h]->argc) {
-    	FOREACH_CHILD(startf->head[h], produceq.enqueue(child));
+#include <boost/lambda/bind.hpp>
+
+inline void IterativeScheduler::seed_produce_one(SmacqGraph * g) {
+    using namespace boost::lambda;
+    using namespace std;
+
+    // We should be a stub and should pass this to children.
+    if (!g->argc) {
+	FOREACH_CHILD(g, produceq.enqueue(child) );
     } else {
-	seed_produce(startf->head[h].get());
+	g->seed_produce();
     }
-  }
 }
 
-inline void IterativeScheduler::runable(SmacqGraph_ptr f, DtsObject d) {
-  bool empty = f->inputq.empty();
-  f->inputq.enqueue(d);
-  if (empty && ! f->mustProduce) {
-	consumeq.enqueue(f);
-  }
+inline void IterativeScheduler::seed_produce(SmacqGraphContainer * startf) {
+  using namespace boost::lambda;
+
+  // Force first guy to produce
+  startf->head.foreach( bind(&IterativeScheduler::seed_produce_one, this, DEREF(_1)) );
+}
+
+inline void IterativeScheduler::input_one(SmacqGraph * g, DtsObject din) {
+    if (g->argc) {
+    	assert (g->instance > (void*)1000);
+    	g->runable(din);
+    } else {
+	// stub
+	FOREACH_CHILD(g, child->runable(din));
+    }
 }
 
 inline void IterativeScheduler::input(SmacqGraphContainer * c, DtsObject din) {
-  for (unsigned int h = 0; h < c->head.size(); h++) {
-    SmacqGraph * g = c->head[h].get();
-    if (g->argc) {
-    	assert (g->instance > (void*)1000);
-    	runable(g, din);
-    } else {
-	// stub
-    	FOREACH_CHILD(g, runable(child, din));
-    }
-  }
+  using namespace boost::lambda;
+  c->head.foreach( bind(&IterativeScheduler::input_one, this, DEREF(_1), din) );
 }
-
 
 inline void IterativeScheduler::enqueue(SmacqGraph * caller, DtsObject d, int outchan) {
   queue_children(caller, d, outchan);
 
-  // Modules don't have to be re-entrant, so this makes that safe.
-  // It also bounds the stack size sanely.
-  enqueue_stack.insert(caller);
-
   // Schedule some consumes until we would recursively call one of the
   // modules already running. 
-  while (run_consume()) ;
+  while (do_something(true)) ;
 
   // Don't use produce or output queues here.
   ;
-
-  // Unmark caller and return back to them
-  enqueue_stack.erase(caller);
 }
 
-inline void IterativeScheduler::queue_children(SmacqGraph * f, DtsObject d, int outchan) {
+inline void IterativeScheduler::queue_children(SmacqGraph_ptr f, DtsObject d, int outchan) {
+  using namespace boost::lambda;
+
   //fprintf(stderr, "Output channel was %d of %u\n", outchan, f->children.size());
   assert((outchan < (int)f->children.size()) || (!f->children.size() && !outchan));
 
   assert (f->instance > (void*)1000);
 
   if (f->children[outchan].size()) {
-    //fprintf(stderr, "queueing %p for children of %s (%p)\n", d.get(), f->argv[0], f);
-    for (unsigned int i=0; i < f->children[outchan].size(); i++) {
-      assert(f->children[outchan][i]);
-      //fprintf(stderr, "\tchild %d: %s (%p)\n", i, f->children[outchan][i]->argv[0], f->children[outchan][i].get());
-      runable(f->children[outchan][i], d);
-    }
+    if (debug) f->log("output %p to children", d.get());
+    f->children[outchan].foreach( bind(&SmacqGraph::runable, DEREF(_1), d) );
   } else {
-    //fprintf(stderr, "queueing %p falling off leaf %s (%p)\n", d.get(), f->name, f);
+    if (debug) f->log("output %p to outputq", d.get());
     outputq.enqueue(d);
   }
 }
 
-inline void IterativeScheduler::run_produce(SmacqGraph * f) {
+
+/// Graph must already be locked
+inline void IterativeScheduler::run_produce(SmacqGraph_ptr f) {
   int outchan = 0;
   DtsObject d = NULL;
   smacq_result pretval;
+
+  if (debug) f->log("run_produce");
 
   // So here's the problem:  If run_produce returns SMACQ_PRODUCE, then we 
   // cannot run consume on this module until we have finished producing.
   // But we don't want to produce too eagerly before letting other modules
   // consume (or else we may buffer too much stuff in memory).
 
-  if (!f->shutdown) {
+  if (!f->shutdown.get()) {
     assert(f->instance);
     pretval = f->instance->produce(d, outchan);
 
@@ -104,84 +93,98 @@ inline void IterativeScheduler::run_produce(SmacqGraph * f) {
     if (pretval & SMACQ_END) {
       //assert(!(pretval & (SMACQ_PRODUCE|SMACQ_CANPRODUCE)));
  
-      //fprintf(stderr, "module %p asked for shutdown on produce\n", f); 
+      if (debug) f->log("asked for shutdown on produce"); 
       SmacqGraph::do_shutdown(f);
 
     } else if (pretval & (SMACQ_PRODUCE|SMACQ_CANPRODUCE)) {
-      seed_produce(f); // Keep producing
+      f->seed_produce(); // Keep producing
 
-    } else if (!f->inputq.empty()) {
-      // Move to consumeq
-      f->mustProduce = false; 
-      consumeq.enqueue(f);
+    } else {
+      f->produce_done();
     }
   }
 }
-    
-/// Return true iff the datum was passed.
-/// This should destroy the argument, so caller must not refer to it after call.
-inline bool IterativeScheduler::run_consume() {
-  SmacqGraph_ptr i;
 
-  if (!consumeq.peek(i)) return false;
-  if (enqueue_stack.count(i.get())) return false;
+/// Try to consume something.    
+/// Return true iff progress was made.
+inline bool IterativeScheduler::run_consume(SmacqGraph_ptr i) {
+  if (!i->mustProduce   // This will automatically get rescheduled after the produce
+     && !i->shutdown.get()) { // Or already shutdown
+  
+ 	assert(i->instance);
 
-  consumeq.pop(i);
+  	DtsObject d;
 
-  if (i->mustProduce) {
-      // This will automatically get rescheduled after the produce
-      return true;
-  } 
+  	// We're a little greedy here in order to create more locality.
+  	// We process all the pending inputs for this module.
+  	while (!i->mustProduce && i->inputq.pop(d)) {
+  		if (debug) i->log("consume(%p)", d.get()); 
 
-  // Handle already-shutdown case
-  if (i->shutdown) {
-	return true;
-  }
-
-  assert(i->instance);
-
-  //fprintf(stderr, "consume %p by %s (%p)\n", i.d.get(), i.g->argv[0], i.g.get());
-
-  DtsObject d;
-
-  // We're a little greedy here in order to create more locality.
-  // We process all the inputs for this module.
-  while (i->inputq.pop(d)) {
-    int outchan = 0;
-    smacq_result retval = i->instance->consume(d, outchan);
-
-    if (retval & SMACQ_PASS) {
-      //fprintf(stderr, "Pass on %p to chan %d by %p\n", d.get(), outchan, i.g.get());
-      queue_children(i.get(), d, outchan);
-    }
-
-    if (retval & (SMACQ_PRODUCE|SMACQ_CANPRODUCE)) {
-      run_produce(i.get());
-    }
+    		int outchan = 0;
+    		smacq_result retval = i->instance->consume(d, outchan);
 	
-    if (retval & SMACQ_END) {
-      //fprintf(stderr, "module %p asked for shutdown on consume\n", i.get()); 
-      SmacqGraph::do_shutdown(i.get());
-    }
+    		if (retval & SMACQ_PASS) {
+      			//fprintf(stderr, "Pass on %p to chan %d by %p\n", d.get(), outchan, i.get());
+      			queue_children(i, d, outchan);
+    		}
+	
+    		if (retval & (SMACQ_PRODUCE|SMACQ_CANPRODUCE)) {
+			if (debug) i->log("consume triggered produce");
+      			run_produce(i);
+    		}
+		
+    		if (retval & SMACQ_END) {
+      			//fprintf(stderr, "module %p asked for shutdown on consume\n", i.get()); 
+      			SmacqGraph::do_shutdown(i);
+    		}
+	}
   }
 
   return true;
 }
 
+/// Returns a locked graph from the queue, or nothing at all
+inline SmacqGraph_ptr IterativeScheduler::pop_lock(runq<SmacqGraph_ptr> & q) {
+  SmacqGraph_ptr nullp;
+  SmacqGraph_ptr g;
+  RecursiveLock l(q);
+
+  if (q.peek(g) && g->try_lock()) {
+     SmacqGraph_ptr newg; 
+     q.pop(newg);
+
+     // Make sure we popped the same thing we peeked.
+     assert(g == newg);
+     return g;
+  } else {
+
+     return nullp;
+  }
+}
+
 /// Return true iff we had something to do.
-inline bool IterativeScheduler::do_something() {
+inline bool IterativeScheduler::do_something(bool consume_only) {
   SmacqGraph_ptr f;
 
-  if (run_consume()) {
-    ;
+  if ((f = pop_lock(consumeq))) {
+    if (debug) f->log("run_consume()");
+	
+    run_consume(f);
+    f->unlock();
 
-  } else if (producefirstq.pop(f)) {
-    // Only produce if we have nothing else
-    run_produce(f.get());
+  } else if (consume_only) {
+    return false;
 
-  } else if (produceq.pop(f)) {
-    // Only produce if we have nothing else
-    run_produce(f.get());
+  } else if ((f = pop_lock(producefirstq))) {
+    if (debug) f->log("run_produce (MUSTPRODUCE)");
+
+    run_produce(f);
+    f->unlock();
+
+  } else if ((f = pop_lock(produceq))) {
+    if (debug) f->log("run_produce");
+    run_produce(f);
+    f->unlock();
 
   } else {
     return false;
@@ -247,25 +250,35 @@ inline smacq_result IterativeScheduler::get(DtsObject &dout) {
   return r;
 }
 
-inline smacq_result IterativeScheduler::decide_children(SmacqGraph * g, DtsObject din, int outchan) {
-  // Simpler case if top node is a stub
-  for (unsigned int i = 0; i < g->children[outchan].size(); i++) {
-      if (SMACQ_PASS == decide(g->children[outchan][i].get(), din)) {
+inline bool IterativeScheduler::decide_one(SmacqGraph * g, DtsObject din) {
+	return (decide(g, din) == SMACQ_PASS);
+}
+
+inline smacq_result IterativeScheduler::decide_set(ThreadSafeMultiSet<SmacqGraph_ptr> & g, DtsObject din) {
+  using namespace boost::lambda;
+
+  if (g.has_if( bind<smacq_result>(&IterativeScheduler::decide_one, this, DEREF(_1), din))) {
 	return SMACQ_PASS;
-      }
   }
   return SMACQ_FREE;
 }
 
+inline smacq_result IterativeScheduler::decide_children(SmacqGraph * g, DtsObject din, int outchan) {
+  if (!g->children[outchan].size()) {
+      // Base case: got to an end of decision graph!
+      return SMACQ_PASS;
+  }
+
+  assert(outchan < (int)g->children.size());
+
+  // Simpler case if top node is a stub
+  return decide_set(g->children[outchan], din);
+}
+
 /// Take an input and run it through a boolean graph.
 /// Return SMACQ_PASS or SMACQ_FREE.
-inline smacq_result IterativeScheduler::decide(SmacqGraphContainer * g, DtsObject din) {
-  for (unsigned int i = 0; i < g->head.size(); i++) {
-	if (SMACQ_PASS == decide(g->head[i].get(), din)) {
-		return SMACQ_PASS;
-	};
-  }
-  return SMACQ_FREE;
+inline smacq_result IterativeScheduler::decideContainer(SmacqGraphContainer * g, DtsObject din) {
+  return decide_set(g->head, din);
 }
 
 /// Take an input and run it through a boolean graph.
@@ -283,13 +296,6 @@ inline smacq_result IterativeScheduler::decide(SmacqGraph * g, DtsObject din) {
 
   if (r & SMACQ_PASS) {
     //fprintf(stderr, "Pass on %p by %p\n", d.get(), f);
-    assert(outchan < (int)g->children.size());
-
-    // Base case:  got to an end of graph!
-    if (!g->children[outchan].size()) {
-      return SMACQ_PASS;
-    }
-
     return decide_children(g, din, outchan);
   }
   return SMACQ_FREE;

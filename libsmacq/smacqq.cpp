@@ -6,16 +6,20 @@
 #include <SmacqGraph.h>
 #include <SmacqScheduler.h>
 #include "config.h"
+#include <pthread.h>
+#include <ThreadSafe.h>
 
 #define MAX_QUERY_SIZE 4096*100
 
 static struct smacq_options options[] = {
+  {"c", {int_t:1}, "Number of CPUs (threads) to use", SMACQ_OPT_TYPE_INT},
   {"t", {string_t:NULL}, "Describe the specified type", SMACQ_OPT_TYPE_STRING},
   {"m", {boolean_t:0}, "Multiple queries on STDIN", SMACQ_OPT_TYPE_BOOLEAN},
   {"f", {string_t:"-"}, "File to read queries from", SMACQ_OPT_TYPE_STRING},
   {"pregraph", {boolean_t:0}, "Show pre-initialization graph", SMACQ_OPT_TYPE_BOOLEAN},
   {"g", {boolean_t:0}, "Show final graph", SMACQ_OPT_TYPE_BOOLEAN},
   {"q", {boolean_t:0}, "Ignore warnings", SMACQ_OPT_TYPE_BOOLEAN},
+  {"v", {boolean_t:0}, "Add verbose diagnostics", SMACQ_OPT_TYPE_BOOLEAN},
   END_SMACQ_OPTIONS
 };
 
@@ -39,8 +43,18 @@ inline void print_refs(int x) {
 }
 #endif
 
+void print_field(dts_field_info * i) {
+       	printf("%30s: type %s\n", i->desc.name, i->desc.type);
+}
+
+void * thread_start(void * arg) {
+	SmacqScheduler * s = (SmacqScheduler*)arg;
+	
+	return (void*) (!s->busy_loop());
+}
+
 int smacqq(int argc, char ** argv) {
-  smacq_opt multiple, optimize, qfile, showpregraph, showgraph, showtype, quiet;
+  smacq_opt multiple, optimize, qfile, showpregraph, showgraph, cpus, showtype, quiet, verbose;
   int qargc;
   char ** qargv;
   DTS dts;
@@ -60,6 +74,7 @@ int smacqq(int argc, char ** argv) {
   }
 
   struct smacq_optval optvals[] = {
+		  {"c", &cpus},
 		  {"t", &showtype},
 		  {"m", &multiple},
 		  {"f", &qfile},
@@ -67,6 +82,7 @@ int smacqq(int argc, char ** argv) {
 		  {"pregraph", &showpregraph},
 		  {"g", &showgraph},
 		  {"q", &quiet},
+		  {"v", &verbose},
 		  {NULL, NULL}
   };
   smacq_getoptsbyname(argc-1, argv+1, &qargc, &qargv, options, optvals);
@@ -74,23 +90,23 @@ int smacqq(int argc, char ** argv) {
   if (quiet.boolean_t) {
 	dts.set_no_warnings();
   }
-
+  
   if (showtype.string_t) {
 	dts_typeid tid = dts.requiretype(showtype.string_t);
    	assert(tid);
-   	dts_type * t = dts.type_bynum(tid);
-   	std::vector<struct dts_field_info*>::iterator i;
-
    	printf("Type \"%s\" defines the following fields:\n", showtype.string_t);
-   	for (i=t->fields.begin(); i != t->fields.end(); ++i) {
-		if (*i) {
-       		printf("%30s: type %s\n", (*i)->desc.name, (*i)->desc.type);
-		}
-   	}
-   	exit(0);
+   	dts_type * t = dts.type_bynum(tid);
+	//std::unary_function<StaticCallBack<void, dts_field_info*> cb(&print_field);
+	//t->fields.foreach(UnaryFunctorCallBack<dts_field_info*, void, std::pointer_to_unary_function<dts_field_info*, void> >(std::ptr_fun(&print_field)));
+	t->fields.foreach(&print_field);
+	return(0);
   }
 
   SmacqScheduler s;
+
+  if (verbose.boolean_t) {
+	s.setDebug();
+  }
 
   if (multiple.boolean_t) {
       char * queryline;
@@ -117,7 +133,7 @@ int smacqq(int argc, char ** argv) {
 	      SmacqGraphContainer * newgraph = SmacqGraph::newQuery(&dts, &s, 1, &queryline);
 	      if (!newgraph) {
 		      fprintf(stderr, "Fatal error at line %d\n", qno);
-		      exit(-1);
+		      return(-1);
 	      }
       	      if (graphs) {
 		graphs->add_graph(newgraph, true);
@@ -129,7 +145,7 @@ int smacqq(int argc, char ** argv) {
 
   } else {
     graphs = SmacqGraph::newQuery(&dts, &s, qargc, qargv);
-    if (!graphs) exit(-1);
+    if (!graphs) return(-1);
   }
 
   if (showpregraph.boolean_t) {
@@ -143,6 +159,23 @@ int smacqq(int argc, char ** argv) {
   }
 
   s.seed_produce(graphs);
-  return (! s.busy_loop());
+
+  std::vector<pthread_t> threads(cpus.int_t - 1);
+
+  // Fire off some workers
+  for (int i = 0; i < cpus.int_t - 1; i++) {
+	assert(!pthread_create(&threads[i], NULL, thread_start, &s));
+  }
+
+  // Work yourself too
+  bool retval = (! s.busy_loop());
+
+  // Clean up workers
+  for (int i = 0; i < cpus.int_t - 1; i++) {
+	void * junk;
+	pthread_join(threads[i], &junk);
+  }
+
+  return retval;
 }
 

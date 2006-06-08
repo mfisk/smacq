@@ -62,30 +62,25 @@ char * DTS::field_getname(DtsField &f) {
 }
 
 dts_field_element DTS::requirefield_single(char * name) {
-  lock();
-  std::map<const char*, int, ltstr>::iterator i = fields_byname.find(name); 
-  if (i != fields_byname.end()) {
-	unlock();
-	return ((*i).second);
+  dts_field_element el = 0;
+  if (fields_byname.get(name, el)) {
+	return (el);
   } else {
 	name = strdup(name);
 	int f;
 #ifdef USE_GASNET
 	if (isProxy) {
 		f = 0;
-		unlock();
 		Gasnet.RequestMedium(0, AM_GETFIELD, name, strlen(name), 1, &f);
 		GASNET_BLOCKUNTIL(f);
-		lock();
 	} else {
 #else
 	{
 #endif
-		f = ++max_field;
+		f = max_field.increment();
 	}
 	fields_byname[name] = f;
     	fields_bynum[f] = name;
-	unlock();
     	return f;
   }
 }
@@ -120,7 +115,7 @@ DtsField DTS::requirefield(char * name) {
     if (p) {
       p[0] = '\0';
     }
-    
+   
     f.push_back(requirefield_single(name));
     //fprintf(stderr, "component (%d) %s is %d\n", i, name, f[i]);
     
@@ -153,19 +148,19 @@ static int dts_load_module(struct dts_type * t) {
 }
 
 dts_typeid DTS::requiretype(const char * name) {
+  struct dts_type * type = NULL;
+
+  if (types_byname.get(name, type)) {
+	return type->num;
+  }
+
+  /// Didn't already exist, so do it the hard way
+  RecursiveLock l(this);
+
   struct dts_type *& t = types_byname[name];
-  if (t) return t->num;
 
   // Else:
   t = new dts_type;
-  //darray_init(&t->fields, max_field);
-  t->name=strdup(name);
-  t->info.size = -1; // Variable
-
-  if (!dts_load_module(t)) {
-    fprintf(stderr, "Cannot load type %s\n", t->name);
-    return 0;
-  }
 
 #if USE_GASNET
   if (isProxy) {
@@ -176,10 +171,19 @@ dts_typeid DTS::requiretype(const char * name) {
 #else
   {
 #endif
-  	t->num = ++max_type;
+  	t->num = max_type.increment();
   }
-  
   types[t->num] = t;
+  
+  //darray_init(&t->fields, max_field);
+  t->name=strdup(name);
+  t->info.size = -1; // Variable
+
+  if (!dts_load_module(t)) {
+    fprintf(stderr, "Cannot load type %s\n", t->name);
+    return 0;
+  }
+
   //fprintf(stderr, "added type %s as %d, up from %d\n", t->name, t->num, max_type);
 
   if (t->description) {
@@ -221,7 +225,7 @@ int DTS::dts_lt(int type, void * p1, int len1, void * p2, int len2) {
   return t->info.lt(p1, len1, p2, len2);
 }
 
-DTS::DTS() : max_type(0), max_field(0), warnings(true), isProxy(false) {
+DTS::DTS() : warnings(true), isProxy(false) {
 }
 
 DtsObject DTS::construct_fromstring(dts_typeid type, const char * data) {
@@ -256,12 +260,10 @@ DtsObject DTS::newObject(dts_typeid type, int size) {
   DtsObject o;
   
   SMDEBUG(DtsObject_virtual_count++);
-  
-  if (! freelist.empty()) {
-    o = freelist.top();
-    freelist.pop();
-
+ 
+  if (freelist.pop(o)) {
     o->init(size, type);
+
   } else {
     o = new DtsObject_(this, size, type);
     //fprintf(stderr, "new object refcount = %d\n", o->getrefcount());
@@ -276,11 +278,13 @@ void DTS::send_message(DtsObject msgo, dts_field_element fieldnum, dts_compariso
   msg->field_data = msgo;
   msg->criteria = comparisons;
 
+  RecursiveLock l(this);
+
   dts_message * mlist = (dts_message*)this->messages_byfield[fieldnum];
 
   if (!mlist) {
     msg->next = NULL;
-    this->messages_byfield[fieldnum] = msg;
+    messages_byfield[fieldnum] = msg;
   } else {
     msg->next = mlist->next;
     mlist->next = msg;

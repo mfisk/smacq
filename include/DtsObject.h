@@ -3,6 +3,7 @@
 
 #include <dts.h>
 #include <assert.h>
+#include <ThreadSafe.h>
 
 #include "dump.h"
 
@@ -29,7 +30,11 @@ SMDEBUG(static int DtsObject_virtual_count = 0;)
 /// DtsObject_ instances should only be used via
 /// DtsObject auto-pointers (the auto-pointer keeps track of
 /// reference counts for the user).
-class DtsObject_ {
+///
+/// An object is read-only except for initializaiton, when it is
+/// assumed to only have a single user (and therefore not require
+/// locking.).  Only the field cache is locked for thread safety.
+class DtsObject_ : public PthreadMutex {
 
 /// This macro casts a datum to a "type*"
 #define dts_data_as(datum,type) (*((type*)((datum)->getdata())))
@@ -98,8 +103,12 @@ class DtsObject_ {
 	DtsObject make_writable();
 
 	void prime_all_fields();
+	void prime_field(dts_field_info*);
 
-        std::vector<DtsObject> get_all_fields();
+	/// Get a copy of the entire field cache
+        std::vector<DtsObject> fieldcache() {
+	   return fields.snapshot();
+	}
 
 	int DtsObject_::write(struct pickle * pickle, int fd);
 
@@ -154,15 +163,7 @@ class DtsObject_ {
 	/// @}
 
 
-	/// Increment refcount by the given number
-	//void incref(int);
-
-     	void lock();
-	void unlock();
-
-	//int getrefcount() const { return refcount; }
-
-	int refcount, usecount;
+	ThreadSafeCounter refcount, usecount;
 
 	/// Keep a reference to what we were derived from so it doesn't
 	/// get reused.
@@ -186,7 +187,7 @@ class DtsObject_ {
 	int free_data; /* boolean */
 
 	/* Cache of received messages */
-        DynamicArray<DtsObject> fields;
+        ThreadSafeDynamicArray<DtsObject> fields;
 
 	/* data description */
 	int type;
@@ -196,10 +197,6 @@ class DtsObject_ {
 
 	void * buffer;
 	int buffer_size;
-
-#ifndef SMACQ_OPT_NOPTHREADS
-	pthread_mutex_t mutex;
-#endif
 
 	unsigned long id;
 };
@@ -233,12 +230,8 @@ inline void DtsObject_::setsize(int size) {
 }
 
 inline DtsObject_::DtsObject_(DTS * dts, int size, int type)
-  : dts(dts), refcount(0), usecount(0)
+  : dts(dts)
 {
-#ifndef SMACQ_OPT_NOPTHREADS
-  pthread_mutex_init(&this->mutex, NULL);
-#endif
-
   this->buffer_size = 0;
   this->buffer = NULL;
 
@@ -257,34 +250,18 @@ inline int DtsObject_::set_fromstring(const char * datastr) {
   return t->info.fromstring(datastr, this);
 }
 
-inline void DtsObject_::lock() {
-#ifndef SMACQ_OPT_NOPTHREADS
-  pthread_mutex_lock(&this->mutex);
-#endif
-}
-	
-inline void DtsObject_::unlock() {
-#ifndef SMACQ_OPT_NOPTHREADS
-  pthread_mutex_unlock(&this->mutex);
-#endif
-}
-	
 inline void DtsObject_::incref() {
-  lock();
-  ++this->refcount;
-  unlock();
+  refcount.increment();
 }
 
 inline void DtsObject_::decref() {
   //DUMP_p(this);
-  assert(refcount > 0);
-  lock();
-  --refcount;
-  unlock();
+  assert(refcount.get() > 0);
+  int r = refcount.decrement();
 
   //fprintf(stderr, "%p now %d, %d\n", this, refcount, usecount);
 
-  if (refcount && refcount == usecount) {
+  if (r && r == usecount.get()) {
     /* All of the things that refer to us have us as a "uses".
 	   Flush our fieldcache sense it's unnecessary.  
 	   This will probably remove some or all of the uses references
@@ -296,12 +273,12 @@ inline void DtsObject_::decref() {
 	   we don't destroy ourselves there.  We'll decrement
 	   it back to reality when we're done.
      */
-	refcount++;
+	refcount.increment();
 	fields.clear();
-	refcount--;
+	r = refcount.decrement();
   }
 
-  if (!refcount) {
+  if (!r) {
     freeObject();
   }
 }

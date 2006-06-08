@@ -53,7 +53,6 @@ common tasks with a DtsObject.
 #endif
 
 #ifndef SMACQ_NO_OPT_DTS
-# define SMACQ_OPT_NOPTHREADS
 # define SMACQ_OPT_NOMSGS
 # define SMACQ_OPT_RUNRING
 # define SMACQ_OPT_DTS_FREELIST
@@ -66,19 +65,6 @@ common tasks with a DtsObject.
 #if defined(WIN32) && !defined(inline)       
 	/* Visual C++ uses the keyword "__inline" rather than "inline" */
 	#define inline __inline 
-#endif
-
-#include <pthread.h>
-#ifdef SMACQ_OPT_NOPTHREADS
-#define smacq_pthread_mutex_init(x,y)
-#define smacq_pthread_mutex_destroy(x)
-#define smacq_pthread_mutex_lock(x)
-#define smacq_pthread_mutex_unlock(x)
-
-#define smacq_pthread_cond_init(x,y)
-#define smacq_pthread_cond_destroy(x)
-#define smacq_pthread_cond_wait(x,y)
-#define smacq_pthread_cond_broadcast(x)
 #endif
 
 #ifndef __cplusplus

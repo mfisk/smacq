@@ -15,22 +15,6 @@ void DtsObject_::init(int size, dts_typeid type) {
   this->setsize(size);
 }
 
-void DtsObject_::prime_all_fields() {
-	std::vector<struct dts_field_info*>::iterator i;
-	DtsObject field;
-	dts_type * t = dts->type_bynum(this->type);
-
-	for (i=t->fields.begin(); i != t->fields.end(); ++i) {
-		/* Get and release immediately */
-		if (*i) 
-			getfield_single((*i)->elementid);
-	}
-}
-
-std::vector<DtsObject> DtsObject_::get_all_fields() {
-	return fields;
-}
-
 /// Return a new DtsObject that shares the underlying data, but with its own 
 /// fieldspace.
 DtsObject DtsObject_::private_copy() {
@@ -56,7 +40,7 @@ void DtsObject_::fieldcache_flush(dts_field_element fnum) {
 }
 
 DtsObject DtsObject_::make_writable() {
-  if (this->refcount > 1) {
+  if (this->refcount.get() > 1) {
     return this->dup();
   } else {
     // We're the only user, so just modify this one
@@ -73,11 +57,11 @@ double DtsObject_::eval_arith_operand(struct dts_operand * op) {
 	  case FIELD:
 		 fetch_operand(op);
 		 if (op->valueo) {
-		   assert(op->valueo->type == dts->typenum_byname("double"));
-			 return dts_data_as(op->valueo, double);
+		   	assert(op->valueo->type == dts->typenum_byname("double"));
+  		   	return dts_data_as(op->valueo, double);
 		 } else {
-			 fprintf(stderr, "Warning: no field %s to eval, using NaN for value\n", op->origin.literal.str);
-			 return NAN;
+			fprintf(stderr, "Warning: no field %s to eval, using NaN for value\n", op->origin.literal.str);
+			return NAN;
 		 };
 		 break;
 
@@ -140,13 +124,13 @@ DtsObject DtsObject_::getfield_new(dts_field_element fnum) {
       }
     }
     field->uses = this;
-    this->usecount++;
+    usecount.increment();
     return field;
 
   } else if (t->info.getfield) {
     field = dts->newObject(t->num);
     field->uses = this;
-    this->usecount++;
+    usecount.increment();
 
     if (!t->info.getfield(this, field, fnum)) {
       return NULL;
@@ -169,6 +153,9 @@ DtsObject DtsObject_::getfield_single(dts_field_element fnum) {
   if (cached) {
     return cached;
   } else {
+    /// There could be a race where multiple threads are
+    /// creating the same field, but reference counting
+    /// will cause and redunandant ones to go away.
     DtsObject field = getfield_new(fnum);
 
 #ifndef SMACQ_OPT_NOFIELDCACHE
@@ -202,6 +189,19 @@ DtsObject DtsObject_::getfield(DtsField &fieldv, bool nowarn) {
   return f;
 }
 
+void DtsObject_::prime_field(dts_field_info* f) {
+	if (f) { // Field vectors are sparse, so we may get called with a lot of NULLs
+		getfield_single(f->elementid);
+	}
+}
+
+void DtsObject_::prime_all_fields() {
+	using namespace boost::lambda;
+
+	dts_type * t = dts->type_bynum(this->type);
+	t->fields.foreach( bind(&DtsObject_::prime_field, this, _1) );
+}
+
 void DtsObject_::freeObject() {
   if (this->free_data) {
     //fprintf(stderr, "Freeing data %p of %p\n", this->data, d);
@@ -209,7 +209,7 @@ void DtsObject_::freeObject() {
     this->data = NULL;
   }
   if (this->uses) {
-	this->uses->usecount--;
+	this->uses->usecount.decrement();
 	this->uses = NULL;
   }
 

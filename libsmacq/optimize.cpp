@@ -64,7 +64,7 @@ inline void SmacqGraph::move_children(SmacqGraph * from, SmacqGraph * to, bool a
 	} else {
 	  to->add_child(child);
 	}
-	from->remove_child(i,j);
+	from->remove_child_bynum(i,j);
 	j--; //Fixup iterator
       });
 }
@@ -108,7 +108,7 @@ void SmacqGraph::merge_redundant_children() {
 	SmacqGraph * twinb = children[k][j].get();	
 	if (merge_nodes(twina, twinb)) {
 	  // Remove twin 
-	  remove_child(k,j);
+	  remove_child_bynum(k,j);
 	  
 	  // This invalidates iterators, so crudely start over
 	  return merge_redundant_children();
@@ -305,7 +305,7 @@ bool SmacqGraph::distribute_children(DTS * dts) {
 	if (rejoin) {
    		char ** av = (char**)malloc(sizeof(char*)*3);
 		SmacqGraph_ptr c = child;
-		remove_child(i, j);  j--;
+		remove_child_bynum(i, j);  j--;
 		std::string q = c->print_query();
 		av[0] = "distribute";
 		av[1] = (char*)q.c_str();

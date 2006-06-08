@@ -23,8 +23,12 @@ SMACQ_MODULE(print,
 	     DtsField string_transform, filefield;
 	     char * delimiter, * record_delimiter, * output_name;
 	     
-	     int print_field(DtsObject field, char * fname, int printed, int column);
+	     void print_field(DtsObject fieldo, char * fname);
+
 	     char * last_file_field;
+
+	     // Per-record state
+	     int printed, column;
 
 	     );
 
@@ -43,7 +47,7 @@ static struct smacq_options options[] = {
   END_SMACQ_OPTIONS
 };
 
-int printModule::print_field(DtsObject field, char * fname, int printed, int column) {
+void printModule::print_field(DtsObject field, char * fname) {
   if (printed) {
     fprintf(outputfh, delimiter);
   } else if (field) {
@@ -52,7 +56,7 @@ int printModule::print_field(DtsObject field, char * fname, int printed, int col
   }
 
   if (verbose) printed = 1;
-  if (!field) return printed;
+  if (!field) return; 
 
   if (tagged) {
     fprintf(outputfh, "<%s>%s</%s>", fname, (char *)field->getdata(),fname);
@@ -60,18 +64,19 @@ int printModule::print_field(DtsObject field, char * fname, int printed, int col
     fprintf(outputfh, "%s=%s", fname, (char *)field->getdata());
   } else if (verbose) {
     fprintf(outputfh, "%.20s = %s", fname, (char *)field->getdata());
+  } else if (internals) {
+    fprintf(outputfh, "%.20s = (obj %p) %s", fname, field.get(), (char *)field->getdata());
   } else {
     fprintf(outputfh, "%s", (char*)field->getdata());
   }
         
 
-  return 1;
+  printed = 1;
 }
 
 smacq_result printModule::consume(DtsObject datum, int & outchan) {
-  int printed = 0;
-  int column = 0;
-  DtsObject field;
+  printed = 0;
+  column = 0;
   assert(datum);
 
   if (use_file_pattern) {
@@ -109,31 +114,18 @@ smacq_result printModule::consume(DtsObject datum, int & outchan) {
       fprintf(outputfh, "Object %p:\n", datum.get());
     }
 
-    DtsField f;
-    f.resize(1);
     datum->prime_all_fields();
-    std::vector<DtsObject> v = datum->get_all_fields();
-    std::vector<DtsObject>::iterator j;
-
-    int num;
-    for (num=0, j=v.begin(); j != v.end(); ++j, ++num) {
-      if (*j) {
-	DtsObject str = (*j)->getfield(string_transform);
-	f[0] = num;
-	if (internals) {
-	  char * s = "(unprintable)";
-	  if (str.get()) { 
-	    s = (char*)str->getdata();
-	  }
-	  fprintf(outputfh, "\tField %2d: %15s = (obj %p) %s\n", num, 
-		  dts->field_getname(f), j->get(), s);
-	} else {
-	  printed = print_field(str, dts->field_getname(f), printed, column);
+    std::vector<DtsObject> fc = datum->fieldcache();
+    for (unsigned int i = 0; i < fc.size(); ++i) {
+	if (fc[i]) {
+  		DtsField f(i);
+  		DtsObject fo = datum->getfield(f);
+  		fo = fo->getfield(string_transform);
+  		print_field(fo, dts->field_getname(f));
 	}
-      }
     }
-      
   } else {
+    DtsObject field;
     if (mysql) {
 	  // Write record header
 	  //
@@ -169,7 +161,7 @@ smacq_result printModule::consume(DtsObject datum, int & outchan) {
 	if (field) 
 	  fwrite(field->getdata(), field->getsize(), 1, outputfh);
       } else { 
-	printed = print_field(field, argv[i], printed, column);
+	print_field(field, argv[i]);
 	
 	if (!field && verbose) {
 	  if (tagged) {

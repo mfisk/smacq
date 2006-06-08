@@ -2,8 +2,8 @@
 #define ITERATIVE_SCHEDULER_INTERFACE_H
 #include <smacq.h>
 #include <RunQ.h>
-#include <set>
 #include <SmacqGraph-interface.h>
+#include <ThreadSafe.h>
 
 /// This is currently the only scheduler implementation.
 class IterativeScheduler {
@@ -11,7 +11,13 @@ public:
   
   /// A default graph must be specified.  Graph graph's init() method
   /// is called before anything else is done.  Iff produce_first is
-  IterativeScheduler() {};
+  IterativeScheduler() : debug(false) {};
+
+  /// Set debug output
+  void setDebug() { debug = true; }
+
+  /// Get debug status
+  bool isDebug() { return debug; }
 
   /// Cue the head(s) of the given graph to start producing data.
   /// Otherwise data must be provided using the input() method.
@@ -30,7 +36,7 @@ public:
   smacq_result decide(SmacqGraph *, DtsObject din);
 
   /// Process a single action or object
-  smacq_result decide(SmacqGraphContainer *, DtsObject din);
+  smacq_result decideContainer(SmacqGraphContainer *, DtsObject din);
 
   /// Run to completion.  
   /// Return false iff error.
@@ -40,7 +46,7 @@ public:
   void enqueue(SmacqGraph * f, DtsObject d, int outchan);
 
   /// Handle an object produced by the specified node
-  void queue_children(SmacqGraph * f, DtsObject d, int outchan);
+  void queue_children(SmacqGraph_ptr, DtsObject d, int outchan);
 
   /// Process a single action or object
   smacq_result element(DtsObject &dout);
@@ -50,22 +56,29 @@ public:
   void runable(SmacqGraph_ptr f, DtsObject d);
 
   /// Process a produceq element
-  void run_produce(SmacqGraph * f);
+  void run_produce(SmacqGraph_ptr);
 
-  /// Process a consumeq element.  Return true iff something could be done.
-  bool run_consume();
+  bool run_consume(SmacqGraph_ptr);
 
   /// Find something to do and do it.
-  bool do_something();
+  bool do_something(bool consume_only = false);
 
   smacq_result decide_children(SmacqGraph * g, DtsObject din, int outchan);
 
+  SmacqGraph_ptr pop_lock(runq<SmacqGraph_ptr> & q);
+
+  void seed_produce_one(SmacqGraph*);
+  void input_one(SmacqGraph*, DtsObject);
+  smacq_result decide_set(ThreadSafeMultiSet<SmacqGraph_ptr>&, DtsObject);
+  bool decide_one(SmacqGraph *,  DtsObject);
+
+  bool debug;
+
+ public:
   runq<SmacqGraph_ptr> consumeq;
   runq<SmacqGraph_ptr> producefirstq;
   runq<SmacqGraph_ptr> produceq;
   runq<DtsObject> outputq;
-
-  std::set<SmacqGraph*> enqueue_stack;
 };
 
 #endif

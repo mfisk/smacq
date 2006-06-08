@@ -735,9 +735,6 @@ SmacqGraphContainer * SmacqGraph::newQuery(DTS * tenv, SmacqScheduler * sched, i
     strcatn(qstr, size, " ");
   }
 
-  /* LOCK */
-  smacq_pthread_mutex_lock(&local_lock);
-
   char * oldParsedString = ParsedString;
   ParsedString = qstr;
   yysmacql_scan_string(qstr);
@@ -745,9 +742,6 @@ SmacqGraphContainer * SmacqGraph::newQuery(DTS * tenv, SmacqScheduler * sched, i
   ParsedString = oldParsedString;
 
   graph = Graph;
-
-  /* UNLOCK */
-  smacq_pthread_mutex_unlock(&local_lock);
 
   if (res) {
     return NULL;

@@ -293,8 +293,9 @@ void disarmModule::processInvariants(SmacqGraph * i) {
 	fprintf(stderr, "Unknown filter callback: %s + %d args\n", argv[0], argc);
   }
 
-  if (i->getChildren()[0].size()) {
-  	processInvariants(i->getChildren()[0][0].get());
+  std::vector<ThreadSafeMultiSet<SmacqGraph_ptr> > children = i->getChildren();
+  if (children[0].size()) {
+  	processInvariants(children[0][0].get());
   }
 }
 

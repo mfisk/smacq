@@ -40,7 +40,7 @@ SMACQ_MODULE(join,
 void joinModule::for_all_but(unsigned int is_alias, DtsObject o, unsigned int alias) {
   if (alias == Aliases.size()) {
     // Base case; test this join.
-    if (!where || (SMACQ_PASS == scheduler->decide(where, o))) {
+    if (!where || (SMACQ_PASS == scheduler->decideContainer(where, o))) {
       // Dup the object, because we're about to assign new alias values.
       DtsObject cpy = o->dup();
       //fprintf(stderr, "passing joined obj %p\n", cpy.get());
@@ -83,7 +83,7 @@ smacq_result joinModule::consume(DtsObject datum, int & outchan) {
         // Build test join
         t->attach_field(a.field, a.objects[j]);
 
-        if (SMACQ_PASS == scheduler->decide(a.until, t)) {
+        if (SMACQ_PASS == scheduler->decideContainer(a.until, t)) {
 	  // Remove j'th element
 	  // (by swapping and shrinking)
 	  a.objects[j] = a.objects.back();

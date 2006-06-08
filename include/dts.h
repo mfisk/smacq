@@ -12,9 +12,7 @@
 #include <dts-filter.h>
 #include <dts-module.h>
 #include <DtsField.h>
-#include <stack>
-#include <map>
-#include <DynamicArray.h>
+#include <ThreadSafe.h>
 
 #ifdef USE_GASNET
 # include <smacq_gasnet.h>
@@ -39,7 +37,7 @@ struct dts_type_info {
 
 class dts_type {
  public:
-  DynamicArray<struct dts_field_info *> fields;
+  ThreadSafeDynamicArray<struct dts_field_info *> fields;
   char * name;
   int num;
   GModule * module;
@@ -76,7 +74,7 @@ struct ltstr
 /// for your entire program.
 /// Factory methods are used to construct DtsObjects,
 /// which are typed using the DTS.
-class DTS {
+class DTS : PthreadMutex {
  public:
   	/// Construct a new DTS.  You probably only want your program to use 
   	/// pointers to a single instance for the whole  program.
@@ -179,12 +177,8 @@ class DTS {
         /// When an object is freed, it can be put on the freelist instead of
 	/// being destroyed.  newObject() will use objects on the freelist
 	/// before constructing new objects.
-  std::stack<DtsObject> freelist;
+  ThreadSafeStack<DtsObject> freelist;
 
-  int maxfield() { return max_field; }
- 
-  ///@name Messaging 
-  ///@{ 
   	/// Send the given object to the given field of all objects that satisfy the comparison
   void send_message(DtsObject, dts_field_element, dts_comparison *);
 
@@ -205,30 +199,27 @@ class DTS {
   void use_master() { isProxy = true; }
 
  private:
-  int max_type; 
-  int max_field; 
+  ThreadSafeCounter max_type, max_field; 
   bool warnings;
   bool isProxy;
 
-  std::map<const char *, struct dts_type *, ltstr> types_byname;
-  std::map<const char *, int, ltstr> fields_byname;
-  DynamicArray<dts_message*> messages_byfield;
-  DynamicArray<struct dts_type *> types; 
-  DynamicArray<char*> fields_bynum; 
+  ThreadSafeMap<const char *, struct dts_type *, ltstr> types_byname;
+  ThreadSafeMap<const char *, dts_field_element, ltstr> fields_byname;
+  ThreadSafeDynamicArray<dts_message*> messages_byfield;
+  ThreadSafeDynamicArray<struct dts_type *> types; 
+  ThreadSafeDynamicArray<char*> fields_bynum; 
   
   //  	DtsField double_field;
   //  	int double_type;
   
-  void lock() {
 #ifdef USE_GASNET
+  void lock() {
 	gasnet_hold_interrupts();
-#endif
   }
   void unlock() {
-#ifdef USE_GASNET
 	gasnet_resume_interrupts();
-#endif
   }
+#endif
   dts_field_element requirefield_single(char * name);
   
   int pickle_getnewtype(int fd, struct sockdatum * hdr, struct pickle * pickle);
@@ -250,10 +241,13 @@ inline char * DTS::typename_bynum(const dts_typeid num) {
 }
 
 inline int DTS::typenum_byname(const char * name) {
-  std::map<const char *, struct dts_type*, ltstr>::iterator i;
-  i = types_byname.find(name);
-  if (i == types_byname.end()) return -1;
-  return (*i).second->num;
+  dts_type * t = types_byname[name];
+  if (t) {
+  	return t->num;
+  } else {
+	// Really shouldn't happen
+	return 0;
+  }
 }
 
 
