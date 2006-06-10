@@ -11,7 +11,13 @@ public:
   
   /// A default graph must be specified.  Graph graph's init() method
   /// is called before anything else is done.  Iff produce_first is
-  IterativeScheduler() : debug(false) {};
+  IterativeScheduler(int cpus = 0) : debug(false) {
+	if (cpus) slave_threads(cpus);
+  }
+
+  ~IterativeScheduler() {
+	join_threads();
+  }
 
   /// Set debug output
   void setDebug() { debug = true; }
@@ -63,6 +69,10 @@ public:
   /// Find something to do and do it.
   bool do_something(bool consume_only = false);
 
+  /// Create some threads to process the current workload.
+  /// They will exit when there is nothing to do.
+  void slave_threads(int numt);
+
   smacq_result decide_children(SmacqGraph * g, DtsObject din, int outchan);
 
   SmacqGraph_ptr pop_lock(runq<SmacqGraph_ptr> & q);
@@ -73,6 +83,17 @@ public:
   bool decide_one(SmacqGraph *,  DtsObject);
 
   bool debug;
+  std::vector<pthread_t> threads;
+
+  void join_threads();
+  void thread_loop();
+  bool done();
+
+  friend void * iterative_scheduler_thread_start(void * arg) {
+        SmacqScheduler * s = (SmacqScheduler*)arg;
+        s->thread_loop();
+        return NULL;
+  }
 
  public:
   runq<SmacqGraph_ptr> consumeq;

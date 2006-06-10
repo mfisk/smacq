@@ -6,7 +6,6 @@
 #include <SmacqGraph.h>
 #include <SmacqScheduler.h>
 #include "config.h"
-#include <pthread.h>
 #include <ThreadSafe.h>
 
 #define MAX_QUERY_SIZE 4096*100
@@ -45,12 +44,6 @@ inline void print_refs(int x) {
 
 void print_field(dts_field_info * i) {
        	printf("%30s: type %s\n", i->desc.name, i->desc.type);
-}
-
-void * thread_start(void * arg) {
-	SmacqScheduler * s = (SmacqScheduler*)arg;
-	
-	return (void*) (!s->busy_loop());
 }
 
 int smacqq(int argc, char ** argv) {
@@ -102,7 +95,7 @@ int smacqq(int argc, char ** argv) {
 	return(0);
   }
 
-  SmacqScheduler s;
+  SmacqScheduler s(cpus.int_t - 1);
 
   if (debug.boolean_t) {
 	s.setDebug();
@@ -160,21 +153,8 @@ int smacqq(int argc, char ** argv) {
 
   s.seed_produce(graphs);
 
-  std::vector<pthread_t> threads(cpus.int_t - 1);
-
-  // Fire off some workers
-  for (int i = 0; i < cpus.int_t - 1; i++) {
-	assert(!pthread_create(&threads[i], NULL, thread_start, &s));
-  }
-
   // Work yourself too
   bool retval = (! s.busy_loop());
-
-  // Clean up workers
-  for (int i = 0; i < cpus.int_t - 1; i++) {
-	void * junk;
-	pthread_join(threads[i], &junk);
-  }
 
   return retval;
 }
