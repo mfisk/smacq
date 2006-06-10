@@ -10,7 +10,7 @@
 template<typename T>	
 class runq : public PthreadMutex {
  public:
-  runq() {
+  runq() : head(NULL), qlen(0) {
     /* Make a 2 element ring to start */
     tail = new qel;
     tail->next = new qel;
@@ -18,12 +18,14 @@ class runq : public PthreadMutex {
 
     tail->next->prev = tail;
     tail->prev = tail->next;
-
-    head = NULL;
   }
 
   bool empty() {
     return !this->head;
+  }
+
+  size_t size() {
+    return qlen;
   }
 
   /// Copy the first element from the runq.  Set f & d accordingly.
@@ -57,6 +59,7 @@ class runq : public PthreadMutex {
       this->head = NULL;
     }
 
+    qlen--;
     return true;
   }
 
@@ -71,6 +74,7 @@ class runq : public PthreadMutex {
     if (!this->head) {
       this->head = el;
     }
+    qlen++;
   }
 
   /// Print the contents of the runq.
@@ -108,6 +112,8 @@ class runq : public PthreadMutex {
   qel * head;
   qel * tail;
 
+  size_t qlen;
+
   /* Use a ring of runq elements.  New elements are allocated as necesssary, but
    * we never shrink.  Most of the time we can reuse existing elements. 
    */
@@ -141,6 +147,7 @@ class runq : public PthreadMutex {
     return el;
   }
 
+/*
   void erase(T val) {
     if (!head) return;
 
@@ -168,6 +175,7 @@ class runq : public PthreadMutex {
       }
     }
   }
+*/
 
   bool find(T val) {
     if (!head) return false;
