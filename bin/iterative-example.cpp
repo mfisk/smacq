@@ -1,39 +1,34 @@
 #include <stdio.h>
-#include <glib.h>
 #include <smacq.h>
-#include <stdlib.h>
-#include <assert.h>
-#include <pthread.h>
-#include <string.h>
-#include <smacq.h>
-
-struct thread_args {
-  SmacqGraph_ptr f;
-  struct SmacqModule::smacq_init * context;
-};
-
-char * printer_args[] = { "print", "count" };
 
 int main(int argc, char ** argv) {
-  struct runq * runq = NULL;
-  struct runq * printq = NULL;
-  DtsObject record = NULL;
-  SmacqGraph_ptr objs, printer;
+  DTS dts;
+  SmacqScheduler s(4); // Use 4 CPUs (threads)
 
-  DTS * tenv = dts_init();
+  graphs = SmacqGraph::newQuery(&dts, &s, argc-1, argv+1);
+  if (!graphs) return(-1);
 
-  objs = smacq_build_pipeline(argc-1, argv+1);
-  smacq_start(objs, ITERATIVE, tenv);
+  graphs->init(&dts, &s);
 
-  printer = smacq_build_pipeline(2, printer_args);
-  smacq_start(printer, ITERATIVE, tenv);
+  for (;;) {
+  	DtsObject output;
 
-  while (! (SMACQ_END & smacq_sched_iterative(objs, NULL, &record, &runq, 1))) {
-	DtsObject ignore = NULL;
-	assert(record);
-	fprintf(stderr, "Got object %p; printing it's count field\n", record);
-	smacq_sched_iterative(printer, record, &ignore, &printq, 0);
-	
+	// element() does a little bit of work.
+	// If you are willing to surrender the CPU for as long as 
+	// it takes to get some output, then use get() instead.
+	smacq_result r = s.element(output);
+
+	if (r & SMACQ_PASS) {
+		// This means the query returned an object
+		fprintf(stderr, "query returned an object\n");
+
+	} else if (r == SMACQ_NONE) {
+		// This means we're all done
+		break;
+	} else {
+		// This means we did some work, but it didn't output anything this time.
+		;
+	}
   }
 
   fprintf(stderr, "Done\n");
