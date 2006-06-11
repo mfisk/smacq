@@ -1,12 +1,53 @@
-#ifndef ITERATIVE_SCHEDULER_H
-#define ITERATIVE_SCHEDULER_H
-#include <IterativeScheduler-interface.h>
+#ifndef SMACQ_SCHEDULER_CPP
+#define SMACQ_SCHEDULER_CPP
+#include <SmacqScheduler.h>
 #include <SmacqGraph.h>
 #include <ThreadSafe.h>
+#include <pthread.h>
 
 #include <boost/lambda/bind.hpp>
 
-inline void IterativeScheduler::seed_produce_one(SmacqGraph * g) {
+#ifndef METHOD
+#define METHOD 
+#endif
+
+METHOD void SmacqScheduler::thread_loop() {
+	for (;;) {
+		// As long as we can do things, do it
+		while (do_something()) ; 
+
+		if (done()) return;
+
+		// XXX: should wait for a condition variable
+		//pthread_cond_wait(&todo, lock);
+	}
+}
+  
+METHOD void SmacqScheduler::slave_threads(int numt) {
+  assert(threads.size() == 0);
+
+  threads.resize(numt);
+
+  pthread_attr_t attr;
+  pthread_attr_init(&attr);
+  pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+
+  for (int i = 0; i < numt; i++) {
+        assert(!pthread_create(&threads[i], &attr, iterative_scheduler_thread_start, this));
+  }
+
+  pthread_attr_destroy(&attr);
+}
+
+METHOD void SmacqScheduler::join_threads() {
+  for (unsigned int i = 0; i < threads.size(); i++) {
+	pthread_join(threads[i], NULL);
+  }
+
+  threads.clear();
+}
+
+METHOD void SmacqScheduler::seed_produce_one(SmacqGraph * g) {
     using namespace boost::lambda;
     using namespace std;
 
@@ -18,14 +59,14 @@ inline void IterativeScheduler::seed_produce_one(SmacqGraph * g) {
     }
 }
 
-inline void IterativeScheduler::seed_produce(SmacqGraphContainer * startf) {
+METHOD void SmacqScheduler::seed_produce(SmacqGraphContainer * startf) {
   using namespace boost::lambda;
 
   // Force first guy to produce
-  startf->head.foreach( bind(&IterativeScheduler::seed_produce_one, this, DEREF(_1)) );
+  startf->head.foreach( bind(&SmacqScheduler::seed_produce_one, this, DEREF(_1)) );
 }
 
-inline void IterativeScheduler::input_one(SmacqGraph * g, DtsObject din) {
+METHOD void SmacqScheduler::input_one(SmacqGraph * g, DtsObject din) {
     if (g->argc) {
     	assert (g->instance > (void*)1000);
     	g->runable(din);
@@ -35,23 +76,20 @@ inline void IterativeScheduler::input_one(SmacqGraph * g, DtsObject din) {
     }
 }
 
-inline void IterativeScheduler::input(SmacqGraphContainer * c, DtsObject din) {
+METHOD void SmacqScheduler::input(SmacqGraphContainer * c, DtsObject din) {
   using namespace boost::lambda;
-  c->head.foreach( bind(&IterativeScheduler::input_one, this, DEREF(_1), din) );
+  c->head.foreach( bind(&SmacqScheduler::input_one, this, DEREF(_1), din) );
 }
 
-inline void IterativeScheduler::enqueue(SmacqGraph * caller, DtsObject d, int outchan) {
+METHOD void SmacqScheduler::enqueue(SmacqGraph * caller, DtsObject d, int outchan) {
   queue_children(caller, d, outchan);
 
-  // Schedule some consumes until we would recursively call one of the
-  // modules already running. 
-  while (do_something(true)) ;
-
-  // Don't use produce or output queues here.
-  ;
+  // If the consumeq has as many modules as there are threads, 
+  // then we should try to go process it.
+  while ((consumeq.size() > threads.size()) && do_something(true)) { }
 }
 
-inline void IterativeScheduler::queue_children(SmacqGraph_ptr f, DtsObject d, int outchan) {
+METHOD void SmacqScheduler::queue_children(SmacqGraph_ptr f, DtsObject d, int outchan) {
   using namespace boost::lambda;
 
   //fprintf(stderr, "Output channel was %d of %u\n", outchan, f->children.size());
@@ -70,7 +108,7 @@ inline void IterativeScheduler::queue_children(SmacqGraph_ptr f, DtsObject d, in
 
 
 /// Graph must already be locked
-inline void IterativeScheduler::run_produce(SmacqGraph_ptr f) {
+METHOD void SmacqScheduler::run_produce(SmacqGraph_ptr f) {
   int outchan = 0;
   DtsObject d = NULL;
   smacq_result pretval;
@@ -107,7 +145,7 @@ inline void IterativeScheduler::run_produce(SmacqGraph_ptr f) {
 
 /// Try to consume something.    
 /// Return true iff progress was made.
-inline bool IterativeScheduler::run_consume(SmacqGraph_ptr i) {
+METHOD bool SmacqScheduler::run_consume(SmacqGraph_ptr i) {
   if (!i->mustProduce   // This will automatically get rescheduled after the produce
      && !i->shutdown.get()) { // Or already shutdown
   
@@ -144,7 +182,7 @@ inline bool IterativeScheduler::run_consume(SmacqGraph_ptr i) {
 }
 
 /// Returns a locked graph from the queue, or nothing at all
-inline SmacqGraph_ptr IterativeScheduler::pop_lock(runq<SmacqGraph_ptr> & q) {
+METHOD SmacqGraph_ptr SmacqScheduler::pop_lock(runq<SmacqGraph_ptr> & q) {
   SmacqGraph_ptr nullp;
   SmacqGraph_ptr g;
   RecursiveLock l(q);
@@ -162,8 +200,16 @@ inline SmacqGraph_ptr IterativeScheduler::pop_lock(runq<SmacqGraph_ptr> & q) {
   }
 }
 
+METHOD bool SmacqScheduler::done() {
+  RecursiveLock l1(consumeq);
+  RecursiveLock l2(producefirstq);
+  RecursiveLock l3(produceq);
+
+  return(consumeq.empty() && producefirstq.empty() && produceq.empty());
+}
+
 /// Return true iff we had something to do.
-inline bool IterativeScheduler::do_something(bool consume_only) {
+METHOD bool SmacqScheduler::do_something(bool consume_only) {
   SmacqGraph_ptr f;
 
   if ((f = pop_lock(consumeq))) {
@@ -197,7 +243,7 @@ inline bool IterativeScheduler::do_something(bool consume_only) {
 /// Return SMACQ_PASS iff an object falls off the end of the graph.
 /// Return SMACQ_NONE iff there is no work we can do.
 /// Otherwise, return SMACQ_FREE.
-inline smacq_result IterativeScheduler::element(DtsObject &dout) {
+METHOD smacq_result SmacqScheduler::element(DtsObject &dout) {
   if (!do_something()) {
     if (outputq.pop(dout)) {
       // Datum fell off end of data-flow graph
@@ -217,8 +263,8 @@ inline smacq_result IterativeScheduler::element(DtsObject &dout) {
   }
 }
 
-/// Process until completion.  Returns unless there is an error.
-inline bool IterativeScheduler::busy_loop() {
+/// Process until completion.  Returns true unless there is an error.  Ignores any output.
+METHOD bool SmacqScheduler::busy_loop() {
   DtsObject dout; // Ignored.
   smacq_result r;
   smacq_result prev = SMACQ_NONE; 
@@ -239,7 +285,7 @@ inline bool IterativeScheduler::busy_loop() {
   }
 }
 
-inline smacq_result IterativeScheduler::get(DtsObject &dout) {
+METHOD smacq_result SmacqScheduler::get(DtsObject &dout) {
   dout = NULL;
   smacq_result r;
   smacq_result done = SMACQ_ERROR|SMACQ_END|SMACQ_PASS;
@@ -250,20 +296,20 @@ inline smacq_result IterativeScheduler::get(DtsObject &dout) {
   return r;
 }
 
-inline bool IterativeScheduler::decide_one(SmacqGraph * g, DtsObject din) {
+METHOD bool SmacqScheduler::decide_one(SmacqGraph * g, DtsObject din) {
 	return (decide(g, din) == SMACQ_PASS);
 }
 
-inline smacq_result IterativeScheduler::decide_set(ThreadSafeMultiSet<SmacqGraph_ptr> & g, DtsObject din) {
+METHOD smacq_result SmacqScheduler::decide_set(ThreadSafeMultiSet<SmacqGraph_ptr> & g, DtsObject din) {
   using namespace boost::lambda;
 
-  if (g.has_if( bind<smacq_result>(&IterativeScheduler::decide_one, this, DEREF(_1), din))) {
+  if (g.has_if( bind<smacq_result>(&SmacqScheduler::decide_one, this, DEREF(_1), din))) {
 	return SMACQ_PASS;
   }
   return SMACQ_FREE;
 }
 
-inline smacq_result IterativeScheduler::decide_children(SmacqGraph * g, DtsObject din, int outchan) {
+METHOD smacq_result SmacqScheduler::decide_children(SmacqGraph * g, DtsObject din, int outchan) {
   if (!g->children[outchan].size()) {
       // Base case: got to an end of decision graph!
       return SMACQ_PASS;
@@ -277,13 +323,13 @@ inline smacq_result IterativeScheduler::decide_children(SmacqGraph * g, DtsObjec
 
 /// Take an input and run it through a boolean graph.
 /// Return SMACQ_PASS or SMACQ_FREE.
-inline smacq_result IterativeScheduler::decideContainer(SmacqGraphContainer * g, DtsObject din) {
+METHOD smacq_result SmacqScheduler::decideContainer(SmacqGraphContainer * g, DtsObject din) {
   return decide_set(g->head, din);
 }
 
 /// Take an input and run it through a boolean graph.
 /// Return SMACQ_PASS or SMACQ_FREE.
-inline smacq_result IterativeScheduler::decide(SmacqGraph * g, DtsObject din) {
+METHOD smacq_result SmacqScheduler::decide(SmacqGraph * g, DtsObject din) {
   int outchan = 0;
   assert(g);
 
