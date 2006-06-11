@@ -72,11 +72,7 @@ common tasks with a DtsObject.
 #endif
 
 class SmacqGraph;
-class IterativeScheduler;
-
-/// The only SmacqScheduler is currently IterativeSchedule, so it is a
-/// typedef instead of a base class.
-typedef IterativeScheduler SmacqScheduler;
+class SmacqScheduler;
 
 #include <boost/intrusive_ptr.hpp>
 class SmacqGraph;

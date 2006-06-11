@@ -52,7 +52,7 @@ syncModule::syncModule(struct SmacqModule::smacq_init * context) : SmacqModule(c
 
   graph = SmacqGraph::newQuery(dts, argc, argv);
   graph->init(dts);
-  sched = new IterativeScheduler(graph, false);
+  sched = new SmacqScheduler(graph, false);
   sched->busy()
 }
 
