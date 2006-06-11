@@ -663,7 +663,7 @@ METHOD void SmacqGraph::seed_produce() {
    SGDEBUG("seed_produce()");
 
    mustProduce = true;
-   scheduler->producefirstq.enqueue(this);
+   scheduler->produceq.enqueue(this);
 }  
 
 METHOD void SmacqGraph::log(const char * format, ...) {

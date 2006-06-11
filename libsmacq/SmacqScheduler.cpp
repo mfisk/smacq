@@ -113,8 +113,6 @@ METHOD void SmacqScheduler::run_produce(SmacqGraph_ptr f) {
   DtsObject d = NULL;
   smacq_result pretval;
 
-  if (debug) f->log("run_produce");
-
   // So here's the problem:  If run_produce returns SMACQ_PRODUCE, then we 
   // cannot run consume on this module until we have finished producing.
   // But we don't want to produce too eagerly before letting other modules
@@ -202,10 +200,9 @@ METHOD SmacqGraph_ptr SmacqScheduler::pop_lock(runq<SmacqGraph_ptr> & q) {
 
 METHOD bool SmacqScheduler::done() {
   RecursiveLock l1(consumeq);
-  RecursiveLock l2(producefirstq);
   RecursiveLock l3(produceq);
 
-  return(consumeq.empty() && producefirstq.empty() && produceq.empty());
+  return(consumeq.empty() && produceq.empty());
 }
 
 /// Return true iff we had something to do.
@@ -220,12 +217,6 @@ METHOD bool SmacqScheduler::do_something(bool consume_only) {
 
   } else if (consume_only) {
     return false;
-
-  } else if ((f = pop_lock(producefirstq))) {
-    if (debug) f->log("run_produce (MUSTPRODUCE)");
-
-    run_produce(f);
-    f->unlock();
 
   } else if ((f = pop_lock(produceq))) {
     if (debug) f->log("run_produce");

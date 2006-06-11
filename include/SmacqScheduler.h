@@ -10,7 +10,7 @@ class SmacqScheduler {
 public:
   
   /// A default graph must be specified.  Graph graph's init() method
-  /// is called before anything else is done.  Iff produce_first is
+  /// is called before anything else is done.  
   SmacqScheduler(int cpus = 0) : debug(false) {
 	if (cpus) slave_threads(cpus);
   }
@@ -97,7 +97,6 @@ public:
 
  public:
   runq<SmacqGraph_ptr> consumeq;
-  runq<SmacqGraph_ptr> producefirstq;
   runq<SmacqGraph_ptr> produceq;
   runq<DtsObject> outputq;
 };
