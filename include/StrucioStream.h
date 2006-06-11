@@ -10,7 +10,7 @@
 #include <bzlib.h>
 #include <DtsObject.h>
 #include <SmacqModule-interface.h>
-#include <SmacqGraph-interface.h>
+#include <SmacqGraph.h>
 
 /// Pure-virtual base class for input streams.
 class StrucioStream {

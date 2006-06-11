@@ -2,7 +2,7 @@
 #define SMACQ_PARSER_H
 
 #include <smacq.h>
-#include <SmacqGraph-interface.h>
+#include <SmacqGraph.h>
 #include <pthread.h>
 #include <dts-filter.h>
 
