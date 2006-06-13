@@ -21,7 +21,7 @@ METHOD void SmacqScheduler::thread_loop() {
 		// or it might be that nobody is doing anything and we're done.
 
 		Idling.increment();
-  		if (debug) fprintf(stderr, "** Thread %p idling\n", pthread_self());
+  		if (debug) fprintf(stderr, "** Thread %p idling\n", (void*)pthread_self());
 
 		// We don't atomically check both queues, but if they're changing then I don't think
 		// everybody is idling.
@@ -30,7 +30,7 @@ METHOD void SmacqScheduler::thread_loop() {
 			struct timespec remain;
 
 			if (Idling.get() == (int)threads.size()) {
-  				if (debug) fprintf(stderr, "** Thread %p exiting\n", pthread_self());
+  				if (debug) fprintf(stderr, "** Thread %p exiting\n", (void*)pthread_self());
 				// yes, we want to return without decrementing Idling, else other processes won't detect us as idle and exit themselves
 				return;
 			}

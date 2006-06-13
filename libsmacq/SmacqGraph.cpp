@@ -669,7 +669,7 @@ METHOD void SmacqGraph::seed_produce() {
 METHOD void SmacqGraph::log(const char * format, ...) {
   va_list args;
   char buf[101];
-  snprintf(buf, 100, "%20s %10p %10p ", argv ? argv[0] : NULL, this, pthread_self());
+  snprintf(buf, 100, "%20s %10p %10p ", argv ? argv[0] : NULL, this, (void*)pthread_self());
 
   std::string output(buf);
 

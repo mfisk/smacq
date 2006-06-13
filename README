@@ -43,6 +43,16 @@ SMACQ can build with the following optional functionality:
 =============================================================================
 			PREREQUISITES
 
+		glib2		boost		libpcap		zlib		bz2		gcc	gmake	libgda
+----------------------------------------------------------------------------------------------------------------------------
+Version		>=2.4
+----------------------------------------------------------------------------------------------------------------------------
+DarwinPorts	glib2-devel	boost		libpcap								libgda
+Debian		libglib2.0-dev	libboost-dev	libpcap-dev	zlib1g-dev	libbz2-dev	g++
+Fink		glib2-dev			libpcap		zlib		
+FreeBSD		glib20											gmake
+RHEL		glib2-devel	boost-devel			zlib-devel	bzip2-devel			libgda-devel
+
 Debian GNU/Linux:
 -----------------
 Run the following command to install the Debian packages require to compile

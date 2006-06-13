@@ -1,10 +1,10 @@
 #ifndef CXX_PTHREAD_MUTEX_H
 #define CXX_PTHREAD_MUTEX_H
 
-#include <boost/lambda/algorithm.hpp>
-#include <boost/lambda/if.hpp>
 #include <boost/lambda/lambda.hpp>
 #include <boost/lambda/bind.hpp>
+#include <boost/lambda/algorithm.hpp>
+#include <boost/lambda/if.hpp>
 #include <pthread.h>
 
 /// This is a Mutex that can be acquired multiple times, recursively, by the same thread
