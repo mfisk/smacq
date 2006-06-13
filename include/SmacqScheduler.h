@@ -11,9 +11,7 @@ public:
   
   /// A default graph must be specified.  Graph graph's init() method
   /// is called before anything else is done.  
-  SmacqScheduler(int cpus = 0) : debug(false) {
-	if (cpus) slave_threads(cpus);
-  }
+  SmacqScheduler() : debug(false) {}
 
   ~SmacqScheduler() {
 	join_threads();
@@ -36,7 +34,7 @@ public:
   void input(SmacqGraphContainer * g, DtsObject din);
 
   /// Run until an output object is ready.
-  smacq_result get(DtsObject &dout);
+  bool get(DtsObject &dout);
 
   /// Process a single action or object
   smacq_result decide(SmacqGraph *, DtsObject din);
@@ -55,7 +53,11 @@ public:
   void queue_children(SmacqGraph_ptr, DtsObject d, int outchan);
 
   /// Process a single action or object
-  smacq_result element(DtsObject &dout);
+  bool element(DtsObject &dout);
+
+  /// Create some threads to process the current workload.
+  /// They will exit when there is nothing to do.
+  void start_threads(int numt);
 
  private:
   /// Place something on the consume queue
@@ -69,10 +71,6 @@ public:
   /// Find something to do and do it.
   bool do_something(bool consume_only = false);
 
-  /// Create some threads to process the current workload.
-  /// They will exit when there is nothing to do.
-  void slave_threads(int numt);
-
   smacq_result decide_children(SmacqGraph * g, DtsObject din, int outchan);
 
   SmacqGraph_ptr pop_lock(runq<SmacqGraph_ptr> & q);
@@ -84,6 +82,7 @@ public:
 
   bool debug;
   std::vector<pthread_t> threads;
+  ThreadSafeCounter Idling;
 
   void join_threads();
   void thread_loop();

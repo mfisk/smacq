@@ -15,24 +15,54 @@ METHOD void SmacqScheduler::thread_loop() {
 	for (;;) {
 		// As long as we can do things, do it
 		while (do_something()) ; 
+		
+		// Now, there might be stuff to do, but those module(s) are already locked,
+		// or a running module may be putting something on the queue
+		// or it might be that nobody is doing anything and we're done.
 
-		if (done()) return;
+		Idling.increment();
+  		if (debug) fprintf(stderr, "** Thread %p idling\n", pthread_self());
 
-		// XXX: should wait for a condition variable
-		//pthread_cond_wait(&todo, lock);
+		// We don't atomically check both queues, but if they're changing then I don't think
+		// everybody is idling.
+		while (consumeq.empty() && produceq.empty()) {
+			struct timespec request = {0, 1000};
+			struct timespec remain;
+
+			if (Idling.get() == (int)threads.size()) {
+  				if (debug) fprintf(stderr, "** Thread %p exiting\n", pthread_self());
+				// yes, we want to return without decrementing Idling, else other processes won't detect us as idle and exit themselves
+				return;
+			}
+
+			nanosleep(&request, &remain);
+
+			// Exponential backoff
+			if (request.tv_nsec >= 500000000L) {
+				request.tv_sec = 1; 
+				request.tv_nsec = 0;
+			} else {
+				request.tv_sec *= 2;
+				request.tv_nsec *= 2;
+			}
+		}
+		Idling.decrement();
 	}
 }
   
-METHOD void SmacqScheduler::slave_threads(int numt) {
+METHOD void SmacqScheduler::start_threads(int numt) {
   assert(threads.size() == 0);
+  threads.resize(numt+1);
+  if (!numt) return;
 
-  threads.resize(numt);
+  if (debug) fprintf(stderr, "** Starting %d slave threads\n", numt);
 
   pthread_attr_t attr;
   pthread_attr_init(&attr);
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
-  for (int i = 0; i < numt; i++) {
+  threads[0] = pthread_self();
+  for (int i = 1; i <= numt; i++) {
         assert(!pthread_create(&threads[i], &attr, iterative_scheduler_thread_start, this));
   }
 
@@ -40,11 +70,18 @@ METHOD void SmacqScheduler::slave_threads(int numt) {
 }
 
 METHOD void SmacqScheduler::join_threads() {
-  for (unsigned int i = 0; i < threads.size(); i++) {
+  if (!threads.size()) return;
+  if (debug) fprintf(stderr, "** Waiting for slave threads to exit\n");
+
+  // Make sure they know we're idle
+  Idling.increment();
+
+  for (unsigned int i = 1; i < threads.size(); i++) {
 	pthread_join(threads[i], NULL);
   }
 
   threads.clear();
+  //Idling.set(0); // in case scheduler reused
 }
 
 METHOD void SmacqScheduler::seed_produce_one(SmacqGraph * g) {
@@ -86,7 +123,10 @@ METHOD void SmacqScheduler::enqueue(SmacqGraph * caller, DtsObject d, int outcha
 
   // If the consumeq has as many modules as there are threads, 
   // then we should try to go process it.
-  while ((consumeq.size() > threads.size()) && do_something(true)) { }
+  while ((consumeq.size() > threads.size())) {
+	if (debug) caller->log("enqueue() yielding to do_something()");
+	if (!do_something(true)) break;
+  }
 }
 
 METHOD void SmacqScheduler::queue_children(SmacqGraph_ptr f, DtsObject d, int outchan) {
@@ -202,7 +242,7 @@ METHOD bool SmacqScheduler::done() {
   RecursiveLock l1(consumeq);
   RecursiveLock l3(produceq);
 
-  return(consumeq.empty() && produceq.empty());
+  return(consumeq.empty() && produceq.empty() && Idling.get() == ((int)threads.size() - 1));
 }
 
 /// Return true iff we had something to do.
@@ -230,61 +270,38 @@ METHOD bool SmacqScheduler::do_something(bool consume_only) {
   return true;
 }
 
-/// Handle one thing on the run queue and return something if possible.
-/// Return SMACQ_PASS iff an object falls off the end of the graph.
-/// Return SMACQ_NONE iff there is no work we can do.
-/// Otherwise, return SMACQ_FREE.
-METHOD smacq_result SmacqScheduler::element(DtsObject &dout) {
-  if (!do_something()) {
-    if (outputq.pop(dout)) {
-      // Datum fell off end of data-flow graph
-      return SMACQ_PASS;
-
-    } else {
-      // All done!
-      return SMACQ_NONE;
-    }
-  }
-
-  // See if we can return something too.
-  if (outputq.pop(dout)) {
-    return SMACQ_PASS;
+/// Do a _little_ work.
+/// dout will be set to NULL or to a returned object.
+/// Returns false if we're done and true if we want to be called again.
+METHOD bool SmacqScheduler::element(DtsObject &dout) {
+  dout = NULL;
+  do_something();
+  outputq.pop(dout);
+  if (done() && outputq.empty()) {
+	return false;
   } else {
-    return SMACQ_FREE;
+	// Come back for more
+	return true;
   }
 }
 
 /// Process until completion.  Returns true unless there is an error.  Ignores any output.
 METHOD bool SmacqScheduler::busy_loop() {
-  DtsObject dout; // Ignored.
-  smacq_result r;
-  smacq_result prev = SMACQ_NONE; 
+  DtsObject d;
   for (;;) {
-    r = element(dout);
-
-    if (r == SMACQ_NONE) {
-      break;
-    } else {
-      prev = r;
-    }
-  } 
-
-  if (prev & SMACQ_ERROR) {
-    return false;
-  } else {
-    return true;
+	do_something();
+	while (outputq.pop(d)) { /* Ignore output */ }
+	if (done()) return true;
   }
 }
 
-METHOD smacq_result SmacqScheduler::get(DtsObject &dout) {
+METHOD bool SmacqScheduler::get(DtsObject &dout) {
   dout = NULL;
-  smacq_result r;
-  smacq_result done = SMACQ_ERROR|SMACQ_END|SMACQ_PASS;
-  do {
-    r = element(dout);
-  } while (r != SMACQ_NONE && ! (r & done));
-
-  return r;
+  for (;;) {
+	do_something();
+	if (outputq.pop(dout)) return true;
+	if (done()) return false;
+  }
 }
 
 METHOD bool SmacqScheduler::decide_one(SmacqGraph * g, DtsObject din) {

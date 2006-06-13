@@ -1,11 +1,6 @@
 #ifndef SMACQ_MODULE_INTERFACE_H
 #define SMACQ_MODULE_INTERFACE_H
 
-class SmacqModule;
-class DtsField;
-class dts_comparison;
-typedef class IterativeScheduler SmacqScheduler;
-
 #include <smacq.h>
 #include <smacq_result.h>
 #include <smacq_args.h>

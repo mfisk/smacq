@@ -39,9 +39,9 @@ smacq_result ndjoinModule::consume(DtsObject datum, int & outchan) {
 
   while (1) {
     while (!j->next_dobj) {
-      more = sched->get(j->next_dobj);
-      if ( (SMACQ_END|SMACQ_ERROR) & more)
-	return more;
+      if (!sched->get(j->next_dobj)) {
+	return SMACQ_END;
+      }
 
       if (j->next_dobj) {
 	DtsObject next_val = j->next_dobj->getfield(j->right_key);

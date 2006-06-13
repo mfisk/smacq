@@ -95,7 +95,7 @@ int smacqq(int argc, char ** argv) {
 	return(0);
   }
 
-  SmacqScheduler s(cpus.int_t - 1);
+  SmacqScheduler s;
 
   if (debug.boolean_t) {
 	s.setDebug();
@@ -152,6 +152,8 @@ int smacqq(int argc, char ** argv) {
   }
 
   s.seed_produce(graphs);
+
+  s.start_threads(cpus.int_t - 1);
 
   // Work yourself too
   bool retval = (! s.busy_loop());
