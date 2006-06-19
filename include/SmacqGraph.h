@@ -24,6 +24,7 @@ class SmacqGraph;
 class Children : public ThreadSafeVector< ThreadSafeMultiSet<SmacqGraph_ptr> > {
   // XXX: We really need to provide better interfaces and remove these:
   friend class SmacqGraph;
+  friend class SmacqGraphContainer;
   friend class SmacqScheduler;
 
   public:
