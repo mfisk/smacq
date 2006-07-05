@@ -68,7 +68,10 @@ inline void StrucioWriter::set_rotate(long long size) {
 }
 
 inline void StrucioWriter::close_file() {
-  if (fh) fclose(fh);
+  if (fh) {
+	fclose(fh);
+	fh = NULL;
+  }
 }
 
 /* -1 iff error */
@@ -110,9 +113,8 @@ inline int StrucioWriter::write(void * record, int len) {
   outputleft -= len;
 
   //fprintf(stderr, "%lld left\n", outputleft);
-  if (maxfilesize && (outputleft <= 0)) {
-    fclose(fh);
-    fh = NULL;
+  if (fh && maxfilesize && (outputleft <= 0)) {
+    close_file();
   }
 
   if (0 != StrucioWriter::openwrite()) 
