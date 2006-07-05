@@ -1,7 +1,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.57)
-AC_INIT(SMACQ, 2.4, mfisk@lanl.gov)
+AC_INIT(SMACQ, 2.5alpha, mfisk@lanl.gov)
 AC_CONFIG_AUX_DIR([config])
 AM_CONFIG_HEADER(include/config.h)
 AM_INIT_AUTOMAKE(1.7)

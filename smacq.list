@@ -18,7 +18,7 @@ $srcdir=.
 %license ${srcdir}/COPYING
 %readme ${srcdir}/README
 %description Relational query engine for streaming data of any type
-%version 2.4 240
+%version 2.5beta 249
 
 # Manpage extensions...
 $MAN1EXT=1
