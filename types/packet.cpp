@@ -165,6 +165,12 @@ int dts_pkthdr_get_srcmac(DtsObject datum, DtsObject data) {
 	return 1;
 }
 
+int dts_pkthdr_get_ethertype(DtsObject datum, DtsObject data) {
+	struct ether_header * ethhdr = get_ether(datum);
+	data->setdata(&(ethhdr->ether_type));
+	return 1;
+}
+
 int dts_pkthdr_get_dstmac(DtsObject datum, DtsObject data) {
 	struct ether_header * ethhdr = get_ether(datum);
 	data->setdata(&(ethhdr->ether_dhost));
@@ -229,7 +235,6 @@ struct dts_field_spec dts_type_packet_fields[] = {
 { "int",	"ifindex",	NULL },
 { "ushort",	"ethertype",	NULL },
 { "ubyte",	"pkt_type",	NULL },
-
 { "ubyte",	"padding",	NULL },
 */
 
@@ -238,6 +243,7 @@ struct dts_field_spec dts_type_packet_fields[] = {
 
 { "macaddr",	"srcmac",	dts_pkthdr_get_srcmac },
 { "macaddr",	"dstmac",	dts_pkthdr_get_dstmac },
+{ "nushort",	"ethertype",	dts_pkthdr_get_ethertype },
 
 { "ip",	        "srcip",	dts_pkthdr_get_srcip },
 { "ip",	        "dstip",	dts_pkthdr_get_dstip },
