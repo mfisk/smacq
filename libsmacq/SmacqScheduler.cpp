@@ -184,7 +184,7 @@ METHOD void SmacqScheduler::run_produce(SmacqGraph_ptr f) {
 /// Try to consume something.    
 /// Return true iff progress was made.
 METHOD bool SmacqScheduler::run_consume(SmacqGraph_ptr i) {
-  if (!i->mustProduce   // This will automatically get rescheduled after the produce
+  if (!i->mustProduce.get()   // This will automatically get rescheduled after the produce
      && !i->shutdown.get()) { // Or already shutdown
   
  	assert(i->instance);
@@ -193,7 +193,7 @@ METHOD bool SmacqScheduler::run_consume(SmacqGraph_ptr i) {
 
   	// We're a little greedy here in order to create more locality.
   	// We process all the pending inputs for this module.
-  	while (!i->mustProduce && i->inputq.pop(d)) {
+  	while (!i->mustProduce.get() && i->inputq.pop(d)) {
   		if (debug) i->log("consume(%p)", d.get()); 
 
     		int outchan = 0;

@@ -11,13 +11,26 @@
 #define DEREF(x) (bind(&SmacqGraph_ptr::get, x))
 
 #define FOREACH_CHILD(x, y)						\
-  RecursiveLock l((x)->children);					\
-  for (unsigned int i = 0; i < (x)->children.size(); i ++)		\
-    for (unsigned int j = 0; j < (x)->children[i].size(); j ++) {	\
-      SmacqGraph * child = (x)->children[i][j].get();			\
-      y;								\
+   RecursiveLock l((x)->children);                                      \
+   for (unsigned int i = 0; i < (x)->children.size(); i ++)             \
+     for (unsigned int j = 0; j < (x)->children[i].size(); j ++) {      \
+       SmacqGraph * child = (x)->children[i][j].get();                  \
+       y;                                                               \
     }
-
+/*
+#define FOREACH_CHILD(x, y)						\
+  RecursiveLock l((x)->children);					\
+  for (ThreadSafeVector<ThreadSafeMultiSet<SmacqGraph_ptr> >::iterator i = (x)->children.begin();		\
+	i != (x)->children.end();					\
+	++i)								\
+    for (ThreadSafeMultiSet<SmacqGraph_ptr>::iterator j = i->begin(); 	\
+	j != i->end(); 							\
+	++j) 								\
+	{								\
+      		SmacqGraph * child = (*j);				\
+      		y;							\
+    	}
+*/
 class DTS;
 class SmacqGraph;
 
@@ -32,7 +45,6 @@ class Children : public ThreadSafeVector< ThreadSafeMultiSet<SmacqGraph_ptr> > {
 
    Children() : CONTAINER(1) {}
 
-/* 
    // Can't get this to work:
 
    template <class CB>
@@ -44,7 +56,6 @@ class Children : public ThreadSafeVector< ThreadSafeMultiSet<SmacqGraph_ptr> > {
 		bind(&ThreadSafeMultiSet<SmacqGraph_ptr>::foreach, &_1, protect(cb))
 	); 
    }
-*/
 };
 
 
@@ -142,8 +153,7 @@ class SmacqGraph : private PthreadMutex {
   int argc; // set by set()
   struct SmacqModule::algebra algebra; // set by load_module()
 
-  ThreadSafeBoolean shutdown;
-  bool mustProduce;
+  ThreadSafeBoolean shutdown, mustProduce;
   SmacqModule * instance;
 
  private:

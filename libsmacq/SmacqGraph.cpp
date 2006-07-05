@@ -232,7 +232,7 @@ METHOD void SmacqGraph::init_node_recursively(DTS * dts, SmacqScheduler * sched)
   
 
 METHOD SmacqGraph::SmacqGraph(int argc, char ** argv) 
-		  : mustProduce(false), instance(NULL), q(RINGSIZE), scheduler(NULL)
+		  : instance(NULL), q(RINGSIZE), scheduler(NULL)
 {
   set(argc, argv);
 }
@@ -360,7 +360,7 @@ METHOD void SmacqGraph::remove_children() {
         // Remove all children of last element
 	unsigned int i = children.size() - 1;
         while (children[i].size()) {
-		//fprintf(stderr, "remove_children %p of %p\n", children[el][el2].get(), this);
+		SGDEBUG("remove_children %p", children[i][0].get());
                 remove_child_bynum(i,0);
         }
         children.pop_back();
@@ -616,14 +616,16 @@ METHOD void SmacqGraph::do_shutdown(SmacqGraph_ptr f) {
 	// Keep a reference around while we're working on it
 	SmacqGraph_ptr ip = (*i);
 
-	f->log("do_shutdown propagating to parent %p", ip.get());
 	ip->remove_child(f);
+	f->log("do_shutdown detached parent %p", ip.get());
 
-	if (!ip->shutdown.get() && !ip->live_children()) {
+	if (!ip->live_children()) {
     		// Parents may still have references (e.g. scheduler queues), so
     		// reference counting won't necessarily shutdown our parents.
     		// So, we act like a SIGPIPE and shutdown useless parents right
     		// away.
+
+		f->log("do_shutdown propagating to parent %p", ip.get());
 		do_shutdown((*i));
 	} 
   }
@@ -658,11 +660,9 @@ METHOD SmacqGraphContainer::SmacqGraphContainer(ThreadSafeMultiSet<SmacqGraph_pt
 }
 
 METHOD void SmacqGraph::seed_produce() {
-   RecursiveLock l(this);
-
    SGDEBUG("seed_produce()");
 
-   mustProduce = true;
+   mustProduce.set();
    scheduler->produceq.enqueue(this);
 }  
 
@@ -682,12 +682,10 @@ METHOD void SmacqGraph::log(const char * format, ...) {
 }
  
 METHOD void SmacqGraph::runable(DtsObject d) {
-  RecursiveLock l(this);
-
   SGDEBUG("inputq got %p", d.get());
-  bool empty = inputq.empty();
-  inputq.enqueue(d);
-  if (empty && ! mustProduce) {
+  bool change = inputq.enqueue(d);
+
+  if (change && ! mustProduce.get()) {
 	SGDEBUG("placed on consumeq");
         scheduler->consumeq.enqueue(this);
   } 
@@ -695,14 +693,12 @@ METHOD void SmacqGraph::runable(DtsObject d) {
 
 /// We are done handling a mustProduce
 METHOD void SmacqGraph::produce_done() {
-  RecursiveLock l(this);
   SGDEBUG("produce_done()");
 
-  if (!inputq.empty()) {
+  if (mustProduce.clear() && !inputq.empty()) {
       scheduler->consumeq.enqueue(this);
   }
 
-  mustProduce = false;
 }
 
 #include <SmacqModule-interface.h>

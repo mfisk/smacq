@@ -305,6 +305,12 @@ class ThreadSafeBoolean {
 	//return g_atomic_int_compare_and_exchange(&val, 0, 1);
     }
 
+    /// Atempt to set the boolean to false.  Return false iff already false.
+    bool clear() {
+	bool r = g_atomic_int_compare_and_exchange(&val, 1, 0);
+	return r;
+    }
+
   private:
     int val;
 };

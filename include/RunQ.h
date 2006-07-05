@@ -63,18 +63,22 @@ class runq : public PthreadMutex {
     return true;
   }
 
-  /// Add a new element to the end of the runq.
-  void enqueue(T val) {
+  /// Add a new element to the end of the runq.  Return true iff this is only element on queue
+  bool enqueue(T val) {
     RecursiveLock l(this);
 
     struct qel * el = insertion_point();
 
     el->val = val;
 		
+    qlen++;
+
     if (!this->head) {
       this->head = el;
+      return true;
     }
-    qlen++;
+
+    return false;
   }
 
   /// Print the contents of the runq.
