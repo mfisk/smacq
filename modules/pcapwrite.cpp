@@ -14,6 +14,7 @@
 static struct smacq_options options[] = {
   {"f", {string_t:"-"}, "Output file", SMACQ_OPT_TYPE_STRING},
   {"s", {uint32_t:0}, "Maximum output file size (MB)", SMACQ_OPT_TYPE_UINT32},
+  {"t", {uint32_t:0}, "Maximum output file time (seconds)", SMACQ_OPT_TYPE_UINT32},
   {"z", {boolean_t:0}, "Use gzip compression", SMACQ_OPT_TYPE_BOOLEAN},
   END_SMACQ_OPTIONS
 };
@@ -210,7 +211,7 @@ pcapwriteModule::~pcapwriteModule() {
 }
 
 pcapwriteModule::pcapwriteModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
-  smacq_opt output, size, gzip;
+  smacq_opt output, rotate_size, rotate_time, gzip;
 
   //fprintf(stderr, "Loading pcapfile (%d,%d)\n", context->isfirst, context->islast);
   dts->requiretype("packet");
@@ -218,7 +219,8 @@ pcapwriteModule::pcapwriteModule(struct SmacqModule::smacq_init * context) : Sma
   {
     struct smacq_optval optvals[] = {
       { "f", &output}, 
-      { "s", &size}, 
+      { "s", &rotate_size}, 
+      { "t", &rotate_time}, 
       { "z", &gzip}, 
       {NULL, NULL}
     };
@@ -227,13 +229,15 @@ pcapwriteModule::pcapwriteModule(struct SmacqModule::smacq_init * context) : Sma
 				 &argc, &argv,
 				 options, optvals);
     
-    strucio = new StrucioPcapWriter(this);
+    strucio = new StrucioPcapWriter(this); 
 
-    strucio->register_filelist_args(argc, argv);
-
-    if (size.uint32_t) {
-      strucio->set_rotate(size.uint32_t * 1024 * 1024);
+    if (rotate_size.uint32_t) {
+      strucio->set_rotate_size(rotate_size.uint32_t * 1024 * 1024);
+    } else if (rotate_time.uint32_t) {
+      strucio->set_rotate_time(rotate_time.uint32_t);
     }
+
+    strucio->register_file(output.string_t);
     strucio->set_use_gzip(gzip.boolean_t);
   }
 
@@ -243,7 +247,6 @@ pcapwriteModule::pcapwriteModule(struct SmacqModule::smacq_init * context) : Sma
   snaplen_field = dts->requirefield("snaplen");
   linktype_field = dts->requirefield("linktype");
 
-  strucio->register_file(output.string_t);
 
   pcap_file_header.magic = TCPDUMP_MAGIC;
   pcap_file_header.version_major = 2;
