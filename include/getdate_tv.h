@@ -1,3 +1,4 @@
+#include "config.h"
 #include <ccpp.h>
 BEGIN_C_DECLS
 #include <getdate.h>
@@ -11,7 +12,7 @@ static inline bool get_date_tv (struct timeval * t, char const * s) {
 
 	// Do gettime() one and only once; then cache and reuse
 	if (now.tv_sec == 0) 
-		assert(gettime(&now) == 0);
+		gettime(&now);
 
 	if (get_date(&ts, s, &now)) {
 		t->tv_sec = ts.tv_sec;
