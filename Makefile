@@ -7,16 +7,19 @@ config/config.guess:
 	$(MAKE) $(MAKEFLAGS) bootstrap
 
 debug:
-	+MAKEFLAGS="$(MAKEFLAGS)" BUILDNAME=debug CONFIG="$$CONFIG --enable-debug" misc/buildarch 
+	+MAKEFLAGS="$(MAKEFLAGS)" BUILDNAME=debug CONFIG="$$CONFIG --enable-profile --enable-debug" misc/buildarch 
 
 gdb:
-	+MAKEFLAGS="$(MAKEFLAGS)" interactive=yes BUILDNAME=debug CONFIG="$$CONFIG --enable-debug" misc/buildarch gdb 
+	+MAKEFLAGS="$(MAKEFLAGS)" interactive=yes BUILDNAME=debug CONFIG="$$CONFIG --enable-profile --enable-debug" misc/buildarch gdb 
 
 profile:
 	+MAKEFLAGS="$(MAKEFLAGS)" BUILDNAME=profile CONFIG="$$CONFIG --enable-profile" misc/buildarch  
 
 small:
 	+MAKEFLAGS="$(MAKEFLAGS)" BUILDNAME=small CONFIG="$$CONFIG --enable-small" misc/buildarch 
+
+importgnulib:
+	gnulib-tool --libtool --m4-base=libgnu/m4 --source-base=libgnu --import getdate gettime xalloc-die strftime
 
 pushrelease: dist rpm
 	@set -x; cd doc && rsync -a -e ssh -Ltv *.pdf *.png *.html api ../ChangeLog smacq.sf.net:smacqweb/
