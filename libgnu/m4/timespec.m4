@@ -1,6 +1,8 @@
-#serial 9
+#serial 12
 
-# Copyright (C) 2000, 2001, 2003, 2004 Free Software Foundation, Inc.
+# Copyright (C) 2000, 2001, 2003, 2004, 2005, 2006 Free Software
+# Foundation, Inc.
+
 # This file is free software; the Free Software Foundation
 # gives unlimited permission to copy and/or distribute it,
 # with or without modifications, as long as this notice is preserved.
@@ -9,14 +11,16 @@ dnl From Jim Meyering
 
 AC_DEFUN([gl_TIMESPEC],
 [
+  AC_LIBSOURCES([timespec.h])
+
   dnl Prerequisites of lib/timespec.h.
+  AC_REQUIRE([AC_C_INLINE])
   AC_REQUIRE([AC_HEADER_TIME])
   AC_CHECK_HEADERS_ONCE(sys/time.h)
   gl_CHECK_TYPE_STRUCT_TIMESPEC
-  AC_STRUCT_ST_MTIM_NSEC
 
-  dnl Persuade glibc <time.h> to declare nanosleep().
-  AC_REQUIRE([AC_GNU_SOURCE])
+  dnl Persuade glibc and Solaris <time.h> to declare nanosleep.
+  AC_REQUIRE([gl_USE_SYSTEM_EXTENSIONS])
 
   AC_CHECK_DECLS(nanosleep, , , [#include <time.h>])
 ])

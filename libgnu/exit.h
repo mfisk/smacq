@@ -13,7 +13,7 @@
 
    You should have received a copy of the GNU General Public License
    along with this program; if not, write to the Free Software Foundation,
-   Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.  */
+   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.  */
 
 #ifndef _EXIT_H
 #define _EXIT_H
@@ -21,7 +21,7 @@
 /* Get exit() declaration.  */
 #include <stdlib.h>
 
-/* Some systems do not define EXIT_*, even with STDC_HEADERS.  */
+/* Some systems do not define EXIT_*, despite otherwise supporting C89.  */
 #ifndef EXIT_SUCCESS
 # define EXIT_SUCCESS 0
 #endif
