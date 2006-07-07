@@ -4,13 +4,14 @@
 #endif
 
 #include <stdio.h>
+#include <glib.h>
 
 #define INDEXFILE ".strucio_index"
 
 /// A pure virtual base for classes that return filenames.
 class Filelist {
  public:
-  virtual char * nextfilename() = 0;
+  virtual void nextfilename(char * buf, int len) = 0;
   virtual ~Filelist() {};
 };
 
@@ -18,7 +19,7 @@ class Filelist {
 class FilelistBounded : public Filelist {
  public:
   FilelistBounded(char * root, long long lower, long long upper);
-  char * nextfilename();
+  void nextfilename(char *, int);
   ~FilelistBounded() {
 	if (index_fh) fclose(index_fh);
   }
@@ -31,13 +32,31 @@ class FilelistBounded : public Filelist {
 };
 
 /// Return a single filename.
+class FilelistConstant : public Filelist {
+ public:
+  FilelistConstant(char * filename) : file(filename) {;}
+
+  void nextfilename(char * filename, int len) { 
+     if (this->file) {
+	g_strlcpy(filename, this->file, len);
+     }
+  }
+
+ protected:
+  char * file;
+};
+
+/// Return a single filename.
 class FilelistOneshot : public Filelist {
  public:
   FilelistOneshot(char * filename) { this->file = filename; }
-  char * nextfilename() { 
-     char * filename = this->file;
-     this->file = NULL;
-     return filename;
+  void nextfilename(char * filename, int len) { 
+     if (this->file) {
+	g_strlcpy(filename, this->file, len);
+     	this->file = NULL;
+     } else {
+	filename[0] = '\0';
+     }
   }
 
  protected:
@@ -48,14 +67,14 @@ class FilelistOneshot : public Filelist {
 /// Return file names from STDIN.
 class FilelistStdin : public Filelist {
  public:
-  char * nextfilename();
+  void nextfilename(char *, int);
 };
 
 /// Return file names from an argument vector.
 class FilelistArgs : public Filelist {
  public:
   FilelistArgs(int, char **);
-  char * nextfilename();
+  void nextfilename(char *, int);
 
  protected:
   int strucio_argc;
@@ -65,7 +84,7 @@ class FilelistArgs : public Filelist {
 /// Never return a file name.
 class FilelistError : public Filelist {
  public:
-  char * nextfilename() { return NULL; }
+  void nextfilename(char * buf, int len) { buf[0] = '\0'; }
 };
 
 inline FilelistBounded::FilelistBounded(char * indexroot, long long lower, long long upper) {
@@ -83,37 +102,35 @@ inline FilelistBounded::FilelistBounded(char * indexroot, long long lower, long 
   }
 }
 
-inline char * FilelistBounded::nextfilename() {
+inline void FilelistBounded::nextfilename(char * file, int len) {
   long long key, offset;
-  char file[4096];
+  file[0] = '\0'; // Default result is empty
 
   while (1) {
 	/* Find next matching line entry */
+	///XXX: unchecked size
 	int res = fscanf(index_fh, "%lld %s %lld", &key, file, &offset);
-	if (res == -1) return NULL;
+	if (res == -1) return;
 
 	assert(res == 3);
 	/* fprintf(stderr, "Looking for %lld in file starting at %lld: %s\n", lower_bound, key, file); */
 	if (key >= lower_bound && key <= upper_bound) {
-		return strdup(file); /* memory leak */
+		return; 
         } 
   }
-  return NULL; /* Shouldn't get here */
+  return; /* Shouldn't get here */
 }
 
-inline char * FilelistStdin::nextfilename() {
+inline void FilelistStdin::nextfilename(char * filename, int len) {
   int res;
-  char filename[4096];
 
   res = scanf("%4096s", filename);
 
   if (res == EOF) {
-    return NULL;
+    filename[0] = '\0';
   } else if (res != 1) {
     fprintf(stderr, "Error reading next filename from STDIN\n");
-    return NULL;
-  } else {
-    return strdup(filename);
+    filename[0] = '\0';
   }
 }
 
@@ -123,14 +140,13 @@ inline FilelistArgs::FilelistArgs(int num, char** names) {
   strucio_argv = names;
 }
 
-inline char * FilelistArgs::nextfilename() {
+inline void FilelistArgs::nextfilename(char * file, int len) {
   if (! strucio_argc) {
     //fprintf(stderr, "No more files to read from\n");
-    return(NULL);
+    file[0] = '\0'; 
   } else {
-    char * filename = strucio_argv[0];
+    strncpy(file, strucio_argv[0], len);
     strucio_argc--; strucio_argv++;
-    return filename;
   }
 }
 
