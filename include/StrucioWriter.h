@@ -1,7 +1,11 @@
 #include <stdio.h>
 #include <zlib.h>
-
+#include <alloca.h>
 #include <Filelist.h>
+
+BEGIN_C_DECLS
+#include "strftime.h" // gnulib strftime with portable %z
+END_C_DECLS
 
 enum strucio_read_type { EITHER, COPY, MMAP };
 
@@ -22,7 +26,8 @@ class StrucioWriter {
 	void register_filelist_bounded(char * index_location, long long lower, long long upper);
 	void register_file(char * filename);
 	
-	void set_rotate(long long size);
+	void set_rotate_time(long long);
+	void set_rotate_size(long long);
 	void set_use_gzip(bool val) { use_gzip = val;}
 
    protected:
@@ -37,13 +42,33 @@ class StrucioWriter {
   	/* For rotation */
   	long long outputleft;
   	long long maxfilesize;
-  	int suffix;
+  	long long maxfileseconds;
+	time_t file_end_time;
 
 	Filelist * filelist;
 	void newFilelist(Filelist *);
 
 	int openwrite();
 	void close_file();
+
+        void format_filename(char * buf, size_t len) {
+	   int baselen = strlen(buf);
+	   char * basename = (char*)alloca(baselen + 1);
+	   assert(basename);
+	   strcpy(basename, buf);
+	
+	   char * p;
+           while ((p = strstr(buf, "%T"))) {
+		const char * baseoff = basename + baselen - (strlen(buf) - (p+2 - buf)) ;
+                char now[32];
+                time_t t = time(NULL);
+                nstrftime(now, 31, "%Y-%m-%dT%H:%M:%S%:z", localtime(&t), 0, 0);
+
+                p[0] = '\0';
+                g_strlcat(buf, now, len);
+		g_strlcat(buf, baseoff, len);
+           }
+        }
 };
 
 
@@ -60,11 +85,15 @@ inline void StrucioWriter::register_filelist_args(int argc, char ** argv) {
 }
 
 inline void StrucioWriter::register_file(char * filename) {
-  filelist = new FilelistOneshot(filename);
+  filelist = new FilelistConstant(filename);
 }
 
-inline void StrucioWriter::set_rotate(long long size) {
+inline void StrucioWriter::set_rotate_size(long long size) {
   maxfilesize = size;
+}
+
+inline void StrucioWriter::set_rotate_time(long long seconds) {
+  maxfileseconds = seconds;
 }
 
 inline void StrucioWriter::close_file() {
@@ -77,27 +106,26 @@ inline void StrucioWriter::close_file() {
 /* -1 iff error */
 /* 0 on success */
 inline int StrucioWriter::openwrite() {
-  char sufbuf[256];
-  char * filename;
+  char filename[256];
   
   if (! fh) {
-    filename = filelist->nextfilename();
-    fprintf(stderr, "Output will be placed in structured file %s\n", filename);
-    
     if (maxfilesize) {
-      snprintf(sufbuf, 256, "%s.%02d", filename, suffix);
-      filename = sufbuf;
-      suffix++;
-      
       outputleft = maxfilesize;
-    } else {
-      filename = filename;
     }
+    if (maxfileseconds) {
+      file_end_time = ((time(NULL) / maxfileseconds) + 1) * maxfileseconds;
+    }
+
+    filelist->nextfilename(filename, 256);
+    format_filename(filename, 256);
+    fprintf(stderr, "Output will be placed in structured file %s\n", filename);
     
     if (!strcmp(filename, "-")) {
       fh = stdout;
-    } else {
+    } else if (filename[0]) {
       fh = fopen(filename, "w");
+    } else {
+      fprintf(stderr, "No filename available\n");  
     }
     assert(fh);
 
@@ -110,10 +138,14 @@ inline int StrucioWriter::openwrite() {
 inline int StrucioWriter::write(void * record, int len) {
   assert(record);
 
-  outputleft -= len;
+  if (maxfileseconds && (time(NULL) >= file_end_time)) {
+    close_file();
+  }
 
+  outputleft -= len;
   //fprintf(stderr, "%lld left\n", outputleft);
-  if (fh && maxfilesize && (outputleft <= 0)) {
+
+  if (maxfilesize && (outputleft <= 0)) {
     close_file();
   }
 
@@ -135,7 +167,7 @@ inline void StrucioWriter::newFilelist(Filelist * fl) {
 }
 
 inline StrucioWriter::StrucioWriter() :
-  filename(NULL), outputleft(0), suffix(0),
+  filename(NULL), outputleft(0), maxfilesize(0), maxfileseconds(0),
   filelist(new FilelistError()) // We're pure virtual
 { }
 
