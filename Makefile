@@ -19,7 +19,9 @@ small:
 	+MAKEFLAGS="$(MAKEFLAGS)" BUILDNAME=small CONFIG="$$CONFIG --enable-small" misc/buildarch 
 
 importgnulib:
-	gnulib-tool --libtool --m4-base=libgnu/m4 --source-base=libgnu --import getdate gettime xalloc-die strftime
+	DIR=/tmp/gnulib.$$$$; mkdir $$DIR; (cd $$DIR && cvs -z3 -d:pserver:anonymous@cvs.savannah.gnu.org:/sources/gnulib co gnulib); \
+		$$DIR/gnulib/gnulib-tool --libtool --m4-base=libgnu/m4 --source-base=libgnu --import getdate gettime xalloc-die strftime
+	cvs add libgnu/[a-z]* libgnu/m4/[a-z]*
 
 pushrelease: dist rpm
 	@set -x; cd doc && rsync -a -e ssh -Ltv *.pdf *.png *.html api ../ChangeLog smacq.sf.net:smacqweb/
