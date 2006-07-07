@@ -108,7 +108,7 @@ AC_STRUCT_TM
 AC_FUNC_MMAP
 AC_FUNC_SELECT_ARGTYPES
 AC_FUNC_STRFTIME
-AC_CHECK_FUNCS([floor gethostbyname gettimeofday inet_ntoa localtime_r memmove memset pow select socket strchr strdup strerror strtol malloc memcmp realloc strtod])
+AC_CHECK_FUNCS([floor gethostbyname gettimeofday inet_ntoa localtime_r memmove memset pow select socket strchr strdup strerror strtol malloc memcmp realloc strtod clock_gettime])
 
 ##
 ## Defines for makefiles
@@ -437,7 +437,9 @@ AM_CONDITIONAL(USE_PYTHON, test x$with_python = xyes)
 gl_SOURCE_BASE(libgnu)
 gl_M4_BASE(libgnu/m4)
 AM_CPPFLAGS="${AM_CPPFLAGS} -I\${top_srcdir}/libgnu"
-gl_MODULES(gettime getdate)
+gl_FUNC_GNU_GET_DATE
+gl_FUNC_GNU_STRFTIME
+gl_MODULES(gettime getdate strftime)
 gl_INIT
 
 
