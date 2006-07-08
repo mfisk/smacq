@@ -1,4 +1,4 @@
-SUBDIRS = include libgnu libsmacq types modules bin doc test
+SUBDIRS = include libgnu types modules libsmacq bin doc test
 EXTRA_DIST = misc test smacq.spec smacq.list debian
 ACLOCAL_AMFLAGS = -I $(top_srcdir)/libgnu/m4
 
@@ -22,7 +22,6 @@ fink: smacq.list
 
 tarball: all
 	$(MAKE) DESTDIR=install/ install
-
 	
 deb.real: 
 	cp -pr $(top_srcdir)/debian .
