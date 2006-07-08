@@ -6,7 +6,7 @@ AC_CONFIG_AUX_DIR([config])
 AM_CONFIG_HEADER(include/config.h)
 AM_INIT_AUTOMAKE(1.7)
 AC_CONFIG_SRCDIR([bin])
-AC_LIBTOOL_DLOPEN
+
 
 ##
 ## Checks for programs
@@ -15,11 +15,16 @@ AC_PROG_CC
 gl_EARLY # gnulib wants to start early
 AM_PROG_CC_STDC
 AC_PROG_CXX
-AM_PROG_LEX
 AC_PROG_YACC
 AC_PROG_LN_S
 AC_PROG_MAKE_SET
-AC_PROG_LIBTOOL
+
+##
+## Use Flex
+##
+AM_PROG_LEX
+AM_CPPFLAGS="$AM_CPPFLAGS -Wno-deprecated" #Flex uses iostream.h
+AC_SUBST(LEX_OUTPUT_ROOT, lex.Smacq)
 
 ##
 ## Standard libraries
@@ -33,6 +38,11 @@ AC_CHECK_LIB([pcap], [pcap_open_live])
 AC_CHECK_LIB([pthread], [pthread_exit])
 AC_CHECK_LIB([z], [gzopen])
 AC_CHECK_LIB([bz2], [BZ2_bzopen])
+
+##
+## Libtool
+##
+LT_INIT([dlopen])
 
 ##
 ## Platform specific compiler flag defaults
@@ -74,11 +84,6 @@ GLIB_CFLAGS=
 AC_SUBST(GLIB_CFLAGS GLIB_LIBS)
 
 ##
-## sigc++ does their own sigc-config thing
-##
-##AM_PATH_SIGC(1.0.0, AM_CPPFLAGS="$AM_CPPFLAGS $SIGC_CFLAGS")
-
-##
 ## Checks for header files.
 ##
 AC_HEADER_STDC
@@ -108,7 +113,7 @@ AC_STRUCT_TM
 AC_FUNC_MMAP
 AC_FUNC_SELECT_ARGTYPES
 AC_FUNC_STRFTIME
-AC_CHECK_FUNCS([floor gethostbyname gettimeofday inet_ntoa localtime_r memmove memset pow select socket strchr strdup strerror strtol malloc memcmp realloc strtod clock_gettime])
+AC_CHECK_FUNCS([floor gethostbyname gettimeofday inet_ntoa localtime_r memmove memset pow select socket strchr strdup strerror strtol malloc memcmp realloc strtod clock_gettime inet_pton])
 
 ##
 ## Defines for makefiles
