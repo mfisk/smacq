@@ -437,9 +437,8 @@ AM_CONDITIONAL(USE_PYTHON, test x$with_python = xyes)
 gl_SOURCE_BASE(libgnu)
 gl_M4_BASE(libgnu/m4)
 AM_CPPFLAGS="${AM_CPPFLAGS} -I\${top_srcdir}/libgnu"
-gl_FUNC_GNU_GET_DATE
 gl_FUNC_GNU_STRFTIME
-gl_MODULES(gettime getdate strftime)
+gl_MODULES(gettime strftime)
 gl_INIT
 
 
