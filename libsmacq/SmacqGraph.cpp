@@ -12,7 +12,7 @@
 #endif
 
 METHOD SmacqGraph::~SmacqGraph() {
-  log("shutdown from destructor (e.g. refcount==0");
+  //log("shutdown from destructor (e.g. refcount==0");
 
   // Make sure that do_shutdown doesn't end up calling the destructor again
   refcount.increment();
@@ -20,7 +20,7 @@ METHOD SmacqGraph::~SmacqGraph() {
   do_shutdown(this);
   refcount.decrement();
 
-  log("shutdown from destructor (e.g. refcount==0) done");
+  //log("shutdown from destructor (e.g. refcount==0) done");
   //children.clear();
   //parent.clear();
 }
@@ -600,7 +600,7 @@ METHOD void SmacqGraph::do_shutdown(SmacqGraph_ptr f) {
     return;
   }
 
-  f->log("do_shutdown");
+  //f->log("do_shutdown");
 
   delete f->instance; // Call the destructor, which may callback to enqueue()
   f->instance = NULL;
@@ -616,8 +616,9 @@ METHOD void SmacqGraph::do_shutdown(SmacqGraph_ptr f) {
 	// Keep a reference around while we're working on it
 	SmacqGraph_ptr ip = (*i);
 
+	//f->log("do_shutdown propagating to parent %p", ip.get());
 	ip->remove_child(f);
-	f->log("do_shutdown detached parent %p", ip.get());
+	//f->log("do_shutdown detached parent %p", ip.get());
 
 	if (!ip->live_children()) {
     		// Parents may still have references (e.g. scheduler queues), so
@@ -632,7 +633,7 @@ METHOD void SmacqGraph::do_shutdown(SmacqGraph_ptr f) {
 
   assert(f->parent.empty()); // Should be no links to parents left
 
-  f->log("do_shutdown done");
+  //f->log("do_shutdown done");
 }
 
 /// Decrement the reference count.
