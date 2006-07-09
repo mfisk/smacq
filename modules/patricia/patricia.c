@@ -1,5 +1,5 @@
 /*
- * $Id: patricia.c,v 1.2 2004/10/08 19:42:11 npickett Exp $
+ * $Id: patricia.c,v 1.3 2004/11/15 00:40:58 mfisk Exp $
  * Dave Plonka <plonka@doit.wisc.edu>
  *
  * This product includes software developed by the University of Michigan,
@@ -58,6 +58,7 @@ comp_with_mask (void *addr, void *dest, u_int mask)
     return (0);
 }
 
+#ifndef HAVE_INET_PTON
 /* inet_pton substitute implementation
  * Uses inet_addr to convert an IP address in dotted decimal notation into 
  * unsigned long and copies the result to dst.
@@ -94,6 +95,7 @@ inet_pton (int af, const char *src, void *dst)
     }
 #endif /* NT */
 }
+#endif
 
 /* this allows imcomplete prefix */
 int
