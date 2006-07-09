@@ -1,7 +1,7 @@
 %{
 #define YY_NO_UNPUT 1
 #include <smacq-parser.h>
-#include <parser.h>
+#include <parser.hpp>
 #include <string.h>
 #define MAX_STR_CONST 1024
 
