@@ -46,7 +46,7 @@ class SmacqGraphNode{
 
   SmacqModule::constructor_fn * constructor;
 
-  GModule * module;
+  lt_dlhandle module;
 
   //struct smacq_options * options;
   //struct smacq_optval * optvals;
