@@ -1,5 +1,13 @@
 #include "config.h"
 #include <ccpp.h>
+#ifndef _XOPEN_SOURCE
+#define _XOPEN_SOURCE
+#endif
+#ifndef _XOPEN_SOURCE_EXTENDED
+#define _XOPEN_SOURCE_EXTENDED
+#endif
+#include <time.h>
+
 BEGIN_C_DECLS
 #include <getdate.h>
 
