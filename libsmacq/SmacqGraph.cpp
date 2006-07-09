@@ -626,7 +626,7 @@ METHOD void SmacqGraph::do_shutdown(SmacqGraph_ptr f) {
     		// So, we act like a SIGPIPE and shutdown useless parents right
     		// away.
 
-		f->log("do_shutdown propagating to parent %p", ip.get());
+		//f->log("do_shutdown propagating to parent %p", ip.get());
 		do_shutdown((*i));
 	} 
   }
