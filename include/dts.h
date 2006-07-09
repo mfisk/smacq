@@ -6,7 +6,7 @@
 #endif 
 
 #include <smacq.h>
-#include <gmodule.h>
+#include <ltdl.h>
 #include <assert.h>
 #include <dts-types.h>
 #include <dts-filter.h>
@@ -40,7 +40,7 @@ class dts_type {
   ThreadSafeDynamicArray<struct dts_field_info *> fields;
   char * name;
   int num;
-  GModule * module;
+  lt_dlhandle module;
   struct dts_field_spec * description;
   struct dts_type_info info;
 };

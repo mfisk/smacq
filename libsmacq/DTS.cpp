@@ -131,7 +131,7 @@ DtsField DTS::requirefield(char * name) {
 
 static int dts_load_module(struct dts_type * t) {
     struct dts_type_info * infop;
-    GModule * gmod;
+    lt_dlhandle gmod;
 
     infop = (dts_type_info*)smacq_find_module(&gmod, "DTS_HOME", "types", "%s/dts_%s", "dts_type_%s_table", t->name);
     if (infop) { 

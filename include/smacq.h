@@ -41,7 +41,7 @@ common tasks with a DtsObject.
 #include <stdint.h>
 #include <stdio.h>
 #include <sys/time.h>
-#include <gmodule.h>
+#include <ltdl.h>
 #include <glib.h>
 
 #include <ccpp.h>
@@ -93,7 +93,7 @@ BEGIN_C_DECLS
 /// Parse a query and run to completion
 int smacqq(int argc, char ** argv);
 
-void * smacq_find_module(GModule ** gmodulep, char * envvar, char * envdefault, char * modformat, char * symformat, char * sym);
+void * smacq_find_module(lt_dlhandle* gmodulep, char * envvar, char * envdefault, char * modformat, char * symformat, char * sym);
 
 #include "util.c"
 
