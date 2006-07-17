@@ -1,3 +1,7 @@
+VERSION 2.5 - TBD
+=================
+2006-07 - take module added
+
 VERSION 2.4 - 3 May 2006
 ========================
 2006-05 - bug fix: pcapfile and cflow not closing file descriptors
