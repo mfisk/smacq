@@ -43,12 +43,12 @@ SMACQ can build with the following optional functionality:
 =============================================================================
 			PREREQUISITES
 
-		glib2		boost		libpcap		zlib		bz2		gcc	gmake	libgda
-----------------------------------------------------------------------------------------------------------------------------
+		glib2		boost		libpcap		zlib		bz2		gcc	gmake	libgda		libltdl
+----------------------------------------------------------------------------------------------------------------------------------------
 Version		>=2.4
-----------------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------------------------
 DarwinPorts	glib2-devel	boost		libpcap								libgda
-Debian		libglib2.0-dev	libboost-dev	libpcap-dev	zlib1g-dev	libbz2-dev	g++
+Debian		libglib2.0-dev	libboost-dev	libpcap-dev	zlib1g-dev	libbz2-dev	g++		libgda2-dev	libltdl3-dev
 Fink		glib2-dev			libpcap		zlib		
 FreeBSD		glib20											gmake
 RHEL		glib2-devel	boost-devel			zlib-devel	bzip2-devel			libgda-devel
