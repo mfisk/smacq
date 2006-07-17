@@ -42,7 +42,9 @@ AC_CHECK_LIB([bz2], [BZ2_bzopen])
 ##
 ## Libtool
 ##
-LT_INIT([dlopen])
+AC_LIBTOOL_DLOPEN
+AC_PROG_LIBTOOL
+#LT_INIT([dlopen])
 
 ##
 ## Platform specific compiler flag defaults
@@ -76,7 +78,7 @@ fi
 ##
 ## pkg-config libraries
 ##
-PKG_CHECK_MODULES(GLIB, glib-2.0 gmodule-2.0)
+PKG_CHECK_MODULES(GLIB, glib-2.0)
 	# Pretty much everybody needs the include files, thanks to smacq.h,
 	# so don't make it specific to targets that use GLIB_CFLAGS
 AM_CPPFLAGS="$AM_CPPFLAGS ${GLIB_CFLAGS}"
@@ -443,7 +445,8 @@ gl_SOURCE_BASE(libgnu)
 gl_M4_BASE(libgnu/m4)
 AM_CPPFLAGS="${AM_CPPFLAGS} -I\${top_srcdir}/libgnu"
 gl_FUNC_GNU_STRFTIME
-gl_MODULES(gettime strftime)
+gl_MODULES(getdate gettime strftime)
+gl_GETDATE
 gl_INIT
 
 
