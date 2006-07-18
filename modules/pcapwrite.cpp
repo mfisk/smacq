@@ -5,7 +5,6 @@
 #include <net/ethernet.h>
 #include <SmacqModule.h>
 #include <dts_packet.h>
-#include <pcap.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <StrucioWriter.h>
@@ -34,9 +33,6 @@ SMACQ_MODULE(pcapwrite,
   PROTO_CTOR(pcapwrite);
   PROTO_DTOR(pcapwrite);
   PROTO_CONSUME();
-
-  void pcapwriteModule::fixup_pcap(struct old_pcap_pkthdr * hdr);
-  void pcapwriteModule::parse_pcapfile(struct pcap_file_header * hdr);
 
   StrucioWriter * strucio;
   DtsObject datum;	
@@ -71,81 +67,8 @@ SMACQ_MODULE(pcapwrite,
   friend void StrucioPcapWriter::newfile_hook();
 	     );
 
-#define SWAPLONG(y) GUINT32_SWAP_LE_BE(y)
-#define SWAPSHORT(y) GUINT16_SWAP_LE_BE(y)
-
-static inline void swap_hdr(struct pcap_file_header *hp)
-{
-        hp->version_major = SWAPSHORT(hp->version_major);
-        hp->version_minor = SWAPSHORT(hp->version_minor);
-        hp->thiszone = SWAPLONG(hp->thiszone);
-        hp->sigfigs = SWAPLONG(hp->sigfigs);
-        hp->snaplen = SWAPLONG(hp->snaplen);
-        hp->linktype = SWAPLONG(hp->linktype);
-}
-
 #define TCPDUMP_MAGIC 0xa1b2c3d4
 #define TCPDUMP_MAGIC_NEW 0xa1b2cd34
-
-void pcapwriteModule::parse_pcapfile(struct pcap_file_header * hdr) {
-  swapped = 0;
-  extended = 0;
-
-  if (hdr->magic == TCPDUMP_MAGIC) {
-
-  } else if (hdr->magic == SWAPLONG(TCPDUMP_MAGIC)) {
-    swapped = 1;
-  } else if (hdr->magic == TCPDUMP_MAGIC_NEW) {
-    extended = 1;
-  } else if (hdr->magic == SWAPLONG(TCPDUMP_MAGIC_NEW)) {
-    extended = 1;
-    swapped = 1;
-  } else {
-    fprintf(stderr, "bad dump file format");
-    exit(-1);
-  }
-
-  if (extended) {
-    hdr_size = sizeof(struct old_pcap_pkthdr) + sizeof(struct extended_pkthdr);
-  } else {
-    hdr_size = sizeof(struct old_pcap_pkthdr);
-  }
-
-  if (swapped)
-    swap_hdr(hdr);
-
-  if (hdr->version_major < PCAP_VERSION_MAJOR) {
-    fprintf(stderr, "unsupported (old?) file format");
-    exit(-1);
-  }
-
-  snaplen_o = dts->construct(snaplen_type, &pcap_file_header.snaplen);
-  linktype_o = dts->construct(linktype_type, &pcap_file_header.linktype);
-  assert(linktype_o);
-  assert(snaplen_o);
-}
-
-void pcapwriteModule::fixup_pcap(struct old_pcap_pkthdr * hdr) {
-  if (swapped) {
-    hdr->caplen = SWAPLONG(hdr->caplen);
-    hdr->len = SWAPLONG(hdr->len);
-    hdr->ts.tv_sec = SWAPLONG(hdr->ts.tv_sec);
-    hdr->ts.tv_usec = SWAPLONG(hdr->ts.tv_usec);
-  }
-
-  /*
-   * We interchanged the caplen and len fields at version 2.3,
-   * in order to match the bpf header layout.  But unfortunately
-   * some files were written with version 2.3 in their headers
-   * but without the interchanged fields.
-   */
-  if (pcap_file_header.version_minor < 3 ||
-      (pcap_file_header.version_minor == 3 && hdr->caplen > hdr->len)) {
-    int t = hdr->caplen;
-    hdr->caplen = hdr->len;
-    hdr->len = t;
-  }
-}
 
 void StrucioPcapWriter::newfile_hook() {
   DtsObject linktype_o, snaplen_o;
@@ -194,7 +117,7 @@ smacq_result pcapwriteModule::consume(DtsObject datum, int & outchan) {
   if (datum->gettype() == dts_pkthdr_type) {
     struct dts_pkthdr * pkt = (struct dts_pkthdr*)datum->getdata();
 
-    if (-1 == strucio->write(pkt, sizeof(struct pcap_pkthdr) + pkt->pcap_pkthdr.caplen)) {
+    if (-1 == strucio->write(pkt, sizeof(struct old_pcap_pkthdr) + pkt->pcap_pkthdr.caplen)) {
       return (smacq_result)(SMACQ_PASS|SMACQ_END|SMACQ_ERROR);
     }
 
@@ -246,7 +169,6 @@ pcapwriteModule::pcapwriteModule(struct SmacqModule::smacq_init * context) : Sma
 
   snaplen_field = dts->requirefield("snaplen");
   linktype_field = dts->requirefield("linktype");
-
 
   pcap_file_header.magic = TCPDUMP_MAGIC;
   pcap_file_header.version_major = 2;
