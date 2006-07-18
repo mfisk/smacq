@@ -42,6 +42,9 @@ class StrucioStream {
       /// Read from stream  
       size_t Read(void * ptr, size_t bytes);
  
+      /// Read from stream  
+      virtual size_t Write(void * ptr, size_t bytes) = 0;
+ 
       /// Construct a fixed-sized object.  
       DtsObject construct(DTS * dts, dts_typeid t) { 
 	DtsObject o = dts->newObject(t);
@@ -88,7 +91,22 @@ class StrucioStream {
 
    /// (Re)Open stream by name.
    bool Open() {
-	fd = open(filename, O_RDONLY, 0);
+	if (!strcmp(mode, "r") || !strcmp(mode, "rb")) {
+		if (!strcmp(filename, "-")) {
+			fd = 0;
+		} else {
+			fd = open(filename, O_RDONLY, 0);
+		}
+	} else if (!strcmp(mode, "w") || !strcmp(mode, "wb")) {
+		if (!strcmp(filename, "-")) {
+			fd = 1;
+		} else {
+			fd = open(filename, O_WRONLY|O_TRUNC|O_CREAT, 0);
+		}
+	} else {
+		fprintf(stderr, "Unsupported Open mode: %s\n", mode);
+		return false;
+	}
 	return FdOpen();
    }
 
@@ -105,6 +123,12 @@ class FileStream : public StrucioStream {
        FdOpen();
      }
    
+   FileStream(const char * fname, const char * fmode = "rb") :
+     StrucioStream(fname, fmode), fh(NULL)
+     {
+       Open();
+     }
+   
    ~FileStream() {
 	if (fh) Close();
    }
@@ -113,6 +137,7 @@ class FileStream : public StrucioStream {
 
    // XXX. this class could use mmap to implement construct() methods.
    size_t BasicRead(void * ptr, size_t bytes);
+   size_t Write(void * ptr, size_t bytes);
 
  protected:      
 
@@ -164,6 +189,16 @@ template<> inline size_t FileStream<gzFile>::BasicRead(void * ptr, size_t bytes)
 }
 template<> inline size_t FileStream<bzFile_t>::BasicRead(void * ptr, size_t bytes) {
   return BZ2_bzread(fh.fh, ptr, bytes);
+}
+
+template<> inline size_t FileStream<FILE*>::Write(void * ptr, size_t bytes) {
+  return fwrite(ptr, 1, bytes, fh);
+}
+template<> inline size_t FileStream<gzFile>::Write(void * ptr, size_t bytes) {
+  return gzwrite(fh, ptr, bytes);
+}
+template<> inline size_t FileStream<bzFile_t>::Write(void * ptr, size_t bytes) {
+  return BZ2_bzwrite(fh.fh, ptr, bytes);
 }
 
 inline StrucioStream * StrucioStream::MagicOpen(const char * fname, const char * mode) {

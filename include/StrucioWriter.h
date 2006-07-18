@@ -2,6 +2,7 @@
 #include <zlib.h>
 #include <alloca.h>
 #include <Filelist.h>
+#include <StrucioStream.h>
 
 BEGIN_C_DECLS
 #include "strftime.h" // gnulib strftime with portable %z
@@ -15,7 +16,7 @@ class StrucioWriter {
 	StrucioWriter();
 	virtual ~StrucioWriter();
 
-	int write(void * record, int len);
+	bool write(void * record, size_t len);
 
 	/* Called when new file opened */
 	virtual void newfile_hook() { /* Base class does nothin. */ };
@@ -33,11 +34,10 @@ class StrucioWriter {
    protected:
   	/* Currenly opened file */
   	char * filename;
-  	FILE * fh;
+  	StrucioStream * fs;
 
   	/* For zlib */
-  	int use_gzip;
-  	gzFile gzfh;
+  	bool use_gzip;
 
   	/* For rotation */
   	long long outputleft;
@@ -97,10 +97,8 @@ inline void StrucioWriter::set_rotate_time(long long seconds) {
 }
 
 inline void StrucioWriter::close_file() {
-  if (fh) {
-	fclose(fh);
-	fh = NULL;
-  }
+  if (fs) delete fs;
+  fs = NULL;
 }
 
 /* -1 iff error */
@@ -108,7 +106,7 @@ inline void StrucioWriter::close_file() {
 inline int StrucioWriter::openwrite() {
   char filename[256];
   
-  if (! fh) {
+  if (!fs) {
     if (maxfilesize) {
       outputleft = maxfilesize;
     }
@@ -120,14 +118,12 @@ inline int StrucioWriter::openwrite() {
     format_filename(filename, 256);
     fprintf(stderr, "Output will be placed in structured file %s\n", filename);
     
-    if (!strcmp(filename, "-")) {
-      fh = stdout;
-    } else if (filename[0]) {
-      fh = fopen(filename, "w");
+    if (use_gzip) {
+      	fs = new FileStream<gzFile>(filename, "wb");
     } else {
-      fprintf(stderr, "No filename available\n");  
+      	fs = new FileStream<FILE*>(filename, "wb");
     }
-    assert(fh);
+    assert(fs);
 
     newfile_hook();
   }
@@ -135,7 +131,7 @@ inline int StrucioWriter::openwrite() {
   return 0;
 }
 
-inline int StrucioWriter::write(void * record, int len) {
+inline bool StrucioWriter::write(void * record, size_t len) {
   assert(record);
 
   if (maxfileseconds && (time(NULL) >= file_end_time)) {
@@ -150,14 +146,14 @@ inline int StrucioWriter::write(void * record, int len) {
   }
 
   if (0 != StrucioWriter::openwrite()) 
-    return -1;
+    return false;
   
-  if (1 != fwrite(record, len,  1, fh)) {
+  if (len != fs->Write(record, len)) {
     perror("structured write");
-    return -1;
+    return false;
   }
 	
-  return 0;
+  return true;
 }
 
 inline void StrucioWriter::newFilelist(Filelist * fl) {
@@ -167,7 +163,7 @@ inline void StrucioWriter::newFilelist(Filelist * fl) {
 }
 
 inline StrucioWriter::StrucioWriter() :
-  filename(NULL), outputleft(0), maxfilesize(0), maxfileseconds(0),
+  filename(NULL), fs(NULL), outputleft(0), maxfilesize(0), maxfileseconds(0),
   filelist(new FilelistError()) // We're pure virtual
 { }
 
