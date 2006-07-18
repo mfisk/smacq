@@ -18,8 +18,8 @@ struct timeval_32 {
  */
 struct old_pcap_pkthdr {
         struct timeval_32 ts;      /* time stamp */
-        bpf_u_int32 caplen;     /* length of portion present */
-        bpf_u_int32 len;        /* length this packet (off wire) */
+        uint32_t caplen;     /* length of portion present */
+        uint32_t len;        /* length this packet (off wire) */
 };
 
 struct extended_pkthdr {
