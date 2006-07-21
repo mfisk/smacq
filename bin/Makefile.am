@@ -12,7 +12,7 @@ smacqq_static_SOURCES = smacqq.cpp
 endif
 
 smacqq_DEPENDENCIES = $(top_builddir)/libsmacq/libsmacq.la
-smacqq_LDFLAGS = $(AM_LDFLAGS) $(BUILTINS) $(FRAMEWORKADD) -static -lm
+smacqq_LDFLAGS = $(AM_LDFLAGS) $(BUILTINS) $(FRAMEWORKADD) -static 
 LIBTOOL = PATH=$(top_srcdir)/misc:$$PATH @LIBTOOL@ 
 #smacqq_static_LDFLAGS = -export-dynamic -all-static $(BUILTINS)
 #smacqq_dynamic_LDFLAGS = -export-dynamic -dynamic
