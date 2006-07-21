@@ -103,7 +103,7 @@ void StrucioPcapWriter::newfile_hook() {
   pcap->pcap_file_header.snaplen = snaplen;
   pcap->pcap_file_header.linktype = linktype;
 
-  if (-1 == this->write(&pcap->pcap_file_header, sizeof(pcap_file_header))) {
+  if (!this->write(&pcap->pcap_file_header, sizeof(pcap_file_header))) {
     perror("pcapfile write");
     assert(0);
   }
@@ -117,7 +117,7 @@ smacq_result pcapwriteModule::consume(DtsObject datum, int & outchan) {
   if (datum->gettype() == dts_pkthdr_type) {
     struct dts_pkthdr * pkt = (struct dts_pkthdr*)datum->getdata();
 
-    if (-1 == strucio->write(pkt, sizeof(struct old_pcap_pkthdr) + pkt->pcap_pkthdr.caplen)) {
+    if (!strucio->write(pkt, sizeof(struct old_pcap_pkthdr) + pkt->pcap_pkthdr.caplen)) {
       return (smacq_result)(SMACQ_PASS|SMACQ_END|SMACQ_ERROR);
     }
 
