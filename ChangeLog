@@ -1,6 +1,7 @@
 VERSION 2.5 - TBD
 =================
 2006-07 - new modules: take, deskew
+2006-07 - Date/Time parsers now support Unix epoch time strings
 
 VERSION 2.4 - 3 May 2006
 ========================
