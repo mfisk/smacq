@@ -14,8 +14,6 @@
 #include <dts-module.h>
 #include <dts_packet.h>
 
-// XXX: This implementation assumes ethernet
-
 /*
 * Support routines
 */
@@ -30,11 +28,30 @@ static inline struct ether_header * get_ether(DtsObject datum) {
 	return (struct ether_header*)(get_pcap(datum)+1);
 }
 
+struct vlan_hdr {
+#if __BYTE_ORDER == __LITTLE_ENDIAN
+	unsigned int vlan_id:12;
+	unsigned int canonical_flag:1;
+	unsigned int priority:3;
+#elif __BYTE_ORDER == __BIG_ENDIAN
+	unsigned int priority:3;
+	unsigned int canonical_flag:1;
+	unsigned int vlan_id:12;
+#endif
+};
+
 static inline struct ip * get_ip(DtsObject datum) {
 	struct ether_header * ethhdr = get_ether(datum);
 
-	if (ethhdr->ether_type != htons(ETHERTYPE_IP)) return NULL; // Not IP
-	else return (struct ip*)(ethhdr+1);
+	if (ethhdr->ether_type == htons(ETHERTYPE_IP)) {
+		return (struct ip*)(ethhdr+1);
+	} else if (ethhdr->ether_type == htons(0x8100)) {
+		/* Vlan tag */
+		vlan_hdr * vh = (struct vlan_hdr*)(ethhdr+1);
+		return (struct ip*)(vh+1);
+	} else {
+		return NULL; // Not IP
+	}
 }
 
 static inline struct tcphdr * get_tcp(DtsObject datum) {
