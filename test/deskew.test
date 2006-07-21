@@ -1,0 +1,1 @@
+print(ts.sql linktype) from deskew(-b 954011728 -e 954011754 -s linktype ts) from pcapfile(0325@1112-snort.pcap)
