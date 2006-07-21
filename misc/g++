@@ -1,0 +1,46 @@
+#!/bin/sh
+
+# This is a wrapper for g++ that tries to statically link any -l libraries
+# that it can, with some specific exceptions.
+
+dirs="/usr/lib"
+args=`basename $0`" "
+
+findlib() {
+	lib=$1
+	for d in $dirs; do 
+		if [ -r $d/${lib}.a ]; then
+			# Replace -l argument with explicit .a file
+			word="$d/${lib}.a"
+		fi
+	done
+}
+
+for word in "$@"; do
+	case $word in
+		-lc|-lpthread|-ldl)
+			;;
+		/*.so)
+			findlib `basename "$word" | sed 's/\.so//'`
+			;;
+		-l*)
+			findlib `echo "$word" | sed 's/^-l/lib/'`
+			;;
+		-L*)
+			dir=`echo "$word" | sed 's/^-L//'`
+			dirs="$dir $dirs"
+			;;
+	esac
+
+	args="$args$word "
+done
+
+# Remove our directory from the path
+for f in `echo $PATH | sed 's/:/ /g'`; do 
+	expr $f : '.*\/misc$' > /dev/null || newpath="$newpath$f:"
+done
+#echo $newpath 1>&2
+PATH=$newpath
+		
+echo "$args"
+$args
