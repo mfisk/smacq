@@ -20,9 +20,7 @@ static int smacqtype_ntime_get_time(DtsObject o, DtsObject field) {
 
 static int smacqtype_ntime_get_string(DtsObject o, DtsObject field) {
   uint32_t t = dts_data_as(o, uint32_t);
-  field->setsize(64);
-  snprintf((char*)field->getdata(), 64, "%u", (uint32_t)ntohl(t));
-  return 1;
+  return dts_set_object_to_time_string(field, ntohl(t), 0);
 }
 
 static int smacqtype_ntime_get_ctime(DtsObject o, DtsObject field) {

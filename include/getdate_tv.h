@@ -9,6 +9,7 @@
 #include <time.h>
 
 BEGIN_C_DECLS
+#include "strftime.h" // gnulib strftime with portable %z
 #include <getdate.h>
 
 static struct timespec now = {0, 0};
@@ -44,4 +45,20 @@ static inline bool get_date_tv (struct timeval * t, char const * s) {
 }
 
 END_C_DECLS	
+
+static inline bool dts_set_object_to_time_string(DtsObject field, time_t seconds, int usec) {
+  field->setsize(64);
+  char * result = (char*)field->getdata();
+
+  struct tm time_tm;
+  localtime_r(&seconds, &time_tm);
+
+  result += nstrftime(result, 64, "%Y-%m-%dT%H:%M:%S", &time_tm, 0, 0);
+  if (usec) {
+        result += sprintf(result, ".%06d", usec);
+  }
+  nstrftime(result, 64, "%:z", &time_tm, 0, 0);
+  return true;
+}
+
 

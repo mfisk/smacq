@@ -31,9 +31,7 @@ static int smacqtype_timeval_get_double(DtsObject o, DtsObject field) {
 
 static int smacqtype_timeval_get_string(DtsObject o, DtsObject field) {
   struct timeval_32 * t = (struct timeval_32 *)o->getdata();
-  field->setsize(64);
-  snprintf((char*)field->getdata(), 64, "%lu.%06lu", (unsigned long)t->tv_sec, (unsigned long)t->tv_usec);
-  return 1;
+  return dts_set_object_to_time_string(field, t->tv_sec, t->tv_usec);
 }
 
 static int smacqtype_timeval_get_sql(DtsObject o, DtsObject field) {
