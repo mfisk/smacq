@@ -27,7 +27,19 @@ static inline bool get_date_tv (struct timeval * t, char const * s) {
 		t->tv_usec = ts.tv_nsec / 1000;
 		return true;
     	} else {
-		return false;
+		// Try to scan as just an epoch time
+		char * endp;
+		double d = strtod(s, &endp);
+		if (d && endp != s && endp[0] == '\0') {
+			// Epochtime and nothing but epochtime
+			t->tv_sec = (time_t)d;
+			t->tv_usec = (time_t)((d - t->tv_sec) * 1000);
+
+			return true;
+		} else {
+			fprintf(stderr, "error parsing time string %s", s);
+			return false;
+		}
     	}
 }
 
