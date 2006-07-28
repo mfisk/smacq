@@ -13,6 +13,11 @@ static int smacqtype_time_get_double(DtsObject o, DtsObject field) {
   return dts_set(field, double, dbl);
 }
 
+static int smacqtype_time_get_uint32(DtsObject o, DtsObject field) {
+  uint32_t t = dts_data_as(o, uint32_t);
+  return dts_set(field, uint32_t, t);
+}
+
 static int smacqtype_time_get_string(DtsObject o, DtsObject field) {
   uint32_t t = dts_data_as(o, uint32_t);
   return dts_set_object_to_time_string(field, t, 0);
@@ -44,6 +49,7 @@ struct dts_field_spec dts_type_time_fields[] = {
   { "string",	"string",	smacqtype_time_get_string },
   { "string",	"ctime",	smacqtype_time_get_ctime },
   { "double", 	"double",	smacqtype_time_get_double },
+  { "uint32", 	"uint32",	smacqtype_time_get_uint32 },
   { NULL,        NULL }
 };
 

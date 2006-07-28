@@ -93,6 +93,7 @@ struct dts_field_spec dts_type_timeval_fields[] = {
   { "string",		"date",	smacqtype_timeval_get_date },
   { "string",		"sql",	smacqtype_timeval_get_sql },
   { "double", 	"double",	smacqtype_timeval_get_double },
+  { "uint32", 	"uint32",	smacqtype_timeval_get_sec },
   { "uint32", 	"sec",	smacqtype_timeval_get_sec },
   { "time", 	"time",	smacqtype_timeval_get_sec },
   { NULL,        NULL }

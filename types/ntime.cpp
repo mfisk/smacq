@@ -13,6 +13,12 @@ static int smacqtype_ntime_get_double(DtsObject o, DtsObject field) {
   return dts_set(field, double, d);
 }
 
+static int smacqtype_ntime_get_uint32(DtsObject o, DtsObject field) {
+  uint32_t t = dts_data_as(o, uint32_t);
+  t = ntohl(t);
+  return dts_set(field, uint32_t, t);
+}
+
 static int smacqtype_ntime_get_time(DtsObject o, DtsObject field) {
   uint32_t t = dts_data_as(o, uint32_t);
   return dts_set(field, uint32_t, ntohl(t));
@@ -64,6 +70,7 @@ struct dts_field_spec dts_type_ntime_fields[] = {
   { "string",	"ctime",	smacqtype_ntime_get_ctime },
   { "string",	"date",		smacqtype_ntime_get_date },
   { "double",	"double",	smacqtype_ntime_get_double },
+  { "uint32",	"uint32",	smacqtype_ntime_get_uint32 },
   { NULL,        NULL }
 };
 
