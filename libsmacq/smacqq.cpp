@@ -43,7 +43,7 @@ inline void print_refs(int x) {
 #endif
 
 void print_field(dts_field_info * i) {
-       	printf("%30s: type %s\n", i->desc.name, i->desc.type);
+	if (i) printf("%30s: type %s\n", i->desc.name, i->desc.type);
 }
 
 int smacqq(int argc, char ** argv) {
@@ -89,8 +89,6 @@ int smacqq(int argc, char ** argv) {
    	assert(tid);
    	printf("Type \"%s\" defines the following fields:\n", showtype.string_t);
    	dts_type * t = dts.type_bynum(tid);
-	//std::unary_function<StaticCallBack<void, dts_field_info*> cb(&print_field);
-	//t->fields.foreach(UnaryFunctorCallBack<dts_field_info*, void, std::pointer_to_unary_function<dts_field_info*, void> >(std::ptr_fun(&print_field)));
 	t->fields.foreach(&print_field);
 	return(0);
   }
