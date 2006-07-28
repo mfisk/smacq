@@ -63,11 +63,11 @@ smacq_result deskewModule::consume(DtsObject datum, int & outchan) {
 	return SMACQ_PASS;
   }
 
-  fprintf(stderr, "got something of type %s\n", dts->typename_bynum(this->fieldType));
+  //fprintf(stderr, "got something of type %s\n", dts->typename_bynum(this->fieldType));
   if ((begin && ts < begin) || (end && ts > end)) {
 	if (!previousTs) previousTs = begin;
 	double diff = previousTs - ts;
-  	fprintf(stderr, "got skew of %g seconds \n", diff);
+  	//fprintf(stderr, "got skew of %g seconds \n", diff);
 
 	this->correct(datum, timeField, previousTs);
 
@@ -75,6 +75,7 @@ smacq_result deskewModule::consume(DtsObject datum, int & outchan) {
 		this->correct(datum, secondaryField, this->ts + diff);
 	}
   } else {
+  	//fprintf(stderr, "no skew\n");
 	previousTs = ts;	
   }
 
