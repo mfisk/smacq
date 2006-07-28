@@ -226,17 +226,17 @@ inline StrucioStream * StrucioStream::MagicOpen(const char * fname, const char *
   	if (size == 3) {
 		if (!memcmp(header, "BZh", 3)) {
 			// Bzip
-  			fprintf(stderr, "Opening file %s (bzip)\n", fname);
+  			//fprintf(stderr, "Opening file %s (bzip)\n", fname);
 			return(new FileStream<BZFILE*>(fname, fd, mode));
 		} else if (!memcmp(header, "\037\213", 2) ||  // Gzip
 			!memcmp(header, "\037\235", 2)) {     // Compress
-  			fprintf(stderr, "Opening file %s (gzip)\n", fname);
+  			//fprintf(stderr, "Opening file %s (gzip)\n", fname);
 			return(new FileStream<gzFile>(fname, fd, mode));
 		}
 	}
 
 	// Default is Plain
-  	fprintf(stderr, "Opening file %s (plain)\n", fname);
+  	//fprintf(stderr, "Opening file %s (plain)\n", fname);
 	return(new FileStream<FILE*>(fname, fd, mode));
   }
 }
