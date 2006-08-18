@@ -27,7 +27,7 @@ namespace std {
 						double di, dj;
 						di = dts_data_as(ifo, double);
 						dj = dts_data_as(jfo, double);
-						fprintf(stderr, "sort using doubles %g <? %g -> %d\n", di, dj, di < dj);
+						//fprintf(stderr, "sort using doubles %g <? %g -> %d\n", di, dj, di < dj);
 						if (di < dj) { 
 							return true;
 						} else if (di > dj) {
