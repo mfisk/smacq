@@ -12,7 +12,7 @@
       <firstname>Mike</firstname>
       <surname>Fisk</surname>
     </author>
-    <date>$Date: 2005/02/14 02:33:25 $</date>
+    <date>$Date: 2005/03/29 22:35:22 $</date>
   </refentryinfo>
   <refmeta>
     <refentrytitle>smacq</refentrytitle>
@@ -678,6 +678,64 @@
 	then every object is passed and annotated with a
 	running value.
       </para>
+    </refsect2>
+
+    <refsect2>
+      <title>Deskew</title>
+      <cmdsynopsis>
+	<command>deskew</command>
+	<arg>-s <replaceable>secondaryfield<replaceable></arg>
+	<arg>-b <replaceable>min<replaceable></arg>
+	<arg>-e <replaceable>max<replaceable></arg>
+	<arg rep="repeat"><replaceable>fields</replaceable></arg>
+      </cmdsynopsis>
+
+      <para>
+	The deskew module is designed to take a stream of in-order timeseries data where some of the time values are incorrect and outside a range of possible values.  The range is specified with "-b" and "-e".  Any such illegal values are replaced with the previous valid value in the stream.  This operation is performed on the specified field.  If a second field is specified with "-s", then that field is adjusted by an equal amount.
+      </para>
+    </refsect2>
+
+    <refsect2>
+      <title>Sort</title>
+      <cmdsynopsis>
+	<command>sort</command>
+	<arg>-r</arg>
+	<arg>-b <replaceable>batchsize</replaceable></arg>
+	<arg rep="repeat"><replaceable>fields</replaceable></arg>
+      </cmdsynopsis>
+
+      <para>
+	Buffer-up the input datastream and output a sorted stream.  If "-b" is not specified, 
+	no data will be output until the input stream closes.  If "-b n" is specified, then sorted
+	data will be output after every n records.
+      </para>
+
+      <para>
+	Any fields that are specified that have "double" fields, will be sorted numerically.  All
+	other fields will be sorted byte by byte in their native storage format.
+      </para>
+   
+      <para>
+        The -r option specifies descending order instead of the default, ascending order.
+      </para>
+    </refsect2>
+
+    <refsect2>
+      <title>Take</title>
+      <cmdsynopsis>
+	<command>take</command>
+	<arg><replaceable>field</replaceable></arg>
+      </cmdsynopsis>
+
+      <para>
+	This module outputs the object specified field of every input object.  For example, if an input
+	stream consists of objects with a "timestamp" field (and any number of other fields), and "timestamp"
+	is the specified field name for take, then the output stream will consist of those timestamp fields.
+      </para>
+
+      <para>
+	This is similar to the "project" function, and the project operator in relational algebra (select in SQL), except that a single
+	object is returned rather than a tuple of values.
     </refsect2>
 
     <refsect2>
