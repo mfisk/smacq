@@ -17,30 +17,44 @@ namespace std {
 				DtsObjectVec ao = a.getobjs();
 				DtsObjectVec bo = b.getobjs();
 				DtsObjectVec::const_iterator i,j;
-				for (i=ao.begin(), j=bo.begin(); i!=ao.end() && j!=bo.end(); ++i, ++j) {
-					DtsObject ifo, jfo;
 
-					// Try to do a numeric comparison first 
-					ifo = (*i)->getfield(doublefield);
-					jfo = (*j)->getfield(doublefield);
-					if (ifo && jfo) {
-						double di, dj;
-						di = dts_data_as(ifo, double);
-						dj = dts_data_as(jfo, double);
-						//fprintf(stderr, "sort using doubles %g <? %g -> %d\n", di, dj, di < dj);
-						if (di < dj) { 
-							return true;
-						} else if (di > dj) {
-							return false;
-						}
+				for (i=ao.begin(), j=bo.begin(); i!=ao.end() && j!=bo.end(); ++i, ++j) {
+					// Compare an element in the vector.
+					// Return true iff less-than, false iff greater-than
+					// Iff equal, then continue through vector.
+
+					if (!*i && !*j) {
+						continue; // ==
+					} else if (!*i) {
+						return true;
+					} else if (!*j) {
+						return false;
 					} else {
-						// If all else fails, just do a memcmp()
-						int len = min((*i)->getsize(), (*j)->getsize());
-						int cmp = memcmp((*i)->getdata(), (*j)->getdata(), len);
-						if (cmp < 0) {
-							return true;
-						} else if (cmp > 0) {
-							return false;
+						// Try to do a numeric comparison first 
+						DtsObject ifo, jfo;
+						ifo = (*i)->getfield(doublefield, true);
+						jfo = (*j)->getfield(doublefield, true);
+
+						if (ifo && jfo) {
+							double di, dj;
+							di = dts_data_as(ifo, double);
+							dj = dts_data_as(jfo, double);
+							//fprintf(stderr, "sort using doubles %g <? %g -> %d\n", di, dj, di < dj);
+							if (di < dj) { 
+								return true;
+							} else if (di > dj) {
+								return false;
+							}
+						} else {
+							// If all else fails, just do a memcmp()
+							int ilen = (*i)->getsize();
+							int jlen = (*j)->getsize();
+							int cmp = memcmp((*i)->getdata(), (*j)->getdata(), min(ilen, jlen));
+							if (cmp < 0 || (cmp == 0 && ilen < jlen)) {
+								return true;
+							} else if (cmp > 0) {
+								return false;
+							}
 						}
 					}
 				}
