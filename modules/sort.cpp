@@ -3,6 +3,7 @@
 
 static struct smacq_options options[] = {
   {"b", {double_t:0}, "Batch size", SMACQ_OPT_TYPE_DOUBLE},
+  {"r", {boolean_t:0}, "Reverse order", SMACQ_OPT_TYPE_BOOLEAN},
   END_SMACQ_OPTIONS
 };
 
@@ -65,10 +66,9 @@ SMACQ_MODULE(sort,
 
   typedef std::multimap<FieldVec, DtsObject> tree_t;
   tree_t tree;
+  bool reverse_sort;
 
-
-protected:
-	void empty_tree();
+  void empty_tree();
 ); 
 
 
@@ -78,17 +78,19 @@ sortModule::sortModule(struct SmacqModule::smacq_init * context)
   int argc = 0;
   char ** argv;
 
-    smacq_opt batch_opt;
+    smacq_opt batch_opt, reverse_opt;
     
     struct smacq_optval optvals[] = {
       { "b", &batch_opt}, 
+      { "r", &reverse_opt}, 
       {NULL, NULL}
     };
     smacq_getoptsbyname(context->argc-1, context->argv+1,
 			       &argc, &argv,
 			       options, optvals);
 
-  // Use batch_opt
+  // Use options
+  reverse_sort = reverse_opt.boolean_t;
   batch_size = (unsigned long)batch_opt.double_t;
   count = 0;
   
@@ -99,10 +101,18 @@ sortModule::sortModule(struct SmacqModule::smacq_init * context)
 }
 
 void sortModule::empty_tree() {
-  tree_t::iterator i;
-  for (i=tree.begin(); i!=tree.end(); ++i) {
+  if (!reverse_sort) {
+    tree_t::iterator i;
+    for (i=tree.begin(); i!=tree.end(); ++i) {
 	  enqueue((*i).second);
+    }
+  } else {
+    tree_t::reverse_iterator i;
+    for (i=tree.rbegin(); i!=tree.rend(); ++i) {
+	  enqueue((*i).second);
+    }
   }
+
   tree.clear();
 }
 

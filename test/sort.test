@@ -1,0 +1,1 @@
+print (srcport ipid dstport ts) from sort(-r dstport ipid) from pcapfile(0325@1112-snort.pcap)
