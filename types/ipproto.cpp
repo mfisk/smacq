@@ -6,8 +6,13 @@
 #include <netdb.h>
 #include <dts-module.h>
 
+static int smacqtype_ipproto_get_double(DtsObject obj, DtsObject field) {
+  return dts_set(field, double, dts_data_as(obj, unsigned char));
+}
+
 static int smacqtype_ipproto_get_string(DtsObject obj, DtsObject field) {
-  struct protoent * p = getprotobyname((char*)obj->getdata());
+  uint8_t pnum = dts_data_as(obj, uint8_t);
+  struct protoent * p = getprotobynumber(pnum);
 
   if (p) {
 	field->setsize(strlen(p->p_name)+1);
@@ -46,6 +51,7 @@ static int ipproto_lt(void * num1, int size1, void * num2, int size2) {
 
 struct dts_field_spec dts_type_ipproto_fields[] = {
 	{ "string",   "string",	smacqtype_ipproto_get_string },
+	{ "double",   "double",	smacqtype_ipproto_get_double },
         { NULL,        NULL }
 };
 
