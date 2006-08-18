@@ -14,7 +14,7 @@ smacq_result headModule::consume(DtsObject datum, int & outchan) {
 
   if (left-- > 0) return SMACQ_PASS;
 
-  return SMACQ_END;
+  return SMACQ_FREE|SMACQ_END;
 }
 
 headModule::headModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
