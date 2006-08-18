@@ -6,6 +6,8 @@ static struct smacq_options options[] = {
   END_SMACQ_OPTIONS
 };
 
+DtsField doublefield;
+
 namespace std {
 	template<>
 	class less<FieldVec> {
@@ -15,16 +17,38 @@ namespace std {
 				DtsObjectVec bo = b.getobjs();
 				DtsObjectVec::const_iterator i,j;
 				for (i=ao.begin(), j=bo.begin(); i!=ao.end() && j!=bo.end(); ++i, ++j) {
-					int len = min((*i)->getsize(), (*j)->getsize());
-					if (memcmp((*i)->getdata(), (*j)->getdata(), len) >= 0) {
-						return false;
+					DtsObject ifo, jfo;
+
+					// Try to do a numeric comparison first 
+					ifo = (*i)->getfield(doublefield);
+					jfo = (*j)->getfield(doublefield);
+					if (ifo && jfo) {
+						double di, dj;
+						di = dts_data_as(ifo, double);
+						dj = dts_data_as(jfo, double);
+						fprintf(stderr, "sort using doubles %g <? %g -> %d\n", di, dj, di < dj);
+						if (di < dj) { 
+							return true;
+						} else if (di > dj) {
+							return false;
+						}
+					} else {
+						// If all else fails, just do a memcmp()
+						int len = min((*i)->getsize(), (*j)->getsize());
+						int cmp = memcmp((*i)->getdata(), (*j)->getdata(), len);
+						if (cmp < 0) {
+							return true;
+						} else if (cmp > 0) {
+							return false;
+						}
 					}
 				}
 				
-				// In case vectors are different lengths
-				if (i != ao.end()) return false;
+				// In case we get here, but the vectors are different lengths
+				// The shorter one is "less" than the longer one
+				if (j != ao.end()) return true;
 
-				return true;
+				return false;
 			}
 	};
 };
@@ -42,9 +66,11 @@ SMACQ_MODULE(sort,
   typedef std::multimap<FieldVec, DtsObject> tree_t;
   tree_t tree;
 
+
 protected:
 	void empty_tree();
 ); 
+
 
 sortModule::sortModule(struct SmacqModule::smacq_init * context) 
   : SmacqModule(context)
@@ -68,6 +94,8 @@ sortModule::sortModule(struct SmacqModule::smacq_init * context)
   
   // Consume rest of arguments as fieldnames
   fieldvec.init(dts, argc, argv);
+
+  doublefield = dts->requirefield("double");
 }
 
 void sortModule::empty_tree() {
