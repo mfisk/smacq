@@ -212,6 +212,7 @@ METHOD bool SmacqScheduler::run_consume(SmacqGraph_ptr i) {
     		if (retval & SMACQ_END) {
       			//fprintf(stderr, "module %p asked for shutdown on consume\n", i.get()); 
       			SmacqGraph::do_shutdown(i);
+			break;
     		}
 	}
   }
