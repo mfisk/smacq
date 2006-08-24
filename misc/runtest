@@ -27,15 +27,18 @@ Run() {
 }
 
 basetest=`basename $1`
+SRCDIR=`cd $SRCDIR; pwd`
+OUTDIR=`cd $OUTDIR; pwd`
 
-tst="${TOP_SRCDIR}/test/$basetest"
-out=$SRCDIR/$basetest.out 
-run=$OUTDIR/$basetest.run 
-err=$OUTDIR/$basetest.err
-gdbout=$OUTDIR/$basetest.gdb
-diffout=$OUTDIR/$basetest.diff
+tst="$SRCDIR/$basetest"
+out="$tst.out"
+tsto="$OUTDIR/$basetest"
+run="$tsto.run"
+err="$tsto.err"
+gdbout="$tsto.gdb"
+diffout="$tsto.diff"
 
-cd $SRCDIR
+cd "$SRCDIR"
 
 # Run test case
 SMACQQ="$BINDIR/smacqq" Run < /dev/null > $run 2>$err
