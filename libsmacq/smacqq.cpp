@@ -22,6 +22,8 @@ static struct smacq_options options[] = {
   END_SMACQ_OPTIONS
 };
 
+char * program_name;
+
 #ifdef REFINFO
 
 #include <signal.h>
@@ -65,6 +67,8 @@ int smacqq(int argc, char ** argv) {
 		  PACKAGE_VERSION, SMACQ_BUILD_DATE);
 	  return -1;
   }
+
+  program_name = argv[0];
 
   struct smacq_optval optvals[] = {
 		  {"c", &cpus},
