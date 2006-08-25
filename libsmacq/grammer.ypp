@@ -90,7 +90,9 @@ arg: argument
 	| argument AS word		{ $$->rename = $3; }
 	;
 
-argument : word 			{ $$ = newarg($1, WORD, NULL); } 
+argument : 
+	'-'  			{ $$ = newarg("-", WORD, NULL); } 
+	| word 			{ $$ = newarg($1, WORD, NULL); } 
 	| function '(' args ')' 	                  { $$ = newarg($1, FUNCTION, $3); }
 	| '[' expression ']'	                  { $$ = newarg("expr", FUNCTION, 
 					       newarg(print_operand($2), WORD, NULL)); 
