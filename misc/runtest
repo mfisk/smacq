@@ -40,6 +40,8 @@ diffout="$tsto.diff"
 
 cd "$SRCDIR"
 
+export TZ=MST
+
 # Run test case
 SMACQQ="$BINDIR/smacqq" Run < /dev/null > $run 2>$err
 
