@@ -8,11 +8,11 @@ smacqq_CPPFLAGS = $(AM_CPPFLAGS) -fpermissive -Wno-error -Wno-unused # GASnet co
 else
 smacqq_SOURCES = smacqq.cpp 
 smacqq_CPPFLAGS = $(AM_CPPFLAGS)
-smacqq_static_SOURCES = smacqq.cpp 
+#smacqq_static_SOURCES = smacqq.cpp 
 endif
 
 smacqq_DEPENDENCIES = $(top_builddir)/libsmacq/libsmacq.la
-smacqq_LDFLAGS = $(AM_LDFLAGS) $(BUILTINS) $(FRAMEWORKADD) -static -lm
+smacqq_LDFLAGS = $(AM_LDFLAGS) $(BUILTINS) $(FRAMEWORKADD) -static -lm -lltdl
 #CXXLD=$(top_srcdir)/misc/ldstatic g++
 
 #smacqq_LDFLAGS = $(AM_LDFLAGS) $(BUILTINS) $(FRAMEWORKADD) -static -v -Wl,-static,-lglib-2.0,-Bdynamic
