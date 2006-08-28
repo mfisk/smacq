@@ -1,9 +1,17 @@
-VERSION 2.5 - TBD
-=================
+VERSION 2.6 - 28 August 2006
+============================
 2006-08 - ipproto type: fixed printing as text instead of numeric (e.g. tcp instead of 6), added double field
 2006-08 - sort module now sorts numerically whenever possible, handles multiple dimensions better, -r for reverse order
 2006-07 - new modules: take, deskew
 2006-07 - Date/Time parsers now support Unix epoch time strings
+2006-07 - Default time output format is now RFC 3339 (a profile of ISO 8601)
+2006-06 - pcapwrite (via StrucioWriter.h):
+	- now substitues %T in a filename with the current timestamp
+	- can rotate files by current time as well as size
+2006-06 - Switched from gmodule to ltdl
+2006-06 - Experimental: Processing can now be multithreaded with multilpe worker threads (smacqq -c)
+2006-06 - Less forceful inlining (optimize code size rather than function calls)
+2005-05 - Make -j# works 
 
 VERSION 2.4 - 3 May 2006
 ========================
