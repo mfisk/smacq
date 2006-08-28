@@ -21,5 +21,4 @@ Looking for volunteers:
 	- Make all vectorizing occur through a module callback that
 		accepts or rejects an additional set of arguments
 	- Module to read, write, increment DB3 files
-	- Add sqlquery() module
 	- Add ldapsearch() module
