@@ -49,40 +49,53 @@ void print_help(struct smacq_options * opt) {
 	double t;
 	for (; opt->name; opt++) {
 		char * defval = defbuf;
+		char * valtype = "";
 		switch (opt->type) {
 		case SMACQ_OPT_TYPE_STRING:
 			defval = opt->default_value.string_t;
+			valtype = " name";
 			break;
 		case SMACQ_OPT_TYPE_BOOLEAN:
-			defval = opt->default_value.boolean_t ? "on" : "off";
+			defval = NULL;
+			valtype = "";
 			break;
 		case SMACQ_OPT_TYPE_DOUBLE:
 			sprintf(defval, "%g", opt->default_value.double_t);
+			valtype = " value";
 			break;
 		case SMACQ_OPT_TYPE_UINT32:
 			sprintf(defval, "%lu", opt->default_value.uint32_t);
+			valtype = " value";
 			break;
 		case SMACQ_OPT_TYPE_INT:
 			sprintf(defval, "%i", opt->default_value.int_t);
+			valtype = " value";
 			break;
-	    case SMACQ_OPT_TYPE_TIMEVAL:
+	        case SMACQ_OPT_TYPE_TIMEVAL:
 			t = opt->default_value.timeval_t.tv_sec +  
 					opt->default_value.timeval_t.tv_usec / 1e6;
 			sprintf(defval, "%g", t);
+			valtype = " time";
 			break;
 		case END:
 			return;
 		}
-		char * flag;
+		char * flag = (char*)alloca(strlen(opt->name)+strlen(valtype)+3);
+		strcpy(flag, "-");
 		if (strlen(opt->name) > 1) {
-			flag = (char*)alloca(strlen(opt->name)+2);
-			strcpy(flag, "-");
+			strcat(flag, "-");
 			strcat(flag, opt->name);
 		} else {
-			flag = opt->name;
+			strcat(flag, opt->name);
 		}
+		strcat(flag, valtype);
 		
-		fprintf(stderr, "   -%-20s %s (default=%s)\n", flag, opt->description, defval);
+		fprintf(stderr, "   %-20s %s", flag, opt->description);
+		if (defval) {
+			fprintf(stderr, " (default=%s)\n", defval);
+		} else {
+			fprintf(stderr, "\n");
+		}
 	}
 }
 
