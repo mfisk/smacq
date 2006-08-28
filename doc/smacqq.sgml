@@ -12,7 +12,7 @@
       <firstname>Mike</firstname>
       <surname>Fisk</surname>
     </author>
-    <date>$Date: 2004/12/12 20:41:02 $</date>
+    <date>$Date: 2004/12/12 22:37:23 $</date>
   </refentryinfo>
   <refmeta>
     <refentrytitle>smacqq</refentrytitle>
@@ -34,19 +34,21 @@
      <title>USAGE</title>
      <cmdsynopsis>
      <command>smacqq</command>
-     <arg choice="opt">-m</arg>
-     <arg choice="opt">-O</arg>
+     <arg choice="opt">-f <replaceable>type</replaceable></arg>
      <arg choice="opt">-g</arg>
      <arg choice="opt">-t <replaceable>type</replaceable></arg>
+     <arg choice="opt">-q</arg>
      <arg choice="req">query</arg>
      </cmdsynopsis>
 	<para>
 The <option>-g</option> option describes the query graph created by
 the given query or queries.  The <option>-t</option> option outputs a
-description of the given type.  The <option>-m</option> option causes
-multiple query lines to be read from STDIN instead of the command
-line.  The <option>-O</option> option causes optional query
-optimizations to be made.
+description of the given type.  The <option>-f</option> option specifies
+a file to read one or more query lines from ('-' can be used to 
+specify standard input).  The <option>-q</option> option will
+remove any warnings about missing fields (which can result from 
+typos and mistakes in queries, as well as legitimate variation 
+in data).
 	</para>
   </refsect1>
 
