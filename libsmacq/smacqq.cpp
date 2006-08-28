@@ -50,8 +50,6 @@ void print_field(dts_field_info * i) {
 	if (i) printf("%30s: type %s\n", i->desc.name, i->desc.type);
 }
 
-char * program_name;
-
 int smacqq(int argc, char ** argv) {
   smacq_opt datalog, optimize, qfile, showpregraph, showgraph, cpus, showtype, quiet, debug;
   int qargc;
@@ -120,6 +118,8 @@ int smacqq(int argc, char ** argv) {
       }
 
       if (datalog.boolean_t) {
+	assert(!"Datalog not implemented yet");
+/*
         if (!strcmp(qfile.string_t, "-")) {
 		graphs = SmacqGraph::ParseDatalog(&dts, &s, &std::cin);
         } else {
@@ -130,6 +130,7 @@ int smacqq(int argc, char ** argv) {
 	      fprintf(stderr, "Fatal error at line %d\n", qno);
 	      return(-1);
 	}
+*/
       } else {
         if (!strcmp(qfile.string_t, "-")) {
 	      fh = stdin;
