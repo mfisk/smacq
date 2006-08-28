@@ -20,9 +20,11 @@ Run() {
 	if [ `expr "$tst" : ".*\.sh$"` != 0 ]; then
 		# Test is executable, so run it
 		(set -e; SMACQQ=$BINDIR/smacqq $tst)
+	elif [ `expr "$tst" : ".*\.dl\.test$"` != 0 ]; then
+		$SMACQQ --debug --pregraph -l -g -f $tst
 	else
 		# Test is not executable, so treat it as smacqq input
-		$SMACQQ --debug -c 1 --pregraph -g -m -f $tst
+		$SMACQQ --debug --pregraph -g -f $tst
 	fi
 }
 
