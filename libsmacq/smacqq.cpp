@@ -13,14 +13,14 @@
 #define MAX_QUERY_SIZE 4096*100
 
 static struct smacq_options options[] = {
-  {"c", {int_t:1}, "Number of CPUs (threads) to use", SMACQ_OPT_TYPE_INT},
+  {"c", {int_t:1}, "Number of CPUs (threads) to use [EXPERIMENTAL]", SMACQ_OPT_TYPE_INT},
   {"t", {string_t:NULL}, "Describe the specified type", SMACQ_OPT_TYPE_STRING},
   {"f", {string_t:NULL}, "Read queries from file (- for STDIN)", SMACQ_OPT_TYPE_STRING},
   {"pregraph", {boolean_t:0}, "Show pre-initialization graph", SMACQ_OPT_TYPE_BOOLEAN},
   {"g", {boolean_t:0}, "Show final graph", SMACQ_OPT_TYPE_BOOLEAN},
   {"q", {boolean_t:0}, "Ignore warnings", SMACQ_OPT_TYPE_BOOLEAN},
   {"debug", {boolean_t:0}, "Add verbose diagnostics", SMACQ_OPT_TYPE_BOOLEAN},
-  {"l", {boolean_t:0}, "Expect datalog input", SMACQ_OPT_TYPE_BOOLEAN},
+  //{"l", {boolean_t:0}, "Expect datalog input", SMACQ_OPT_TYPE_BOOLEAN},
   END_SMACQ_OPTIONS
 };
 
@@ -76,7 +76,7 @@ int smacqq(int argc, char ** argv) {
   struct smacq_optval optvals[] = {
 		  {"c", &cpus},
 		  {"t", &showtype},
-		  {"l", &datalog},
+		  //{"l", &datalog},
 		  {"f", &qfile},
 		  {"O", &optimize},
 		  {"pregraph", &showpregraph},
