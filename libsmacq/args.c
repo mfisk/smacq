@@ -73,9 +73,16 @@ void print_help(struct smacq_options * opt) {
 		case END:
 			return;
 		}
-
-		fprintf(stderr, "\t-%s%s\t%s (default=%s)\n", strlen(opt->name) > 1 ? "-" : "",
-					opt->name, opt->description, defval);
+		char * flag;
+		if (strlen(opt->name) > 1) {
+			flag = (char*)alloca(strlen(opt->name)+2);
+			strcpy(flag, "-");
+			strcat(flag, opt->name);
+		} else {
+			flag = opt->name;
+		}
+		
+		fprintf(stderr, "   -%-20s %s (default=%s)\n", flag, opt->description, defval);
 	}
 }
 
