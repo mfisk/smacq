@@ -60,8 +60,7 @@ Bison version 1.35 in the past.
 
 Manpages are generated from Docbook SGML.  This introduces several dependencies.
 After looking at several options to convert Docbook to Unix man format, the only
-viable option appears to be Debian's version of docbook-to-man.  It is easy to
-port it to other environments.  
+viable option appears to be the ANS version of docbook-to-man (not the original Davenport/OASIS/DocBook version).  The ANS version is the one distributed by Debian. 
 
 In addition to the dependencies in README, you probably want the following:
 
