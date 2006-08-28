@@ -43,49 +43,19 @@ SMACQ can build with the following optional functionality:
 =============================================================================
 			PREREQUISITES
 
-		glib2		boost		libpcap		zlib		bz2		gcc	gmake	libgda		libltdl
-----------------------------------------------------------------------------------------------------------------------------------------
-Version		>=2.4
------------------------------------------------------------------------------------------------------------------------------------------
-DarwinPorts	glib2-devel	boost		libpcap								libgda
-Debian		libglib2.0-dev	libboost-dev	libpcap-dev	zlib1g-dev	libbz2-dev	g++		libgda2-dev	libltdl3-dev
-Fink		glib2-dev			libpcap		zlib		
-FreeBSD		glib20											gmake
-RHEL		glib2-devel	boost-devel			zlib-devel	bzip2-devel			libgda-devel
-
-Debian GNU/Linux:
------------------
-Run the following command to install the Debian packages require to compile
-and execute this package:
-	apt-get install \
-		g++ gcc \
-		zlib1g zlib1g-dev libbz2-dev \
-		libglib2.0 libglib2.0-dev \
-		libpcap0 libpcap-dev \
-		libboost-dev
-
-Red Hat Linux:
---------------
-If you can figure out how to install the following packages on Red Hat, 
-more power to you:
-	glib2-devel
-
-MacOS/X - Fink:
-----------------
-Run the following command to install build and execution dependencies:
-	apt-get install \
-		pkgconfig dlcompat zlib glib2-dev libpcap libpcap-shlibs
-
-MacOS/X - DarwinPorts:
-----------------------
-Run the following command to install build and execution dependencies:
-	port install libpcap glib2-devel libgda boost
-
-FreeBSD:
---------
-Run the following commands to install the necessary packages:
-	pkg_add -r gmake 
-	make -C /usr/ports/devel/glib20 install
+-----------------------------------------------------------------------------
+OS            |	glib2>=2.4	boost		libpcap		zlib		
+              |	bz2		gcc	gmake	libgda		libltdl
+--------------+--------------------------------------------------------------
+DarwinPorts   |	glib2-devel	boost		libpcap	
+              |					libgda
+Debian        |	libglib2.0-dev	libboost-dev	libpcap-dev	zlib1g-dev
+              |	libbz2-dev	g++		libgda2-dev	libltdl3-dev
+FreeBSD       |	glib20						
+              |					gmake
+RHEL	      | glib2-devel	boost-devel			zlib-devel
+              |	bzip2-devel			libgda-devel
+-----------------------------------------------------------------------------
 
 =============================================================================
 See http://smacq.sf.net/ for more information.
