@@ -76,6 +76,7 @@ class SmacqScheduler;
 
 #include <boost/intrusive_ptr.hpp>
 class SmacqGraph;
+/// A reference-counted pointer to a SmacqGraph.
 typedef boost::intrusive_ptr<SmacqGraph> SmacqGraph_ptr;
 
 enum smacq_log_level { INFO, WARN, ERROR, };

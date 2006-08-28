@@ -48,6 +48,7 @@ class PthreadMutex {
   friend class RecursiveLock;
 };
 
+/// On instantiation, this class will lock a PthreadMutex and unlock it automatically upon destruction.
 class RecursiveLock {
   public:
     RecursiveLock(PthreadMutex * _m) : m(_m) {
@@ -65,6 +66,7 @@ class RecursiveLock {
 
 #include <map>
 
+/// A Thread-safe map based on an STL map.
 template <typename KEY, typename VALUE, typename LT = std::less<KEY> >
 class ThreadSafeMap : protected PthreadMutex, private std::map<KEY, VALUE, LT> {
   public:
@@ -105,6 +107,7 @@ class MethodFunctor {
     Callback * cb;
 };
 
+/// A base class for thread-safe containers.
 template <typename T, typename CONTAINER> 
 class ThreadSafeContainer : protected PthreadMutex, protected CONTAINER {
   public:
@@ -174,6 +177,7 @@ class ThreadSafeContainer : protected PthreadMutex, protected CONTAINER {
     }
 };
 
+/// A base class for random-access thread-safe containers.
 template <typename T, typename CONTAINER>
 class ThreadSafeRandomAccessContainer : public ThreadSafeContainer<T, CONTAINER> {
    public:
@@ -191,6 +195,7 @@ class ThreadSafeRandomAccessContainer : public ThreadSafeContainer<T, CONTAINER>
 
 };
 
+/// A thread-safe version of the STL vector class.
 template <typename T>
 class ThreadSafeVector : public ThreadSafeRandomAccessContainer<T, std::vector<T> > {
   public:
@@ -200,10 +205,12 @@ class ThreadSafeVector : public ThreadSafeRandomAccessContainer<T, std::vector<T
 
 #include <DynamicArray.h>
 
+/// A thread-safe dynamic array.
 template <typename T>
 class ThreadSafeDynamicArray : public ThreadSafeRandomAccessContainer<T, DynamicArray<T> > {};
 
 #include <stack>
+/// A thread-safe version of the STL stack class.
 template <class T>
 class ThreadSafeStack : private PthreadMutex, private std::stack<T> {
   public:
@@ -230,6 +237,7 @@ class ThreadSafeStack : private PthreadMutex, private std::stack<T> {
 	
 };
 
+/// A thread-safe multiset.
 template <class T>
 class ThreadSafeMultiSet : public ThreadSafeRandomAccessContainer<T, std::vector<T> > {
   public:
@@ -267,6 +275,7 @@ class ThreadSafeMultiSet : public ThreadSafeRandomAccessContainer<T, std::vector
 
 #include <glib.h>
 
+/// An atomic, thread-safe counter.
 class ThreadSafeCounter {
   public: 
     ThreadSafeCounter() : _val(0) {}
@@ -284,9 +293,9 @@ class ThreadSafeCounter {
 
   private:
     gint _val;
-
 };
 
+/// A thread-safe boolean value.
 class ThreadSafeBoolean {
   public:
     ThreadSafeBoolean() : val(0) {}

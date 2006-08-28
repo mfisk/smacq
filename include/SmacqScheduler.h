@@ -5,7 +5,7 @@
 #include <SmacqGraph.h>
 #include <ThreadSafe.h>
 
-/// This is currently the only scheduler implementation.
+/// This is a scheduler for processing any number of SmacqGraphContainer instances.
 class SmacqScheduler {
 public:
   

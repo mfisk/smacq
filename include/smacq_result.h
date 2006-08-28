@@ -25,7 +25,7 @@ class flags {
 
 enum _smacq_result {};
 
-/// smacq_result is like an enum, except that you can OR and AND them
+/// A smacq_result is like an enum, except that you can OR and AND them
 /// like flags.
 typedef flags<enum _smacq_result> smacq_result;
 

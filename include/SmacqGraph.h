@@ -59,6 +59,7 @@ class Children : public ThreadSafeVector< ThreadSafeMultiSet<SmacqGraph_ptr> > {
 };
 
 
+/// This is a container for an SmacqGraph which may have multiple heads or tails.
 class SmacqGraphContainer {
   friend class SmacqGraph;
   friend class SmacqScheduler;
@@ -137,6 +138,7 @@ class SmacqGraphContainer {
 
 #include <ThreadSafe.h>
 
+/// This is a node in a graph.  Each node references its parents and children.
 class SmacqGraph : private PthreadMutex {
  public:
   /// (Re-)Initialize module
