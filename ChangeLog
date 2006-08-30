@@ -1,5 +1,6 @@
-VERSION 2.5 - 28 August 2006
+VERSION 2.5 - 29 August 2006
 ============================
+2006-08 - print module: syslog options
 2006-08 - ipproto type: fixed printing as text instead of numeric (e.g. tcp instead of 6), added double field
 2006-08 - sort module now sorts numerically whenever possible, handles multiple dimensions better, -r for reverse order
 2006-07 - new modules: take, deskew
