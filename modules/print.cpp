@@ -10,6 +10,9 @@
 #include <SmacqModule.h>
 #include <stdint.h>
 #include <math.h>
+#include <syslog.h>
+#include <boost/format.hpp>
+using namespace boost;
 
 SMACQ_MODULE(print, 
 	     PROTO_CTOR(print);
@@ -18,12 +21,13 @@ SMACQ_MODULE(print,
 	     char ** argv;
 	     int argc;
 	     FILE * outputfh;
-	     bool verbose, tagged, flush, internals, boulder, binary, use_file_pattern, mysql;
+	     bool verbose, tagged, flush, internals, boulder, binary, use_file_pattern, mysql, useSyslog;
+	     int syslog_priority;
 	     std::vector<DtsField> fields;
 	     DtsField string_transform, filefield;
 	     char * delimiter, * record_delimiter, * output_name;
 	     
-	     void print_field(DtsObject fieldo, char * fname);
+	     void print_field(std::string &, DtsObject fieldo, char * fname);
 
 	     char * last_file_field;
 
@@ -40,6 +44,9 @@ static struct smacq_options options[] = {
   {"r", {string_t:"\n"}, "Delimiter between records", SMACQ_OPT_TYPE_STRING},
   {"boulder", {boolean_t:0}, "Print records in Boulder format", SMACQ_OPT_TYPE_BOOLEAN},
   {"binary", {boolean_t:0}, "Binary output", SMACQ_OPT_TYPE_BOOLEAN},
+  {"syslog-priority", {int_t:LOG_NOTICE}, "Syslog priority", SMACQ_OPT_TYPE_INT},
+  {"syslog-facility", {int_t:LOG_DAEMON}, "Syslog facility", SMACQ_OPT_TYPE_INT},
+  {"syslog", {string_t:NULL}, "Print to syslog with this name", SMACQ_OPT_TYPE_STRING},
   {"mysql", {boolean_t:0}, "MySQL output", SMACQ_OPT_TYPE_BOOLEAN},
   {"B", {boolean_t:0}, "Disable buffering: flush output after each line", SMACQ_OPT_TYPE_BOOLEAN},
   {"f", {string_t:"-"}, "Output file", SMACQ_OPT_TYPE_STRING},
@@ -47,34 +54,38 @@ static struct smacq_options options[] = {
   END_SMACQ_OPTIONS
 };
 
-void printModule::print_field(DtsObject field, char * fname) {
+void printModule::print_field(std::string & s, DtsObject field, char * fname) {
   if (printed) {
-    fprintf(outputfh, delimiter);
+    s += delimiter;
   } else if (field) {
     for (int j=0; j<column; j++) 
-      fprintf(outputfh, delimiter);
+      s += delimiter;
   }
 
   if (verbose) printed = 1;
   if (!field) return; 
 
   if (tagged) {
-    fprintf(outputfh, "<%s>%s</%s>", fname, (char *)field->getdata(),fname);
+    s += str(format("<%s>%s</%s>") % fname % (char *)field->getdata() % fname);
+
   } else if (boulder) {
-    fprintf(outputfh, "%s=%s", fname, (char *)field->getdata());
+    s += str(format("%s=%s") % fname % (char *)field->getdata());
+
   } else if (verbose) {
-    fprintf(outputfh, "%.20s = %s", fname, (char *)field->getdata());
+    s += str(format("%.20s = %s") % fname % (char *)field->getdata());
+
   } else if (internals) {
-    fprintf(outputfh, "%.20s = (obj %p) %s", fname, field.get(), (char *)field->getdata());
+    s += str(format("%.20s = (obj %p) %s") % fname % field.get() % (char *)field->getdata());
+
   } else {
-    fprintf(outputfh, "%s", (char*)field->getdata());
+    s += (char*)field->getdata();
   }
-        
 
   printed = 1;
 }
 
 smacq_result printModule::consume(DtsObject datum, int & outchan) {
+  std::string s;
   printed = 0;
   column = 0;
   assert(datum);
@@ -121,7 +132,7 @@ smacq_result printModule::consume(DtsObject datum, int & outchan) {
   		DtsField f(i);
   		DtsObject fo = datum->getfield(f);
   		fo = fo->getfield(string_transform);
-  		print_field(fo, dts->field_getname(f));
+  		print_field(s, fo, dts->field_getname(f));
 	}
     }
   } else {
@@ -161,7 +172,7 @@ smacq_result printModule::consume(DtsObject datum, int & outchan) {
 	if (field) 
 	  fwrite(field->getdata(), field->getsize(), 1, outputfh);
       } else { 
-	print_field(field, argv[i]);
+	print_field(s, field, argv[i]);
 	
 	if (!field && verbose) {
 	  if (tagged) {
@@ -174,11 +185,16 @@ smacq_result printModule::consume(DtsObject datum, int & outchan) {
       }
     }
   }
-  if (printed) {
-    fprintf(outputfh, record_delimiter);
-  }
-  if (flush) {
-    fflush(stdout); 
+  if (useSyslog) {
+     syslog(syslog_priority, "%s", s.c_str());
+  } else {
+    if (printed) {
+      s += record_delimiter;
+    }
+    fwrite(s.c_str(), s.length(), 1, outputfh);
+    if (flush) {
+      fflush(stdout); 
+    }
   }
   return SMACQ_PASS;
 }
@@ -187,7 +203,7 @@ printModule::printModule(struct smacq_init * context)
  : SmacqModule(context), use_file_pattern(false) {
   smacq_opt boulder_opt, record_delimiter_opt, tagged_opt, verbose_opt, 
     flush_opt, delimiter_opt, internals_opt, output_opt, binary_opt,
-    mysql_opt, filefield_opt;
+    mysql_opt, filefield_opt, syslog_facility_opt, syslog_ident_opt, syslog_priority_opt;
   int i;
   
   {
@@ -203,6 +219,9 @@ printModule::printModule(struct smacq_init * context)
       {"binary", &binary_opt},
       {"mysql", &mysql_opt},
       {"i", &internals_opt},
+      {"syslog", &syslog_ident_opt},
+      {"syslog-facility", &syslog_facility_opt},
+      {"syslog-priority", &syslog_priority_opt},
       {NULL, NULL}
     };
     smacq_getoptsbyname(context->argc-1, context->argv+1,
@@ -219,6 +238,12 @@ printModule::printModule(struct smacq_init * context)
   boulder = boulder_opt.boolean_t;
   binary = binary_opt.boolean_t;
   tagged = tagged_opt.boolean_t;
+
+  useSyslog = (syslog_ident_opt.string_t != NULL);
+  if (useSyslog) {
+	syslog_priority = syslog_priority_opt.int_t;
+        openlog(syslog_ident_opt.string_t, LOG_PID, syslog_facility_opt.int_t);
+  }
 
   mysql = mysql_opt.boolean_t;
   if (mysql) binary = true;
