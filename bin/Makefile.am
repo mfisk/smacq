@@ -13,6 +13,7 @@ endif
 
 smacqq_DEPENDENCIES = $(top_builddir)/libsmacq/libsmacq.la
 smacqq_LDFLAGS = $(AM_LDFLAGS) $(BUILTINS) $(FRAMEWORKADD) -static -lm -lltdl
+CXXLD=$(top_srcdir)/misc/g++
 #CXXLD=$(top_srcdir)/misc/ldstatic g++
 
 #smacqq_LDFLAGS = $(AM_LDFLAGS) $(BUILTINS) $(FRAMEWORKADD) -static -v -Wl,-static,-lglib-2.0,-Bdynamic
