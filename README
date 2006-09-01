@@ -52,9 +52,10 @@ DarwinPorts   |	glib2-devel	boost		libpcap
 Debian        |	libglib2.0-dev	libboost-dev	libpcap-dev	zlib1g-dev
               |	libbz2-dev	g++		libgda2-dev	libltdl3-dev
 FreeBSD       |	glib20						
-              |					gmake
+              |				gmake
 RHEL	      | glib2-devel	boost-devel			zlib-devel
               |	bzip2-devel			libgda-devel
+Gentoo	      | glib				libpcap		zlib
 -----------------------------------------------------------------------------
 
 =============================================================================
