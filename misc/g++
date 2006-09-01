@@ -6,12 +6,28 @@
 dirs="/usr/lib"
 args=`basename $0`" "
 
+findlibversion() {
+	lib=$1
+	while true; do 
+		#echo "looking for $lib" 1>&2
+		if findlibversion $lib; then return 0; fi
+		newlib=`echo "$lib" | sed 's/\.[^.]*$//'`
+		if "$newlib" = "$lib"; then break; fi
+		lib="$newlib"
+	done
+
+	#echo "could not find $lib"  1>&2
+	return -1
+}
+
 findlib() {
 	lib=$1
 	for d in $dirs; do 
 		if [ -r $d/${lib}.a ]; then
 			# Replace -l argument with explicit .a file
 			word="$d/${lib}.a"
+			#echo "found $word" 1>&2
+			return 0
 		fi
 	done
 }
@@ -22,6 +38,9 @@ for word in "$@"; do
 			;;
 		/*.so)
 			findlib `basename "$word" | sed 's/\.so//'`
+			;;
+		/*.dylib)
+			findlib `basename "$word" | sed 's/\.dylib//'`
 			;;
 		-l*)
 			findlib `echo "$word" | sed 's/^-l/lib/'`
