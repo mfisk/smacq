@@ -12,7 +12,6 @@ SmacqScheduler * parse_sched;
 
 extern dts_comparison * Comp;
 extern struct dts_operand * Expr;
-extern SmacqGraphContainer * Graph;
 extern int yyfilterparse();
 extern int yyexprparse();
 extern int yysmacql_parse();
@@ -138,6 +137,13 @@ SmacqGraphContainer * newgroup(struct group group, SmacqGraphContainer * vphrase
 }
 
 SmacqGraphContainer * newmodule(char * module, struct arglist * alist) {
+  //fprintf(stderr, "module ref: %s, alist %p\n", module, alist);
+
+  // Check defines
+  if (!alist && (Graphs.find(module) != Graphs.end())) {
+	 return Graphs[module]->clone(NULL);    
+  }
+
   struct arglist * anew;
   SmacqGraphContainer * graphs = new SmacqGraphContainer;
 
@@ -744,11 +750,7 @@ SmacqGraphContainer * SmacqGraph::newQuery(DTS * tenv, SmacqScheduler * sched, i
   graph = Graph;
 
   if (res) {
-    return NULL;
-  }
-
-  if (!graph) {
-    fprintf(stderr, "unknown parse error\n");
+    return (SmacqGraphContainer*)-1;
   }
 
   return graph;
