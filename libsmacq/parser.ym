@@ -48,12 +48,13 @@ void yysmacql_error(char*);
 
 static SmacqGraphContainer * nullgraph = NULL;
 SmacqGraphContainer * Graph;
+std::map<std::string, SmacqGraphContainer *> Graphs;
 extern int yylex();
 %}
 %defines
 
-%type <graph> query from0 from where action fromwhere parenquery moreparenquery joinuntil
-%type <group> group
+%type <graph> query where0 innerquery joinuntil fromstatement commonquery pipequery sqlnestedquery singlequery 
+%type <group> group0 group
 %type <comp> having
 %type <join_list> newjoin join joins
 
@@ -67,46 +68,93 @@ queryline: query YYSTOP
 		Graph = $1;
 		return 0;
 	   }
+	| id YYDEFINE query YYSTOP
+	  {
+		Graphs[$1] = $3;
+		Graph = NULL;
+		return 0;
+	  }
+	| YYSTOP /* Could be a blank line */
+	  {
+		Graph = NULL;
+		return 0;
+	  }
 	;
 
-query: 
-	action fromwhere group
+query:
+	commonquery
+	| fromstatement
+	| pipequery
+	;
+
+pipequery:
+	| singlequery group
            {
-	   	$$ = $2;
-		if ($3.args) {
-			graph_join($$, newgroup($3, $1));
+		$$ = newgroup($2, $1);
+	   }
+	| singlequery '|' query 
+           {
+	   	$$ = $1;
+		graph_join($$, $3);
+	   }
+	| singlequery WHERE boolean 
+           {
+		$$ = optimize_bools($3);
+		graph_join($$, $1);
+	   }
+	;
+
+sqlnestedquery:
+	commonquery
+	| fromstatement;
+	| singlequery WHERE boolean 
+           {
+		$$ = $1;
+		graph_join($$, optimize_bools($3));
+	   }
+	;
+
+fromstatement: 
+	singlequery FROM sqlnestedquery group0
+           {
+	   	$$ = $3;
+		if ($4.args) {
+			graph_join($$, newgroup($4, $1));
 		} else {
 			graph_join($$, $1);
 		}
 	   }
-	| query '|' action where group
-           {
-	   	$$ = $1;
-		graph_join($$, $4);
-		if ($5.args) {
-			graph_join($$, newgroup($5, $3));
-		} else {
-			graph_join($$, $3);
-		}
-	   }
-        | WHERE boolean { $$ = optimize_bools($2); }
 	;
 
-fromwhere:
-	from0 where 
-	   { 
-		$$=$1; 
-		graph_join($$, $2); 
-	   }
-	| FROM newjoin ',' joins WHERE boolean 
+commonquery:
+	singlequery '+' query
 	   {
-		$2->append($4);
-		$$ = joinlist2graph($2, optimize_bools($6));
+		$1->add_graph($3, true);
+		$$ = $1;
 	   }
+	| newjoin ',' joins WHERE boolean 
+	   {
+		$1->append($3);
+                $$ = joinlist2graph($1, optimize_bools($5));
+	   }
+	| singlequery 
+	;
+
+singlequery: 
+	innerquery 
+	| id args0 		{ $$ = newmodule($1, $2); }
+        | WHERE boolean 	{ $$ = optimize_bools($2); }
+	
+innerquery:
+	'(' query ')'		{ $$ = $2; }
+	| id '(' args0 ')'	{ $$ = newmodule($1, $3); }
 	;
 
 newjoin:
-	parenquery word joinuntil 	{ $$ = new joinlist($2, $1, $3); }
+	innerquery word joinuntil 	{ $$ = new joinlist($2, $1, $3); }
+/*
+	| id word joinuntil 	{ $$ = new joinlist($2, newmodule($1, NULL), $3); }
+*/
 	;
 
 joinuntil:
@@ -128,56 +176,23 @@ joins:
 	   }
 	;
 
-from0: 
-	from
-	| null			{ $$ = nullgraph; }
-	;
-
-from:
-	FROM action from0
-           {
-	   	$$ = $3;
-		graph_join($$, $2);
-	   }
-	;
-
-where: 
+where0: 
 	null 			{ $$ = nullgraph; }
         | WHERE boolean 	{ $$ = optimize_bools($2); }
 	;
 
-group: 
+group0: 
 	null 			{ $$.args = NULL; $$.having = NULL;}
-	| GROUP BY args having 	{ $$.args = $3; $$.having = $4; }
+	| group
+	;
+
+group: 
+	GROUP BY args having 	{ $$.args = $3; $$.having = $4; }
 	;
 
 having: 
 	null			{ $$ = NULL; }
 	| HAVING boolean	{ $$ = $2; }
-	;
-
-action: parenquery 
-	| function args 		{ $$ = newmodule($1, $2); }
-	;
-
-parenquery:
-	'(' query ')'			{ $$ = $2; }
-	| function '(' args ')'		{ $$ = newmodule($1, $3); }
-	| function			{ $$ = newmodule($1, NULL); }
-	| '(' parenquery '+' moreparenquery ')'
-	   {
-		$2->add_graph($4, true);
-		$$ = $2;
-	   }
-	;
-
-moreparenquery: 
-	parenquery
-	| parenquery '+' moreparenquery
-	   {
-		$1->add_graph($3, true);
-		$$ = $1;
-	   }
 	;
 
 %%
