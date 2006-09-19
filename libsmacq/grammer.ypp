@@ -21,20 +21,15 @@
 #include <smacq-parser.h>
 %}
 
-%token WHERE
-%token GROUP
+%token YYDEFINE
 %token BY
-%token FROM
 %token SELECT
 %token AS
 %token HAVING
-%token YYDEFINE
-%token UNION
 %token UNTIL
 %token YYSTRING YYID YYNUMBER YYCAPID
 %token YYNEQ YYLEQ YYGEQ
-
-%token YYSTOP YYOR YYAND YYNOT
+%token YYSTOP 
 
 %left YYAND YYOR
 %right YYNOT
@@ -42,8 +37,15 @@
 %left '+' '-'
 %left '*' '/'
 
-%type <arglist> arg argument args moreargs spacedargs
-%type <string> function word string id number
+%left FROM
+%right '|'
+%token UNION
+
+%right WHERE
+%left GROUP
+
+%type <arglist> arg argument args0 args moreargs spacedargs
+%type <string> word string id number
 %type <op> op
 %type <comp> boolean test 
 %type <operand> operand expression subexpression
@@ -93,21 +95,22 @@ arg: argument
 argument : 
 	'-'  			{ $$ = newarg("-", WORD, NULL); } 
 	| word 			{ $$ = newarg($1, WORD, NULL); } 
-	| function '(' args ')' 	                  { $$ = newarg($1, FUNCTION, $3); }
-	| '[' expression ']'	                  { $$ = newarg("expr", FUNCTION, 
+	| id '(' args0 ')'	{ $$ = newarg($1, FUNCTION, $3); }
+	| '[' expression ']'	{ $$ = newarg("expr", FUNCTION, 
 					       newarg(print_operand($2), WORD, NULL)); 
 			                  }
 	;
 
-function : id 
-	;
+args0 : args 
+	| null { $$ = NULL; };
 
 args :  arg ',' arg moreargs 	{ $$ = $1; $$->next = $3; $3->next = $4; }
 	| spacedargs	
 	;
 
-spacedargs : null		{ $$ = NULL; }
-	| arg spacedargs 	{ $$ = $1; $$->next = $2; }
+spacedargs : 
+	arg spacedargs 		{ $$ = $1; $$->next = $2; }
+	| arg null 		{ $$ = $1; $$->next = NULL; }
 	;
 
 moreargs : null			{ $$ = NULL; }
@@ -151,7 +154,7 @@ subexpression :
 test : 	
 	operand		{  $$ = comp_new(EXIST, $1, $1); }
 	| subexpression op subexpression      { $$ = comp_new($2, $1, $3); }
-	| function '(' args ')'	{ 
+	| id '(' args0 ')'	{ 
 				  int argc; char ** argv;
 				  arglist2argv($3, &argc, &argv);
 				  $$ = comp_new_func($1, argc, argv, $3);
