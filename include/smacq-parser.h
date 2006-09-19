@@ -5,12 +5,16 @@
 #include <SmacqGraph.h>
 #include <pthread.h>
 #include <dts-filter.h>
+#include <map>
+#include <string>
 
 BEGIN_C_DECLS
  
 extern char * yytext;
 extern char * yystring;
 extern void yyerror(char * msg);
+extern SmacqGraphContainer * Graph;
+extern std::map<std::string, SmacqGraphContainer *> Graphs;
 
 struct arglist {
     char * arg;
