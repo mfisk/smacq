@@ -1,0 +1,14 @@
+Foo :- pcapfile(0325@1112-snort.pcap)
+
+# This line shouldn't affect Foo
+Mine :- Foo | mask(srcip, '192.168.0.128/25')
+
+# We can even override a real module name
+print :- print(-v srcip)
+
+# Do the same thing in two different ways
+print from Foo
+Foo | print
+
+# A nice SQL-style join
+print from Foo a, Foo b where a.srcport = b.srcport
