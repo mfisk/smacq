@@ -97,11 +97,6 @@ pipequery:
 	   	$$ = $1;
 		graph_join($$, $3);
 	   }
-	| singlequery WHERE boolean 
-           {
-		$$ = optimize_bools($3);
-		graph_join($$, $1);
-	   }
 	;
 
 sqlnestedquery:
@@ -144,6 +139,11 @@ singlequery:
 	innerquery 
 	| id args0 		{ $$ = newmodule($1, $2); }
         | WHERE boolean 	{ $$ = optimize_bools($2); }
+	| id args0 WHERE boolean 
+	   { 
+		$$ = optimize_bools($4); 
+		graph_join($$, newmodule($1, $2)); 
+	   }
 	
 innerquery:
 	'(' query ')'		{ $$ = $2; }
