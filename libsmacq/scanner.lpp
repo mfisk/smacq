@@ -26,6 +26,7 @@ toksymbols	[\|\,\=\<\>\(\)\[\]]|{arithop}
 number		{sign}{digits}+
 id		[^\!\'\"\,\=\<\>\(\)[:space:]\|]+
 capid		[A-Z]{id}
+comment		#.*
 
 %x xdquote
 %x xquote
@@ -80,6 +81,7 @@ having|HAVING	return HAVING;
 	}
 
 {space}	{ ; }
+{comment} { ; }
 
 <<EOF>>		{ return YYSTOP; }
 
