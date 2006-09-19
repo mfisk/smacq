@@ -113,7 +113,7 @@ int smacqq(int argc, char ** argv) {
       queryline = (char*)malloc(MAX_QUERY_SIZE);
 
       if (qargc) {
-	      fprintf(stderr, "Cannot specify query on command line with -m option\n");
+	      fprintf(stderr, "Cannot specify query on command line with -f option\n");
 	      return -1;
       }
 
@@ -143,22 +143,28 @@ int smacqq(int argc, char ** argv) {
 		      queryline[strlen(queryline)-1] = '\0';
 
 	      SmacqGraphContainer * newgraph = SmacqGraph::newQuery(&dts, &s, 1, &queryline);
-	      if (!newgraph) {
-		      fprintf(stderr, "Fatal error at line %d\n", qno);
-		      return(-1);
+	      if (newgraph == (SmacqGraphContainer*)-1) {
+		 fprintf(stderr, "Fatal parse error\n");
+		 return -1;
+              }	
+	      if (newgraph) {
+      	         if (graphs) {
+		   graphs->add_graph(newgraph, true);
+	         } else {
+		   graphs = newgraph;
+	         }
+	         qno++;
 	      }
-      	      if (graphs) {
-		graphs->add_graph(newgraph, true);
-	      } else {
-		graphs = newgraph;
-	      }
-	      qno++;
         }
     }
 
   } else {
     graphs = SmacqGraph::newQuery(&dts, &s, qargc, qargv);
-    if (!graphs) return(-1);
+  }
+
+  if (!graphs) {
+	fprintf(stderr, "Nothing to do (no query given)\n");
+	return -1;
   }
 
   if (showpregraph.boolean_t) {
