@@ -5,8 +5,6 @@
 
 #define tmalloc(type, number) ((number) ? ((type*)malloc(number*sizeof(type))) : NULL)
 
-/* Some glue to deal with a plain-C, non-thread-safe parser: */
-
 DTS * parse_dts;
 SmacqScheduler * parse_sched;
 
@@ -16,7 +14,7 @@ extern int yyfilterparse();
 extern int yyexprparse();
 extern int yysmacql_parse();
 extern struct yy_buffer_state * yysmacql_scan_string(const char *);
-char * ParsedString;
+std::string ParsedString;
 
 void graph_join(SmacqGraphContainer * & oldg, SmacqGraphContainer * newg) {
   if (oldg) {
@@ -647,18 +645,13 @@ void SmacqModule::comp_uses(dts_comparison * c) {
   }
 }
 
-dts_comparison * SmacqModule::parse_tests(int argc, char ** argv) {
-  dts_comparison * retval;
-
-  /* XXX LOCK */
-
+dts_comparison * SmacqModule::parse_tests(std::string qstr) {
   parse_dts = dts;
-  char * qstr = argv2str(argc, argv);
 
-  yysmacql_scan_string(qstr);
+  yysmacql_scan_string(qstr.c_str());
   //fprintf(stderr, "parsing filter buffer: %s\n", qstr); 
 
-  char * oldParsedString = ParsedString;
+  std::string oldParsedString = ParsedString;
   ParsedString = qstr;
   int res = yyfilterparse();
   ParsedString = oldParsedString;
@@ -669,39 +662,19 @@ dts_comparison * SmacqModule::parse_tests(int argc, char ** argv) {
     return NULL;
   }
 
-  retval = Comp;
+  dts_comparison * retval = Comp;
   comp_uses(Comp);
-
-  /* UNLOCK */
 
   return retval;
 }
 
-struct dts_operand * DTS::parse_expr(int argc, char ** argv) {
-  struct dts_operand * retval;
-  int size = 1;
-  int i;
-  char * qstr;
-
-  /* LOCK */
+struct dts_operand * DTS::parse_expr(std::string qstr) {
   parse_dts = this;
 
-  for (i=0; i<argc; i++) {
-    size += strlen(argv[i]);
-  }
-  size += argc;
-
-  qstr = (char*)malloc(size);
-  qstr[0] = '\0';
-  	
-  for (i=0; i<argc; i++) {
-    strcatn(qstr, size, argv[i]);
-    strcatn(qstr, size, " ");
-  }
-  yysmacql_scan_string(qstr);
+  yysmacql_scan_string(qstr.c_str());
   //fprintf(stderr, "parsing expr buffer: %s\n", qstr); 
 
-  char * oldParsedString = ParsedString;
+  std::string oldParsedString = ParsedString;
   ParsedString = qstr;
   int res = yyexprparse();
   ParsedString = oldParsedString;
@@ -710,50 +683,23 @@ struct dts_operand * DTS::parse_expr(int argc, char ** argv) {
     return NULL;
   }
 
-  retval = Expr;
-
-  /* UNLOCK */
-
-  return retval;
+  return Expr;
 }
 
-/// Parse a query and return the SmacqGraph that executes it.
-SmacqGraphContainer * SmacqGraph::newQuery(DTS * tenv, SmacqScheduler * sched, int argc, char ** argv) {
-  int size = 0;
-  int i;
-  char * qstr; 
-  SmacqGraphContainer * graph;
-  int res;
-
+/// Parse a query and add it to this container.  Raise an exception on parse error
+void SmacqGraphContainer::addQuery(DTS * tenv, SmacqScheduler * sched, std::string query) {
   parse_dts = tenv;
   parse_sched = sched;
 
-  for (i=0; i<argc; i++) {
-    size += strlen(argv[i]);
+  std::string oldParsedString = ParsedString;
+  ParsedString = query;
+  yysmacql_scan_string(query.c_str());
+  if (yysmacql_parse()) {
+	throw "SMACQ query parse error";
   }
-  size += argc;
-
-  qstr = (char*)malloc(size);
-  qstr[0] = '\0';
-  	
-  for (i=0; i<argc; i++) {
-    strcatn(qstr, size, argv[i]);
-    strcatn(qstr, size, " ");
-  }
-
-  char * oldParsedString = ParsedString;
-  ParsedString = qstr;
-  yysmacql_scan_string(qstr);
-  res = yysmacql_parse();
   ParsedString = oldParsedString;
 
-  graph = Graph;
-
-  if (res) {
-    return (SmacqGraphContainer*)-1;
-  }
-
-  return graph;
+  add_graph(Graph, true);
 }
 
 SmacqGraphContainer * joinlist2graph(joinlist * joinlist, SmacqGraphContainer * where) {
@@ -808,11 +754,11 @@ SmacqGraphContainer * joinlist2graph(joinlist * joinlist, SmacqGraphContainer * 
   return graphs;
 }
 
-void yyerror(char * msg) {
+void yyerror(const char * msg) {
   if (yytext[0] != '\0') {
-    fprintf(stderr, "Error: %s near \"%s\" in line: %s\n", msg, yytext, ParsedString);
+    fprintf(stderr, "Error: %s near \"%s\" in line: %s\n", msg, yytext, ParsedString.c_str());
   } else {
-    fprintf(stderr, "Error: Unexpected end of statement: %s\n", ParsedString);
+    fprintf(stderr, "Error: Unexpected end of statement: %s\n", ParsedString.c_str());
   }
 }
 
