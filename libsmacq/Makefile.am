@@ -32,5 +32,5 @@ parser.ypp: grammer.ypp
 	flex -i -o$@ $<
 
 .ypp.cpp:
-	bison -d -o $@ $< 
+	bison -v -d -o $@ $< 
 
