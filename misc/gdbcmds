@@ -1,2 +1,5 @@
-run 
+break main
+run
+set yysmacql_debug = 1
+continue 
 bt
