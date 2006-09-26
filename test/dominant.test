@@ -1,0 +1,8 @@
+Pairs   :- pcapfile(0325@1112-snort.pcap) | uniq(srcip dstip)
+SrcCount :- count() group by ipprotocol srcport
+DstCount :- count() group by ipprotocol dstport
+Pdf     :- filter(count) | pdf
+Print   :- sort(-r probability) | print(type ipprotocol port probability)
+
+Pairs | SrcCount | const(-f type src) | Pdf | rename (srcport port) | Print
+Pairs | private | DstCount | const(-f type dst) | Pdf | rename (dstport port) | Print
