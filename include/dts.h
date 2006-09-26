@@ -169,8 +169,8 @@ class DTS : PthreadMutex {
   int parsetest(dts_comparison * comp, char * test);
   int match(DtsObject datum, dts_comparison * comps);
   
-  dts_comparison * parse_tests(int argc, char ** argv);
-  struct dts_operand * parse_expr(int argc, char ** argv);
+  dts_comparison * parse_tests(std::string);
+  struct dts_operand * parse_expr(std::string);
   ///@}
  
   	/// This freelist should only be used by the DtsObject implementation.
