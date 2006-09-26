@@ -133,12 +133,14 @@ METHOD void SmacqGraphContainer::join(SmacqGraph * newg) {
 }
 
 METHOD void SmacqGraphContainer::add_graph(SmacqGraph * b) {
-  head.insert(b);
+  if (b) head.insert(b);
 }
 
 METHOD void SmacqGraphContainer::add_graph(SmacqGraphContainer * b, bool dofree) {
   using namespace boost::lambda;
   using namespace std;
+
+  if (!b) return;
 
   b->head.foreach( bind(&ThreadSafeMultiSet<SmacqGraph_ptr>::insert, &head, _1) );
   if (dofree) delete b;
