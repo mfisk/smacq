@@ -6,6 +6,7 @@
 #include <RunQ.h>
 #include <set>
 #include <vector>
+#include <string>
 #include <assert.h>
 
 #define DEREF(x) (bind(&SmacqGraph_ptr::get, x))
@@ -71,6 +72,9 @@ class SmacqGraphContainer {
 
   /// Construct from a vector of Children
   SmacqGraphContainer(ThreadSafeMultiSet<SmacqGraph_ptr> & children); 
+
+  /// Parse a query and add it to a container
+  void addQuery(DTS*, SmacqScheduler*, std::string query);
  
   /// This method must be called before the graphs are used.
   void init(DTS *, SmacqScheduler *, bool do_optimize = true);
@@ -81,6 +85,11 @@ class SmacqGraphContainer {
   /// Erase container.
   void clear() { 
 	head.clear();
+  }
+
+  /// Return true iff the container is empty
+  bool empty() {
+	return head.empty();
   }
 
   /// Print the graphs
@@ -221,9 +230,6 @@ class SmacqGraph : private PthreadMutex {
 
   /// @name Factories
   /// @{
-
-  /// Parse a query and construct a new graph to execute it 
-  static SmacqGraphContainer * newQuery(DTS*, SmacqScheduler*, int argc, char ** argv);
 
   /// Construct a new graph using the given arguments.  The new graph
   /// is automatically attached as a child of the current graph.

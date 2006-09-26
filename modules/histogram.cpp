@@ -35,25 +35,26 @@ histogramModule::histogramModule(struct SmacqModule::smacq_init * context)
                                options, optvals);
 
   assert(argc);
-  char *args = argv2str(argc, argv);
-  char *query = (char*)malloc(strlen(args)*2 + strlen(timefield.string_t) + 256);
+  std::string args(argv2string(argc, argv));
+  std::string query;
 
   if (uniq.boolean_t) {
-  	sprintf(query, "(count() from uniq(%s)) group by %s", args, args);
+  	query = "(count() from uniq(";
+	query += args + ")) group by " + args;
   } else {
-  	sprintf(query, "count() group by -g %s", args);
+  	query = "count() group by -g " + args;
   }
 
   if (timebin.double_t) {
-	strcat(query, ", clock(");
-	strcat(query, timefield.string_t);
-	strcat(query, ")");
+	query += ", clock(";
+	query += timefield.string_t;
+	query += ")";
   }
 
-  fprintf(stderr, "Histogram translated to: %s\n", query);
-  SmacqGraphContainer * g = SmacqGraph::newQuery(dts, context->scheduler, 1, &query);
-  assert(g);
-  g->init(dts, context->scheduler);
-  context->self->replace(g);
-  delete g;
+  fprintf(stderr, "Histogram translated to: %s\n", query.c_str());
+  SmacqGraphContainer g;
+  g.addQuery(dts, context->scheduler, query);
+  assert(!g.empty());
+  g.init(dts, context->scheduler);
+  context->self->replace(&g);
 }

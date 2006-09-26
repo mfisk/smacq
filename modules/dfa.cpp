@@ -68,7 +68,7 @@ struct dfa_state {
 };
 
 struct transition {
-  SmacqGraphContainer * graph;
+  SmacqGraphContainer graph;
   int next_state;
 };
 
@@ -76,7 +76,7 @@ int dfaModule::try_transition(DtsObject datum, struct transition & t) {
   DtsObject output;
   smacq_result more;
 
-  more = sched->decideContainer(t.graph, datum);
+  more = sched->decideContainer(&t.graph, datum);
 
   if ((SMACQ_END|SMACQ_ERROR) & more) {
     assert(0);
@@ -203,19 +203,12 @@ int dfaModule::parse_dfa(char * filename) {
       transition.next_state = ids[next_state_name];
 
       {
-	char * args[2];
-	args[0] = "where";
-	args[1] = test;
+	std::string qstr("where ");
+	qstr += test;
 
-	transition.graph = SmacqGraph::newQuery(dts, sched, 2, args);
-
-	
-	if (!transition.graph) {
-	  fprintf(stderr, "error: dfa: cannot parse test %s\n", test);
-	  exit(-1);
-	}
-	transition.graph->init(dts, sched);
-	transition.graph->print(stderr, 2);
+	transition.graph.addQuery(dts, sched, qstr);
+	transition.graph.init(dts, sched);
+	transition.graph.print(stderr, 2);
 
 	/*
 	  fprintf(stderr, "transition from %s(%d) to %s(%d)\n", 

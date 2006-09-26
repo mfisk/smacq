@@ -37,7 +37,7 @@ exprModule::exprModule(struct SmacqModule::smacq_init * context)
   double_type = dts->requiretype("double");
   expr_field = dts->requirefield(fieldname.string_t);
 
-  assert(expr = dts->parse_expr(argc, argv));
+  assert(expr = dts->parse_expr(argv2string(argc, argv)));
 }
 
 smacq_result exprModule::consume(DtsObject datum, int & outchan) {

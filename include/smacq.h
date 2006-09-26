@@ -13,7 +13,8 @@ data.
 \section smacq_embed Embedding SMACQ in Your Application
 
 All work is done in one or more SmacqGraph instances.  The easiest way
-to construct a SmacqGraph is with SmacqGraph::newQuery().  To execute a
+to construct a SmacqGraph is to instantiate a SmacqGraphContainer and call
+the SmacqGraphContainer::addQuery() method.  To execute a
 graph, you also need to instantiate a SmacqScheduler and use its
 methods like SmacqScheduler::input(), SmacqScheduler::busy_loop(),
 etc.
@@ -67,15 +68,11 @@ common tasks with a DtsObject.
 	#define inline __inline 
 #endif
 
-#ifndef __cplusplus
-#error "<smacq.h> can only be used in C++ programs"
-#endif
-
+#ifdef __cplusplus
 class SmacqGraph;
 class SmacqScheduler;
 
 #include <boost/intrusive_ptr.hpp>
-class SmacqGraph;
 /// A reference-counted pointer to a SmacqGraph.
 typedef boost::intrusive_ptr<SmacqGraph> SmacqGraph_ptr;
 
@@ -88,37 +85,14 @@ static inline void smacq_log(char * name, enum smacq_log_level level, char * msg
 #include <smacq_result.h>
 #include <dts.h>
 #include <dts-types.h>
+#include <util.c>
+#endif __cplusplus
 
 BEGIN_C_DECLS
-
 /// Parse a query and run to completion
 int smacqq(int argc, char ** argv);
 
 void * smacq_find_module(lt_dlhandle* gmodulep, char * envvar, char * envdefault, char * modformat, char * symformat, char * sym);
-
-#include "util.c"
-
-static inline char * argv2str(int argc, char ** argv) {
-  char * qstr;
-  int i;
-  int size = 1;
-
-  for (i=0; i<argc; i++) {
-    size += strlen(argv[i]);
-  }
-  size += argc;
-  
-  qstr = (char*)malloc(size);
-  qstr[0] = '\0';
-    
-  for (i=0; i<argc; i++) {
-    strcatn(qstr, size, argv[i]);
-    strcatn(qstr, size, " ");
-  }
-  return qstr;
-}
-
-
 END_C_DECLS
 
 #endif

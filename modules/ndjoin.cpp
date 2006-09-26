@@ -7,7 +7,7 @@
 #include <SmacqScheduler.h>
 
 struct join {
-  SmacqGraphContainer * graph;
+  SmacqGraphContainer graph;
   DtsField field;
   DtsField left_key, right_key;
   double next_val;
@@ -83,8 +83,9 @@ ndjoinModule::ndjoinModule(struct SmacqModule::smacq_init * context)
   join.left_key = dts->requirefield(dts_fieldname_append(argv[0], "double"));
   join.right_key = dts->requirefield(dts_fieldname_append(argv[1], "double"));
   join.field = dts->requirefield(argv[2]);
-  join.graph = SmacqGraph::newQuery(dts, sched, argc-3, argv+3);
-  join.graph->init(dts, sched);
-  sched->seed_produce(join.graph);
+
+  join.graph.addQuery(dts, sched, argv2string(argc-3, argv+3));
+  join.graph.init(dts, sched);
+  sched->seed_produce(&join.graph);
 }
 

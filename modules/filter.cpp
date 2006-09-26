@@ -43,7 +43,7 @@ filterModule::filterModule(struct SmacqModule::smacq_init * context) : SmacqModu
     assert(argv);
   }
 
-  comp = parse_tests(argc, argv);
+  comp = parse_tests(argv2string(argc, argv));
   assert(comp);
 }
 

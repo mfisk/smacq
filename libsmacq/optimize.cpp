@@ -303,17 +303,15 @@ bool SmacqGraph::distribute_children(DTS * dts) {
 
         // See if there is anything to be distributed
 	if (rejoin) {
-   		char ** av = (char**)malloc(sizeof(char*)*3);
 		SmacqGraph_ptr c = child;
 		remove_child_bynum(i, j);  j--;
-		std::string q = c->print_query();
-		av[0] = "distribute";
-		av[1] = (char*)q.c_str();
-		av[2] = NULL;
-		fprintf(stderr, "distribute %s\n", av[1]);
-  		SmacqGraphContainer * dist = newQuery(dts, scheduler, 2, av);
-		dist->join(rejoin, true);
-  		this->join(dist, true);
+		std::string q("distribute ");
+		q += c->print_query();
+		fprintf(stderr, "distribute %s\n", q.c_str());
+  		SmacqGraphContainer dist;
+		dist.addQuery(dts, scheduler, q);
+		dist.join(rejoin, true);
+  		this->join(&dist, true);
 
 		/*
 		fprintf(stderr, "portion to distribute:\n");

@@ -5,10 +5,9 @@ int main(int argc, char ** argv) {
   DTS dts;
   SmacqScheduler s(4); // Use 4 CPUs (threads)
 
-  graphs = SmacqGraph::newQuery(&dts, &s, argc-1, argv+1);
-  if (!graphs) return(-1);
-
-  graphs->init(&dts, &s);
+  SmacqGraphContainer graphs;
+  graphs.addQuery(&dts, &s, argv2string(argc-1, argv+1));
+  graphs.init(&dts, &s);
 
   for (;;) {
   	DtsObject output;

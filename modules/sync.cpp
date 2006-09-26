@@ -16,7 +16,7 @@ SMACQ_MODULE(sync,
 
   DtsObject product;
   struct runq * runq;
-  SmacqGraph_ptr graph;
+  SmacqGraphContainer graph;
   smacq_result done; 
   int isfirst;
 ); 
@@ -50,9 +50,9 @@ syncModule::syncModule(struct SmacqModule::smacq_init * context) : SmacqModule(c
 	  }
   }
 
-  graph = SmacqGraph::newQuery(dts, argc, argv);
-  graph->init(dts);
   sched = new SmacqScheduler(graph, false);
+  graph.addQuery(dts, sched, argv2string(argc, argv));
+  graph.init(dts, sched);
   sched->busy()
 }
 
