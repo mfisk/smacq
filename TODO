@@ -1,5 +1,6 @@
 Bugs:
 	- "not function()" in booleans
+	- define.test not sufficiently optimized, misses some of the extra queries
 
 Optimizations:
 	- remove invariants from join test
