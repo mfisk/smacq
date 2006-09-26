@@ -1,3 +1,10 @@
+VERSION 2.6 - Future
+====================
+2006-09 - libtool -static linking happily links against installed dynamic libraries even if static is available.  We now use a wrapper script when building smacqq to prefer static libraries if present.
+2006-09 - Define support added (the :- operator) 
+2006-09 - Group by can now be used in pipes as well as FROMs
+2006-09 - SmacqGraphContainer::newQuery replaced with SmacqGraphContainer::addQuery
+
 VERSION 2.5 - 29 August 2006
 ============================
 2006-08 - print module: syslog options

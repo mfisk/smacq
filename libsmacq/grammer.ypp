@@ -44,7 +44,7 @@
 %right WHERE
 %left GROUP
 
-%type <arglist> arg argument args0 args moreargs spacedargs
+%type <arglist> arg argument args0 args commaargs morecommaargs spacedargs spacedargs0
 %type <string> word string id number
 %type <op> op
 %type <comp> boolean test 
@@ -104,8 +104,17 @@ argument :
 args0 : args 
 	| null { $$ = NULL; };
 
-args :  arg ',' arg moreargs 	{ $$ = $1; $$->next = $3; $3->next = $4; }
+args :  commaargs
 	| spacedargs	
+	;
+
+commaargs: 
+	arg ',' arg morecommaargs { $$ = $1; $$->next = $3; $3->next = $4; }	
+	;
+
+spacedargs0 : 
+	null 			{ $$ = NULL; }
+	| spacedargs
 	;
 
 spacedargs : 
@@ -113,8 +122,8 @@ spacedargs :
 	| arg null 		{ $$ = $1; $$->next = NULL; }
 	;
 
-moreargs : null			{ $$ = NULL; }
-	| ',' arg moreargs 	{ $$ = $2; $$->next = $3; }
+morecommaargs : null		{ $$ = NULL; }
+	| ',' arg morecommaargs { $$ = $2; $$->next = $3; }
 	;
 
 
