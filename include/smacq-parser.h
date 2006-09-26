@@ -9,10 +9,10 @@
 #include <string>
 
 BEGIN_C_DECLS
- 
+
 extern char * yytext;
 extern char * yystring;
-extern void yyerror(char * msg);
+extern void yyerror(const char * msg);
 extern SmacqGraphContainer * Graph;
 extern std::map<std::string, SmacqGraphContainer *> Graphs;
 
