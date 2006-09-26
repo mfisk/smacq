@@ -48,9 +48,9 @@ void yysmacql_error(char*);
 #include <smacq-parser.h>
 #include <SmacqGraph.h>
 
-static SmacqGraphContainer * nullgraph = NULL;
-SmacqGraphContainer * Graph;
-std::map<std::string, SmacqGraphContainer *> Graphs;
+static SmacqGraph * nullgraph = NULL;
+SmacqGraph * Graph;
+std::map<std::string, SmacqGraph *> Graphs;
 extern int yylex();
 %}
 %defines
