@@ -11,10 +11,10 @@ GASNet Gasnet;
 // Some callbacks need instances to use
 DTS am_dts;
 SmacqScheduler am_sched;
-SmacqGraphContainer * am_graph = NULL;
+SmacqGraph * am_graph = NULL;
 
 // When things fall of end of graph, we have to send them back to somebody's children
-SmacqGraph * CallingGraph = NULL;
+SmacqGraphNode * CallingGraph = NULL;
 
 // This is used as a semaphore to determine when a slave has work to do
 bool AM_Idle = true;
@@ -37,8 +37,8 @@ void am_type_handler(gasnet_token_t token, void * buf, size_t nbytes, gasnet_han
         Gasnet.ReplyShort(token, AM_INT_REPLY, retval, 1, arg0);
 }
 
-void am_query_handler(gasnet_token_t token, void * querybuf, size_t nbytes, gasnet_handlerarg_t seed_produce, SmacqGraph * node) {
-        SmacqGraphContainer * g = SmacqGraph::newQuery(&am_dts, &am_sched, 1, (char**)&querybuf);
+void am_query_handler(gasnet_token_t token, void * querybuf, size_t nbytes, gasnet_handlerarg_t seed_produce, SmacqGraphNode * node) {
+        SmacqGraph * g = SmacqGraphNode::newQuery(&am_dts, &am_sched, 1, (char**)&querybuf);
 	CallingGraph = node;
 
 	if (seed_produce) {
@@ -59,7 +59,7 @@ void am_dtsobject_handler(gasnet_token_t token, void * object, size_t nbytes, ga
 void am_dtsobject_tochildren_handler(gasnet_token_t token, void * object, size_t nbytes, gasnet_handlerarg_t object_type, gasnet_handlerarg_t graph) {
 	DtsObject d = am_dts.newObject(object_type, nbytes);
 	memcpy(d->getdata(), object, nbytes);
-	SmacqGraph * CallingGraph = (SmacqGraph*)graph;
+	SmacqGraphNode * CallingGraph = (SmacqGraphNode*)graph;
 	am_sched.queue_children(CallingGraph, d, 0);
 	AM_Idle = false;
 }

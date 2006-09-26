@@ -9,40 +9,40 @@
 #include <string>
 #include <assert.h>
 
-#define DEREF(x) (bind(&SmacqGraph_ptr::get, x))
+#define DEREF(x) (bind(&SmacqGraphNode_ptr::get, x))
 
 #define FOREACH_CHILD(x, y)						\
    RecursiveLock l((x)->children);                                      \
    for (unsigned int i = 0; i < (x)->children.size(); i ++)             \
      for (unsigned int j = 0; j < (x)->children[i].size(); j ++) {      \
-       SmacqGraph * child = (x)->children[i][j].get();                  \
+       SmacqGraphNode * child = (x)->children[i][j].get();                  \
        y;                                                               \
     }
 /*
 #define FOREACH_CHILD(x, y)						\
   RecursiveLock l((x)->children);					\
-  for (ThreadSafeVector<ThreadSafeMultiSet<SmacqGraph_ptr> >::iterator i = (x)->children.begin();		\
+  for (ThreadSafeVector<ThreadSafeMultiSet<SmacqGraphNode_ptr> >::iterator i = (x)->children.begin();		\
 	i != (x)->children.end();					\
 	++i)								\
-    for (ThreadSafeMultiSet<SmacqGraph_ptr>::iterator j = i->begin(); 	\
+    for (ThreadSafeMultiSet<SmacqGraphNode_ptr>::iterator j = i->begin(); 	\
 	j != i->end(); 							\
 	++j) 								\
 	{								\
-      		SmacqGraph * child = (*j);				\
+      		SmacqGraphNode * child = (*j);				\
       		y;							\
     	}
 */
 class DTS;
-class SmacqGraph;
+class SmacqGraphNode;
 
-class Children : public ThreadSafeVector< ThreadSafeMultiSet<SmacqGraph_ptr> > {
+class Children : public ThreadSafeVector< ThreadSafeMultiSet<SmacqGraphNode_ptr> > {
   // XXX: We really need to provide better interfaces and remove these:
+  friend class SmacqGraphNode;
   friend class SmacqGraph;
-  friend class SmacqGraphContainer;
   friend class SmacqScheduler;
 
   public:
-   typedef ThreadSafeVector< ThreadSafeMultiSet<SmacqGraph_ptr> > CONTAINER;
+   typedef ThreadSafeVector< ThreadSafeMultiSet<SmacqGraphNode_ptr> > CONTAINER;
 
    Children() : CONTAINER(1) {}
 
@@ -53,25 +53,25 @@ class Children : public ThreadSafeVector< ThreadSafeMultiSet<SmacqGraph_ptr> > {
 	using namespace boost::lambda;
  	using namespace std;
 
-	ThreadSafeVector<ThreadSafeMultiSet<SmacqGraph_ptr> >::foreach( 
-		bind(&ThreadSafeMultiSet<SmacqGraph_ptr>::foreach, &_1, protect(cb))
+	ThreadSafeVector<ThreadSafeMultiSet<SmacqGraphNode_ptr> >::foreach( 
+		bind(&ThreadSafeMultiSet<SmacqGraphNode_ptr>::foreach, &_1, protect(cb))
 	); 
    }
 };
 
 
-/// This is a container for an SmacqGraph which may have multiple heads or tails.
-class SmacqGraphContainer {
-  friend class SmacqGraph;
+/// This is a container for an SmacqGraphNode which may have multiple heads or tails.
+class SmacqGraph {
+  friend class SmacqGraphNode;
   friend class SmacqScheduler;
 
   public:
    
   /// Default CTOR
-  SmacqGraphContainer() { }
+  SmacqGraph() { }
 
   /// Construct from a vector of Children
-  SmacqGraphContainer(ThreadSafeMultiSet<SmacqGraph_ptr> & children); 
+  SmacqGraph(ThreadSafeMultiSet<SmacqGraphNode_ptr> & children); 
 
   /// Parse a query and add it to a container
   void addQuery(DTS*, SmacqScheduler*, std::string query);
@@ -104,51 +104,51 @@ class SmacqGraphContainer {
   /// @{
   
   /// Attach the specified graph onto the tail(s) of the graph(s).
-  void join(SmacqGraph *);
+  void join(SmacqGraphNode *);
 
   /// Attach the specified graph onto the tail(s) of the graph(s).
-  void join(SmacqGraphContainer *, bool dofree=false);
+  void join(SmacqGraph *, bool dofree=false);
 
   /// Add a new graph head.
-  void add_graph(SmacqGraph *);
+  void add_graph(SmacqGraphNode *);
 
   /// Add new graph heads.
-  void add_graph(SmacqGraphContainer *, bool dofree=false);
+  void add_graph(SmacqGraph *, bool dofree=false);
 
   /// Children of the specified graph will also become children of this
-  void share_children_of(SmacqGraph *);
+  void share_children_of(SmacqGraphNode *);
 
   /// @}
 
   /// Recursively clone a graph.  The clone is made a child of
   /// newParent, unless newParent is NULL.
-  SmacqGraphContainer * clone(SmacqGraph * newParent);
+  SmacqGraph * clone(SmacqGraphNode * newParent);
 
   /// Add a clone of a graph to this container
-  void add_clone(SmacqGraph_ptr x, SmacqGraph * newParent);
+  void add_clone(SmacqGraphNode_ptr x, SmacqGraphNode * newParent);
 
   /// Return a subgraph containing only invariants over the specified field.
   /// The subgraph will contain only boolean filters that are applied to
   /// all objects in the graph (e.g. not within an OR) and that do NOT use 
   /// the specified field.  The returned graph is newly allocated.
-  SmacqGraph * getInvariants(DTS*, SmacqScheduler*, DtsField&);
+  SmacqGraphNode * getInvariants(DTS*, SmacqScheduler*, DtsField&);
 
   /// Preoptimize graph (unnecessary after init)
   void optimize();
 
   private:
-    ThreadSafeMultiSet<SmacqGraph_ptr> head;
+    ThreadSafeMultiSet<SmacqGraphNode_ptr> head;
 
     void merge_heads();
     void merge_tails();
-    void list_tails(std::set<SmacqGraph*> &);
+    void list_tails(std::set<SmacqGraphNode*> &);
 
 };
 
 #include <ThreadSafe.h>
 
 /// This is a node in a graph.  Each node references its parents and children.
-class SmacqGraph : private PthreadMutex {
+class SmacqGraphNode : private PthreadMutex {
  public:
   /// (Re-)Initialize module
   bool set(int argc, char ** argv);
@@ -181,49 +181,49 @@ class SmacqGraph : private PthreadMutex {
   //struct smacq_optval * optvals;
 
   friend class SmacqScheduler;
-  friend class SmacqGraphContainer;
+  friend class SmacqGraph;
 
  public:
-  SmacqGraph(int argc, char ** argv);
+  SmacqGraphNode(int argc, char ** argv);
 
-  ~SmacqGraph();
+  ~SmacqGraphNode();
 
   /// This method must be called before a graph is used.
   /// The graph may be modified as a side-effect, so the
   /// caller should replace the called object with the return pointer.
-  SmacqGraph * init(DTS *, SmacqScheduler *);
+  SmacqGraphNode * init(DTS *, SmacqScheduler *);
 
   /// @name Parent/Child Relationships
   /// @{
 
   /// Attach the specified graph onto the tail(s) of the graph(s).
-  void join(SmacqGraph *);
+  void join(SmacqGraphNode *);
 
   /// Attach the specified graph onto the tail(s) of the graph(s).
-  void join(SmacqGraphContainer *, bool dofree=false);
+  void join(SmacqGraph *, bool dofree=false);
 
-  void replace(SmacqGraphContainer *);
+  void replace(SmacqGraph *);
 
   /// Insert a new graph between my parents and me
-  void dynamic_insert(SmacqGraph *, DTS *);
+  void dynamic_insert(SmacqGraphNode *, DTS *);
 
   /// Add a new graph as one of my children
-  void add_child(SmacqGraph_ptr child, unsigned int channel = 0);
-  void add_children(SmacqGraphContainer * child, unsigned int channel = 0);
-  void remove_parent(SmacqGraph * parent);
+  void add_child(SmacqGraphNode_ptr child, unsigned int channel = 0);
+  void add_children(SmacqGraph * child, unsigned int channel = 0);
+  void remove_parent(SmacqGraphNode * parent);
   void remove_child_bynum(int, int);
-  void remove_child(SmacqGraph_ptr);
+  void remove_child(SmacqGraphNode_ptr);
+  void replace_child(int, int, SmacqGraphNode * newchild);
   void replace_child(int, int, SmacqGraph * newchild);
-  void replace_child(int, int, SmacqGraphContainer * newchild);
-  void replace_child(SmacqGraph * oldchild, SmacqGraph * newchild);
-  void replace_child(SmacqGraph * oldchild, SmacqGraphContainer * newchild);
-  static void move_children(SmacqGraph * from, SmacqGraph * to, bool addvector=false);
+  void replace_child(SmacqGraphNode * oldchild, SmacqGraphNode * newchild);
+  void replace_child(SmacqGraphNode * oldchild, SmacqGraph * newchild);
+  static void move_children(SmacqGraphNode * from, SmacqGraphNode * to, bool addvector=false);
   void remove_children();
 
   bool live_children();
   bool live_parents();
 
-  const std::vector< ThreadSafeMultiSet<SmacqGraph_ptr> > getChildren() { return children.snapshot(); }
+  const std::vector< ThreadSafeMultiSet<SmacqGraphNode_ptr> > getChildren() { return children.snapshot(); }
 
   /// @}
 
@@ -233,11 +233,11 @@ class SmacqGraph : private PthreadMutex {
 
   /// Construct a new graph using the given arguments.  The new graph
   /// is automatically attached as a child of the current graph.
-  SmacqGraph * new_child(int argc, char ** argv);
+  SmacqGraphNode * new_child(int argc, char ** argv);
 
   /// Recursively clone a graph.  The clone is made a child of
   /// newParent, unless newParent is NULL.
-  SmacqGraph * clone(SmacqGraph * newParent);
+  SmacqGraphNode * clone(SmacqGraphNode * newParent);
   /// @}
 
   /// Print the graph
@@ -256,16 +256,16 @@ class SmacqGraph : private PthreadMutex {
   /// The subgraph will contain only stateless filters that are applied to
   /// all objects in the graph (e.g. not within an OR) and that do NOT use 
   /// the specified field.  The returned graph is newly allocated.
-  SmacqGraph * getInvariants(DTS*, SmacqScheduler*, DtsField&);
+  SmacqGraphNode * getInvariants(DTS*, SmacqScheduler*, DtsField&);
 
   /// Same as getInvariants() but operates only on the graph's children
-  SmacqGraph * getChildInvariants(DTS*, SmacqScheduler*, DtsField&);
+  SmacqGraphNode * getChildInvariants(DTS*, SmacqScheduler*, DtsField&);
 
   /// @}
 
   /// Shutdown a graph node (will propagate to parents and children).
   /// The node may be destroyed by this call.
-  static void do_shutdown(SmacqGraph_ptr f);
+  static void do_shutdown(SmacqGraphNode_ptr f);
 
   /// Attempt to distribute children of this graph.  Return true iff successful.
   bool distribute_children(DTS *);
@@ -283,36 +283,36 @@ class SmacqGraph : private PthreadMutex {
   void runable(DtsObject);
 
   /// Scheduler is done handling a mustProduce.
-  void SmacqGraph::produce_done();
+  void SmacqGraphNode::produce_done();
 
   /// @}
  private:
   /// Print a node and recurse up.
   std::string print_query_tail();
 
-  SmacqGraphContainer * distribute_rejoin();
+  SmacqGraph * distribute_rejoin();
   void init_node(DTS *, SmacqScheduler *);
   void init_node_recursively(DTS *, SmacqScheduler *);
   int print_one(FILE * fh, int indent);
-  void add_parent(SmacqGraph * parent);
+  void add_parent(SmacqGraphNode * parent);
 
-  void list_tails(std::set<SmacqGraph*> &);
-  static bool compare_element_names(SmacqGraph * a, SmacqGraph * b);
-  static bool equiv(SmacqGraph * a, SmacqGraph * b);
-  static bool same_children(SmacqGraph * a, SmacqGraph * b);
+  void list_tails(std::set<SmacqGraphNode*> &);
+  static bool compare_element_names(SmacqGraphNode * a, SmacqGraphNode * b);
+  static bool equiv(SmacqGraphNode * a, SmacqGraphNode * b);
+  static bool same_children(SmacqGraphNode * a, SmacqGraphNode * b);
   bool merge_redundant_parents();
   void merge_redundant_children();
-  static bool merge_nodes(SmacqGraph * a, SmacqGraph * b);
-  void add_args(SmacqGraph * b);
+  static bool merge_nodes(SmacqGraphNode * a, SmacqGraphNode * b);
+  void add_args(SmacqGraphNode * b);
 
   /// Iff initializied
   SmacqScheduler * scheduler;
 
   Children children;
-  //ThreadSafeVector< ThreadSafeMultiSet<SmacqGraph_ptr> > children;
+  //ThreadSafeVector< ThreadSafeMultiSet<SmacqGraphNode_ptr> > children;
 
   /// Don't use a refcounted pointer because if we're the only ones that know, it should be GC'd
-  ThreadSafeMultiSet<SmacqGraph*> parent;
+  ThreadSafeMultiSet<SmacqGraphNode*> parent;
 
   /// Number of things that can give us input.
   /// This is not a full reference count, but when it decrements to 0
@@ -321,8 +321,8 @@ class SmacqGraph : private PthreadMutex {
   /// when we clean ourselves up.
   ThreadSafeCounter refcount;
 
-  friend void intrusive_ptr_add_ref(SmacqGraph *o) { o->refcount.increment(); }
-  friend void intrusive_ptr_release(SmacqGraph *o);
+  friend void intrusive_ptr_add_ref(SmacqGraphNode *o) { o->refcount.increment(); }
+  friend void intrusive_ptr_release(SmacqGraphNode *o);
 };
 
 #endif

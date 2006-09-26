@@ -10,7 +10,7 @@
 SMACQ_MODULE(lor,
 	     PROTO_CTOR(lor);
 	     
-	     SmacqGraphContainer graphs;
+	     SmacqGraph graphs;
 	     SmacqScheduler * sched;
 	     void build_clause(char ** argv, int num);
 );

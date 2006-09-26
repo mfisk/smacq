@@ -84,7 +84,7 @@ METHOD void SmacqScheduler::join_threads() {
   //Idling.set(0); // in case scheduler reused
 }
 
-METHOD void SmacqScheduler::seed_produce_one(SmacqGraph * g) {
+METHOD void SmacqScheduler::seed_produce_one(SmacqGraphNode * g) {
     using namespace boost::lambda;
     using namespace std;
 
@@ -96,14 +96,14 @@ METHOD void SmacqScheduler::seed_produce_one(SmacqGraph * g) {
     }
 }
 
-METHOD void SmacqScheduler::seed_produce(SmacqGraphContainer * startf) {
+METHOD void SmacqScheduler::seed_produce(SmacqGraph * startf) {
   using namespace boost::lambda;
 
   // Force first guy to produce
   startf->head.foreach( bind(&SmacqScheduler::seed_produce_one, this, DEREF(_1)) );
 }
 
-METHOD void SmacqScheduler::input_one(SmacqGraph * g, DtsObject din) {
+METHOD void SmacqScheduler::input_one(SmacqGraphNode * g, DtsObject din) {
     if (g->argc) {
     	assert (g->instance > (void*)1000);
     	g->runable(din);
@@ -113,12 +113,12 @@ METHOD void SmacqScheduler::input_one(SmacqGraph * g, DtsObject din) {
     }
 }
 
-METHOD void SmacqScheduler::input(SmacqGraphContainer * c, DtsObject din) {
+METHOD void SmacqScheduler::input(SmacqGraph * c, DtsObject din) {
   using namespace boost::lambda;
   c->head.foreach( bind(&SmacqScheduler::input_one, this, DEREF(_1), din) );
 }
 
-METHOD void SmacqScheduler::enqueue(SmacqGraph * caller, DtsObject d, int outchan) {
+METHOD void SmacqScheduler::enqueue(SmacqGraphNode * caller, DtsObject d, int outchan) {
   queue_children(caller, d, outchan);
 
   // If the consumeq has as many modules as there are threads, 
@@ -129,7 +129,7 @@ METHOD void SmacqScheduler::enqueue(SmacqGraph * caller, DtsObject d, int outcha
   }
 }
 
-METHOD void SmacqScheduler::queue_children(SmacqGraph_ptr f, DtsObject d, int outchan) {
+METHOD void SmacqScheduler::queue_children(SmacqGraphNode_ptr f, DtsObject d, int outchan) {
   using namespace boost::lambda;
 
   //fprintf(stderr, "Output channel was %d of %u\n", outchan, f->children.size());
@@ -139,7 +139,7 @@ METHOD void SmacqScheduler::queue_children(SmacqGraph_ptr f, DtsObject d, int ou
 
   if (f->children[outchan].size()) {
     if (debug) f->log("output %p to children", d.get());
-    f->children[outchan].foreach( bind(&SmacqGraph::runable, DEREF(_1), d) );
+    f->children[outchan].foreach( bind(&SmacqGraphNode::runable, DEREF(_1), d) );
   } else {
     if (debug) f->log("output %p to outputq", d.get());
     outputq.enqueue(d);
@@ -148,7 +148,7 @@ METHOD void SmacqScheduler::queue_children(SmacqGraph_ptr f, DtsObject d, int ou
 
 
 /// Graph must already be locked
-METHOD void SmacqScheduler::run_produce(SmacqGraph_ptr f) {
+METHOD void SmacqScheduler::run_produce(SmacqGraphNode_ptr f) {
   int outchan = 0;
   DtsObject d = NULL;
   smacq_result pretval;
@@ -170,7 +170,7 @@ METHOD void SmacqScheduler::run_produce(SmacqGraph_ptr f) {
       //assert(!(pretval & (SMACQ_PRODUCE|SMACQ_CANPRODUCE)));
  
       if (debug) f->log("asked for shutdown on produce"); 
-      SmacqGraph::do_shutdown(f);
+      SmacqGraphNode::do_shutdown(f);
 
     } else if (pretval & (SMACQ_PRODUCE|SMACQ_CANPRODUCE)) {
       f->seed_produce(); // Keep producing
@@ -183,7 +183,7 @@ METHOD void SmacqScheduler::run_produce(SmacqGraph_ptr f) {
 
 /// Try to consume something.    
 /// Return true iff progress was made.
-METHOD bool SmacqScheduler::run_consume(SmacqGraph_ptr i) {
+METHOD bool SmacqScheduler::run_consume(SmacqGraphNode_ptr i) {
   if (!i->mustProduce.get()   // This will automatically get rescheduled after the produce
      && !i->shutdown.get()) { // Or already shutdown
   
@@ -211,7 +211,7 @@ METHOD bool SmacqScheduler::run_consume(SmacqGraph_ptr i) {
 		
     		if (retval & SMACQ_END) {
       			//fprintf(stderr, "module %p asked for shutdown on consume\n", i.get()); 
-      			SmacqGraph::do_shutdown(i);
+      			SmacqGraphNode::do_shutdown(i);
 			break;
     		}
 	}
@@ -221,13 +221,13 @@ METHOD bool SmacqScheduler::run_consume(SmacqGraph_ptr i) {
 }
 
 /// Returns a locked graph from the queue, or nothing at all
-METHOD SmacqGraph_ptr SmacqScheduler::pop_lock(runq<SmacqGraph_ptr> & q) {
-  SmacqGraph_ptr nullp;
-  SmacqGraph_ptr g;
+METHOD SmacqGraphNode_ptr SmacqScheduler::pop_lock(runq<SmacqGraphNode_ptr> & q) {
+  SmacqGraphNode_ptr nullp;
+  SmacqGraphNode_ptr g;
   RecursiveLock l(q);
 
   if (q.peek(g) && g->try_lock()) {
-     SmacqGraph_ptr newg; 
+     SmacqGraphNode_ptr newg; 
      q.pop(newg);
 
      // Make sure we popped the same thing we peeked.
@@ -248,7 +248,7 @@ METHOD bool SmacqScheduler::done() {
 
 /// Return true iff we had something to do.
 METHOD bool SmacqScheduler::do_something(bool consume_only) {
-  SmacqGraph_ptr f;
+  SmacqGraphNode_ptr f;
 
   if ((f = pop_lock(consumeq))) {
     if (debug) f->log("run_consume()");
@@ -305,11 +305,11 @@ METHOD bool SmacqScheduler::get(DtsObject &dout) {
   }
 }
 
-METHOD bool SmacqScheduler::decide_one(SmacqGraph * g, DtsObject din) {
+METHOD bool SmacqScheduler::decide_one(SmacqGraphNode * g, DtsObject din) {
 	return (decide(g, din) == SMACQ_PASS);
 }
 
-METHOD smacq_result SmacqScheduler::decide_set(ThreadSafeMultiSet<SmacqGraph_ptr> & g, DtsObject din) {
+METHOD smacq_result SmacqScheduler::decide_set(ThreadSafeMultiSet<SmacqGraphNode_ptr> & g, DtsObject din) {
   using namespace boost::lambda;
 
   if (g.has_if( bind<smacq_result>(&SmacqScheduler::decide_one, this, DEREF(_1), din))) {
@@ -318,7 +318,7 @@ METHOD smacq_result SmacqScheduler::decide_set(ThreadSafeMultiSet<SmacqGraph_ptr
   return SMACQ_FREE;
 }
 
-METHOD smacq_result SmacqScheduler::decide_children(SmacqGraph * g, DtsObject din, int outchan) {
+METHOD smacq_result SmacqScheduler::decide_children(SmacqGraphNode * g, DtsObject din, int outchan) {
   if (!g->children[outchan].size()) {
       // Base case: got to an end of decision graph!
       return SMACQ_PASS;
@@ -332,13 +332,13 @@ METHOD smacq_result SmacqScheduler::decide_children(SmacqGraph * g, DtsObject di
 
 /// Take an input and run it through a boolean graph.
 /// Return SMACQ_PASS or SMACQ_FREE.
-METHOD smacq_result SmacqScheduler::decideContainer(SmacqGraphContainer * g, DtsObject din) {
+METHOD smacq_result SmacqScheduler::decideContainer(SmacqGraph * g, DtsObject din) {
   return decide_set(g->head, din);
 }
 
 /// Take an input and run it through a boolean graph.
 /// Return SMACQ_PASS or SMACQ_FREE.
-METHOD smacq_result SmacqScheduler::decide(SmacqGraph * g, DtsObject din) {
+METHOD smacq_result SmacqScheduler::decide(SmacqGraphNode * g, DtsObject din) {
   int outchan = 0;
   assert(g);
 

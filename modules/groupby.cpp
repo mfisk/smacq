@@ -16,7 +16,7 @@ static struct smacq_options options[] = {
   END_SMACQ_OPTIONS
 };
 
-typedef FieldVecHash<SmacqGraphContainer*>::iterator OutputsIterator;
+typedef FieldVecHash<SmacqGraph*>::iterator OutputsIterator;
 
 SMACQ_MODULE(groupby,
   PROTO_CTOR(groupby);
@@ -24,19 +24,19 @@ SMACQ_MODULE(groupby,
   PROTO_CONSUME();
 
   FieldVec fieldvec;
-  SmacqGraphContainer * mastergraph;
-  SmacqGraph * self;
+  SmacqGraph * mastergraph;
+  SmacqGraphNode * self;
 
-  FieldVecHash<SmacqGraphContainer*> outTable;
+  FieldVecHash<SmacqGraph*> outTable;
 
   int refresh_type;
 
   void handle_invalidate(DtsObject datum);
-  SmacqGraphContainer * get_partition();
+  SmacqGraph * get_partition();
 ); 
 
-inline SmacqGraphContainer * groupbyModule::get_partition() {
-  SmacqGraphContainer * partition = outTable[fieldvec];
+inline SmacqGraph * groupbyModule::get_partition() {
+  SmacqGraph * partition = outTable[fieldvec];
 
   if (!partition) {
     partition = mastergraph->clone(NULL);
@@ -74,7 +74,7 @@ smacq_result groupbyModule::consume(DtsObject datum, int & outchan) {
   if (datum->gettype() == refresh_type) {
     handle_invalidate(datum);
   } else {
-    SmacqGraphContainer * p = get_partition();
+    SmacqGraph * p = get_partition();
     scheduler->input(p, datum);
   }
 
@@ -112,7 +112,7 @@ groupbyModule::groupbyModule(struct SmacqModule::smacq_init * context)
 			       options, optvals);
 
 	if (ptr.uint32_t) {
-		mastergraph = (SmacqGraphContainer*)ptr.uint32_t;
+		mastergraph = (SmacqGraph*)ptr.uint32_t;
 		if (print_graph.boolean_t) 
 			mastergraph->print(stderr, 15);
 		mastergraph->optimize();  // optimize now, before cloning

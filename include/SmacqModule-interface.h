@@ -35,7 +35,7 @@ class SmacqModule {
     char ** argv;
     int argc;
     DTS * dts;
-    SmacqGraph * self;
+    SmacqGraphNode * self;
   };
 
   /// SMACQ modules are object files that can be statically or
@@ -110,7 +110,7 @@ class SmacqModule {
   SmacqScheduler * scheduler;
 
   /// A pointer to ourself in the current dataflow graph
-  SmacqGraph * self;
+  SmacqGraphNode * self;
   
   /// Enqueue an object for output to the specified output channel.
   void enqueue(DtsObject &, int outchan = 0);

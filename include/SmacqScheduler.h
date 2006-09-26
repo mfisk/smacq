@@ -5,7 +5,7 @@
 #include <SmacqGraph.h>
 #include <ThreadSafe.h>
 
-/// This is a scheduler for processing any number of SmacqGraphContainer instances.
+/// This is a scheduler for processing any number of SmacqGraph instances.
 class SmacqScheduler {
 public:
   
@@ -25,32 +25,32 @@ public:
 
   /// Cue the head(s) of the given graph to start producing data.
   /// Otherwise data must be provided using the input() method.
-  void seed_produce(SmacqGraphContainer*);
+  void seed_produce(SmacqGraph*);
 
   /// Cue the graph to start producing data
-  void seed_produce(SmacqGraph * startf);
+  void seed_produce(SmacqGraphNode * startf);
 
   /// Queue an object for input to the specified graph.
-  void input(SmacqGraphContainer * g, DtsObject din);
+  void input(SmacqGraph * g, DtsObject din);
 
   /// Run until an output object is ready.
   bool get(DtsObject &dout);
 
   /// Process a single action or object
-  smacq_result decide(SmacqGraph *, DtsObject din);
+  smacq_result decide(SmacqGraphNode *, DtsObject din);
 
   /// Process a single action or object
-  smacq_result decideContainer(SmacqGraphContainer *, DtsObject din);
+  smacq_result decideContainer(SmacqGraph *, DtsObject din);
 
   /// Run to completion.  
   /// Return false iff error.
   bool busy_loop();
 
   /// Handle an object produced by a currently running node
-  void enqueue(SmacqGraph * f, DtsObject d, int outchan);
+  void enqueue(SmacqGraphNode * f, DtsObject d, int outchan);
 
   /// Handle an object produced by the specified node
-  void queue_children(SmacqGraph_ptr, DtsObject d, int outchan);
+  void queue_children(SmacqGraphNode_ptr, DtsObject d, int outchan);
 
   /// Process a single action or object
   bool element(DtsObject &dout);
@@ -61,24 +61,24 @@ public:
 
  private:
   /// Place something on the consume queue
-  void runable(SmacqGraph_ptr f, DtsObject d);
+  void runable(SmacqGraphNode_ptr f, DtsObject d);
 
   /// Process a produceq element
-  void run_produce(SmacqGraph_ptr);
+  void run_produce(SmacqGraphNode_ptr);
 
-  bool run_consume(SmacqGraph_ptr);
+  bool run_consume(SmacqGraphNode_ptr);
 
   /// Find something to do and do it.
   bool do_something(bool consume_only = false);
 
-  smacq_result decide_children(SmacqGraph * g, DtsObject din, int outchan);
+  smacq_result decide_children(SmacqGraphNode * g, DtsObject din, int outchan);
 
-  SmacqGraph_ptr pop_lock(runq<SmacqGraph_ptr> & q);
+  SmacqGraphNode_ptr pop_lock(runq<SmacqGraphNode_ptr> & q);
 
-  void seed_produce_one(SmacqGraph*);
-  void input_one(SmacqGraph*, DtsObject);
-  smacq_result decide_set(ThreadSafeMultiSet<SmacqGraph_ptr>&, DtsObject);
-  bool decide_one(SmacqGraph *,  DtsObject);
+  void seed_produce_one(SmacqGraphNode*);
+  void input_one(SmacqGraphNode*, DtsObject);
+  smacq_result decide_set(ThreadSafeMultiSet<SmacqGraphNode_ptr>&, DtsObject);
+  bool decide_one(SmacqGraphNode *,  DtsObject);
 
   bool debug;
   std::vector<pthread_t> threads;
@@ -95,8 +95,8 @@ public:
   }
 
  public:
-  runq<SmacqGraph_ptr> consumeq;
-  runq<SmacqGraph_ptr> produceq;
+  runq<SmacqGraphNode_ptr> consumeq;
+  runq<SmacqGraphNode_ptr> produceq;
   runq<DtsObject> outputq;
 };
 

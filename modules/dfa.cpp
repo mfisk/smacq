@@ -68,7 +68,7 @@ struct dfa_state {
 };
 
 struct transition {
-  SmacqGraphContainer graph;
+  SmacqGraph graph;
   int next_state;
 };
 

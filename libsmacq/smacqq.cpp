@@ -98,7 +98,7 @@ int smacqq(int argc, char ** argv) {
   }
 
   SmacqScheduler s;
-  SmacqGraphContainer graphs;
+  SmacqGraph graphs;
 
   if (debug.boolean_t) {
 	s.setDebug();

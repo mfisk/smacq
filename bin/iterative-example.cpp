@@ -5,7 +5,7 @@ int main(int argc, char ** argv) {
   DTS dts;
   SmacqScheduler s(4); // Use 4 CPUs (threads)
 
-  SmacqGraphContainer graphs;
+  SmacqGraph graphs;
   graphs.addQuery(&dts, &s, argv2string(argc-1, argv+1));
   graphs.init(&dts, &s);
 

@@ -30,7 +30,7 @@ SMACQ_MODULE(disarm,
   PROTO_CTOR(disarm);
   PROTO_PRODUCE();
 
-  SmacqGraph_ptr self;
+  SmacqGraphNode_ptr self;
   int datasock;
   FILE * datafh;
   unsigned long lineno;
@@ -47,7 +47,7 @@ SMACQ_MODULE(disarm,
   int server_init(struct sockaddr_in * addrp);
   int client_init(int port, char * hostname, char ** ipstr);
 
-  void processInvariants(SmacqGraph*);
+  void processInvariants(SmacqGraphNode*);
   void get_my_invariants(SmacqModule::smacq_init * context, char* name);
 
 );
@@ -275,7 +275,7 @@ void disarmModule::get_my_invariants(SmacqModule::smacq_init * context, char* na
 	processInvariants(context->self->getChildInvariants(dts, context->scheduler, field));
 }
 
-void disarmModule::processInvariants(SmacqGraph * i) {
+void disarmModule::processInvariants(SmacqGraphNode * i) {
   if (!i ) return;
 
   char ** argv = i->getArgv();
@@ -293,7 +293,7 @@ void disarmModule::processInvariants(SmacqGraph * i) {
 	fprintf(stderr, "Unknown filter callback: %s + %d args\n", argv[0], argc);
   }
 
-  std::vector<ThreadSafeMultiSet<SmacqGraph_ptr> > children = i->getChildren();
+  std::vector<ThreadSafeMultiSet<SmacqGraphNode_ptr> > children = i->getChildren();
   if (children[0].size()) {
   	processInvariants(children[0][0].get());
   }

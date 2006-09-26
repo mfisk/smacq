@@ -24,7 +24,7 @@ SMACQ_MODULE(sqlquery,
 
   dts_typeid string_type, empty_type, double_type, int_type, uint32_type;
 
-  void processInvariants(int, SmacqGraph_ptr);
+  void processInvariants(int, SmacqGraphNode_ptr);
   void endClause();
   void startClause();
   void addConstant(int column, char * constant);
@@ -78,7 +78,7 @@ inline void sqlqueryModule::addConstant(int column, char * constant) {
 	}
 }
 
-void sqlqueryModule::processInvariants(int column, SmacqGraph_ptr g) {
+void sqlqueryModule::processInvariants(int column, SmacqGraphNode_ptr g) {
 	if (!g) return;
 
 	int const argc = g->getArgc();
@@ -98,7 +98,7 @@ void sqlqueryModule::processInvariants(int column, SmacqGraph_ptr g) {
 		fprintf(stderr, "Cannot eagerly perform %s (%d args)\n", argv[0], argc);
 	}
 
-	std::vector<ThreadSafeMultiSet<SmacqGraph_ptr> > children = g->getChildren();
+	std::vector<ThreadSafeMultiSet<SmacqGraphNode_ptr> > children = g->getChildren();
 	if (children[0].size()) 
 		processInvariants(column, children[0][0].get());
 }
@@ -207,7 +207,7 @@ sqlqueryModule::sqlqueryModule(struct SmacqModule::smacq_init * context)
   	for (int i = 0; i < num_columns; i++) {
 		columns[i] = dts->requirefield((gchar*)gda_data_model_get_column_title(schema, i));
 
-		SmacqGraph_ptr invars = context->self->getChildInvariants(dts, context->scheduler, columns[i]);
+		SmacqGraphNode_ptr invars = context->self->getChildInvariants(dts, context->scheduler, columns[i]);
 		processInvariants(i, invars);
 	
 		/*	

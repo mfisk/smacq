@@ -12,7 +12,7 @@ SMACQ_MODULE(fastbit,
   unsigned long numRows, iterator;
   std::string where;
 
-  void processInvariants(SmacqGraph_ptr g);
+  void processInvariants(SmacqGraphNode_ptr g);
 );
 
 static struct smacq_options options[] = {
@@ -33,7 +33,7 @@ smacq_result fastbitModule::produce(DtsObject & datump, int & outchan) {
   return SMACQ_PASS|SMACQ_PRODUCE;
 }
 
-void fastbitModule::processInvariants(SmacqGraph_ptr g) {
+void fastbitModule::processInvariants(SmacqGraphNode_ptr g) {
   if (!g) return;
 
   int const argc = g->getArgc();

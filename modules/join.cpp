@@ -12,7 +12,7 @@
 struct alias {
   DtsField field;
   DtsField newfield;
-  SmacqGraphContainer * until;
+  SmacqGraph * until;
   std::vector<DtsObject> objects;
 };
 
@@ -22,7 +22,7 @@ SMACQ_MODULE(join,
 
 	     private:
 
-	     SmacqGraphContainer * where;
+	     SmacqGraph * where;
 	     dts_typeid emptytype;
 
 	     std::vector<struct alias> Aliases;
@@ -120,7 +120,7 @@ joinModule::joinModule(SmacqModule::smacq_init * context)
 
   // Size per-alias data-structures
   Aliases.resize((context->argc-2)/2);
-  where = (SmacqGraphContainer*)strtoul(context->argv[context->argc-1], NULL, 0);
+  where = (SmacqGraph*)strtoul(context->argv[context->argc-1], NULL, 0);
   if (where) {
     where->init(dts, scheduler);
     //where->print(stderr, 4);
@@ -132,7 +132,7 @@ joinModule::joinModule(SmacqModule::smacq_init * context)
     a.field = dts->requirefield(context->argv[i]);
     a.newfield = dts->requirefield("new");
 
-    a.until = (SmacqGraphContainer*)strtoul(context->argv[i+1], NULL, 0);
+    a.until = (SmacqGraph*)strtoul(context->argv[i+1], NULL, 0);
     if (a.until) { // can be NULL
       a.until->init(dts, scheduler);	
     }

@@ -996,11 +996,11 @@ void newhandleQuery(char * query)
 {
 
   struct runq * runq = NULL;
-  SmacqGraph_ptr graph;
+  SmacqGraphNode_ptr graph;
   DtsObjectrecord;
 
   DTS * tenv = dts_init();
-  graph = SmacqGraph_ptr::newQuery(tenv, 1, &query);
+  graph = SmacqGraphNode_ptr::newQuery(tenv, 1, &query);
   assert(graph);
 
   smacq_start(graph, ITERATIVE, tenv);

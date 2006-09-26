@@ -12,12 +12,10 @@ data.
 
 \section smacq_embed Embedding SMACQ in Your Application
 
-All work is done in one or more SmacqGraph instances.  The easiest way
-to construct a SmacqGraph is to instantiate a SmacqGraphContainer and call
-the SmacqGraphContainer::addQuery() method.  To execute a
-graph, you also need to instantiate a SmacqScheduler and use its
-methods like SmacqScheduler::input(), SmacqScheduler::busy_loop(),
-etc.
+You will need to instantiate a DTS type system object, a SmacqScheduler, and 
+a SmacqGraph.  Then use SmacqGraph::addQuery() to parse one or more queries. 
+Finally use one of the SmacqScheduler methods like 
+SmacqScheduler::input() or SmacqScheduler::busy_loop().
 
 \section dts_module Creating a SMACQ Type Module
 
@@ -69,12 +67,12 @@ common tasks with a DtsObject.
 #endif
 
 #ifdef __cplusplus
-class SmacqGraph;
+class SmacqGraphNode;
 class SmacqScheduler;
 
 #include <boost/intrusive_ptr.hpp>
-/// A reference-counted pointer to a SmacqGraph.
-typedef boost::intrusive_ptr<SmacqGraph> SmacqGraph_ptr;
+/// A reference-counted pointer to a SmacqGraphNode.
+typedef boost::intrusive_ptr<SmacqGraphNode> SmacqGraphNode_ptr;
 
 enum smacq_log_level { INFO, WARN, ERROR, };
 

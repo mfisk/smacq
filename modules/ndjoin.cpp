@@ -7,7 +7,7 @@
 #include <SmacqScheduler.h>
 
 struct join {
-  SmacqGraphContainer graph;
+  SmacqGraph graph;
   DtsField field;
   DtsField left_key, right_key;
   double next_val;

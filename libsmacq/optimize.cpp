@@ -2,12 +2,12 @@
 #include <SmacqGraph.h>
 #include <string>
 
-inline bool SmacqGraph::compare_element_names(SmacqGraph * a, SmacqGraph * b) {
+inline bool SmacqGraphNode::compare_element_names(SmacqGraphNode * a, SmacqGraphNode * b) {
   return !strcmp(a->argv[0], b->argv[0]);
 }
   
 /// true iff graphs are equivalent 
-inline bool SmacqGraph::equiv(SmacqGraph * a, SmacqGraph * b) {
+inline bool SmacqGraphNode::equiv(SmacqGraphNode * a, SmacqGraphNode * b) {
   int i;
 
   if (a == b) 
@@ -24,15 +24,15 @@ inline bool SmacqGraph::equiv(SmacqGraph * a, SmacqGraph * b) {
   return true;
 }
 
-inline void SmacqGraphContainer::merge_tails() {
-  std::set<SmacqGraph*> list;
-  std::set<SmacqGraph*>::iterator lpa, lpb;
+inline void SmacqGraph::merge_tails() {
+  std::set<SmacqGraphNode*> list;
+  std::set<SmacqGraphNode*>::iterator lpa, lpb;
   list_tails(list);
 
   /* n**2 comparison between each tails */
   for (lpa = list.begin(); lpa != list.end(); ++lpa) {
     for (lpb = lpa; lpb != list.end(); ++lpb) {
-      if (*lpa != *lpb && SmacqGraph::equiv(*lpa, *lpb)) {
+      if (*lpa != *lpb && SmacqGraphNode::equiv(*lpa, *lpb)) {
 	//fprintf(stderr, "tails %p and %p merging\n", *lpa, *lpb);
 	while ((*lpb)->parent.size()) {
 	  (*lpb)->parent[0]->replace_child(*lpb, *lpa);
@@ -46,7 +46,7 @@ inline void SmacqGraphContainer::merge_tails() {
   }
 }
 
-inline void SmacqGraph::add_args(SmacqGraph * b) {
+inline void SmacqGraphNode::add_args(SmacqGraphNode * b) {
   int i;
   this->argv = (char**)realloc(this->argv, (this->argc + b->argc) * sizeof(char*));
   this->argv[this->argc++] = ";";
@@ -55,7 +55,7 @@ inline void SmacqGraph::add_args(SmacqGraph * b) {
   }
 }
 
-inline void SmacqGraph::move_children(SmacqGraph * from, SmacqGraph * to, bool addvector) {
+inline void SmacqGraphNode::move_children(SmacqGraphNode * from, SmacqGraphNode * to, bool addvector) {
     FOREACH_CHILD(from, {
 	/// If the module is vectorized, then add a new vector element;
 	/// otherwise add it to channel 0
@@ -72,7 +72,7 @@ inline void SmacqGraph::move_children(SmacqGraph * from, SmacqGraph * to, bool a
 /// Merge these two nodes if possible.
 /// The nodes should have the same inputs (including no inputs).
 /// Return true iff b is eliminated.
-inline bool SmacqGraph::merge_nodes(SmacqGraph * a, SmacqGraph * b) {
+inline bool SmacqGraphNode::merge_nodes(SmacqGraphNode * a, SmacqGraphNode * b) {
   if ( (a==b) // Can't merge self with self
        // Can only merge stateless
        || !a->algebra.stateless || !b->algebra.stateless 
@@ -99,13 +99,13 @@ inline bool SmacqGraph::merge_nodes(SmacqGraph * a, SmacqGraph * b) {
 
 /// Examine children and remove any stateless ones.
 /// Their children will be combined.
-void SmacqGraph::merge_redundant_children() {
+void SmacqGraphNode::merge_redundant_children() {
   for (unsigned int k = 0; k < children.size(); k++) {
     for (unsigned int i = 0; i < children[k].size(); i++) {
-      SmacqGraph * twina = children[k][i].get();
+      SmacqGraphNode * twina = children[k][i].get();
       // Look for twins among siblings
       for (unsigned int j = 0; j < children[k].size(); j++) {
-	SmacqGraph * twinb = children[k][j].get();	
+	SmacqGraphNode * twinb = children[k][j].get();	
 	if (merge_nodes(twina, twinb)) {
 	  // Remove twin 
 	  remove_child_bynum(k,j);
@@ -121,10 +121,10 @@ void SmacqGraph::merge_redundant_children() {
   }
 }
 
-inline bool SmacqGraph::same_children(SmacqGraph * a, SmacqGraph * b) {
+inline bool SmacqGraphNode::same_children(SmacqGraphNode * a, SmacqGraphNode * b) {
   if (a->children.size() < b->children.size()) {
     // Swap so that a is >= b in size
-    SmacqGraph * g = a;
+    SmacqGraphNode * g = a;
     a = b; b = g;
   }
     
@@ -145,7 +145,7 @@ inline bool SmacqGraph::same_children(SmacqGraph * a, SmacqGraph * b) {
 
 /// Examine stateless nodes and merge any duplicate parents.
 /// Return true if something was done (recursively)
-bool SmacqGraph::merge_redundant_parents() {
+bool SmacqGraphNode::merge_redundant_parents() {
   // Recurse first so we do this bottom up
   FOREACH_CHILD(this, {
       if (child->merge_redundant_parents()) return true;
@@ -159,7 +159,7 @@ bool SmacqGraph::merge_redundant_parents() {
 
 	  //fprintf(stderr, "merging redundant parents %p and %p\n", parent[i], parent[j]);
 
-	  SmacqGraph_ptr departing = parent[j];
+	  SmacqGraphNode_ptr departing = parent[j];
 
 	  // Tell grandparents to replace j
 	  while (departing->parent.size()) {
@@ -179,7 +179,7 @@ bool SmacqGraph::merge_redundant_parents() {
   return false;
 }
 
-class GraphVector : public std::vector<SmacqGraph*> {
+class GraphVector : public std::vector<SmacqGraphNode*> {
   public:
 	void erase(unsigned int i) {
 	   // Swap, drop, and roll...
@@ -191,12 +191,12 @@ class GraphVector : public std::vector<SmacqGraph*> {
 	}
 };
 
-void SmacqGraphContainer::merge_heads() {
+void SmacqGraph::merge_heads() {
 #ifndef SMACQ_OPT_NOHEADS
   /* Merge identical heads */
   for (unsigned int i = 0; i < head.size(); i++) {
     for (unsigned int j = 0; j < head.size(); j++) {
-      if (SmacqGraph::merge_nodes(head[i].get(), head[j].get())) {
+      if (SmacqGraphNode::merge_nodes(head[i].get(), head[j].get())) {
 	// Remove j from list
 	head.erase(j);
 
@@ -210,7 +210,7 @@ void SmacqGraphContainer::merge_heads() {
 #endif
 }
 
-void SmacqGraphContainer::optimize() {
+void SmacqGraph::optimize() {
 #if defined(SMACQ_DEBUG2) && !defined(SMACQ_NO_OPT)
   print(stderr, 8);
 #endif
@@ -254,7 +254,7 @@ void SmacqGraphContainer::optimize() {
 /// Recursive function to find best point at which to distribute graph.
 /// Return NULL iff there is nothing further to distribute.
 /// Otherwise, return pointer to loation of recollection point to replace us with.
-SmacqGraphContainer * SmacqGraph::distribute_rejoin() {
+SmacqGraph * SmacqGraphNode::distribute_rejoin() {
   if (!algebra.stateless) {
 	return NULL;
   }
@@ -267,7 +267,7 @@ SmacqGraphContainer * SmacqGraph::distribute_rejoin() {
   // XXX. only handles out-degree = 1
   if (children.size() == 1 && children[0].size() == 1) {
 	// See if the barrier is further down
-	SmacqGraphContainer * b = children[0][0]->distribute_rejoin();
+	SmacqGraph * b = children[0][0]->distribute_rejoin();
 	if (b) return b;
   }
 
@@ -278,7 +278,7 @@ SmacqGraphContainer * SmacqGraph::distribute_rejoin() {
   assert(children.size() == 1);
 
   // Make a new ref to children
-  SmacqGraphContainer * c = new SmacqGraphContainer(children[0]);
+  SmacqGraph * c = new SmacqGraph(children[0]);
   
   // Now safe to remove
   remove_children();
@@ -289,7 +289,7 @@ SmacqGraphContainer * SmacqGraph::distribute_rejoin() {
 // Farm out children to run in parallel.
 // May do nothing if unable identify candidate children.
 // If return value is non-NULL, then it is ...
-bool SmacqGraph::distribute_children(DTS * dts) {
+bool SmacqGraphNode::distribute_children(DTS * dts) {
   if (children.size() != 1) {
   	// XXX: We don't distribute vectors
 	// Unsupported
@@ -299,16 +299,16 @@ bool SmacqGraph::distribute_children(DTS * dts) {
   FOREACH_CHILD(this, {
   	// Get a pointer to the re-collection point in our children.
   	// As a side effect, this will move some of our descendents to the rejoin
-	SmacqGraphContainer * rejoin = child->distribute_rejoin();
+	SmacqGraph * rejoin = child->distribute_rejoin();
 
         // See if there is anything to be distributed
 	if (rejoin) {
-		SmacqGraph_ptr c = child;
+		SmacqGraphNode_ptr c = child;
 		remove_child_bynum(i, j);  j--;
 		std::string q("distribute ");
 		q += c->print_query();
 		fprintf(stderr, "distribute %s\n", q.c_str());
-  		SmacqGraphContainer dist;
+  		SmacqGraph dist;
 		dist.addQuery(dts, scheduler, q);
 		dist.join(rejoin, true);
   		this->join(&dist, true);

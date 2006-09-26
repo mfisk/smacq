@@ -11,7 +11,7 @@
 #define METHOD 
 #endif
 
-METHOD SmacqGraph::~SmacqGraph() {
+METHOD SmacqGraphNode::~SmacqGraphNode() {
   //log("shutdown from destructor (e.g. refcount==0");
 
   // Make sure that do_shutdown doesn't end up calling the destructor again
@@ -26,7 +26,7 @@ METHOD SmacqGraph::~SmacqGraph() {
 }
 
 /// Establish a parent/child relationship on the specified channel
-METHOD void SmacqGraph::add_child(SmacqGraph_ptr newo, unsigned int channel) {
+METHOD void SmacqGraphNode::add_child(SmacqGraphNode_ptr newo, unsigned int channel) {
   RecursiveLock l(children);
 
   assert(newo != this);
@@ -39,23 +39,23 @@ METHOD void SmacqGraph::add_child(SmacqGraph_ptr newo, unsigned int channel) {
 
 
 /// Establish a parent/child relationship on the specified channel
-METHOD void SmacqGraph::add_children(SmacqGraphContainer * newo, unsigned int channel) {
+METHOD void SmacqGraphNode::add_children(SmacqGraph * newo, unsigned int channel) {
   using namespace boost::lambda;
   using namespace std;
 
-  newo->head.foreach( bind(&SmacqGraph::add_child, this, _1, channel) );
+  newo->head.foreach( bind(&SmacqGraphNode::add_child, this, _1, channel) );
 }
 
 /// Recursively initialize a list of all the tails of this bag of graphs
-METHOD void SmacqGraphContainer::list_tails(std::set<SmacqGraph *> &list) {
+METHOD void SmacqGraph::list_tails(std::set<SmacqGraphNode *> &list) {
   using namespace boost::lambda;
   using namespace std;
 
-  head.foreach( bind(&SmacqGraph::list_tails, DEREF(_1), var(list)) );
+  head.foreach( bind(&SmacqGraphNode::list_tails, DEREF(_1), var(list)) );
 }
 
 /// Recursively initialize a list of all the tails in this given graph
-METHOD void SmacqGraph::list_tails(std::set<SmacqGraph *> &list) {
+METHOD void SmacqGraphNode::list_tails(std::set<SmacqGraphNode *> &list) {
   bool has_child = false;
 
   FOREACH_CHILD(this, {
@@ -68,11 +68,11 @@ METHOD void SmacqGraph::list_tails(std::set<SmacqGraph *> &list) {
   }
 }
 
-METHOD void SmacqGraph::join(SmacqGraph * newg) {
+METHOD void SmacqGraphNode::join(SmacqGraphNode * newg) {
   if (!newg) { return; }
 
-  std::set<SmacqGraph *> list;
-  std::set<SmacqGraph *>::iterator i;
+  std::set<SmacqGraphNode *> list;
+  std::set<SmacqGraphNode *>::iterator i;
   list_tails(list);
 
   for(i = list.begin(); i != list.end(); ++i) {
@@ -80,11 +80,11 @@ METHOD void SmacqGraph::join(SmacqGraph * newg) {
   }
 }
 
-METHOD void SmacqGraph::join(SmacqGraphContainer * newg, bool dofree) {
+METHOD void SmacqGraphNode::join(SmacqGraph * newg, bool dofree) {
   if (!newg) { return; }
 
-  std::set<SmacqGraph *> list;
-  std::set<SmacqGraph *>::iterator i;
+  std::set<SmacqGraphNode *> list;
+  std::set<SmacqGraphNode *>::iterator i;
   list_tails(list);
 
   for(i = list.begin(); i != list.end(); ++i) {
@@ -96,14 +96,14 @@ METHOD void SmacqGraph::join(SmacqGraphContainer * newg, bool dofree) {
   }
 }
 
-METHOD void SmacqGraphContainer::join(SmacqGraphContainer * newg, bool dofree) {
+METHOD void SmacqGraph::join(SmacqGraph * newg, bool dofree) {
   if (!newg) return;
 
   if (head.empty()) {
 	(*this) = *newg;
   } else {
-  	std::set<SmacqGraph *> list;
-  	std::set<SmacqGraph *>::iterator i;
+  	std::set<SmacqGraphNode *> list;
+  	std::set<SmacqGraphNode *>::iterator i;
   	list_tails(list);
 
   	for(i = list.begin(); i != list.end(); ++i) {
@@ -116,15 +116,15 @@ METHOD void SmacqGraphContainer::join(SmacqGraphContainer * newg, bool dofree) {
   }
 }
 
-METHOD void SmacqGraphContainer::join(SmacqGraph * newg) {
+METHOD void SmacqGraph::join(SmacqGraphNode * newg) {
   if (!newg) { return; }
   if (head.empty()) {
 	add_graph(newg);
 	return;
   }
 
-  std::set<SmacqGraph *> list;
-  std::set<SmacqGraph *>::iterator i;
+  std::set<SmacqGraphNode *> list;
+  std::set<SmacqGraphNode *>::iterator i;
   list_tails(list);
 
   for(i = list.begin(); i != list.end(); ++i) {
@@ -132,47 +132,47 @@ METHOD void SmacqGraphContainer::join(SmacqGraph * newg) {
   }
 }
 
-METHOD void SmacqGraphContainer::add_graph(SmacqGraph * b) {
+METHOD void SmacqGraph::add_graph(SmacqGraphNode * b) {
   if (b) head.insert(b);
 }
 
-METHOD void SmacqGraphContainer::add_graph(SmacqGraphContainer * b, bool dofree) {
+METHOD void SmacqGraph::add_graph(SmacqGraph * b, bool dofree) {
   using namespace boost::lambda;
   using namespace std;
 
   if (!b) return;
 
-  b->head.foreach( bind(&ThreadSafeMultiSet<SmacqGraph_ptr>::insert, &head, _1) );
+  b->head.foreach( bind(&ThreadSafeMultiSet<SmacqGraphNode_ptr>::insert, &head, _1) );
   if (dofree) delete b;
 }
 
 /// Recursively initalize nodes in graph.
-METHOD void SmacqGraphContainer::init(DTS * dts, SmacqScheduler * sched, bool do_optimize) {
+METHOD void SmacqGraph::init(DTS * dts, SmacqScheduler * sched, bool do_optimize) {
   using namespace boost::lambda;
   using namespace std;
 
-  head.foreach( _1 = bind(&SmacqGraph::init, DEREF(_1), dts, sched) );
+  head.foreach( _1 = bind(&SmacqGraphNode::init, DEREF(_1), dts, sched) );
 
   optimize();
 }
 
 /// Shutdown graphs
-METHOD void SmacqGraphContainer::shutdown() {
+METHOD void SmacqGraph::shutdown() {
   using namespace boost::lambda;
   using namespace std;
 
-  head.foreach( bind(&SmacqGraph::do_shutdown, _1) );
+  head.foreach( bind(&SmacqGraphNode::do_shutdown, _1) );
   head.clear();
 }
 
 /// Init graph and return replacement graph pointer
-METHOD SmacqGraph * SmacqGraph::init(DTS * dts, SmacqScheduler * sched) {
-  SmacqGraph * ret = this;
+METHOD SmacqGraphNode * SmacqGraphNode::init(DTS * dts, SmacqScheduler * sched) {
+  SmacqGraphNode * ret = this;
 
   // Insert a blank node before head so that it can use insert()
   if (argc) {
 	// Actually copy ourselves, insert copy after us, make us stub
-    	ret = new SmacqGraph(0, NULL);
+    	ret = new SmacqGraphNode(0, NULL);
 	ret->add_child(this);
   }
 
@@ -183,7 +183,7 @@ METHOD SmacqGraph * SmacqGraph::init(DTS * dts, SmacqScheduler * sched) {
 
 #include <boost/lambda/if.hpp>
 
-METHOD void SmacqGraph::init_node(DTS * dts, SmacqScheduler * sched) {
+METHOD void SmacqGraphNode::init_node(DTS * dts, SmacqScheduler * sched) {
   using namespace boost::lambda;
   using namespace std;
   RecursiveLock l (this);
@@ -198,7 +198,7 @@ METHOD void SmacqGraph::init_node(DTS * dts, SmacqScheduler * sched) {
 	// Figure out if we have (non-stub) parent(s)
   	context.isfirst = true;
 
-	if (parent.has_if( bind(&SmacqGraph::argc, _1) )) {
+	if (parent.has_if( bind(&SmacqGraphNode::argc, _1) )) {
 		context.isfirst = false;
 	}
 
@@ -226,52 +226,52 @@ METHOD void SmacqGraph::init_node(DTS * dts, SmacqScheduler * sched) {
   }
 }
 
-METHOD void SmacqGraph::init_node_recursively(DTS * dts, SmacqScheduler * sched) {
+METHOD void SmacqGraphNode::init_node_recursively(DTS * dts, SmacqScheduler * sched) {
   init_node(dts, sched);
 
   FOREACH_CHILD(this, child->init_node_recursively(dts, sched));
 }
   
 
-METHOD SmacqGraph::SmacqGraph(int argc, char ** argv) 
+METHOD SmacqGraphNode::SmacqGraphNode(int argc, char ** argv) 
 		  : instance(NULL), q(RINGSIZE), scheduler(NULL)
 {
   set(argc, argv);
 }
 
-METHOD SmacqGraph * SmacqGraph::new_child(int argc, char ** argv) {
-  SmacqGraph * newo = new SmacqGraph(argc, argv);
+METHOD SmacqGraphNode * SmacqGraphNode::new_child(int argc, char ** argv) {
+  SmacqGraphNode * newo = new SmacqGraphNode(argc, argv);
   add_child(newo);
   return newo;
 }
 
 
-METHOD void SmacqGraphContainer::add_clone(SmacqGraph_ptr x, SmacqGraph * newParent) {
+METHOD void SmacqGraph::add_clone(SmacqGraphNode_ptr x, SmacqGraphNode * newParent) {
    this->head.insert(x->clone(newParent));
 }
 
 /// Recursively clone a graph and all of it's children.  
 /// Make the new graph be a child of the specified parent (which may be NULL).
-METHOD SmacqGraphContainer * SmacqGraphContainer::clone(SmacqGraph * newParent) {
+METHOD SmacqGraph * SmacqGraph::clone(SmacqGraphNode * newParent) {
   using namespace boost::lambda;
   using namespace std;
 
-  SmacqGraphContainer * newg = new SmacqGraphContainer;
+  SmacqGraph * newg = new SmacqGraph;
 
-  head.foreach( bind(&SmacqGraphContainer::add_clone, newg, _1, newParent));
+  head.foreach( bind(&SmacqGraph::add_clone, newg, _1, newParent));
 
   return newg;
 }
 
 /// Recursively clone a graph and all of it's children.  
 /// Make the new graph be a child of the specified parent (which may be NULL).
-METHOD SmacqGraph * SmacqGraph::clone(SmacqGraph * newParent) {
-  SmacqGraph * newg;
+METHOD SmacqGraphNode * SmacqGraphNode::clone(SmacqGraphNode * newParent) {
+  SmacqGraphNode * newg;
   
   if (newParent) {
     newg = newParent->new_child(argc, argv);
   } else {
-    newg = new SmacqGraph(argc, argv);
+    newg = new SmacqGraphNode(argc, argv);
   }
  
   FOREACH_CHILD(this, child->clone(newg));
@@ -280,7 +280,7 @@ METHOD SmacqGraph * SmacqGraph::clone(SmacqGraph * newParent) {
 }
 
 /// Remove the specified graph from the list of this graph's parents
-METHOD void SmacqGraph::remove_parent(SmacqGraph * p) {
+METHOD void SmacqGraphNode::remove_parent(SmacqGraphNode * p) {
   if (!p) return;
 
   assert(this->parent.size());
@@ -288,18 +288,7 @@ METHOD void SmacqGraph::remove_parent(SmacqGraph * p) {
   parent.erase(p);
 }
 
-METHOD void SmacqGraph::replace_child(SmacqGraph * oldchild, 
-				      SmacqGraphContainer * newchild) 
-{
-  FOREACH_CHILD(this, {
-      if (child == oldchild) {
-	replace_child(i, j, newchild);
-	return;
-      }
-    });
-}
-
-METHOD void SmacqGraph::replace_child(SmacqGraph * oldchild, 
+METHOD void SmacqGraphNode::replace_child(SmacqGraphNode * oldchild, 
 				      SmacqGraph * newchild) 
 {
   FOREACH_CHILD(this, {
@@ -310,7 +299,18 @@ METHOD void SmacqGraph::replace_child(SmacqGraph * oldchild,
     });
 }
 
-METHOD void SmacqGraph::replace_child(int i, int j, SmacqGraphContainer * newchild) {
+METHOD void SmacqGraphNode::replace_child(SmacqGraphNode * oldchild, 
+				      SmacqGraphNode * newchild) 
+{
+  FOREACH_CHILD(this, {
+      if (child == oldchild) {
+	replace_child(i, j, newchild);
+	return;
+      }
+    });
+}
+
+METHOD void SmacqGraphNode::replace_child(int i, int j, SmacqGraph * newchild) {
   // Remove old child
   remove_child_bynum(i,j);
 
@@ -320,7 +320,7 @@ METHOD void SmacqGraph::replace_child(int i, int j, SmacqGraphContainer * newchi
   }
 }
 
-METHOD void SmacqGraph::replace_child(int i, int j, SmacqGraph * newchild) {
+METHOD void SmacqGraphNode::replace_child(int i, int j, SmacqGraphNode * newchild) {
   // Remove old child
   remove_child_bynum(i,j);
 
@@ -328,7 +328,7 @@ METHOD void SmacqGraph::replace_child(int i, int j, SmacqGraph * newchild) {
   add_child(newchild, i);
 }
 
-METHOD void SmacqGraph::remove_child_bynum(int i, int j) {
+METHOD void SmacqGraphNode::remove_child_bynum(int i, int j) {
   children[i][j]->remove_parent(this);
 
   /*
@@ -342,7 +342,7 @@ METHOD void SmacqGraph::remove_child_bynum(int i, int j) {
   children[i].erase(j);
 }
 
-METHOD void SmacqGraph::remove_child(SmacqGraph_ptr oldchild) {
+METHOD void SmacqGraphNode::remove_child(SmacqGraphNode_ptr oldchild) {
   FOREACH_CHILD(this, {
       if (child == oldchild) {
 	remove_child_bynum(i,j);
@@ -352,12 +352,12 @@ METHOD void SmacqGraph::remove_child(SmacqGraph_ptr oldchild) {
 }
 
 // Remove all children.
-METHOD void SmacqGraph::remove_children() {
+METHOD void SmacqGraphNode::remove_children() {
   RecursiveLock l(children);
 
   // Reference counting will cause orphaned children to shutdown 
   // automatically (after any more scheduled consumptions).
-  //children.foreach( bind(&SmacqGraph::remove_child, this, DEREF(_1)) );
+  //children.foreach( bind(&SmacqGraphNode::remove_child, this, DEREF(_1)) );
   while (children.size()) {
         // Remove all children of last element
 	unsigned int i = children.size() - 1;
@@ -371,7 +371,7 @@ METHOD void SmacqGraph::remove_children() {
 }
 
 
-METHOD void SmacqGraph::print(FILE * fh, int indent) {
+METHOD void SmacqGraphNode::print(FILE * fh, int indent) {
   fprintf(fh, "%p: ", this);
 
   for (int i=0; i<this->argc; i++) {
@@ -385,13 +385,13 @@ METHOD void SmacqGraph::print(FILE * fh, int indent) {
     });
 }
 
-METHOD void SmacqGraphContainer::print(FILE * fh, int indent) {
+METHOD void SmacqGraph::print(FILE * fh, int indent) {
   for (unsigned int i = 0; i < head.size(); i++) {
     head[i]->print(fh, indent);
   }
 }
 
-METHOD std::string SmacqGraph::print_query_tail() {
+METHOD std::string SmacqGraphNode::print_query_tail() {
   std::string s;
   if (argc > 0) {
 	s += argv[0];
@@ -422,10 +422,31 @@ METHOD std::string SmacqGraph::print_query_tail() {
   return s;
 }
 
+METHOD std::string SmacqGraphNode::print_query() {
+  std::string s;
+  std::set<SmacqGraphNode*> list;
+  std::set<SmacqGraphNode*>::iterator i;
+  list_tails(list);
+  bool first = true;
+
+  for(i = list.begin(); i != list.end(); ++i) {
+	if (!first) {
+	  s += " + ";
+	} else {
+	  first = false;
+        }
+		
+	s += (*i)->print_query_tail();
+  }
+  return s;
+}
+
+/// This function is IDENTICAL to SmacqGraphNode::print_query().
+/// So much for polymorphism
 METHOD std::string SmacqGraph::print_query() {
   std::string s;
-  std::set<SmacqGraph*> list;
-  std::set<SmacqGraph*>::iterator i;
+  std::set<SmacqGraphNode*> list;
+  std::set<SmacqGraphNode*>::iterator i;
   list_tails(list);
   bool first = true;
 
@@ -441,32 +462,11 @@ METHOD std::string SmacqGraph::print_query() {
   return s;
 }
 
-/// This function is IDENTICAL to SmacqGraph::print_query().
-/// So much for polymorphism
-METHOD std::string SmacqGraphContainer::print_query() {
-  std::string s;
-  std::set<SmacqGraph*> list;
-  std::set<SmacqGraph*>::iterator i;
-  list_tails(list);
-  bool first = true;
-
-  for(i = list.begin(); i != list.end(); ++i) {
-	if (!first) {
-	  s += " + ";
-	} else {
-	  first = false;
-        }
-		
-	s += (*i)->print_query_tail();
-  }
-  return s;
-}
-
-METHOD void SmacqGraph::add_parent(SmacqGraph * p) {
+METHOD void SmacqGraphNode::add_parent(SmacqGraphNode * p) {
   parent.insert(p);
 }		
 
-METHOD void SmacqGraphContainer::share_children_of(SmacqGraph * g) {
+METHOD void SmacqGraph::share_children_of(SmacqGraphNode * g) {
   RecursiveLock l(g->children);
 
   assert(g->children.size() == 1);
@@ -477,7 +477,7 @@ METHOD void SmacqGraphContainer::share_children_of(SmacqGraph * g) {
   }
 }
 
-METHOD void SmacqGraph::dynamic_insert(SmacqGraph * g, DTS * dts) {
+METHOD void SmacqGraphNode::dynamic_insert(SmacqGraphNode * g, DTS * dts) {
   // Tell parents to use new graph instead of me
   assert(parent.size() > 0);
 
@@ -501,15 +501,15 @@ METHOD void SmacqGraph::dynamic_insert(SmacqGraph * g, DTS * dts) {
 }
 
 /// Modify parent(s) and children to replace myself with the specified graph.
-METHOD void SmacqGraph::replace(SmacqGraphContainer * g) {
+METHOD void SmacqGraphNode::replace(SmacqGraph * g) {
   RecursiveLock l(this);
 
   if (children[0].size()) {
-    SmacqGraphContainer down;
+    SmacqGraph down;
 
     // Get list of tails
-    std::set<SmacqGraph*> list;
-    std::set<SmacqGraph*>::iterator t;
+    std::set<SmacqGraphNode*> list;
+    std::set<SmacqGraphNode*>::iterator t;
     g->list_tails(list);
 
     // Join new graph with my children
@@ -529,7 +529,7 @@ METHOD void SmacqGraph::replace(SmacqGraphContainer * g) {
   }
 }
 
-METHOD SmacqGraph * SmacqGraph::getChildInvariants(DTS* dts, SmacqScheduler* sched, DtsField& field) {
+METHOD SmacqGraphNode * SmacqGraphNode::getChildInvariants(DTS* dts, SmacqScheduler* sched, DtsField& field) {
 	RecursiveLock l(children);
 	if (children.size() == 1 && children[0].size() == 1) {
 		return children[0][0]->getInvariants(dts, sched, field);
@@ -538,7 +538,7 @@ METHOD SmacqGraph * SmacqGraph::getChildInvariants(DTS* dts, SmacqScheduler* sch
  	}
 }
 
-METHOD SmacqGraph * SmacqGraphContainer::getInvariants(DTS * dts, SmacqScheduler * sched, DtsField & field) {
+METHOD SmacqGraphNode * SmacqGraph::getInvariants(DTS * dts, SmacqScheduler * sched, DtsField & field) {
   //XXX haven't implemented invariants across parallel graphs
   if (head.size() == 1) {
 	return head[0]->getInvariants(dts, sched, field);
@@ -546,19 +546,19 @@ METHOD SmacqGraph * SmacqGraphContainer::getInvariants(DTS * dts, SmacqScheduler
   return NULL;
 } 
 
-METHOD SmacqGraph * SmacqGraph::getInvariants(DTS * dts, SmacqScheduler * sched, DtsField & field) {
+METHOD SmacqGraphNode * SmacqGraphNode::getInvariants(DTS * dts, SmacqScheduler * sched, DtsField & field) {
   if (!algebra.stateless) {
     //fprintf(stderr, "%s is not stateless, so stopping invariant search\n", argv[0]);
     return NULL;
   }
 
-  SmacqGraph * more = getChildInvariants(dts, sched, field);
+  SmacqGraphNode * more = getChildInvariants(dts, sched, field);
 
   if (!instance) 
     init_node(dts, sched);
 
   if (!instance->usesOtherFields(field)) {
-    SmacqGraph * result = new SmacqGraph(argc, argv);
+    SmacqGraphNode * result = new SmacqGraphNode(argc, argv);
     if (more) result->add_child(more);
     return result;
   } else {
@@ -567,7 +567,7 @@ METHOD SmacqGraph * SmacqGraph::getInvariants(DTS * dts, SmacqScheduler * sched,
   }
 }
 
-METHOD bool SmacqGraph::live_children() {
+METHOD bool SmacqGraphNode::live_children() {
   FOREACH_CHILD(this, {
       if (child && !child->shutdown.get())
 	return true;
@@ -576,7 +576,7 @@ METHOD bool SmacqGraph::live_children() {
   return false;
 }
 
-METHOD bool SmacqGraph::live_parents() {
+METHOD bool SmacqGraphNode::live_parents() {
   for (unsigned int i = 0; i < parent.size(); i++) {
     if (!parent[i]->shutdown.get()) return true;
   }
@@ -585,8 +585,8 @@ METHOD bool SmacqGraph::live_parents() {
 
 /// The caller should not refer to instance after this method is called.
 /// The call may result in the object being destroyed.
-METHOD void SmacqGraph::do_shutdown(SmacqGraph_ptr f) {
-  // Our argument is a SmacqGraph_ptr in order to keep our reference count up 
+METHOD void SmacqGraphNode::do_shutdown(SmacqGraphNode_ptr f) {
+  // Our argument is a SmacqGraphNode_ptr in order to keep our reference count up 
   // so that when we remove links to us, we don't end up calling our own 
   // destructor while we're still running.
 
@@ -611,12 +611,12 @@ METHOD void SmacqGraph::do_shutdown(SmacqGraph_ptr f) {
   f->remove_children();
 
   // Make an immutable copy
-  const std::vector<SmacqGraph*> parents = f->parent.snapshot();
+  const std::vector<SmacqGraphNode*> parents = f->parent.snapshot();
 
-  std::vector<SmacqGraph*>::const_iterator i;
+  std::vector<SmacqGraphNode*>::const_iterator i;
   for (i = parents.begin(); i != parents.end(); ++i) {
 	// Keep a reference around while we're working on it
-	SmacqGraph_ptr ip = (*i);
+	SmacqGraphNode_ptr ip = (*i);
 
 	//f->log("do_shutdown propagating to parent %p", ip.get());
 	ip->remove_child(f);
@@ -640,12 +640,12 @@ METHOD void SmacqGraph::do_shutdown(SmacqGraph_ptr f) {
 
 /// Decrement the reference count.
 /// If the refcount is 0, then clean-up references and destroy 
-METHOD void intrusive_ptr_release(SmacqGraph *o) { 
+METHOD void intrusive_ptr_release(SmacqGraphNode *o) { 
 	if (! o->refcount.decrement()) {
 		//fprintf(stderr, "shutdown %p because refcount = 0\n", o);
 
 		o->refcount.increment();
-		SmacqGraph::do_shutdown(o);
+		SmacqGraphNode::do_shutdown(o);
 		o->refcount.decrement();
 
 		// do_shutdown() may result in more references, so
@@ -656,20 +656,20 @@ METHOD void intrusive_ptr_release(SmacqGraph *o) {
 	}
 }
 
-METHOD SmacqGraphContainer::SmacqGraphContainer(ThreadSafeMultiSet<SmacqGraph_ptr> & children) {
+METHOD SmacqGraph::SmacqGraph(ThreadSafeMultiSet<SmacqGraphNode_ptr> & children) {
   for (unsigned int i = 0; i < children.size(); ++i) {
 	add_graph(children[i].get());
   }
 }
 
-METHOD void SmacqGraph::seed_produce() {
+METHOD void SmacqGraphNode::seed_produce() {
    SGDEBUG("seed_produce()");
 
    mustProduce.set();
    scheduler->produceq.enqueue(this);
 }  
 
-METHOD void SmacqGraph::log(const char * format, ...) {
+METHOD void SmacqGraphNode::log(const char * format, ...) {
   va_list args;
   char buf[101];
   snprintf(buf, 100, "%20s %10p %10p ", argv ? argv[0] : NULL, this, (void*)pthread_self());
@@ -684,7 +684,7 @@ METHOD void SmacqGraph::log(const char * format, ...) {
   fprintf(stderr, "** %s\n", output.c_str());
 }
  
-METHOD void SmacqGraph::runable(DtsObject d) {
+METHOD void SmacqGraphNode::runable(DtsObject d) {
   SGDEBUG("inputq got %p", d.get());
   bool change = inputq.enqueue(d);
 
@@ -695,7 +695,7 @@ METHOD void SmacqGraph::runable(DtsObject d) {
 }   
 
 /// We are done handling a mustProduce
-METHOD void SmacqGraph::produce_done() {
+METHOD void SmacqGraphNode::produce_done() {
   SGDEBUG("produce_done()");
 
   if (mustProduce.clear() && !inputq.empty()) {
@@ -707,7 +707,7 @@ METHOD void SmacqGraph::produce_done() {
 #include <SmacqModule-interface.h>
 
 /// Setup a graph node based on the given argument vector.
-METHOD bool SmacqGraph::set(int argc, char ** argv) {
+METHOD bool SmacqGraphNode::set(int argc, char ** argv) {
   this->argv = argv;
   this->argc = argc;
   
@@ -720,7 +720,7 @@ METHOD bool SmacqGraph::set(int argc, char ** argv) {
 }
 
 /// Instantiate this node.
-METHOD bool SmacqGraph::load_module() {
+METHOD bool SmacqGraphNode::load_module() {
   struct smacq_functions * modtable;
   
   modtable = (struct smacq_functions*)smacq_find_module(&module, "SMACQ_HOME", "modules", "%s/smacq_%s", "smacq_%s_table", argv[0]);
