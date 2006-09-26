@@ -20,7 +20,6 @@ static struct smacq_options options[] = {
   {"g", {boolean_t:0}, "Show final graph", SMACQ_OPT_TYPE_BOOLEAN},
   {"q", {boolean_t:0}, "Ignore warnings", SMACQ_OPT_TYPE_BOOLEAN},
   {"debug", {boolean_t:0}, "Add verbose diagnostics", SMACQ_OPT_TYPE_BOOLEAN},
-  //{"l", {boolean_t:0}, "Expect datalog input", SMACQ_OPT_TYPE_BOOLEAN},
   END_SMACQ_OPTIONS
 };
 
@@ -51,12 +50,11 @@ void print_field(dts_field_info * i) {
 }
 
 int smacqq(int argc, char ** argv) {
-  smacq_opt datalog, optimize, qfile, showpregraph, showgraph, cpus, showtype, quiet, debug;
+  smacq_opt optimize, qfile, showpregraph, showgraph, cpus, showtype, quiet, debug;
   int qargc;
   char ** qargv;
   DTS dts;
   FILE * fh;
-  SmacqGraphContainer * graphs = NULL;
   DtsObject product;
   program_name = argv[0]; // For libgnu.
 
@@ -76,7 +74,6 @@ int smacqq(int argc, char ** argv) {
   struct smacq_optval optvals[] = {
 		  {"c", &cpus},
 		  {"t", &showtype},
-		  //{"l", &datalog},
 		  {"f", &qfile},
 		  {"O", &optimize},
 		  {"pregraph", &showpregraph},
@@ -101,6 +98,7 @@ int smacqq(int argc, char ** argv) {
   }
 
   SmacqScheduler s;
+  SmacqGraphContainer graphs;
 
   if (debug.boolean_t) {
 	s.setDebug();
@@ -108,7 +106,6 @@ int smacqq(int argc, char ** argv) {
 
   if (qfile.string_t) {
       char * queryline;
-      int qno=1;
 
       queryline = (char*)malloc(MAX_QUERY_SIZE);
 
@@ -117,67 +114,34 @@ int smacqq(int argc, char ** argv) {
 	      return -1;
       }
 
-      if (datalog.boolean_t) {
-	assert(!"Datalog not implemented yet");
-/*
-        if (!strcmp(qfile.string_t, "-")) {
-		graphs = SmacqGraph::ParseDatalog(&dts, &s, &std::cin);
-        } else {
-		std::ifstream is(qfile.string_t);;
-		graphs = SmacqGraph::ParseDatalog(&dts, &s, &is);
-        }
-	if (!graphs) {
-	      fprintf(stderr, "Fatal error at line %d\n", qno);
-	      return(-1);
-	}
-*/
-      } else {
-        if (!strcmp(qfile.string_t, "-")) {
+      if (!strcmp(qfile.string_t, "-")) {
 	      fh = stdin;
-        } else {
+      } else {
 	      fh = fopen(qfile.string_t, "r");
-        }
-        while(fgets(queryline, MAX_QUERY_SIZE, fh)) {
-	      /* Chomp newline */
-	      if (queryline[strlen(queryline)-1] == '\n')
-		      queryline[strlen(queryline)-1] = '\0';
-
-	      SmacqGraphContainer * newgraph = SmacqGraph::newQuery(&dts, &s, 1, &queryline);
-	      if (newgraph == (SmacqGraphContainer*)-1) {
-		 fprintf(stderr, "Fatal parse error\n");
-		 return -1;
-              }	
-	      if (newgraph) {
-      	         if (graphs) {
-		   graphs->add_graph(newgraph, true);
-	         } else {
-		   graphs = newgraph;
-	         }
-	         qno++;
-	      }
-        }
-    }
+      }
+      while(fgets(queryline, MAX_QUERY_SIZE, fh)) {
+	      graphs.addQuery(&dts, &s, queryline);
+      }
 
   } else {
-    graphs = SmacqGraph::newQuery(&dts, &s, qargc, qargv);
+    graphs.addQuery(&dts, &s, argv2string(qargc, qargv));
   }
 
-  if (!graphs) {
-	fprintf(stderr, "Nothing to do (no query given)\n");
-	return -1;
+  if (graphs.empty()) {
+	throw "Nothing to do (no query given)";
   }
 
   if (showpregraph.boolean_t) {
-      graphs->print(stderr, 8);
+      graphs.print(stderr, 8);
   }
 
-  graphs->init(&dts, &s);
+  graphs.init(&dts, &s);
 
   if (showgraph.boolean_t) {
-      graphs->print(stderr, 8);
+      graphs.print(stderr, 8);
   }
 
-  s.seed_produce(graphs);
+  s.seed_produce(&graphs);
 
   s.start_threads(cpus.int_t - 1);
 
