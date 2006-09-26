@@ -1,9 +1,8 @@
 #ifndef SMACQ_UTIL_C
 #define SMACQ_UTIL_C
 
-
 #include <stdlib.h>
-#include <string.h>
+#include <string>
 
 static inline void * memdup(void * buf, int size) {
   void * copy = malloc(size);
@@ -24,6 +23,17 @@ static inline char * strcatn(char * dest, int len, char * src) {
 	return strncat(dest, src, left);
 }
 
+static inline std::string argv2string(int argc, char ** argv) {
+  int i;
+
+  std::string qstr;
+
+  for (i=0; i<argc; i++) {
+    qstr += argv[i];
+    qstr += " ";
+  }
+  return qstr;
+}
 
 
 #endif
