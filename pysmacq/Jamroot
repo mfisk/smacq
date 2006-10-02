@@ -1,0 +1,18 @@
+import python ;
+
+lib ltdl : : <name>ltdl ;
+
+lib boost_python : : <name>boost_python <search>/usr/lib/ 
+;
+
+python-extension pysmacq
+           : ltdl 
+             pysmacq.cpp
+             boost_python
+           : <include>$(BOOST_PARENT_DIRECTORY)
+             <include>../include
+             <include>/usr/include
+             <include>/usr/include/glib-2.0
+             <include>/usr/lib/glib-2.0/include
+             <include>/usr/include/python2.4
+        ;

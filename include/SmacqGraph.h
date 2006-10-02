@@ -8,6 +8,7 @@
 #include <vector>
 #include <string>
 #include <assert.h>
+#include <string>
 
 #define DEREF(x) (bind(&SmacqGraphNode_ptr::get, x))
 
@@ -184,6 +185,7 @@ class SmacqGraphNode : private PthreadMutex {
   friend class SmacqGraph;
 
  public:
+  SmacqGraphNode(std::string);
   SmacqGraphNode(int argc, char ** argv);
 
   ~SmacqGraphNode();

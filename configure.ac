@@ -473,9 +473,10 @@ AC_SUBST(AM_LDFLAGS)
 ## Doit
 ##
 AC_CONFIG_FILES([Makefile
-		 libgnu/Makefile
+                 libgnu/Makefile
                  include/Makefile
                  bin/Makefile
+                 pysmacq/Makefile
                  doc/Makefile
                  libsmacq/Makefile
                  misc/Makefile

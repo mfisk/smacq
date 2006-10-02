@@ -2,6 +2,7 @@
 #include <smacq-internal.h>
 #include <SmacqGraph.h>
 #include <dts.h>
+#include <string>
 
 #define tmalloc(type, number) ((number) ? ((type*)malloc(number*sizeof(type))) : NULL)
 
@@ -701,6 +702,34 @@ void SmacqGraph::addQuery(DTS * tenv, SmacqScheduler * sched, std::string query)
 
   add_graph(Graph, true);
 }
+
+/*
+/// Parse a query and return the SmacqGraph that executes it.
+// This is exactly the same as the above version, except it takes a C++ string rather than argv and
+// argc.  This should eventually replace the above version.
+SmacqGraph * SmacqGraphNode::newQuery(DTS * tenv, SmacqScheduler * sched, std::string query) {
+  char * qstr = (char *)query.c_str(); 
+  SmacqGraph * graph;
+  int res;
+
+  parse_dts = tenv;
+  parse_sched = sched;
+
+  char * oldParsedString = ParsedString;
+  ParsedString = qstr;
+  yysmacql_scan_string(qstr);
+  res = yysmacql_parse();
+  ParsedString = oldParsedString;
+
+  graph = Graph;
+
+  if (res) {
+    return (SmacqGraph*)-1;
+  }
+
+  return graph;
+}
+*/
 
 SmacqGraph * joinlist2graph(joinlist * joinlist, SmacqGraph * where) {
   /*

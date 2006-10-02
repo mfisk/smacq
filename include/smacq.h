@@ -84,7 +84,7 @@ static inline void smacq_log(char * name, enum smacq_log_level level, char * msg
 #include <dts.h>
 #include <dts-types.h>
 #include <util.c>
-#endif __cplusplus
+#endif //__cplusplus
 
 BEGIN_C_DECLS
 /// Parse a query and run to completion

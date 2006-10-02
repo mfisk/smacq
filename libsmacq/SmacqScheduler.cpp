@@ -4,6 +4,7 @@
 #include <SmacqGraph.h>
 #include <ThreadSafe.h>
 #include <pthread.h>
+#include <iostream>
 
 #include <boost/lambda/bind.hpp>
 
@@ -240,8 +241,22 @@ METHOD SmacqGraphNode_ptr SmacqScheduler::pop_lock(runq<SmacqGraphNode_ptr> & q)
 }
 
 METHOD bool SmacqScheduler::done() {
+  int retval;
+
+  //std::cout << "before lock 1 closes\n";
   RecursiveLock l1(consumeq);
+  //std::cout << "after lock 1 closes and before lock 2 closes\n";
   RecursiveLock l3(produceq);
+  //std::cout << "after lock 2 closes\n";
+ 
+  retval = consumeq.empty();
+  //std::cout << "after consumeq.empty" << retval << '\n';
+  retval = retval && produceq.empty();
+  //std::cout << "after produceq.empty" << retval << '\n';
+  retval = retval && Idling.get();
+  //std::cout << "after Idling.get" << retval << '\n';
+  retval = retval == ((int) threads.size() - 1);
+  //std::cout << "after threads.size" << retval <<  '\n';
 
   return(consumeq.empty() && produceq.empty() && Idling.get() == ((int)threads.size() - 1));
 }
@@ -286,13 +301,28 @@ METHOD bool SmacqScheduler::element(DtsObject &dout) {
   }
 }
 
+METHOD DtsObject SmacqScheduler::pyelement() {
+  DtsObject dout = NULL;
+  do_something();
+  outputq.pop(dout);
+  return dout;
+}
+
+METHOD bool SmacqScheduler::pydone() {
+  return done();
+}
+
 /// Process until completion.  Returns true unless there is an error.  Ignores any output.
 METHOD bool SmacqScheduler::busy_loop() {
   DtsObject d;
+  //std::cout << "Starting (inside) busy_loop.\n";
   for (;;) {
 	do_something();
 	while (outputq.pop(d)) { /* Ignore output */ }
-	if (done()) return true;
+	if (done()) {
+        //std::cout << "Ending (inside) busy_loop\n";
+        return true;
+    }
   }
 }
 
@@ -302,6 +332,15 @@ METHOD bool SmacqScheduler::get(DtsObject &dout) {
 	do_something();
 	if (outputq.pop(dout)) return true;
 	if (done()) return false;
+  }
+}
+
+METHOD DtsObject SmacqScheduler::pyget() {
+  DtsObject d;
+  for (;;) {
+    do_something();
+    if (outputq.pop(d)) return d;
+    if (done()) return NULL;
   }
 }
 

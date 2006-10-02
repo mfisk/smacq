@@ -1,0 +1,101 @@
+// Includes {{{
+#include <smacq.h>
+#include <SmacqGraph.h>
+#include <SmacqScheduler.h>
+#include <dts.h>
+#include <DtsObject.h>
+#include <iostream>
+#include <boost/python/module.hpp>
+#include <boost/python/def.hpp>
+#include <boost/python/class.hpp>
+#include <boost/python/manage_new_object.hpp>
+#include <boost/python/return_by_value.hpp>
+#include <boost/python/return_value_policy.hpp>
+#include <boost/python/return_internal_reference.hpp>
+#include <ThreadSafe.h>
+// }}}
+
+int simple_query(char * query) {  // {{{
+    
+    SmacqScheduler s;
+    DTS dts;
+    int retval;
+
+    SmacqGraph graph;
+
+    graph.addQuery(&dts, &s, (std::string)query);
+    graph.print(stderr, 8);
+
+    graph.init(&dts, &s);
+
+    std::cout << "before \n";
+    s.seed_produce(&graph);
+    std::cout << "after \n";
+    s.start_threads(0);
+
+    retval = (! s.busy_loop());
+
+    return retval;
+} // }}}
+
+bool is_dtsobj_null(DtsObject d) { // {{{
+// Since python can't really tell the difference between a NULL and not null object, the check
+// needs to be done in C++ land.
+    if (d == NULL) 
+      return 1;
+    else 
+      return 0;
+} // }}}
+
+// Avoiding collision amongst overloaded operators.   {{{
+void    (SmacqGraph::*add_graph_fptr)(SmacqGraphNode *)    = &SmacqGraph::add_graph;
+void    (SmacqGraph::*join_fptr)(SmacqGraphNode *)    = &SmacqGraph::join;
+void    (SmacqScheduler::*seed_produce_fptr)(SmacqGraph *)   = &SmacqScheduler::seed_produce;
+DtsObject (DTS::*newObject_fptr)(dts_typeid) = &DTS::newObject;
+DtsObject (DtsObject_::*getfield_fptr_s)(char * s, bool) = &DtsObject_::getfield;
+// }}}
+
+// Exposing smacq methods and functions to python {{{
+using namespace boost::python;
+BOOST_PYTHON_MODULE(pysmacq)
+{
+    def("query", simple_query);
+    def("is_dtsobj_null", is_dtsobj_null);
+
+    class_<SmacqGraph>("SmacqGraph", init<>())
+        .def("init", &SmacqGraph::init)
+        .def("add_graph", add_graph_fptr)
+        .def("addQuery", &SmacqGraph::addQuery)
+        .def("join", join_fptr)
+    ;
+
+    class_<DTS>("DTS", init<>())
+        .def("newObject", newObject_fptr)
+    ;
+
+    class_<DtsObject>("DtsObject") //, init<int, dts_typeid>())
+        .def("get", &DtsObject::get,
+            return_internal_reference<>())
+    ;
+
+    class_<DtsObject_>("DtsObject", init<DTS *, int, int>())
+        .def("getfield", getfield_fptr_s)
+        .def("pygetdata", &DtsObject_::pygetdata,
+            return_value_policy<return_by_value>())
+    ;
+
+    class_<SmacqScheduler>("SmacqScheduler",init<>())
+        .def("seed_produce", seed_produce_fptr)
+        .def("start_threads", &SmacqScheduler::start_threads)
+        .def("busy_loop", &SmacqScheduler::busy_loop)
+        .def("get", &SmacqScheduler::pyget)
+        .def("element", &SmacqScheduler::pyelement)
+        .def("done", &SmacqScheduler::pydone)
+    ;
+    
+/*    class_<SmacqGraphNode>("SmacqGraphNode", init<std::string>())
+//        .def("init", &SmacqGraph::init)
+    ;
+*/  
+} // }}} 
+

@@ -1,0 +1,38 @@
+The pysmacq subproject provides a python smacq module that gives access to the smacq API.  pysmacq
+uses the boost.python libraries for C++/python interoperability.  
+
+############################
+Project hierarchy:
+---------------------------
+pysmacq.so - This is the raw pysmacq module that provides access to the smacq API.  This module is
+not meant to be used directly.  Use the smacq.py python module instead.
+
+smacq.py - USE THIS, it is the actual pysmacq library, which nicely wraps all of the smacq API
+functions.
+
+############################
+Dependencies:
+----------------------------
+Boost libraries 1.33 - The boost libraries, which should include boost.python, should be installed.
+
+python and python header files - The python header files are needed by boost.python.  Python version
+2.4 is required. 
+
+############################
+Compiling:
+----------------------------
+Pysmacq should compile along with the rest of smacq by following the smacq instructions.  
+
+Several common problems include:
+Missing header files - check the paths in pysmacq/Makefile.am, particularly the glib and python
+paths.
+
+Python import error "dynamic module does not define init function" - The file name of the python
+module must match (not including the extension), the name in the BOOST_PYTHON_MODULE declaration in
+pysmacq.cpp. 
+
+Python import error - If you get an error when importing that says it can't find some mangled
+looking function name that contains Smacq class names, then that probably means you're giving bad
+flags during the compilation and/or linking process.  The pysmacq module is very finicky about which
+flags you give it.  That is why it uses make rules rather than automake variables to compile.
+
