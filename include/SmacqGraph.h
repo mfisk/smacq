@@ -123,7 +123,7 @@ class SmacqGraph {
 
   /// Recursively clone a graph.  The clone is made a child of
   /// newParent, unless newParent is NULL.
-  SmacqGraph * clone(SmacqGraphNode * newParent);
+  SmacqGraph * clone(SmacqGraphNode * newParent = NULL);
 
   /// Add a clone of a graph to this container
   void add_clone(SmacqGraphNode_ptr x, SmacqGraphNode * newParent);

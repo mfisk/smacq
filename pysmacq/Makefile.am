@@ -1,7 +1,7 @@
 # automake mangles the compilation and linking options, so the pysmacq module needs to be compiled
 # mostly manually.
 
-all-local: pysmacq smacq_py
+all-local: pysmacq 
 
 BUILTINS = -export-dynamic -dlpreopen $(top_builddir)/libsmacq/libsmacq.la 
 

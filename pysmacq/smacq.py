@@ -1,4 +1,4 @@
-from pysmacqq import *
+from pysmacq import *
 import time
 
 # TODO:
@@ -18,34 +18,42 @@ Currently:
     scheduler = None
     running = False
 
-    def __init__(self, query_str, run_now = True):  # {{{
+    def __init__(self, query_str, run_now = False):  # {{{
         if (SmacqQuery.graph is None) and (SmacqQuery.dts is None) and (SmacqQuery.scheduler is None):
             SmacqQuery.scheduler = SmacqScheduler()
             SmacqQuery.dts = DTS()
             SmacqQuery.graph = SmacqGraph()
-            SmacqQuery.graph.addQuery(SmacqQuery.dts, SmacqQuery.scheduler, query_str)
-            SmacqQuery.graph.init(SmacqQuery.dts, SmacqQuery.scheduler)
+
+            self.__running = False
 
             if run_now:
                 self.run()
-        else: 
-            SmacqQuery.graph.addQuery(SmacqQuery.dts, SmacqQuery.scheduler, query_str)
+
+        self.graph = SmacqGraph()
+        self.graph.addQuery(SmacqQuery.dts, SmacqQuery.scheduler, query_str)
     # end SmacqQuery.__init__() }}}
 
     def run(self):  #{{{
-        """Starts the SmacqScheduler.  Must be executed before query can be processed"""
-        if SmacqQuery.running:
-            print "The Smacq Scheduler is already running.  This only needs to be executed once regardless of how many SmacqQuery objects you create."
+        """Adds this query to the main SmacqGraph and runs it.  If the scheduler hasn't already been
+started, then it is started."""
+
+        if self.__running:
+            print "This query is already running."
         else:
-            SmacqQuery.scheduler.seed_produce(SmacqQuery.graph)
-            SmacqQuery.scheduler.start_threads(0)
-            SmacqQuery.running = True
+            SmacqQuery.graph.add_graph(self.graph)            
+            self.__running = True
+            
+            if not SmacqQuery.running: 
+                SmacqQuery.graph.init(SmacqQuery.dts, SmacqQuery.scheduler)
+                SmacqQuery.scheduler.seed_produce(SmacqQuery.graph)
+                SmacqQuery.scheduler.start_threads(0)
+                SmacqQuery.running = True
         
         return  
     # end SmacqQuery.run() }}}
 
     def is_running(self): # {{{
-        return SmacqQuery.running
+        return self.__running
     # }}}
   
     def fetch(self, num_results = 1): # {{{
@@ -109,9 +117,12 @@ no effect. """
         return (results, stop_reason)
 # end SmacqQuery.fetchall() }}} 
 
-    def busyloop(self): # {{{
+    def busy_loop(self): # {{{
         """Runs the query until it is done, but throws out any results"""
-        SmacqQuery.scheduler.busyloop()
+        if self.is_running:
+            SmacqQuery.scheduler.busy_loop()
+        else:
+            raise Exception, "You cannot fetch query results if smacq is not running. Try the run()"
     # end SmacqQuery.busyloop() }}}
 
     def __done(self): # {{{
@@ -128,15 +139,43 @@ no effect. """
         return self.fetch(1)
     # }}}
 
+    # Join methods {{{
+    def join(self, other_query):
+        """Joins this query with the other_query.  
+other_query can be either a string or a SmacqQuery object"""
+        if type(other_query) == str:
+            query2 = SmacqQuery(other_query)
+
+        self.graph.join(other_query.graph)
+
+    def __iadd__(self, query2): 
+        """Joins the query on the righthand side with the query on the left.
+If the right hand side is a query string, it is used to create a new query object first."""
+        
+        self.join(query2)
+        return self
+
+    def __add__(self, query2):
+        """Joins two queries together, and returns a new query as a result"""
+        
+        newQuery = self.clone()
+        newQuery.join(query2)
+
+        return newQuery
+    # end join methods }}}
+
+    def __str__(self):
+        return self.graph.print_query() 
 
 # end SmacqQuery }}}
 
-class SmacqResult:
+class SmacqResult: # {{{
     """Contains the data for a result returned by smacq."""
-    def __init__(self, DtsObject):
+    def __init__(self, DtsObject): #{{{
         self.__data = DtsObject.get()
+    # }}}
 
-    def __getitem__(self, index):
+    def __getitem__(self, index): #{{{
         return self.getfield(index, False).get().getfield('string').get().getdata()
-
+    #}}}
 

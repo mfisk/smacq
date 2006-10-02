@@ -12,6 +12,7 @@
 #include <boost/python/return_by_value.hpp>
 #include <boost/python/return_value_policy.hpp>
 #include <boost/python/return_internal_reference.hpp>
+#include <boost/python/overloads.hpp>
 #include <ThreadSafe.h>
 // }}}
 
@@ -48,8 +49,8 @@ bool is_dtsobj_null(DtsObject d) { // {{{
 } // }}}
 
 // Avoiding collision amongst overloaded operators.   {{{
-void    (SmacqGraph::*add_graph_fptr)(SmacqGraphNode *)    = &SmacqGraph::add_graph;
-void    (SmacqGraph::*join_fptr)(SmacqGraphNode *)    = &SmacqGraph::join;
+void    (SmacqGraph::*add_graph_fptr)(SmacqGraph *, bool)    = &SmacqGraph::add_graph;
+void    (SmacqGraph::*join_fptr)(SmacqGraph *, bool)    = &SmacqGraph::join;
 void    (SmacqScheduler::*seed_produce_fptr)(SmacqGraph *)   = &SmacqScheduler::seed_produce;
 DtsObject (DTS::*newObject_fptr)(dts_typeid) = &DTS::newObject;
 DtsObject (DtsObject_::*getfield_fptr_s)(char * s, bool) = &DtsObject_::getfield;
@@ -57,16 +58,27 @@ DtsObject (DtsObject_::*getfield_fptr_s)(char * s, bool) = &DtsObject_::getfield
 
 // Exposing smacq methods and functions to python {{{
 using namespace boost::python;
+
+BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(SG_join_overloads, join, 1, 2)
+BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(SG_clone_overloads, clone, 0, 1)
+BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(SG_add_graph_overloads, add_graph, 1, 2)
+BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(SG_init_overloads, init, 2, 3)
+
 BOOST_PYTHON_MODULE(pysmacq)
 {
     def("query", simple_query);
     def("is_dtsobj_null", is_dtsobj_null);
 
     class_<SmacqGraph>("SmacqGraph", init<>())
-        .def("init", &SmacqGraph::init)
-        .def("add_graph", add_graph_fptr)
+        .def("init", &SmacqGraph::init, SG_init_overloads())
+        .def("add_graph", add_graph_fptr, SG_add_graph_overloads())
         .def("addQuery", &SmacqGraph::addQuery)
-        .def("join", join_fptr)
+        .def("join", join_fptr, SG_join_overloads())
+        .def("clone", &SmacqGraph::clone, 
+            return_value_policy<manage_new_object>(),
+            SG_clone_overloads())
+        .def("print_query", &SmacqGraph::print_query,
+            return_value_policy<return_by_value>())
     ;
 
     class_<DTS>("DTS", init<>())

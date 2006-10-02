@@ -1,4 +1,4 @@
-SUBDIRS = include libgnu types modules libsmacq bin doc test pysmacq
+SUBDIRS = include libgnu types modules libsmacq bin pysmacq doc test 
 EXTRA_DIST = misc test smacq.spec smacq.list debian
 ACLOCAL_AMFLAGS = -I $(top_srcdir)/libgnu/m4
 
