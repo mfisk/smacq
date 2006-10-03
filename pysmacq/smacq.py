@@ -22,6 +22,7 @@ Currently:
         if (SmacqQuery.graph is None) and (SmacqQuery.dts is None) and (SmacqQuery.scheduler is None):
             SmacqQuery.scheduler = SmacqScheduler()
             SmacqQuery.dts = DTS()
+            SmacqResult.str_field = SmacqQuery.dts.requirefield('string')
             SmacqQuery.graph = SmacqGraph()
 
             self.__running = False
@@ -65,10 +66,11 @@ If the number of results returned is less than requested, then the query has bee
             raise Exception, "You cannot fetch a query result if smacq is not running. Try the run() method."
         query_results = []
         for i in range(num_results):
-            result = SmacqResult( SmacqQuery.scheduler.get())
+            result = SmacqQuery.scheduler.get()
             if result is None:
                 break
             else:
+                print result 
                 query_results.append( SmacqResult(result) )
         
         return query_results
@@ -170,12 +172,23 @@ If the right hand side is a query string, it is used to create a new query objec
 # end SmacqQuery }}}
 
 class SmacqResult: # {{{
+    
+    str_field = None
+
     """Contains the data for a result returned by smacq."""
     def __init__(self, DtsObject): #{{{
         self.__data = DtsObject.get()
+        print self.__data
     # }}}
 
     def __getitem__(self, index): #{{{
-        return self.getfield(index, False).get().getfield('string').get().getdata()
+        base_data = self.__data.getfield(index, False).get()
+        if base_data is None:
+            return None
+        else:
+            return base_data.getfield(SmacqResult.str_field).get().getdata()
     #}}}
 
+    def keys(self):
+        self.__data.prime_all_fields()
+        return self.__data.fieldcache() 

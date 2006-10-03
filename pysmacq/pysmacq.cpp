@@ -53,7 +53,8 @@ void    (SmacqGraph::*add_graph_fptr)(SmacqGraph *, bool)    = &SmacqGraph::add_
 void    (SmacqGraph::*join_fptr)(SmacqGraph *, bool)    = &SmacqGraph::join;
 void    (SmacqScheduler::*seed_produce_fptr)(SmacqGraph *)   = &SmacqScheduler::seed_produce;
 DtsObject (DTS::*newObject_fptr)(dts_typeid) = &DTS::newObject;
-DtsObject (DtsObject_::*getfield_fptr_s)(char * s, bool) = &DtsObject_::getfield;
+DtsObject (DtsObject_::*getfield_fptr_Fo)(DtsField &, bool) = &DtsObject_::getfield;
+DtsObject (DtsObject_::*getfield_fptr_s)(char *, bool) = &DtsObject_::getfield;
 // }}}
 
 // Exposing smacq methods and functions to python {{{
@@ -63,6 +64,8 @@ BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(SG_join_overloads, join, 1, 2)
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(SG_clone_overloads, clone, 0, 1)
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(SG_add_graph_overloads, add_graph, 1, 2)
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(SG_init_overloads, init, 2, 3)
+BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(dtsO_getfield_s_overloads, getfield, 1, 2)
+BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(dtsO_getfield_Fo_overloads, getfield, 1, 2)
 
 BOOST_PYTHON_MODULE(pysmacq)
 {
@@ -83,6 +86,11 @@ BOOST_PYTHON_MODULE(pysmacq)
 
     class_<DTS>("DTS", init<>())
         .def("newObject", newObject_fptr)
+        .def("requirefield", &DTS::requirefield)
+//            return_value_policy<manage_new_object>())
+    ;
+
+    class_<DtsField>("DtsField", init<dts_field_element>())
     ;
 
     class_<DtsObject>("DtsObject") //, init<int, dts_typeid>())
@@ -91,9 +99,12 @@ BOOST_PYTHON_MODULE(pysmacq)
     ;
 
     class_<DtsObject_>("DtsObject", init<DTS *, int, int>())
-        .def("getfield", getfield_fptr_s)
-        .def("pygetdata", &DtsObject_::pygetdata,
+        .def("getfield", getfield_fptr_s, dtsO_getfield_s_overloads())
+        .def("getfield", getfield_fptr_Fo, dtsO_getfield_Fo_overloads())
+        .def("getdata", &DtsObject_::pygetdata,
             return_value_policy<return_by_value>())
+        .def("prime_all_fields", &DtsObject_::prime_all_fields)
+        .def("fieldcache", &DtsObject_::fieldcache)
     ;
 
     class_<SmacqScheduler>("SmacqScheduler",init<>())
