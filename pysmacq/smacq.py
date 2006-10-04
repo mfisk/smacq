@@ -1,4 +1,4 @@
-from pysmacq import *
+import pysmacq
 import time
 
 # TODO:
@@ -10,8 +10,8 @@ class SmacqQuery:  # {{{
 All SmacqQuery objects share the same instantiation of SMACQ.  Redundancies in the query graph are
 eliminated automatically.  
 Currently: 
-    1. Output from all queries are gathered from the same output queue.  This should change in later versions.
-    2.  """
+    1. Output from all queries are gathered from the same output queue.  This is a smacq 
+    issue, not an issue with pysmacq"""
     
     graph = None
     dts = None
@@ -20,17 +20,18 @@ Currently:
 
     def __init__(self, query_str, run_now = False):  # {{{
         if (SmacqQuery.graph is None) and (SmacqQuery.dts is None) and (SmacqQuery.scheduler is None):
-            SmacqQuery.scheduler = SmacqScheduler()
-            SmacqQuery.dts = DTS()
-            SmacqResult.str_field = SmacqQuery.dts.requirefield('string')
-            SmacqQuery.graph = SmacqGraph()
+            SmacqQuery.scheduler = pysmacq.SmacqScheduler()
+            SmacqQuery.dts = pysmacq.DTS()
+            SmacqData.str_field = SmacqQuery.dts.requirefield('string')
+            SmacqData.dts = SmacqQuery.dts
+            SmacqQuery.graph = pysmacq.SmacqGraph()
 
             self.__running = False
 
             if run_now:
                 self.run()
 
-        self.graph = SmacqGraph()
+        self.graph = pysmacq.SmacqGraph()
         self.graph.addQuery(SmacqQuery.dts, SmacqQuery.scheduler, query_str)
     # end SmacqQuery.__init__() }}}
 
@@ -56,32 +57,56 @@ started, then it is started."""
     def is_running(self): # {{{
         return self.__running
     # }}}
-  
+
+# Fetching Methods {{{  
     def fetch(self, num_results = 1): # {{{
-        """Returns num_results SmacqResult objects in a list.  This will wait for results if it
-needs to.  
-If the number of results returned is less than requested, then the query has been completed."""
+        """Returns num_results SmacqData objects in a list.  This will wait for results if it
+    needs to.  If the number of results returned is less than requested, then the 
+    query has been completed."""
 
         if not self.is_running():
             raise Exception, "You cannot fetch a query result if smacq is not running. Try the run() method."
         query_results = []
+
         for i in range(num_results):
             result = SmacqQuery.scheduler.get()
-            if result is None:
+            if pysmacq.is_dtsobj_null(result):
                 break
             else:
                 print result 
-                query_results.append( SmacqResult(result) )
+                query_results.append( SmacqData(result) )
         
         return query_results
 # end SmacqQuery::fetch }}}
 
+    def fetch_nb(self, num_results = 1): # {{{
+        """Performs a non-blocking fetch of num_results data items.
+    To test if the query is done, check the value of done().  If done is True, then a fetchall
+    performed afterwards should return the remaining results without blocking."""
+
+        if not self.is_running():
+            raise Exception, "You cannot fetch a query result if smacq is not running. Try the run() method."
+        
+        query_results = []
+    
+        for i in range(num_results):
+            result = SmacqQuery.scheduler.element()
+         
+            if pysmacq.is_dtsobj_null(result):
+                break
+            else:
+                query_results.append( SmacqData(result) ) 
+    
+        return query_results
+    # end SmacqQuery.fetch_nb() }}}
+ 
     def fetchall(self, result_limit = None, time_limit = None): # {{{
         """Fetches all results produced by the current query.  Note that querying an unbounded
-data source will cause the function to never return or run out of memory.  Returns a tuple
-containing the list of results and the reason it returned. 
-Two limiting parameters are provided: result_limit and time_limit (in seconds).  If either limit is reached, the query will return it's results immediately. If either limit is set to None (default) or zero, it has
-no effect. """
+    data source will cause the function to never return or run out of memory.  Returns a tuple
+    containing the list of results and the reason it returned. 
+    Two limiting parameters are provided: result_limit and time_limit (in seconds).  
+    If either limit is reached, the query will return it's results immediately. If either limit 
+    is set to None (default) or zero, it has no effect. """
 
         if (not self.is_running()):
             raise Exception, "You cannot fetch query results if smacq is not running. Try the run()"
@@ -110,11 +135,11 @@ no effect. """
 
             result = SmacqQuery.scheduler.get()
 
-            if result is None:
+            if pysmacq.is_dtsobj_null(result):
                 stop_reason = "done"
                 break
             
-            results.append( SmacqResult(result) )
+            results.append( SmacqData(result) )
             
         return (results, stop_reason)
 # end SmacqQuery.fetchall() }}} 
@@ -132,6 +157,7 @@ no effect. """
         """Returns True if the query is done processing, False otherwise"""
         return SmacqQuery.scheduler.pydone()
     # end SmacqQuery.done() }}}
+#end Fetching methods }}}
 
     # Iterator methods {{{
     def __iter__(self): 
@@ -166,16 +192,18 @@ If the right hand side is a query string, it is used to create a new query objec
         return newQuery
     # end join methods }}}
 
-    def __str__(self):
+    def __str__(self): # {{{
         return self.graph.print_query() 
+    # }}}
 
 # end SmacqQuery }}}
 
-class SmacqResult: # {{{
+class SmacqData: # {{{
+    """Contains the data for a result returned by smacq."""
     
     str_field = None
+    dts = None
 
-    """Contains the data for a result returned by smacq."""
     def __init__(self, DtsObject): #{{{
         self.__data = DtsObject.get()
         print self.__data
@@ -186,9 +214,37 @@ class SmacqResult: # {{{
         if base_data is None:
             return None
         else:
-            return base_data.getfield(SmacqResult.str_field).get().getdata()
+            return base_data.getfield(SmacqData.str_field).get().getdata()
     #}}}
 
-    def keys(self):
+    def keys(self, field_refs = False): #{{{
+        """Returns a list of field names for this object.  
+    If field_refs is True, DtsField objects are returned instead.  DtsField objects can be used instead
+    of field name strings for SmacqData field lookups, and are signifigantly faster.  The DtsField
+    objects will be returned in the same order as the field names."""
+
         self.__data.prime_all_fields()
-        return self.__data.fieldcache() 
+        fields = self.__data.fieldcache() 
+        field_names = [] 
+        
+        field_nums = []
+        for i in range( len(fields) ):
+            if fields[i].get() is not None:
+                field_nums.append(i)
+
+        if field_refs:
+            # Make a list of DtsField objects
+            for i in field_nums:
+                field_names.append( pysmacq.DtsField(i) )
+
+        else:
+            # Make a list of field names
+            field_getname = SmacqData.dts.field_getname
+    
+            for i in field_nums:
+                field_names.append( field_getname( pysmacq.DtsField(i) ) )
+        
+        return field_names
+    # end SmacqData.keys() }}}
+
+# end SmacqData }}}

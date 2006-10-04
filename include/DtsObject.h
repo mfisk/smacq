@@ -126,7 +126,7 @@ class DtsObject_ : public PthreadMutex {
 	void prime_field(dts_field_info*);
 
 	/// Get a copy of the entire field cache
-        std::vector<DtsObject> fieldcache() {
+    std::vector<DtsObject> fieldcache() {
 	   return fields.snapshot();
 	}
 
@@ -207,7 +207,7 @@ class DtsObject_ : public PthreadMutex {
 	int free_data; /* boolean */
 
 	/* Cache of received messages */
-        ThreadSafeDynamicArray<DtsObject> fields;
+    ThreadSafeDynamicArray<DtsObject> fields;
 
 	/* data description */
 	int type;

@@ -5,6 +5,7 @@
 #include <dts.h>
 #include <DtsObject.h>
 #include <iostream>
+#include <vector>
 #include <boost/python/module.hpp>
 #include <boost/python/def.hpp>
 #include <boost/python/class.hpp>
@@ -13,6 +14,7 @@
 #include <boost/python/return_value_policy.hpp>
 #include <boost/python/return_internal_reference.hpp>
 #include <boost/python/overloads.hpp>
+#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 #include <ThreadSafe.h>
 // }}}
 
@@ -72,6 +74,14 @@ BOOST_PYTHON_MODULE(pysmacq)
     def("query", simple_query);
     def("is_dtsobj_null", is_dtsobj_null);
 
+    class_<std::vector<int> >("Ivec")
+        .def(vector_indexing_suite<std::vector<int> >())
+    ;
+
+    class_<std::vector<DtsObject> >("DtsObject_vec") 
+        .def(vector_indexing_suite<std::vector<DtsObject> >())
+    ;
+
     class_<SmacqGraph>("SmacqGraph", init<>())
         .def("init", &SmacqGraph::init, SG_init_overloads())
         .def("add_graph", add_graph_fptr, SG_add_graph_overloads())
@@ -87,6 +97,7 @@ BOOST_PYTHON_MODULE(pysmacq)
     class_<DTS>("DTS", init<>())
         .def("newObject", newObject_fptr)
         .def("requirefield", &DTS::requirefield)
+        .def("field_getname", &DTS::pyfield_getname)
 //            return_value_policy<manage_new_object>())
     ;
 

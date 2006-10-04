@@ -13,6 +13,7 @@
 #include <dts-module.h>
 #include <DtsField.h>
 #include <ThreadSafe.h>
+#include <string>
 
 #ifdef USE_GASNET
 # include <smacq_gasnet.h>
@@ -122,6 +123,11 @@ class DTS : PthreadMutex {
 
   	/// Return the name of the specified field.
   char * field_getname(DtsField &f);
+
+  /// A boost.python happy version 
+  std::string pyfield_getname(DtsField &f) {
+    return field_getname(f);
+  }
 
   	/// Return the name of the specified field.
   char * field_getname(dts_field_element f) { return(fields_bynum[f]); }
