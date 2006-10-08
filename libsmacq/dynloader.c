@@ -5,35 +5,6 @@
 #include <assert.h>
 #include <string.h>
 
-// Loads the module named sym by searching the list of preloaded symbols.
-// This is only needed for when smacq is packaged as a python module, because the
-// self gets mangled somehow in the process.  
-// This should only be a temporary fix, either the mangling of "self" needs to be
-// figured out and corrected, or the way modules are loaded should be changed.
-static void * smacq_try_manual_findsym(char * format, char * sym) {
-    char trysym[1024];
-    // This definition is very finicky.  If this function seg faults, it's probably
-    // because this external variable is no longer being declared/linked correctly.
-    extern const lt_dlsymlist lt_preloaded_symbols[];
-    int i = 0;
-    
-    snprintf(trysym, 1023, format, sym);
-    
-    // The last element in the list has a name and address pointer of 0
-    while (lt_preloaded_symbols[i].name != 0 || lt_preloaded_symbols[i].address != 0) {
-//        printf("Looking for module %s, looking at %s.\n", trysym, lt_preloaded_symbols[i].name);
-        if (!strcmp(lt_preloaded_symbols[i].name,trysym) ) {
-//            printf("Found module: %s using ghetto_loader\n", trysym);
-            return lt_preloaded_symbols[i].address;
-        }
-        i++;
-    }
-    
-//    printf("Could not find module: %s using ghetto_loader\n", trysym);
-    return NULL;
-
-}
-
 static void * smacq_try_dlfindsym(lt_dlhandle gmodule, char * format, char * sym) {
     char trysym[1024];
     void * modtable;
@@ -78,8 +49,6 @@ void * smacq_find_module(lt_dlhandle* gmodulep, char * envvar, char * envdefault
     // Try loading from self using the manual loader.
     if (modtable) {
         return modtable;
-    } else {
-        modtable = smacq_try_manual_findsym(symformat, sym);
     }
 
     if (modtable) {
