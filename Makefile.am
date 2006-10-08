@@ -26,3 +26,7 @@ tarball: all
 deb.real: 
 	cp -pr $(top_srcdir)/debian .
 	fakeroot make -f debian/rules top_srcdir=$(top_srcdir)/ binary
+
+python:
+	PYTHONPATH=pysmacq/.libs:$(top_srcdir)/pysmacq $(PYTHON)
+
