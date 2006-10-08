@@ -19,21 +19,6 @@ typedef void * DtsObject;
 # define SMDEBUG(x)
 #endif
 
-/*
-/// Converts arbitrary Dtsdata to a tuple of ints.  
-// Python doesn't really like getting strings that are not null terminated,
-PyObject* Dtsdata_to_tuple(unsigned char * dts_data, int len) {
-  int i;
-  PyObject * o;
-
-  tuple = PyTuple_New(len);
-  for (i = 0; i < len; i++) 
-    o = PyInt_FromLong((long)dts_data[i]);
-    // Since we're about to steal a reference from o, we must manually increment its reference
-    // count
-    Py_INCREF(o)
-*/
-
 SMDEBUG(static int DtsObject_count = 0;)
 SMDEBUG(static int DtsObject_virtual_count = 0;)
 

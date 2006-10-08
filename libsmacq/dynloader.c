@@ -44,13 +44,9 @@ void * smacq_find_module(lt_dlhandle* gmodulep, char * envvar, char * envdefault
     	modtable = smacq_try_dlfindsym(self, symformat, sym);
     }
 
-//    printf("dlfindsym found %p\n", modtable);
+    //printf("dlfindsym found %p\n", modtable);
 
     // Try loading from self using the manual loader.
-    if (modtable) {
-        return modtable;
-    }
-
     if (modtable) {
 	return modtable;
     } else {
@@ -69,12 +65,11 @@ void * smacq_find_module(lt_dlhandle* gmodulep, char * envvar, char * envdefault
            return NULL;
         }
 
-   // 	modtable = smacq_try_dlfindsym(*gmodulep, symformat, sym);
+    	modtable = smacq_try_dlfindsym(*gmodulep, symformat, sym);
 
-
-    if (modtable) {
-        return modtable;
-    }
+        if (modtable) {
+            return modtable;
+        }
     }
     
     fprintf(stderr, "Error: unable to find symbol %s\n", sym);
