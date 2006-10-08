@@ -69,7 +69,7 @@ BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(SG_init_overloads, init, 2, 3)
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(dtsO_getfield_s_overloads, getfield, 1, 2)
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(dtsO_getfield_Fo_overloads, getfield, 1, 2)
 
-BOOST_PYTHON_MODULE(pysmacq)
+BOOST_PYTHON_MODULE(libpysmacq)
 {
     def("query", simple_query);
     def("is_dtsobj_null", is_dtsobj_null);

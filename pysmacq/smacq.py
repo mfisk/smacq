@@ -1,4 +1,4 @@
-import pysmacq
+import libpysmacq
 import time
 
 # TODO:
@@ -20,18 +20,18 @@ Currently:
 
     def __init__(self, query_str, run_now = False):  # {{{
         if (SmacqQuery.graph is None) and (SmacqQuery.dts is None) and (SmacqQuery.scheduler is None):
-            SmacqQuery.scheduler = pysmacq.SmacqScheduler()
-            SmacqQuery.dts = pysmacq.DTS()
+            SmacqQuery.scheduler = libpysmacq.SmacqScheduler()
+            SmacqQuery.dts = libpysmacq.DTS()
             SmacqData.str_field = SmacqQuery.dts.requirefield('string')
             SmacqData.dts = SmacqQuery.dts
-            SmacqQuery.graph = pysmacq.SmacqGraph()
+            SmacqQuery.graph = libpysmacq.SmacqGraph()
 
             self.__running = False
 
             if run_now:
                 self.run()
 
-        self.graph = pysmacq.SmacqGraph()
+        self.graph = libpysmacq.SmacqGraph()
         self.graph.addQuery(SmacqQuery.dts, SmacqQuery.scheduler, query_str)
     # end SmacqQuery.__init__() }}}
 
@@ -70,7 +70,7 @@ started, then it is started."""
 
         for i in range(num_results):
             result = SmacqQuery.scheduler.get()
-            if pysmacq.is_dtsobj_null(result):
+            if libpysmacq.is_dtsobj_null(result):
                 break
             else:
                 print result 
@@ -92,7 +92,7 @@ started, then it is started."""
         for i in range(num_results):
             result = SmacqQuery.scheduler.element()
          
-            if pysmacq.is_dtsobj_null(result):
+            if libpysmacq.is_dtsobj_null(result):
                 break
             else:
                 query_results.append( SmacqData(result) ) 
@@ -135,7 +135,7 @@ started, then it is started."""
 
             result = SmacqQuery.scheduler.get()
 
-            if pysmacq.is_dtsobj_null(result):
+            if libpysmacq.is_dtsobj_null(result):
                 stop_reason = "done"
                 break
             
@@ -235,14 +235,14 @@ class SmacqData: # {{{
         if field_refs:
             # Make a list of DtsField objects
             for i in field_nums:
-                field_names.append( pysmacq.DtsField(i) )
+                field_names.append( libpysmacq.DtsField(i) )
 
         else:
             # Make a list of field names
             field_getname = SmacqData.dts.field_getname
     
             for i in field_nums:
-                field_names.append( field_getname( pysmacq.DtsField(i) ) )
+                field_names.append( field_getname( libpysmacq.DtsField(i) ) )
         
         return field_names
     # end SmacqData.keys() }}}
