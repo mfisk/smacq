@@ -109,7 +109,7 @@ BOOST_PYTHON_MODULE(libpysmacq)
             return_internal_reference<>())
     ;
 
-    class_<DtsObject_>("DtsObject", init<DTS *, int, int>())
+    class_<DtsObject_>("DtsObject_", init<DTS *, int, int>())
         .def("getfield", getfield_fptr_s, dtsO_getfield_s_overloads())
         .def("getfield", getfield_fptr_Fo, dtsO_getfield_Fo_overloads())
         .def("getdata", &DtsObject_::pygetdata,
@@ -122,9 +122,9 @@ BOOST_PYTHON_MODULE(libpysmacq)
         .def("seed_produce", seed_produce_fptr)
         .def("start_threads", &SmacqScheduler::start_threads)
         .def("busy_loop", &SmacqScheduler::busy_loop)
-        .def("get", &SmacqScheduler::pyget)
+        .def("get", &SmacqScheduler::get)
         .def("element", &SmacqScheduler::pyelement)
-        .def("done", &SmacqScheduler::pydone)
+        .def("done", &SmacqScheduler::done)
     ;
     
 /*    class_<SmacqGraphNode>("SmacqGraphNode", init<std::string>())
