@@ -354,7 +354,7 @@ print ' '.join(res)
 EOF
 fi
 
-if test "X$with_python" = "Xauto"; then
+if test "X$with_python" != "Xno"; then
 	CFLAGS_PYTHON=`$PYTHON $PYCONF CFLAGS 2>&5`
 	if test $? -ne 0; then
             AC_MSG_NOTICE([Error configuring Python; building without])
@@ -370,7 +370,7 @@ if test "X$with_python" = "Xyes"; then
 	CFLAGS_PYTHON=`$PYTHON $PYCONF CFLAGS 2>&5`
 	if test $? -ne 0; then
 	    rm -f $PYCONF
-	    if test "X$with_python" = "auto"; then
+	    if test "X$with_python" = "Xauto"; then
 		AC_MSG_FAILURE([Python config script failed])
 	    fi
 	fi
@@ -423,8 +423,16 @@ if test "X$with_python" = "Xyes"; then
 	fi
 	AC_MSG_RESULT($LIBINST_PYTHON)
 
+	AC_MSG_CHECKING([LDSHARED_PYTHON])
+	LDSHARED_PYTHON=`$PYTHON $PYCONF LDSHARED | cut -d\  -f2-`
+	if test $? -ne 0; then
+		rm -f $PYCONF
+		AC_MSG_FAILURE([Python config script failed])
+	fi
+	AC_MSG_RESULT($LDSHARED_PYTHON)
+
 	EXTRA_STATIC_MODULES="${EXTRA_STATIC_MODULES} libsmacq_python.la"
-	OPTIONAL_TESTS="${OPTIONAL_TESTS} python.test"
+	OPTIONAL_TESTS="${OPTIONAL_TESTS} python.test.sh pysmacq.test.sh"
 
 	rm -f $PYCONF
 fi
@@ -433,7 +441,7 @@ AC_SUBST(CFLAGS_PYTHON)
 AC_SUBST(LDFLAGS_PYTHON)
 AC_SUBST(LIBS_PYTHON)
 AC_SUBST(LIBINST_PYTHON)
-AC_SUBST(PYTHON_LIBADD)
+AC_SUBST(LDSHARED_PYTHON)
 AC_SUBST(FRAMEWORKADD) # Apple Frameworks aren't propagated by libtool
 
 AM_CONDITIONAL(USE_PYTHON, test x$with_python = xyes)
