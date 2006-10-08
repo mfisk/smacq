@@ -1,5 +1,5 @@
 /*
- * $Id: patricia.c,v 1.3 2004/11/15 00:40:58 mfisk Exp $
+ * $Id: patricia.c,v 1.4 2006/07/09 05:58:48 mfisk Exp $
  * Dave Plonka <plonka@doit.wisc.edu>
  *
  * This product includes software developed by the University of Michigan,
@@ -27,6 +27,7 @@
 #include <arpa/inet.h> /* for inet_addr */
 
 #include "patricia.h"
+#include "config.h"
 
 #define Delete free
 
