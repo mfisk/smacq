@@ -47,7 +47,7 @@ SMACQ can build with the following optional functionality:
 OS            |	glib2>=2.4	boost		libpcap		zlib		
               |	bz2		gcc	gmake	libgda		libltdl
 --------------+--------------------------------------------------------------
-DarwinPorts   |	glib2-devel	boost		libpcap	
+DarwinPorts   |	glib2-devel	boost +python	libpcap	
               |					libgda
 Debian        |	libglib2.0-dev	libboost-dev	libpcap-dev	zlib1g-dev
               |	libbz2-dev	g++		libgda2-dev	libltdl3-dev
