@@ -5,7 +5,7 @@
 #include <string.h>
 #define MAX_STR_CONST 1024
 
-char string_buf[MAX_STR_CONST];
+static char string_buf[MAX_STR_CONST];
 char *yystring;
 #define yysmacql__scan_string yysmacql_scan_string
 #define yy_scan_string yysmacql_scan_string
