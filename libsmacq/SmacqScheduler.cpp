@@ -308,34 +308,16 @@ METHOD DtsObject SmacqScheduler::pyelement() {
   return dout;
 }
 
-METHOD bool SmacqScheduler::pydone() {
-  return done();
-}
-
 /// Process until completion.  Returns true unless there is an error.  Ignores any output.
 METHOD bool SmacqScheduler::busy_loop() {
   DtsObject d;
   //std::cout << "Starting (inside) busy_loop.\n";
-  for (;;) {
-	do_something();
-	while (outputq.pop(d)) { /* Ignore output */ }
-	if (done()) {
-        //std::cout << "Ending (inside) busy_loop\n";
-        return true;
-    }
-  }
+  while (get()) {;}
+
+  return true;
 }
 
-METHOD bool SmacqScheduler::get(DtsObject &dout) {
-  dout = NULL;
-  for (;;) {
-	do_something();
-	if (outputq.pop(dout)) return true;
-	if (done()) return false;
-  }
-}
-
-METHOD DtsObject SmacqScheduler::pyget() {
+METHOD DtsObject SmacqScheduler::get() {
   DtsObject d;
   for (;;) {
     do_something();
@@ -343,6 +325,7 @@ METHOD DtsObject SmacqScheduler::pyget() {
     if (done()) return NULL;
   }
 }
+
 
 METHOD bool SmacqScheduler::decide_one(SmacqGraphNode * g, DtsObject din) {
 	return (decide(g, din) == SMACQ_PASS);

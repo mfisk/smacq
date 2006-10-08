@@ -33,12 +33,9 @@ public:
   /// Queue an object for input to the specified graph.
   void input(SmacqGraph * g, DtsObject din);
 
-  /// Run until an output object is ready.
-  bool get(DtsObject &dout);
-
-  /// Created for the smacq for python.
   /// Run until an output object is ready, and return that object.
-  DtsObject pyget();
+  /// Return NULL if execution completes without producing object.
+  DtsObject get();
 
   /// Process a single action or object
   smacq_result decide(SmacqGraphNode *, DtsObject din);
@@ -63,9 +60,8 @@ public:
   /// Process a single action or object, if output is produced, return that output.
   DtsObject pyelement();
 
-  /// Created for the python smacq library
   /// Return true if the query is done processing
-  bool pydone();
+  bool done();
 
   /// Create some threads to process the current workload.
   /// They will exit when there is nothing to do.
@@ -98,7 +94,6 @@ public:
 
   void join_threads();
   void thread_loop();
-  bool done();
 
   friend void * iterative_scheduler_thread_start(void * arg) {
         SmacqScheduler * s = (SmacqScheduler*)arg;
