@@ -38,7 +38,8 @@ smacq_result ndjoinModule::consume(DtsObject datum, int & outchan) {
 
   while (1) {
     while (!j->next_dobj) {
-      if (!sched->get(j->next_dobj)) {
+      j->next_dobj = sched->get();
+      if (!j->next_dobj) {
 	return SMACQ_END;
       }
 
