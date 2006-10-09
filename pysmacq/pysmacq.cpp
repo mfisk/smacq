@@ -41,15 +41,6 @@ int simple_query(char * query) {  // {{{
     return retval;
 } // }}}
 
-bool is_dtsobj_null(DtsObject d) { // {{{
-// Since python can't really tell the difference between a NULL and not null object, the check
-// needs to be done in C++ land.
-    if (d == NULL) 
-      return 1;
-    else 
-      return 0;
-} // }}}
-
 // Avoiding collision amongst overloaded operators.   {{{
 void    (SmacqGraph::*add_graph_fptr)(SmacqGraph *, bool)    = &SmacqGraph::add_graph;
 void    (SmacqGraph::*join_fptr)(SmacqGraph *, bool)    = &SmacqGraph::join;
@@ -72,7 +63,6 @@ BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(dtsO_getfield_Fo_overloads, getfield, 1, 
 BOOST_PYTHON_MODULE(libpysmacq)
 {
     def("query", simple_query);
-    def("is_dtsobj_null", is_dtsobj_null);
 
     class_<std::vector<int> >("Ivec")
         .def(vector_indexing_suite<std::vector<int> >())

@@ -52,10 +52,10 @@ started, then it is started."""
 
         for i in range(num_results):
             result = self.scheduler.get()
-            if libpysmacq.is_dtsobj_null(result):
-                break
-            else:
+            if result:
                 query_results.append( result )
+            else:
+                break
         
         return query_results
 
@@ -70,10 +70,10 @@ started, then it is started."""
         for i in range(num_results):
             result = self.scheduler.element()
          
-            if libpysmacq.is_dtsobj_null(result):
-                break
-            else:
+            if result:
                 query_results.append( result ) 
+            else:
+                break
     
         return query_results
  
@@ -108,7 +108,7 @@ started, then it is started."""
 
             result = self.scheduler.get()
 
-            if libpysmacq.is_dtsobj_null(result):
+            if not result:
                 stop_reason = "done"
                 break
             
@@ -135,10 +135,10 @@ started, then it is started."""
 
     def next(self): 
 	x = self.scheduler.get()
-	if libpysmacq.is_dtsobj_null(x):
-		raise StopIteration
-	else:
+	if x:
 		return x
+	else:
+		raise StopIteration
 	
     # }}}
 
