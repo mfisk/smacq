@@ -94,7 +94,7 @@ having|HAVING	return HAVING;
 
 {id}	{ 
 			yystring = strdup((char *)yytext); 
-			return YYID; 
+			return YYIDSTR; 
 	}
 
 {capid}	{ 

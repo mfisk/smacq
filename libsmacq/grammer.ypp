@@ -27,7 +27,7 @@
 %token AS
 %token HAVING
 %token UNTIL
-%token YYSTRING YYID YYNUMBER YYCAPID
+%token YYSTRING YYIDSTR YYNUMBER YYCAPID
 %token YYNEQ YYLEQ YYGEQ
 %token YYSTOP 
 
@@ -82,7 +82,7 @@ number:	YYNUMBER 	{ $$ = yystring; }
 string:	YYSTRING 	{ $$ = yystring; }
 	;
 
-id:	YYID 		{ $$ = yystring; }
+id:	YYIDSTR 		{ $$ = yystring; }
 	| YYCAPID 	{ $$ = yystring; }
         | YYOR          { $$ = "or"; }
         | YYAND         { $$ = "and"; }
