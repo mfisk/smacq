@@ -61,7 +61,7 @@ void * smacq_find_module(lt_dlhandle* gmodulep, char * envvar, char * envdefault
         //printf("Before: %p\n", *gmodulep);
         *gmodulep = lt_dlopen(modfile);
         if (! *gmodulep ) {
-           fprintf(stderr, "%s (%s,%s,%s->%s) (Need to set SMACQ_HOME?, Yo)\n", sym, modformat, path, sym, modfile);
+           //fprintf(stderr, "%s (%s,%s,%s->%s) (Need to set SMACQ_HOME?, Yo)\n", sym, modformat, path, sym, modfile);
            return NULL;
         }
 
