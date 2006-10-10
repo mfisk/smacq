@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
-#include <libgda/libgda.h>
+#include <smacq-gda.h>
 #include <string>
 #include <SmacqModule.h>
 
@@ -39,23 +39,6 @@ static struct smacq_options options[] = {
   {"p", {string_t:NULL}, "Password", SMACQ_OPT_TYPE_STRING},
   END_SMACQ_OPTIONS
 };
-
-static void print_gda_errors(GdaConnection * conn) {
-  GList *list;
-  GList *node;
-  GdaError *error;
-  
-  list = (GList *) gda_connection_get_errors (conn);
-  
-  for (node = g_list_first (list); node != NULL; node = g_list_next (node))
-    {
-      error = (GdaError *) node->data;
-      fprintf (stderr, "Error no.: %ld\t", gda_error_get_number (error));
-      fprintf (stderr, "desc: %s\t", gda_error_get_description (error));
-      fprintf (stderr, "source: %s\t", gda_error_get_source (error));
-      fprintf (stderr, "sqlstate: %s\n", gda_error_get_sqlstate (error));
-    }
-}
 
 inline void sqlqueryModule::startClause() {
 	if (where.length()) where += " AND ";
@@ -172,11 +155,11 @@ sqlqueryModule::sqlqueryModule(struct SmacqModule::smacq_init * context)
   gda_client = gda_client_new();
   if (source.string_t) {
   	gda_connection = 
-    		gda_client_open_connection(gda_client, source.string_t, username.string_t, password.string_t, GDA_CONNECTION_OPTIONS_READ_ONLY);
+    		gda_client_open_connection(gda_client, source.string_t, username.string_t, password.string_t, GDA_CONNECTION_OPTIONS_READ_ONLY, NULL);
   } else if (cnc.string_t) {
   	assert(provider.string_t);
   	gda_connection = 
-    		gda_client_open_connection_from_string(gda_client, provider.string_t, cnc.string_t, GDA_CONNECTION_OPTIONS_READ_ONLY);
+    		gda_client_open_connection_from_string(gda_client, provider.string_t, cnc.string_t, GDA_CONNECTION_OPTIONS_READ_ONLY, NULL);
   } else {
 	fprintf(stderr, "sqlquery: must specify connection or source option\n");
   }
@@ -194,10 +177,11 @@ sqlqueryModule::sqlqueryModule(struct SmacqModule::smacq_init * context)
   schemastr += argv[0];
   schemastr += " limit 1";
   gda_command_set_text(gda_cmd, schemastr.c_str());
-  schema = gda_connection_execute_single_command(gda_connection, gda_cmd, NULL);
-  if (schema == NULL) {
-    	fprintf(stderr, "Error executing SQL command: %s\n\t", gda_command_get_text(gda_cmd));
-    	print_gda_errors(gda_connection);
+  GError * gerr = NULL;
+  schema = gda_connection_execute_single_command(gda_connection, gda_cmd, NULL, &gerr);
+  if (gerr) {
+    	fprintf(stderr, "Error executing SQL command: %s\n\t%s\n", gda_command_get_text(gda_cmd), gerr->message);
+	g_error_free(gerr);
   }
   num_rows = gda_data_model_get_n_rows(schema);
   if (num_rows > 0) {
@@ -235,10 +219,11 @@ sqlqueryModule::sqlqueryModule(struct SmacqModule::smacq_init * context)
   fprintf(stderr, "sqlquery: %s\n", querystr.c_str());
   
   gda_command_set_text(gda_cmd, querystr.c_str());
-  results = gda_connection_execute_single_command(gda_connection, gda_cmd, NULL);
-  if (results == NULL) {
-    	fprintf(stderr, "Error executing SQL command: %s\n\t", gda_command_get_text(gda_cmd));
-    	print_gda_errors(gda_connection);
+  gerr = NULL;
+  results = gda_connection_execute_single_command(gda_connection, gda_cmd, NULL, &gerr);
+  if (gerr) {
+    	fprintf(stderr, "Error executing SQL command: %s\n\t%s\n", gda_command_get_text(gda_cmd), gerr->message);
+	g_error_free(gerr);
   }
   num_rows = gda_data_model_get_n_rows(results);
 

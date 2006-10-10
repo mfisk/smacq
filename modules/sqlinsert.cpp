@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
-#include <libgda/libgda.h>
 #include <string>
+#include <smacq-gda.h>
 
 #include <SmacqModule.h>
 #define BUFSIZE 8192
@@ -30,28 +30,10 @@ static struct smacq_options options[] = {
   END_SMACQ_OPTIONS
 };
 
-static void print_gda_errors(GdaConnection * conn) {
-  GList *list;
-  GList *node;
-  GdaError *error;
-  
-  list = (GList *) gda_connection_get_errors (conn);
-  
-  for (node = g_list_first (list); node != NULL; node = g_list_next (node))
-    {
-      error = (GdaError *) node->data;
-      fprintf (stderr, "Error no.: %ld\t", gda_error_get_number (error));
-      fprintf (stderr, "desc: %s\t", gda_error_get_description (error));
-      fprintf (stderr, "source: %s\t", gda_error_get_source (error));
-      fprintf (stderr, "sqlstate: %s\n", gda_error_get_sqlstate (error));
-    }
-}
-
-
 smacq_result sqlinsertModule::consume(DtsObject datum, int & outchan) {
   std::string values;
   char query[BUFSIZE];
-  int i, gdares;
+  int i; 
   DtsObject field;
   assert(datum);
 
@@ -71,11 +53,12 @@ smacq_result sqlinsertModule::consume(DtsObject datum, int & outchan) {
   snprintf(query, BUFSIZE-1, insert_format.c_str(), values.c_str());
 
   gda_command_set_text(gda_cmd, query);
-  gdares = gda_connection_execute_non_query(gda_connection, gda_cmd, NULL);
-  
-  if (gdares == -1) {
-    fprintf(stderr, "Error executing SQL command: %s\n\t", gda_command_get_text(gda_cmd));
-    print_gda_errors(gda_connection);
+ 
+  GError *gerr = NULL;
+  gda_connection_execute_non_query(gda_connection, gda_cmd, NULL, &gerr);
+  if (gerr) {
+    fprintf(stderr, "Error executing SQL command: %s\n\t%s", gda_command_get_text(gda_cmd), gerr->message);
+    g_error_free(gerr);
     return SMACQ_ERROR|SMACQ_END;
   }  else {
     return SMACQ_PASS;
@@ -113,8 +96,16 @@ sqlinsertModule::sqlinsertModule(struct SmacqModule::smacq_init * context)
 
   gda_client = gda_client_new();
 
+  GError *gerr = NULL;
   gda_connection = 
-    gda_client_open_connection_from_string(gda_client, provider_name.string_t, database_name.string_t, (GdaConnectionOptions)(0));
+    gda_client_open_connection_from_string(gda_client, provider_name.string_t, database_name.string_t, (GdaConnectionOptions)(0), &gerr);
+
+  if (gerr) {
+    std::string s("Error connecting to database: ");
+    s += gerr->message;
+    g_error_free(gerr);
+    throw(s);
+  }
 
   assert(gda_connection);
 
@@ -146,11 +137,7 @@ sqlinsertModule::sqlinsertModule(struct SmacqModule::smacq_init * context)
   qbuf += ");";
 
   gda_command_set_text(gda_cmd, qbuf.c_str());
-  if (-1 == gda_connection_execute_non_query(gda_connection, gda_cmd, NULL)) {
-    	fprintf(stderr, "Error executing SQL command: %s\n\t", gda_command_get_text(gda_cmd));
-    	print_gda_errors(gda_connection);
-	/* return(SMACQ_ERROR|SMACQ_END); */
-  }
+  gda_connection_execute_non_query(gda_connection, gda_cmd, NULL, NULL);
 }
 
 sqlinsertModule::~sqlinsertModule() {
