@@ -9,6 +9,7 @@
 #include <ThreadSafe.h>
 #include <iostream>
 #include <fstream>
+#include <exception>
 
 #define MAX_QUERY_SIZE 4096*100
 
@@ -50,6 +51,7 @@ void print_field(dts_field_info * i) {
 }
 
 int smacqq(int argc, char ** argv) {
+ try {
   smacq_opt optimize, qfile, showpregraph, showgraph, cpus, showtype, quiet, debug;
   int qargc;
   char ** qargv;
@@ -149,5 +151,9 @@ int smacqq(int argc, char ** argv) {
   bool retval = (! s.busy_loop());
 
   return retval;
+ } catch (std::exception& e) {
+	std::cerr << e.what() << std::endl;
+        return -1;
+ }
 }
 

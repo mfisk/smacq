@@ -3,7 +3,7 @@
 #include <assert.h>
 #include <string>
 #include <smacq-gda.h>
-
+#include <stdexcept>
 #include <SmacqModule.h>
 #define BUFSIZE 8192
 
@@ -101,10 +101,11 @@ sqlinsertModule::sqlinsertModule(struct SmacqModule::smacq_init * context)
     gda_client_open_connection_from_string(gda_client, provider_name.string_t, database_name.string_t, (GdaConnectionOptions)(0), &gerr);
 
   if (gerr) {
+    
     std::string s("Error connecting to database: ");
     s += gerr->message;
     g_error_free(gerr);
-    throw(s);
+    throw std::runtime_error(s);
   }
 
   assert(gda_connection);
