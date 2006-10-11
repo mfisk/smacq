@@ -21,8 +21,10 @@ findlibversion() {
 }
 
 findlib() {
-	lib=$1
-	for d in $dirs; do 
+	lib=`basename "$1"`
+	dir=`dirname "$1"`
+	for d in $dir $dirs; do 
+		#ls $d/${lib}.a
 		if [ -r $d/${lib}.a ]; then
 			# Replace -l argument with explicit .a file
 			word="$d/${lib}.a"
@@ -37,10 +39,10 @@ for word in "$@"; do
 		-lc|-lpthread|-ldl)
 			;;
 		/*.so)
-			findlib `basename "$word" | sed 's/\.so//'`
+			findlib `echo "$word" | sed 's/\.so//'`
 			;;
 		/*.dylib)
-			findlib `basename "$word" | sed 's/\.dylib//'`
+			findlib `echo "$word" | sed 's/\.dylib//'`
 			;;
 		-l*)
 			findlib `echo "$word" | sed 's/^-l/lib/'`
