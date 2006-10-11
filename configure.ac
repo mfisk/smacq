@@ -177,11 +177,22 @@ WITH_DOCDIR
 ##
 ## libgda
 ##
-PKG_CHECK_MODULES(GDA, libgda,
-	[EXTRA_STATIC_MODULES="${EXTRA_STATIC_MODULES} libsmacq_sql.la"
-	OPTIONAL_TESTS="${OPTIONAL_TESTS} sqlite.test.sh"
-	],[echo "$GDA_PKG_ERRORS"
-	echo "Building without modules: sqlinsert sqlquery"])
+PKG_CHECK_MODULES(GDA, libgda-2.0,
+  [EXTRA_STATIC_MODULES="${EXTRA_STATIC_MODULES} libsmacq_sql.la"
+  OPTIONAL_TESTS="${OPTIONAL_TESTS} sqlite.test.sh"
+  ],[
+  echo "$GDA_PKG_ERRORS"
+  PKG_CHECK_MODULES(GDA, libgda,
+    [
+      EXTRA_STATIC_MODULES="${EXTRA_STATIC_MODULES} libsmacq_sql.la"
+      OPTIONAL_TESTS="${OPTIONAL_TESTS} sqlite.test.sh"
+      OPTIONAL_TESTS="${OPTIONAL_TESTS} sqlite.test.sh"
+      GDA_VERSION=103000
+    ],[
+      echo "$GDA_PKG_ERRORS"
+      echo "Building without modules: sqlinsert sqlquery"
+    ])
+  ])
 
 ##
 ## Profiling
