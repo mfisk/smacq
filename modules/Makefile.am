@@ -50,8 +50,6 @@ libepan_filter.o: epan_filter.o
 #
 # This is how we make a dynamic library for a module
 # 
-RPATH=-rpath /usr/local/lib/smacq
-
 smacq_%.la: lib%.la
 	$(LIBTOOL) $(CCLD) -module $(LDFLAGS) -o $@ $+
 
