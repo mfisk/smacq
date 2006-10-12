@@ -6,7 +6,7 @@ export PYTHONPATH
 TESTFILE=0325@1112-snort.pcap
 export TESTFILE
 
-python2.3 <<EOF
+python <<EOF
 import smacq
 print "Imported successfully"
 
