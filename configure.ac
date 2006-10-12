@@ -327,8 +327,8 @@ AC_SUBST(LDFLAGS_FASTBIT)
 ##
 ## Python
 ##
-AC_ARG_VAR(PYTHON, [Python 2.3 interpreter command])
-AC_CHECK_PROGS([PYTHON], [python2.3 python], :)
+AC_ARG_VAR(PYTHON, [Python interpreter command])
+AC_CHECK_PROGS([PYTHON], [python], :)
 
 AC_ARG_WITH([python],
 	AC_HELP_STRING([--with-python], 
@@ -337,7 +337,7 @@ AC_ARG_WITH([python],
 	[
 		# Try to auto detect whether or not to build with python
 		if test "X$PYTHON" = "X:"; then
-			AC_MSG_NOTICE([Building without Python; use PYTHON=/path/to/python2.3 to include it])
+			AC_MSG_NOTICE([Building without Python; use PYTHON=/path/to/python to include it])
 			with_python=no
 		fi
 	])
@@ -348,7 +348,7 @@ if test "X$with_python" != "Xno"; then
 [from distutils import sysconfig
 import sys
 
-assert sys.version_info > (2, 2, 0)
+assert sys.version_info >= (2, 2, 0)
 
 res = []
 for i in sys.argv[1:]:
@@ -377,6 +377,21 @@ if test "X$with_python" != "Xno"; then
 fi
 		
 if test "X$with_python" = "Xyes"; then
+	AC_MSG_CHECKING([Name of libpython])
+	if expr "$LDFLAGS_PYTHON" : ".*-framework Python" >/dev/null; then
+		FRAMEWORKADD="$FRAMEWORKADD -framework Python"
+		AC_MSG_RESULT("Using -framework Python")
+	else 
+		ver=`$PYTHON $PYCONF VERSION`
+		if test $? -ne 0; then
+			rm -f $PYCONF
+			AC_MSG_FAILURE([Python config script failed])
+		fi
+		# Make sure -lpython is first since it will have lots of symbols to be resolved
+		LIBS_PYTHON="-lpython$ver $LIBS_PYTHON"
+		AC_MSG_RESULT(should be -lpython$ver)
+	fi
+
 	AC_MSG_CHECKING([CFLAGS_PYTHON])
 	CFLAGS_PYTHON=`$PYTHON $PYCONF CFLAGS 2>&5`
 	if test $? -ne 0; then
@@ -387,13 +402,13 @@ if test "X$with_python" = "Xyes"; then
 	fi
 	AC_MSG_RESULT($CFLAGS_PYTHON)
 
-	AC_MSG_CHECKING([LDFLAGS_PYTHON])
-	LDFLAGS_PYTHON=`$PYTHON $PYCONF LINKFORSHARED LIBS`
+	AC_MSG_CHECKING([LIBS_PYTHON])
+	LIBS_PYTHON="$LIBS_PYTHON `$PYTHON $PYCONF LINKFORSHARED LIBS`"
 	if test $? -ne 0; then
 		rm -f $PYCONF
 		AC_MSG_FAILURE([Python config script failed])
 	fi
-	AC_MSG_RESULT($LDFLAGS_PYTHON)
+	AC_MSG_RESULT($LIBS_PYTHON)
 
 	AC_MSG_CHECKING([Location of libpython])
 	loc=`$PYTHON $PYCONF LIBPL`
@@ -403,28 +418,6 @@ if test "X$with_python" = "Xyes"; then
 	fi
 	LDFLAGS_PYTHON="$LDFLAGS_PYTHON -L$loc"
 	AC_MSG_RESULT($loc)
-
-	AC_MSG_CHECKING([Name of libpython])
-	if expr "$LDFLAGS_PYTHON" : ".*-framework Python"; then
-		FRAMEWORKADD="$FRAMEWORKADD -framework Python"
-		AC_MSG_RESULT("Using -framework Python")
-	else 
-		ver=`$PYTHON $PYCONF VERSION`
-		if test $? -ne 0; then
-			rm -f $PYCONF
-			AC_MSG_FAILURE([Python config script failed])
-		fi
-		LDFLAGS_PYTHON="$LDFLAGS_PYTHON -lpython$ver"
-		AC_MSG_RESULT("should be -lpython$ver")
-	fi
-
-	AC_MSG_CHECKING([LIBS_PYTHON])
-	LIBS_PYTHON=`$PYTHON $PYCONF LIBS BLDLIBRARY`
-	if test $? -ne 0; then
-		rm -f $PYCONF
-		AC_MSG_FAILURE([Python config script failed])
-	fi
-	AC_MSG_RESULT($LIBS_PYTHON)
 
 	AC_MSG_CHECKING([LIBINST_PYTHON])
 	LIBINST_PYTHON=`$PYTHON $PYCONF PYTHON_LIB`

@@ -25,8 +25,7 @@ libsmacq_modules_la_LDFLAGS = $(AM_LDFLAGS) #-rpath /bogus
 # Per module link requirements
 # 
 libsmacq_python_la_SOURCES = python.cpp
-libsmacq_python_la_LIBS = @PYTHON_LIBADD@
-libsmacq_python_la_LDFLAGS = $(AM_LDFLAGS) @LDFLAGS_PYTHON@
+libsmacq_python_la_LDFLAGS = $(AM_LDFLAGS) @LDFLAGS_PYTHON@ @LIBS_PYTHON@
 libsmacq_python_la_CPPFLAGS = $(AM_CPPFLAGS) @CFLAGS_PYTHON@ 
 
 libsmacq_sql_la_SOURCES = sqlinsert.cpp sqlquery.cpp
