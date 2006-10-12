@@ -32,7 +32,6 @@ AC_SUBST(LEX_OUTPUT_ROOT, lex.Smacq)
 AC_CHECK_LIB([c], [printf])
 AC_CHECK_LIB([dl], [dlopen])
 AC_CHECK_LIB([fl], [yylex])
-AC_CHECK_LIB([glib-2.0], [g_new]) 
 AC_CHECK_LIB([m], [pow])
 AC_CHECK_LIB([pcap], [pcap_open_live])
 AC_CHECK_LIB([pthread], [pthread_exit])
@@ -78,7 +77,7 @@ fi
 ##
 ## pkg-config libraries
 ##
-PKG_CHECK_MODULES(GLIB, glib-2.0)
+PKG_CHECK_MODULES(GLIB, glib-2.0 >= 2.4)
 	# Pretty much everybody needs the include files, thanks to smacq.h,
 	# so don't make it specific to targets that use GLIB_CFLAGS
 AM_CPPFLAGS="$AM_CPPFLAGS ${GLIB_CFLAGS}"
@@ -328,7 +327,7 @@ AC_SUBST(LDFLAGS_FASTBIT)
 ## Python
 ##
 AC_ARG_VAR(PYTHON, [Python interpreter command])
-AC_CHECK_PROGS([PYTHON], [python], :)
+AC_CHECK_PROGS([PYTHON], [python2.5 python2.4 python2.3], :)
 
 AC_ARG_WITH([python],
 	AC_HELP_STRING([--with-python], 
@@ -348,7 +347,7 @@ if test "X$with_python" != "Xno"; then
 [from distutils import sysconfig
 import sys
 
-assert sys.version_info >= (2, 2, 0)
+assert sys.version_info > (2, 2, 0)
 
 res = []
 for i in sys.argv[1:]:
