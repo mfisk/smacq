@@ -10,8 +10,8 @@ smacqq_CPPFLAGS = $(AM_CPPFLAGS)
 #smacqq_static_SOURCES = smacqq.cpp 
 endif
 
-smacqq_LDFLAGS = $(AM_LDFLAGS) -export-dynamic $(FRAMEWORKADD) -static 
-smacqq_LDADD = $(top_builddir)/libsmacq/libsmacq.la -lltdl
+smacqq_LDFLAGS = $(AM_LDFLAGS) -export-dynamic $(FRAMEWORKADD) -static -L$(top_builddir)/libsmacq -L$(top_builddir)/modules -L$(top_builddir)/types
+smacqq_LDADD = -lsmacq -lsmacq_modules -ldts_modules -lltdl
 CXXLD=$(top_srcdir)/misc/g++
 
 #smacqq_LDFLAGS = $(AM_LDFLAGS) -export-dynamic $(BUILTINS) $(FRAMEWORKADD) -static -v -Wl,-static,-lglib-2.0,-Bdynamic
