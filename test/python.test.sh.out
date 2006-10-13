@@ -19,7 +19,7 @@
 ('dstip', 'ip', <type 'str'>, '192.168.0.200')
 ('ipprotocol', 'ipproto', <type 'str'>, '\x06')
 ('len', 'uint32', <type 'long'>, 62L)
-954011728.020237
+2000-03-25T12:15:28.020237-07:00
 ('srcip', 'ip', <type 'str'>, '192.168.0.54')
 ('dstip', 'ip', <type 'str'>, '192.168.0.200')
 ('ipprotocol', 'ipproto', <type 'str'>, '\x06')
@@ -40,7 +40,7 @@
 ('dstip', 'ip', <type 'str'>, '192.168.0.200')
 ('ipprotocol', 'ipproto', <type 'str'>, '\x06')
 ('len', 'uint32', <type 'long'>, 346L)
-954011728.028445
+2000-03-25T12:15:28.028445-07:00
 ('srcip', 'ip', <type 'str'>, '192.168.0.54')
 ('dstip', 'ip', <type 'str'>, '192.168.0.200')
 ('ipprotocol', 'ipproto', <type 'str'>, '\x06')
@@ -61,7 +61,7 @@
 ('dstip', 'ip', <type 'str'>, '192.168.0.200')
 ('ipprotocol', 'ipproto', <type 'str'>, '\x06')
 ('len', 'uint32', <type 'long'>, 62L)
-954011728.129182
+2000-03-25T12:15:28.129182-07:00
 ('srcip', 'ip', <type 'str'>, '192.168.0.54')
 ('dstip', 'ip', <type 'str'>, '192.168.0.200')
 ('ipprotocol', 'ipproto', <type 'str'>, '\x06')
@@ -82,7 +82,7 @@
 ('dstip', 'ip', <type 'str'>, '192.168.0.200')
 ('ipprotocol', 'ipproto', <type 'str'>, '\x06')
 ('len', 'uint32', <type 'long'>, 62L)
-954011728.620389
+2000-03-25T12:15:28.620389-07:00
 ('srcip', 'ip', <type 'str'>, '192.168.0.54')
 ('dstip', 'ip', <type 'str'>, '192.168.0.200')
 ('ipprotocol', 'ipproto', <type 'str'>, '\x06')
@@ -103,7 +103,7 @@
 ('dstip', 'ip', <type 'str'>, '192.168.0.200')
 ('ipprotocol', 'ipproto', <type 'str'>, '\x06')
 ('len', 'uint32', <type 'long'>, 62L)
-954011729.019047
+2000-03-25T12:15:29.019047-07:00
 ('srcip', 'ip', <type 'str'>, '192.168.0.54')
 ('dstip', 'ip', <type 'str'>, '192.168.0.200')
 ('ipprotocol', 'ipproto', <type 'str'>, '\x06')
@@ -124,7 +124,7 @@
 ('dstip', 'ip', <type 'str'>, '192.168.0.200')
 ('ipprotocol', 'ipproto', <type 'str'>, '\x06')
 ('len', 'uint32', <type 'long'>, 62L)
-954011729.119403
+2000-03-25T12:15:29.119403-07:00
 ('srcip', 'ip', <type 'str'>, '192.168.0.54')
 ('dstip', 'ip', <type 'str'>, '192.168.0.200')
 ('ipprotocol', 'ipproto', <type 'str'>, '\x06')
@@ -145,7 +145,7 @@
 ('dstip', 'ip', <type 'str'>, '192.168.0.200')
 ('ipprotocol', 'ipproto', <type 'str'>, '\x06')
 ('len', 'uint32', <type 'long'>, 62L)
-954011731.393278
+2000-03-25T12:15:31.393278-07:00
 ('srcip', 'ip', <type 'str'>, '192.168.0.54')
 ('dstip', 'ip', <type 'str'>, '192.168.0.200')
 ('ipprotocol', 'ipproto', <type 'str'>, '\x06')
@@ -166,7 +166,7 @@
 ('dstip', 'ip', <type 'str'>, '192.168.0.200')
 ('ipprotocol', 'ipproto', <type 'str'>, '\x06')
 ('len', 'uint32', <type 'long'>, 158L)
-954011731.434037
+2000-03-25T12:15:31.434037-07:00
 ('srcip', 'ip', <type 'str'>, '192.168.0.54')
 ('dstip', 'ip', <type 'str'>, '192.168.0.200')
 ('ipprotocol', 'ipproto', <type 'str'>, '\x06')
@@ -187,7 +187,7 @@
 ('dstip', 'ip', <type 'str'>, '192.168.0.200')
 ('ipprotocol', 'ipproto', <type 'str'>, '\x06')
 ('len', 'uint32', <type 'long'>, 154L)
-954011731.449118
+2000-03-25T12:15:31.449118-07:00
 ('srcip', 'ip', <type 'str'>, '192.168.0.54')
 ('dstip', 'ip', <type 'str'>, '192.168.0.200')
 ('ipprotocol', 'ipproto', <type 'str'>, '\x06')
@@ -208,7 +208,7 @@
 ('dstip', 'ip', <type 'str'>, '192.168.0.200')
 ('ipprotocol', 'ipproto', <type 'str'>, '\x06')
 ('len', 'uint32', <type 'long'>, 117L)
-954011731.479025
+2000-03-25T12:15:31.479025-07:00
 ('srcip', 'ip', <type 'str'>, '192.168.0.54')
 ('dstip', 'ip', <type 'str'>, '192.168.0.200')
 ('ipprotocol', 'ipproto', <type 'str'>, '\x06')
@@ -229,7 +229,7 @@
 ('dstip', 'ip', <type 'str'>, '192.168.0.200')
 ('ipprotocol', 'ipproto', <type 'str'>, '\x06')
 ('len', 'uint32', <type 'long'>, 117L)
-954011731.485619
+2000-03-25T12:15:31.485619-07:00
 ('srcip', 'ip', <type 'str'>, '192.168.0.54')
 ('dstip', 'ip', <type 'str'>, '192.168.0.200')
 ('ipprotocol', 'ipproto', <type 'str'>, '\x06')
@@ -250,7 +250,7 @@
 ('dstip', 'ip', <type 'str'>, '192.168.0.200')
 ('ipprotocol', 'ipproto', <type 'str'>, '\x06')
 ('len', 'uint32', <type 'long'>, 218L)
-954011731.491501
+2000-03-25T12:15:31.491501-07:00
 ('srcip', 'ip', <type 'str'>, '192.168.0.54')
 ('dstip', 'ip', <type 'str'>, '192.168.0.200')
 ('ipprotocol', 'ipproto', <type 'str'>, '\x06')
@@ -271,7 +271,7 @@
 ('dstip', 'ip', <type 'str'>, '192.168.0.200')
 ('ipprotocol', 'ipproto', <type 'str'>, '\x06')
 ('len', 'uint32', <type 'long'>, 186L)
-954011731.527459
+2000-03-25T12:15:31.527459-07:00
 ('srcip', 'ip', <type 'str'>, '192.168.0.54')
 ('dstip', 'ip', <type 'str'>, '192.168.0.200')
 ('ipprotocol', 'ipproto', <type 'str'>, '\x06')
@@ -292,7 +292,7 @@
 ('dstip', 'ip', <type 'str'>, '192.168.0.200')
 ('ipprotocol', 'ipproto', <type 'str'>, '\x06')
 ('len', 'uint32', <type 'long'>, 190L)
-954011731.533792
+2000-03-25T12:15:31.533792-07:00
 ('srcip', 'ip', <type 'str'>, '192.168.0.54')
 ('dstip', 'ip', <type 'str'>, '192.168.0.200')
 ('ipprotocol', 'ipproto', <type 'str'>, '\x06')
@@ -313,7 +313,7 @@
 ('dstip', 'ip', <type 'str'>, '192.168.0.200')
 ('ipprotocol', 'ipproto', <type 'str'>, '\x06')
 ('len', 'uint32', <type 'long'>, 188L)
-954011731.539540
+2000-03-25T12:15:31.539540-07:00
 ('srcip', 'ip', <type 'str'>, '192.168.0.54')
 ('dstip', 'ip', <type 'str'>, '192.168.0.200')
 ('ipprotocol', 'ipproto', <type 'str'>, '\x06')
@@ -334,7 +334,7 @@
 ('dstip', 'ip', <type 'str'>, '192.168.0.200')
 ('ipprotocol', 'ipproto', <type 'str'>, '\x06')
 ('len', 'uint32', <type 'long'>, 194L)
-954011731.545646
+2000-03-25T12:15:31.545646-07:00
 ('srcip', 'ip', <type 'str'>, '192.168.0.54')
 ('dstip', 'ip', <type 'str'>, '192.168.0.200')
 ('ipprotocol', 'ipproto', <type 'str'>, '\x06')
@@ -355,7 +355,7 @@
 ('dstip', 'ip', <type 'str'>, '192.168.0.200')
 ('ipprotocol', 'ipproto', <type 'str'>, '\x06')
 ('len', 'uint32', <type 'long'>, 186L)
-954011731.552164
+2000-03-25T12:15:31.552164-07:00
 ('srcip', 'ip', <type 'str'>, '192.168.0.54')
 ('dstip', 'ip', <type 'str'>, '192.168.0.200')
 ('ipprotocol', 'ipproto', <type 'str'>, '\x06')
@@ -376,7 +376,7 @@
 ('dstip', 'ip', <type 'str'>, '192.168.0.200')
 ('ipprotocol', 'ipproto', <type 'str'>, '\x06')
 ('len', 'uint32', <type 'long'>, 60L)
-954011731.768626
+2000-03-25T12:15:31.768626-07:00
 ('srcip', 'ip', <type 'str'>, '192.168.0.54')
 ('dstip', 'ip', <type 'str'>, '192.168.0.200')
 ('ipprotocol', 'ipproto', <type 'str'>, '\x06')
@@ -397,7 +397,7 @@
 ('dstip', 'ip', <type 'str'>, '192.168.0.200')
 ('ipprotocol', 'ipproto', <type 'str'>, '\x06')
 ('len', 'uint32', <type 'long'>, 60L)
-954011731.914011
+2000-03-25T12:15:31.914011-07:00
 ('srcip', 'ip', <type 'str'>, '192.168.0.54')
 ('dstip', 'ip', <type 'str'>, '192.168.0.200')
 ('ipprotocol', 'ipproto', <type 'str'>, '\x06')
@@ -418,7 +418,7 @@
 ('dstip', 'ip', <type 'str'>, '192.168.0.200')
 ('ipprotocol', 'ipproto', <type 'str'>, '\x06')
 ('len', 'uint32', <type 'long'>, 346L)
-954011731.945492
+2000-03-25T12:15:31.945492-07:00
 ('srcip', 'ip', <type 'str'>, '192.168.0.54')
 ('dstip', 'ip', <type 'str'>, '192.168.0.200')
 ('ipprotocol', 'ipproto', <type 'str'>, '\x06')
@@ -439,7 +439,7 @@
 ('dstip', 'ip', <type 'str'>, '192.168.0.200')
 ('ipprotocol', 'ipproto', <type 'str'>, '\x06')
 ('len', 'uint32', <type 'long'>, 330L)
-954011747.127418
+2000-03-25T12:15:47.127418-07:00
 ('srcip', 'ip', <type 'str'>, '192.168.0.54')
 ('dstip', 'ip', <type 'str'>, '192.168.0.200')
 ('ipprotocol', 'ipproto', <type 'str'>, '\x06')
