@@ -1,7 +1,5 @@
 bin_PROGRAMS = smacqq #smacqq-static #iterative-example
 
-BUILTINS = $(top_builddir)/libsmacq/libsmacq.la 
-
 if GASNET
 smacqq_SOURCES = psmacqq.cpp 
 smacqq_CPPFLAGS = $(AM_CPPFLAGS) -fpermissive -Wno-error -Wno-unused # GASnet code isn't very pedantic
@@ -11,11 +9,9 @@ smacqq_CPPFLAGS = $(AM_CPPFLAGS)
 #smacqq_static_SOURCES = smacqq.cpp 
 endif
 
-smacqq_DEPENDENCIES = $(top_builddir)/libsmacq/libsmacq.la
-smacqq_LDFLAGS = $(AM_LDFLAGS) -export-dynamic $(FRAMEWORKADD) -static -lm -lltdl
-smacqq_LDADD = -dlpreopen $(BUILTINS)
+smacqq_LDFLAGS = $(AM_LDFLAGS) -export-dynamic $(FRAMEWORKADD) -static 
+smacqq_LDADD = $(top_builddir)/libsmacq/libsmacq.la 
 CXXLD=$(top_srcdir)/misc/g++
-#CXXLD=$(top_srcdir)/misc/ldstatic g++
 
 #smacqq_LDFLAGS = $(AM_LDFLAGS) -export-dynamic $(BUILTINS) $(FRAMEWORKADD) -static -v -Wl,-static,-lglib-2.0,-Bdynamic
 #smacqq_static_LDFLAGS = -export-dynamic -all-static $(BUILTINS)

@@ -13,8 +13,8 @@ libsmacq.cpp: $(LIBSMACQ_CPP_SOURCES)
 libscanner_la_CPPFLAGS = $(AM_CPPFLAGS) -Wno-sign-compare
 libscanner_la_SOURCES=scanner.lpp
 
-libsmacq_la_SOURCES=libsmacq.cpp mem.c args.c dynloader.c cmalloc.c parser.ym filter-parser.ym expr-parser.ym #datalog-parser.ym
-libsmacq_la_LIBADD=libscanner.la @GLIB_LIBS@  $(top_builddir)/modules/libsmacq_modules.la $(top_builddir)/types/libdts_modules.la $(top_builddir)/libgnu/libgnu.la 
+libsmacq_la_SOURCES=libsmacq.cpp mem.c args.c dynloader.c cmalloc.c parser.ym filter-parser.ym expr-parser.ym 
+libsmacq_la_LIBADD=libscanner.la @GLIB_LIBS@  $(top_builddir)/modules/libsmacq_modules.la $(top_builddir)/types/libdts_modules.la $(top_builddir)/libgnu/libgnu.la  -lltdl
 libsmacq_la_LDFLAGS = $(AM_LDFLAGS) -rpath /usr/lib -all-static 
 
 noinst_HEADERS=grammer.ypp
@@ -23,7 +23,6 @@ preload.h: Makefile $(top_srcdir)/misc/preloadsyms
 	(nm $(top_builddir)/modules/.libs/libsmacq_modules.a* $(top_builddir)/types/.libs/libdts_modules.a* | egrep -x '[0-9a-fA-F]* D (dts_type|smacq)_[^_]*_(table|fields)' | awk '{print $$3};' | $(top_srcdir)/misc/preloadsyms > $@) || rm $@
 
 filter-parser.ypp: grammer.ypp
-datalog-parser.ypp: grammer.ypp
 expr-parser.ypp: grammer.ypp
 parser.ypp: grammer.ypp
 
