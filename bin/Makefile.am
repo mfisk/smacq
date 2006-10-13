@@ -1,4 +1,5 @@
 bin_PROGRAMS = smacqq #smacqq-static #iterative-example
+SHELL=env PATH=$(top_srcdir)/misc:$$PATH sh
 
 if GASNET
 smacqq_SOURCES = psmacqq.cpp 
@@ -10,7 +11,7 @@ smacqq_CPPFLAGS = $(AM_CPPFLAGS)
 endif
 
 smacqq_LDFLAGS = $(AM_LDFLAGS) -export-dynamic $(FRAMEWORKADD) -static 
-smacqq_LDADD = $(top_builddir)/libsmacq/libsmacq.la 
+smacqq_LDADD = $(top_builddir)/libsmacq/libsmacq.la -lltdl
 CXXLD=$(top_srcdir)/misc/g++
 
 #smacqq_LDFLAGS = $(AM_LDFLAGS) -export-dynamic $(BUILTINS) $(FRAMEWORKADD) -static -v -Wl,-static,-lglib-2.0,-Bdynamic
