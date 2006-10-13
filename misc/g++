@@ -1,34 +1,28 @@
 #!/bin/sh
 
-# This is a wrapper for g++ that tries to statically link any -l libraries
+# This is a wrapper for g++ that tries to statically link any libraries
 # that it can, with some specific exceptions.
 
 dirs="/usr/lib"
 args=`basename $0`" "
 
-findlibversion() {
-	lib=$1
-	while true; do 
-		#echo "looking for $lib" 1>&2
-		if findlibversion $lib; then return 0; fi
-		newlib=`echo "$lib" | sed 's/\.[^.]*$//'`
-		if "$newlib" = "$lib"; then break; fi
-		lib="$newlib"
-	done
-
-	#echo "could not find $lib"  1>&2
-	return -1
-}
+echo "Looking for static versions of libraries" 1>&2
 
 findlib() {
 	lib=`basename "$1"`
 	dir=`dirname "$1"`
+	case $lib in 
+	   libc|libpthread|libdl|libltdl|libintl)
+			return 0
+			;;
+	esac
+
 	for d in $dir $dirs; do 
 		#ls $d/${lib}.a
 		if [ -r $d/${lib}.a ]; then
 			# Replace -l argument with explicit .a file
 			word="$d/${lib}.a"
-			#echo "found $word" 1>&2
+			echo "Using $word for $1" 1>&2
 			return 0
 		fi
 	done
@@ -36,8 +30,6 @@ findlib() {
 
 for word in "$@"; do
 	case $word in
-		-lc|-lpthread|-ldl)
-			;;
 		/*.so)
 			findlib `echo "$word" | sed 's/\.so//'`
 			;;
