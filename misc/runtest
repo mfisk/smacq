@@ -38,6 +38,11 @@ err="$tsto.err"
 gdbout="$tsto.gdb"
 diffout="$tsto.diff"
 
+# The test may be autoconfed and put in the OUTDIR
+if [ -f "$OUTDIR/$basetest" ]; then
+  tst="$OUTDIR/$basetest"
+fi
+
 cd "$SRCDIR"
 
 export TZ=MST
