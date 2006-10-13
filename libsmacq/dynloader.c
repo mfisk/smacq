@@ -21,7 +21,7 @@ static void * smacq_try_dlfindsym_preload(char * format, char * sym) {
 		return p->ptr;
 	}
     }
-    fprintf(stderr, "Symbol %s not preloaded\n", trysym);
+    //fprintf(stderr, "Symbol %s not preloaded\n", trysym);
     return NULL;
 }
 
@@ -57,7 +57,7 @@ void * smacq_find_module(lt_dlhandle* gmodulep, char * envvar, char * envdefault
     // Try preloaded symbols first
     modtable = smacq_try_dlfindsym_preload(symformat, sym);
     if (modtable) {
-	fprintf(stderr, "Found %s in preloads\n", sym);
+	//fprintf(stderr, "Found %s in preloads\n", sym);
 	return modtable;
     }
 
