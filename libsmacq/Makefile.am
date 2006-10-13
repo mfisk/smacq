@@ -4,7 +4,7 @@ SUFFIXES = .ypp .ym
 
 libsmacq_la_CPPFLAGS = $(AM_CPPFLAGS) -DSMACQ_BUILD_DATE=\"`date '+%Y-%m-%d'`\" 
 
-noinst_LTLIBRARIES=libscanner.la libsmacq.la libsmacq_bundle.la
+noinst_LTLIBRARIES=libscanner.la libsmacq.la 
 
 libsmacq.cpp: $(LIBSMACQ_CPP_SOURCES)
 	for f in $+; do echo "# 1 \"$$f\""; cat $$f; done > $@
