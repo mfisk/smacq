@@ -1,0 +1,12 @@
+#!/bin/sh
+
+syms=`cat`
+for s in $syms; do
+	echo "extern void * $s;"
+done
+echo "struct preload_entry preloads[] = {"
+for s in $syms; do
+	echo "  {&${s}, \"$s\"},"
+done
+echo "  {NULL, NULL}"
+echo "};"

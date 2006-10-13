@@ -18,7 +18,9 @@ libsmacq_la_LIBADD=libscanner.la @GLIB_LIBS@  $(top_builddir)/modules/libsmacq_m
 libsmacq_la_LDFLAGS = $(AM_LDFLAGS) -rpath /usr/lib -all-static 
 
 noinst_HEADERS=grammer.ypp
-BUILT_SOURCES=libsmacq.cpp parser.cpp filter-parser.cpp expr-parser.cpp #datalog-parser.cpp
+BUILT_SOURCES=libsmacq.cpp parser.cpp filter-parser.cpp expr-parser.cpp preload.h
+preload.h: Makefile $(top_srcdir)/misc/preloadsyms
+	(nm $(top_builddir)/modules/.libs/libsmacq_modules.a* $(top_builddir)/types/.libs/libdts_modules.a* | egrep -x '[0-9a-fA-F]* D (dts_type|smacq)_[^_]*_(table|fields)' | awk '{print $$3};' | $(top_srcdir)/misc/preloadsyms > $@) || rm $@
 
 filter-parser.ypp: grammer.ypp
 datalog-parser.ypp: grammer.ypp
