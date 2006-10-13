@@ -495,7 +495,7 @@ AC_CONFIG_FILES([Makefile
                  modules/substr/Makefile
                  modules/patricia/Makefile
                  test/Makefile
-                 types/Makefile
-                 test/pysmacq.test.sh
-		 ],[chmod a+x test/pysmacq.test.sh])
+                 types/Makefile])
+AC_CONFIG_FILES([test/pysmacq.test.sh],[chmod a+x test/pysmacq.test.sh])
+
 AC_OUTPUT
