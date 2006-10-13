@@ -17,10 +17,6 @@ libsmacq_la_SOURCES=libsmacq.cpp mem.c args.c dynloader.c cmalloc.c parser.ym fi
 libsmacq_la_LIBADD=libscanner.la @GLIB_LIBS@ 
 libsmacq_la_LDFLAGS = $(AM_LDFLAGS) -rpath /usr/lib -all-static
 
-libsmacq_bundle_la_SOURCES=
-libsmacq_bundle_la_LIBADD=$(top_builddir)/modules/libsmacq_modules.la $(top_builddir)/types/libdts_modules.la 
-libsmacq_bundle_la_LDFLAGS = $(AM_LDFLAGS) -rpath /usr/lib -all-static
-
 noinst_HEADERS=grammer.ypp
 BUILT_SOURCES=libsmacq.cpp parser.cpp filter-parser.cpp expr-parser.cpp preload.h
 preload.h: Makefile $(top_srcdir)/misc/preloadsyms
