@@ -61,7 +61,7 @@ static struct smacq_options options[] = {
 
 smacq_result rusageModule::consume(DtsObject datum, int & outchan) {
   struct rusage rusage;
-  getrusage(RUSAGE_SELF, &rusage);
+  assert (0==getrusage(RUSAGE_SELF, &rusage));
 
   if (idrss) {
     DtsObject msgdata = dts->construct(longtype, &rusage.ru_idrss);
