@@ -5,7 +5,9 @@ SUFFIXES = .sc
 
 libsmacq_modules_la_SOURCES = print.cpp pcapfile.cpp pcapwrite.cpp socket.cpp uniq.cpp count.cpp last.cpp top.cpp head.cpp filter.cpp msgtest.cpp entropy.cpp derivative.cpp encrypt.cpp pdf.cpp fifo.cpp delta.cpp tabularinput.cpp rusage.cpp groupby.cpp flowid.cpp sum.cpp fifodelay.cpp take.cpp project.cpp rename.cpp mask.cpp const.cpp ndjoin.cpp lor.cpp counter_loop.cpp dfa.cpp expr.cpp equals.cpp cflow.cpp clock.cpp disarm.cpp substr-main.cpp iplookup.cpp streamalias.cpp join.cpp changes.cpp histogram.cpp now.cpp div.cpp private.cpp uniqobj.cpp sort.cpp countobj.cpp file.cpp deskew.cpp
 
-libsmacq_modules_la_LIBADD = substr/libsubstr.la patricia/libpatricia.la libsmacq_pcaplive.la @EXTRA_STATIC_MODULES@ -lbz2 -lz $(top_builddir)/libsmacq/libsmacq.la
+libsmacq_modules_la_DEPENDENCIES = substr/libsubstr.la patricia/libpatricia.la libsmacq_pcaplive.la @EXTRA_STATIC_MODULES@ 
+libsmacq_modules_la_LIBADD = substr/libsubstr.la patricia/libpatricia.la libsmacq_pcaplive.la @EXTRA_STATIC_MODULES@ -lbz2 -lz -lsmacq
+libsmacq_modules_la_LDFLAGS = $(AM_LDFLAGS) -rpath /usr/lib -static -L$(top_builddir)/libsmacq
 
 libsmacq_distribute_la_SOURCES = distribute.cpp
 
@@ -14,7 +16,6 @@ libtest_dynamic_la_SOURCES = noop.cpp
 .sc.c: 
 	$(top_srcdir)/misc/sc2c $< > $@
 
-libsmacq_modules_la_LDFLAGS = $(AM_LDFLAGS) -rpath /usr/lib -static
 
 #
 # Per module link requirements
