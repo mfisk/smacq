@@ -294,6 +294,15 @@ inline void DtsObject_::attach_field(DtsField &field, DtsObject field_data) {
 }
 
 
+inline bool operator< (DtsObject_&a, DtsObject_&b) {
+  if ( (a.getsize() < b.getsize()) ||
+       (memcmp(a.getdata(), b.getdata(), a.getsize()) < 0)) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
 inline bool operator== (DtsObject_&a, DtsObject_&b) {
   if ( (a.getsize() == b.getsize()) &&
        (!memcmp(a.getdata(), b.getdata(), a.getsize()))) {
