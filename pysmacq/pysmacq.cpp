@@ -2,6 +2,8 @@
 #include <smacq.h>
 #include <SmacqGraph.h>
 #include <SmacqScheduler.h>
+#include <SmacqPyModule.h>
+#include <SmacqModule-interface.h>
 #include <dts.h>
 #include <DtsObject.h>
 #include <iostream>
@@ -19,23 +21,30 @@
 // }}}
 
 int simple_query(char * query) {  // {{{
-    
+    // A simple example query
+
+    // The smacq Scheduler is used to manage the execution queries.  Only one is ever needed.    
     SmacqScheduler s;
+    // The dynamic type system (DTS) allows for abstract encapsulation of query data.
     DTS dts;
     int retval;
 
+    // A smacq graph can contain multiple queries, although it can only handle output for one.
     SmacqGraph graph;
 
     graph.addQuery(&dts, &s, (std::string)query);
-    graph.print(stderr, 8);
 
+    // The graph needs to be initialized before the query can start executing
     graph.init(&dts, &s);
 
-    std::cout << "before \n";
+    // Prepares the query graph for execution in the scheduler
     s.seed_produce(&graph);
-    std::cout << "after \n";
+    
+    // Until multithreading works properly, the number of threads should always be zero.
     s.start_threads(0);
 
+    // Executes the query until it is done, while throwing away any output.  Use the s.get() or
+    // s.element() methods to get the actual query output instead.
     retval = (! s.busy_loop());
 
     return retval;
@@ -50,9 +59,11 @@ DtsObject (DtsObject_::*getfield_fptr_Fo)(DtsField &, bool) = &DtsObject_::getfi
 DtsObject (DtsObject_::*getfield_fptr_s)(char *, bool) = &DtsObject_::getfield;
 // }}}
 
+
 // Exposing smacq methods and functions to python {{{
 using namespace boost::python;
 
+// These do exactly what they seem to:  They take care of overloaded member functions
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(SG_join_overloads, join, 1, 2)
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(SG_clone_overloads, clone, 0, 1)
 BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(SG_add_graph_overloads, add_graph, 1, 2)
@@ -64,12 +75,13 @@ BOOST_PYTHON_MODULE(libpysmacq)
 {
     def("query", simple_query);
 
-    class_<std::vector<int> >("Ivec")
-        .def(vector_indexing_suite<std::vector<int> >())
-    ;
-
+    // Allows for the manipulation of vectors of DtsObjects
     class_<std::vector<DtsObject> >("DtsObject_vec") 
         .def(vector_indexing_suite<std::vector<DtsObject> >())
+    ;
+
+    class_<SmacqPyModule>("SmacqPyModule", init<std::string, object, smacq_init_type *>())
+        .def("test", &SmacqPyModule::test)
     ;
 
     class_<SmacqGraph>("SmacqGraph", init<>())
@@ -88,13 +100,12 @@ BOOST_PYTHON_MODULE(libpysmacq)
         .def("newObject", newObject_fptr)
         .def("requirefield", &DTS::requirefield)
         .def("field_getname", &DTS::pyfield_getname)
-//            return_value_policy<manage_new_object>())
     ;
 
     class_<DtsField>("DtsField", init<dts_field_element>())
     ;
 
-    class_<DtsObject>("DtsObject") //, init<int, dts_typeid>())
+    class_<DtsObject>("DtsObject") 
         .def("get", &DtsObject::get,
             return_internal_reference<>())
     ;
@@ -117,9 +128,5 @@ BOOST_PYTHON_MODULE(libpysmacq)
         .def("done", &SmacqScheduler::done)
     ;
     
-/*    class_<SmacqGraphNode>("SmacqGraphNode", init<std::string>())
-//        .def("init", &SmacqGraph::init)
-    ;
-*/  
 } // }}} 
 
