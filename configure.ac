@@ -329,7 +329,7 @@ AC_SUBST(LDFLAGS_FASTBIT)
 AC_ARG_VAR(PYTHON, [Python interpreter command])
 AC_CHECK_PROGS([PYTHON], [python2.5 python2.4 python2.3], :)
 
-AC_ARG_WITH([python],
+AC_ARG_WITH([python2.4],
 	AC_HELP_STRING([--with-python], 
 			[Include Python (default=use if available)]),
 	[],

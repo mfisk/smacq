@@ -21,14 +21,11 @@
   deprecated for most cases.
 */
 
-class SmacqModule {
- public:
-
   /// This context structure is passed to SmacqModule constructors.
   /// It will be destroyed after the constructor returns, but the
   /// elements it points to are guaranteed to be available during the
   /// lifetime of the object.
-  struct smacq_init {
+  struct smacq_init_ {
     SmacqScheduler * scheduler;
     bool isfirst;
     bool islast;
@@ -37,6 +34,11 @@ class SmacqModule {
     DTS * dts;
     SmacqGraphNode * self;
   };
+
+typedef struct smacq_init_ smacq_init;
+
+class SmacqModule {
+ public:
 
   /// SMACQ modules are object files that can be statically or
   /// dynamically loaded into a program.  Each module should use the

@@ -1,7 +1,7 @@
 PCAPROUTINES=close compile datalink dump_close lookupnet loop open_live perror setfilter snapshot
 CCWRAP=$(patsubst %,-Xlinker --wrap -Xlinker pcap_%,$(PCAPROUTINES))
 LDWRAP=$(patsubst %,--wrap pcap_%,$(PCAPROUTINES))
-LDFLAGS=-L$(USR)/lib/python2.2/config
+LDFLAGS=-L$(USR)/lib/python2.4/config
 
 all: libpcap-preload.so
 

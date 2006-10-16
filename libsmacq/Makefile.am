@@ -1,21 +1,24 @@
-LIBSMACQ_CPP_SOURCES = smacqq.cpp pickle.cpp optimize.cpp filter.cpp ThreadedSmacqModule.cpp parsing.cpp DTS.cpp DtsObject.cpp smacq_result.cpp am.cpp SmacqScheduler.cpp SmacqGraph.cpp
+LIBSMACQ_CPP_SOURCES = smacqq.cpp pickle.cpp optimize.cpp filter.cpp ThreadedSmacqModule.cpp parsing.cpp DTS.cpp DtsObject.cpp smacq_result.cpp am.cpp SmacqScheduler.cpp SmacqGraph.cpp #SmacqPyModule.cpp
 EXTRA_DIST = parser.hpp $(LIBSMACQ_CPP_SOURCES)
 SUFFIXES = .ypp .ym
 
 libsmacq_la_CPPFLAGS = $(AM_CPPFLAGS) -DSMACQ_BUILD_DATE=\"`date '+%Y-%m-%d'`\" 
 
-noinst_LTLIBRARIES=libsmacq.la libscanner.la
+noinst_LTLIBRARIES=libsmacq.la libscanner.la libpysmacq.la
 
 libsmacq.cpp: $(LIBSMACQ_CPP_SOURCES)
 	for f in $+; do echo "# 1 \"$$f\""; cat $$f; done > $@
 
 # Flex version  2.5.33 (but not 2.5.4) has a sign problem
-libscanner_la_CPPFLAGS = $(AM_CPPFLAGS) -Wno-sign-compare
+libscanner_la_CPPFLAGS = $(AM_CPPFLAGS) -Wno-sign-compare 
 libscanner_la_SOURCES=scanner.lpp
 
 libsmacq_la_SOURCES=libsmacq.cpp mem.c args.c dynloader.c cmalloc.c parser.ym filter-parser.ym expr-parser.ym #datalog-parser.ym
 libsmacq_la_LIBADD=libscanner.la @GLIB_LIBS@  $(top_builddir)/modules/libsmacq_modules.la $(top_builddir)/types/libdts_modules.la $(top_builddir)/libgnu/libgnu.la 
 libsmacq_la_LDFLAGS = $(AM_LDFLAGS) -rpath /usr/lib -all-static 
+
+libpysmacq_la_SOURCES=SmacqPyModule.cpp
+libpysmacq_la_CPPFLAGS=-I/home/pflarr/include/python2.4 -I$(top_srcdir)/include $(AM_CPPFLAGS)
 
 noinst_HEADERS=grammer.ypp
 BUILT_SOURCES=libsmacq.cpp parser.cpp filter-parser.cpp expr-parser.cpp preload.h
