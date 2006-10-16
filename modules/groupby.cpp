@@ -16,7 +16,7 @@ static struct smacq_options options[] = {
   END_SMACQ_OPTIONS
 };
 
-typedef FieldVecHash<SmacqGraph*>::iterator OutputsIterator;
+typedef FieldVecDict<SmacqGraph*>::iterator OutputsIterator;
 
 SMACQ_MODULE(groupby,
   PROTO_CTOR(groupby);
@@ -27,7 +27,7 @@ SMACQ_MODULE(groupby,
   SmacqGraph * mastergraph;
   SmacqGraphNode * self;
 
-  FieldVecHash<SmacqGraph*> outTable;
+  FieldVecDict<SmacqGraph*> outTable;
 
   int refresh_type;
 
