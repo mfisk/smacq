@@ -1,7 +1,6 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <SmacqModule.h>
-#include <FieldVec.h>
 
 static struct smacq_options options[] = {
   {"pdf", {boolean_t:0}, "Report probabilities rather than absolute counts", SMACQ_OPT_TYPE_BOOLEAN},
