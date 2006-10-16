@@ -22,6 +22,8 @@ class DtsObjectVec : public std::vector<DtsObject> {
   size_t hash(int seed = 0) const;
 
   bool masks (const DtsObjectVec &b) const;
+
+  //bool operator< (const DtsObjectVec &y) const;
 };
 
 
@@ -130,12 +132,12 @@ inline size_t DtsObjectVec::hash(const int seed) const {
   uint32_t result = seed;
   DtsObjectVec::const_iterator i;
   
-  for (i = begin(); i != end(); i++) {
+  for (i = begin(); i != end(); ++i) {
     result = bhash((*i)->getdata(), 
 		   (*i)->getsize(), result);
   }
   
-  //fprintf(stderr, "hash to %d\n", result);
+  fprintf(stderr, "hash to %d\n", result);
   return result;
 }
 
@@ -171,27 +173,39 @@ namespace __gnu_cxx {
   };
 }
 
-/// We overload the default == operator for DtsObject so that it compares
-/// the objects instead of the pointers to the objects. 
 namespace boost {
+  // This is in namespace boost because DtsObject is a boot::intrusive_ptr<DtsObject_>
+
+  /// We overload the default == operator for DtsObject so that it compares
+  /// the objects instead of the pointers to the objects.   
+  /// Without this, there are no compile-time errors, but you still need it.  
   template<> 
   inline bool operator==<DtsObject_,DtsObject_> (const DtsObject & x, const DtsObject & y) { 
 	//fprintf(stderr, "o %p =? %p\n", x.get(), y.get());
 	return *x == *y;
   }
+
+  template<> 
+  inline bool operator<(DtsObject const & a, DtsObject const & b)
+  {
+    return *a < *b;
+  }
 }
 
+/// A dictionary for FieldVec keys.
 template <class T>
-/// A hash_map (table) for FieldVec.
-class FieldVecHash : public stdext::hash_map<DtsObjectVec, T> 
-{
+class FieldVecDict : public std::map<DtsObjectVec, T>  {
 };
 
+/// A map for FieldVec keys.  The key itself is not stored.
+template <class T>
+class FieldVecHash : public std::map<DtsObjectVec, T> 
+{
+};
 
 /// A hash_set for FieldVec.
-class FieldVecSet : public stdext::hash_set<DtsObjectVec >
+class FieldVecSet : public std::set<DtsObjectVec >
 {
 };
-
 
 #endif
