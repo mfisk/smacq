@@ -1,3 +1,8 @@
+"""System for Modular Analysis and Continuous Queries.
+
+See http://smacq.sourceforge.net/
+"""
+
 import libpysmacq
 import time, sys
 
@@ -5,7 +10,7 @@ import time, sys
 # Change all instances of raise Exception to raise More_Appropriate_Exception
 
 class SmacqQuery:  # {{{
-    """Executes a query in the SMACQ (System for Modular Analysis and Continous Queries) API."""
+    """Executes one or more queries in the SMACQ (System for Modular Analysis and Continous Queries) API."""
     
     graph = None
     dts = None
@@ -42,7 +47,11 @@ started, then it is started."""
         return self.__running
 
 # Fetching Methods {{{  
-    def fetch(self, num_results = 1): # {{{
+    def fetchone(self):
+	"""Fetch the next result object and return it, or None when no more data is available"""
+	return self.fetchmay(1)
+
+    def fetchmany(self, num_results = 1): # {{{
         """Returns num_results DtsObject objects in a list.  This will wait for results if it
     needs to.  If the number of results returned is less than requested, then the 
     query has been completed."""
@@ -130,10 +139,12 @@ started, then it is started."""
 
     # Iterator methods {{{
     def __iter__(self): 
+	"""Return self in compliane with iterator protocol."""
 	self.run(True)
         return self
 
     def next(self): 
+	"""Return the next DtsObject returned by the query.  Raise StopIteration when complete."""
 	x = self.scheduler.get()
 	if x:
 		return x
@@ -143,44 +154,49 @@ started, then it is started."""
     # }}}
 
     # Join methods {{{
-    def join(self, other_query):
+    def append(self, query):
         """Joins this query with the other_query.  
 other_query can be either a string or a SmacqGraph object"""
-        if type(other_query) == str:
+        if type(query) == str:
             newg = libpysmacq.SmacqGraph()
-	    newg.addQuery(self.dts, self.scheduler, other_query)
+	    newg.addQuery(self.dts, self.scheduler, query)
             self.graph.join(newg)
 
-	elif type(other_query) == libpysmacq.SmacqGraph:
-            self.graph.join(other_query)
+	elif type(query) == libpysmacq.SmacqGraph:
+            self.graph.join(query)
 
 	else:
-	    print type(other_query)
+	    print type(query)
 	    raise TypeError
 
-    def __iadd__(self, query2): 
+    def __iadd__(self, query): 
+	"""This is the += operator."""
+
+	self += query
+	return self
+
+    def add(self, query): 
         """Adds the query on the righthand side to the query on the left.
 If the right hand side is a query string, it is used to create a new query object first."""
        
-	if type(query2) == str:
-		self.graph.addQuery(self.dts, self.scheduler, query2)
+	if type(query) == str:
+		self.graph.addQuery(self.dts, self.scheduler, query)
 	else:
-        	self.graph.addQuery(query2)
+        	self.graph.addQuery(query)
 
-        return self
 
-    def __rshift__(self, query2): 
-        """Joins the query on the righthand side with the query on the left.
+    def __rshift__(self, query): 
+        """This is the >>= operator.  Joins the query on the righthand side with the query on the left.
 If the right hand side is a query string, it is used to create a new query object first."""
       
-	self.join(query2)
+	self.append(query)
         return self
  
-    def __add__(self, query2):
+    def __add__(self, query):
         """Adds two queries together, and returns a new query as a result"""
         
         newQuery = self.clone()
-        newQuery += (query2)
+        newQuery += (query)
 
         return newQuery
     # end join methods }}}
@@ -197,6 +213,7 @@ def DtsObjectGetItem(self, index):
 		raise KeyError, "DtsObject instance does not contain field " + index
 	return x
 libpysmacq.DtsObject.__getitem__ =  DtsObjectGetItem
+del DtsObjectGetItem
 
 libpysmacq.DtsObject.has_key = lambda self, name: (self.get().getfield(name, True).get() != None)
 libpysmacq.DtsObject.__getattr__ = lambda self, name: self.get().__getattribute__(name)
@@ -234,4 +251,5 @@ def DtsObject_keys(self, field_refs = False):
         
         return field_names
 libpysmacq.DtsObject_.keys = DtsObject_keys
+del DtsObject_keys
 	
