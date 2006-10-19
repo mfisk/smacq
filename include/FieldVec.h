@@ -22,8 +22,6 @@ class DtsObjectVec : public std::vector<DtsObject> {
   size_t hash(int seed = 0) const;
 
   bool masks (const DtsObjectVec &b) const;
-
-  //bool operator< (const DtsObjectVec &y) const;
 };
 
 
@@ -137,7 +135,7 @@ inline size_t DtsObjectVec::hash(const int seed) const {
 		   (*i)->getsize(), result);
   }
   
-  fprintf(stderr, "hash to %d\n", result);
+  //fprintf(stderr, "hash to %xld\n", result);
   return result;
 }
 
@@ -165,7 +163,71 @@ inline bool DtsObjectVec::masks (const DtsObjectVec &b) const {
   return true;
 }
 
+#include <openssl/sha.h>
+
+/// A scalar hash of a DtsObjectVec.
+class DtsDigest {
+ public:
+  /// Copy construct a hash
+  DtsDigest(const DtsDigest & d) { 
+	memcpy(val, d.val, SHA_DIGEST_LENGTH);
+  }
+
+  /// Construct a hash from a FieldVec.
+  DtsDigest(FieldVec & v) { 
+	_from(v.getobjs()); 
+  }
+
+  /// Construct a hash from a DtsObjectVec.
+  DtsDigest(const DtsObjectVec & v) { 
+	_from(v); 
+  }
+
+  /// Construct a hash from a single DtsObject.
+  DtsDigest(DtsObject & o) {
+	/// XXX. this is wasteful and lame.
+	DtsObjectVec v(o);
+	_from(v);
+  }
+
+  bool operator< (const DtsDigest &y) const {
+	return (memcmp(val, y.val, SHA_DIGEST_LENGTH) < 0);
+  }
+
+  bool operator==(const DtsDigest &y) const {
+	return (!memcmp(val, y.val, SHA_DIGEST_LENGTH));
+  }
+
+ private:
+  /// Compute the hash value from a DtsObjectVec.
+  void _from(const DtsObjectVec & v) {
+    DtsObjectVec::const_iterator i;
+  
+    SHA_CTX c;
+    SHA1_Init(&c); 
+
+    for (i = v.begin(); i != v.end(); ++i) {
+      SHA1_Update(&c, (*i)->getdata(), (*i)->getsize());
+    }
+
+    SHA1_Final(val, &c);
+  }
+
+  unsigned char val[SHA_DIGEST_LENGTH];
+};
+
 namespace __gnu_cxx {
+
+  /* 
+  // This is only necessary if doing a hash_map, hash_set, etc. of DtsDigest objects 
+  template<> struct hash<DtsDigest> {
+    size_t operator() (const DtsDigest & v) const {
+      return v.hash();
+    }
+  };
+  */
+
+  // This is necessary for doing an STL hash_map, hash_set, etc. of DtsObjectVec objects 
   template<> struct hash<DtsObjectVec> {
     size_t operator() (const DtsObjectVec & v) const { 
       return v.hash();
@@ -197,14 +259,14 @@ template <class T>
 class FieldVecDict : public std::map<DtsObjectVec, T>  {
 };
 
-/// A map for FieldVec keys.  The key itself is not stored.
+/// A map for FieldVec keys.  The key itself is not stored, just a hash.
 template <class T>
-class FieldVecHash : public std::map<DtsObjectVec, T> 
+class FieldVecHash : public std::map<DtsDigest, T> 
 {
 };
 
 /// A hash_set for FieldVec.
-class FieldVecSet : public std::set<DtsObjectVec >
+class FieldVecSet : public std::set<DtsDigest >
 {
 };
 

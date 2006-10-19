@@ -37,6 +37,7 @@ AC_CHECK_LIB([pcap], [pcap_open_live])
 AC_CHECK_LIB([pthread], [pthread_exit])
 AC_CHECK_LIB([z], [gzopen])
 AC_CHECK_LIB([bz2], [BZ2_bzopen])
+AC_CHECK_LIB([crypto], [SHA1_Init], [AM_LDFLAGS="$AM_LDFLAGS -lcrypto"])
 
 ##
 ## Libtool
