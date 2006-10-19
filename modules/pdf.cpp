@@ -63,7 +63,7 @@ smacq_result pdfModule::consume(DtsObject datum, int & outchan) {
   return(res);
 }
 
-pdfModule::pdfModule(struct SmacqModule::smacq_init * context) 
+pdfModule::pdfModule(smacq_init * context) 
       : SmacqModule(context), 
   	refreshtype(dts->requiretype("refresh")),
   	probtype(dts->requiretype("double")),

@@ -16,7 +16,7 @@ SMACQ_MODULE(histogram,
   PROTO_CTOR(histogram);
 );
 
-histogramModule::histogramModule(struct SmacqModule::smacq_init * context)
+histogramModule::histogramModule(smacq_init * context)
   : SmacqModule(context)
 {
   int argc;

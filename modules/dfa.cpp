@@ -244,7 +244,7 @@ int dfaModule::parse_dfa(char * filename) {
 }
 
 
-dfaModule::dfaModule(struct SmacqModule::smacq_init * context) 
+dfaModule::dfaModule(smacq_init * context) 
   : SmacqModule(context), sched(context->scheduler) 
 {
   int argc = context->argc-1;

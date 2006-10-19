@@ -128,7 +128,7 @@ static char * merge_args(int argc, char ** argv) {
 }
   
 
-pcapliveModule::pcapliveModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
+pcapliveModule::pcapliveModule(smacq_init * context) : SmacqModule(context) {
   char ebuf[PCAP_ERRBUF_SIZE];
   smacq_opt snapleno, promisco, interfaceo;
 

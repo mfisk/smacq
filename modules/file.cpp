@@ -24,7 +24,7 @@ SMACQ_MODULE(file,
 );
 
 
-fileModule::fileModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
+fileModule::fileModule(smacq_init * context) : SmacqModule(context) {
   smacq_opt list, follow;
 
   //fprintf(stderr, "Loading pcapfile (%d,%d)\n", context->isfirst, context->islast);

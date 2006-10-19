@@ -41,7 +41,7 @@ smacq_result countobjModule::consume(DtsObject datum, int & outchan) {
   return SMACQ_FREE;
 }
 
-countobjModule::countobjModule(struct SmacqModule::smacq_init * context) 
+countobjModule::countobjModule(smacq_init * context) 
   : SmacqModule(context)
 {
   smacq_opt threshold_opt;

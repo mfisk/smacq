@@ -23,7 +23,7 @@ smacq_result uniqobjModule::consume(DtsObject datum, int & outchan) {
   }
 }
 
-uniqobjModule::uniqobjModule(struct SmacqModule::smacq_init * context) 
+uniqobjModule::uniqobjModule(smacq_init * context) 
   : SmacqModule(context)
 {
   char seen_fieldstr[64];

@@ -1,3 +1,5 @@
+#ifndef SMACQPYMODULE
+#define SMACQPYMODULE
 #include <SmacqModule-interface.h>
 #include <smacq_result.h>
 #include <DtsField.h>
@@ -5,7 +7,7 @@
 #include <dts.h>
 #include <string>
 #include <vector>
-#include <boost/python/object.hpp>
+#include <boost/python.hpp>
 
 using namespace boost::python;
 
@@ -13,10 +15,10 @@ using namespace boost::python;
 /// To call and define python smacq modules, you must be using pysmacq, the python smacq library.
 /// They do not instantiate the python interpreter, but instead rely on being called by a python
 /// interpreter that has already been instantiated.  I think.  (PF)
-class SmacqPyModule : public SmacqModule {
+class SmacqPyModule {
   public:
 
-    SmacqPyModule(std::string name, object pymod_inst, smacq_init_type * context);
+    SmacqPyModule(std::string name, object pymod_inst, smacq_init * context);
 
     void test(std::string data) {
         pymod(data);
@@ -24,8 +26,6 @@ class SmacqPyModule : public SmacqModule {
 
     smacq_result consume(DtsObject datum, int & outchan);
 
-  private:
-  
     // This holds an instance of a python smacq module class.  The module class should inherit from
     // the python SmacqModule class.
     object pymod;
@@ -36,4 +36,7 @@ class SmacqPyModule : public SmacqModule {
 
 };
 
-//std::vector<SmacqPyModule*> avail_PyModules;
+void * smacq_find_pymodule(lt_dlhandle* gmodulep, char * envvar, char * envdefault,
+                         char * modformat, char * symformat, char * sym);
+
+#endif 

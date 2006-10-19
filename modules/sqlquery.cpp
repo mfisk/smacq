@@ -129,7 +129,7 @@ smacq_result sqlqueryModule::produce(DtsObject & datum, int & outchan) {
  return SMACQ_PASS|SMACQ_PRODUCE;
 }
 
-sqlqueryModule::sqlqueryModule(struct SmacqModule::smacq_init * context)
+sqlqueryModule::sqlqueryModule(smacq_init * context)
   : SmacqModule(context)
 {
   smacq_opt cnc, source, username, password, provider;

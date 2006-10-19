@@ -199,7 +199,7 @@ smacq_result printModule::consume(DtsObject datum, int & outchan) {
   return SMACQ_PASS;
 }
 
-printModule::printModule(struct smacq_init * context) 
+printModule::printModule(smacq_init * context) 
  : SmacqModule(context), use_file_pattern(false) {
   smacq_opt boulder_opt, record_delimiter_opt, tagged_opt, verbose_opt, 
     flush_opt, delimiter_opt, internals_opt, output_opt, binary_opt,

@@ -48,7 +48,7 @@ smacq_result maskModule::consume(DtsObject datum, int & outchan) {
   }
 }
 
-maskModule::maskModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
+maskModule::maskModule(smacq_init * context) : SmacqModule(context) {
   int i;
   test.isnot = 0;
   int argc = context->argc-1;

@@ -323,7 +323,7 @@ smacq_result flowidModule::consume(DtsObject datum, int & outchan) {
   return status;
 }
 
-flowidModule::flowidModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
+flowidModule::flowidModule(smacq_init * context) : SmacqModule(context) {
   int argc = 0;
   char ** argv;
 

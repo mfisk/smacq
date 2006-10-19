@@ -49,7 +49,7 @@ class ThreadedSmacqModule : public SmacqModule	{
   jmp_buf loop_stack;
   ucontext_t loop_context;
 
-  struct SmacqModule::smacq_init * context;
+  smacq_init * context;
 
   DtsObject datum;
   smacq_result result;

@@ -73,7 +73,7 @@ smacq_result ndjoinModule::consume(DtsObject datum, int & outchan) {
   return SMACQ_PASS;
 }
 
-ndjoinModule::ndjoinModule(struct SmacqModule::smacq_init * context)
+ndjoinModule::ndjoinModule(smacq_init * context)
   : SmacqModule(context), sched(context->scheduler)
 {
   int argc = context->argc-1;

@@ -48,7 +48,7 @@ SMACQ_MODULE(disarm,
   int client_init(int port, char * hostname, char ** ipstr);
 
   void processInvariants(SmacqGraphNode*);
-  void get_my_invariants(SmacqModule::smacq_init * context, char* name);
+  void get_my_invariants(smacq_init * context, char* name);
 
 );
 
@@ -270,7 +270,7 @@ int disarmModule::client_init(int port, char * hostname, char ** ipstr) {
   return(client_fd);
 }
 
-void disarmModule::get_my_invariants(SmacqModule::smacq_init * context, char* name) {
+void disarmModule::get_my_invariants(smacq_init * context, char* name) {
 	DtsField field = dts->requirefield(name);
 	processInvariants(context->self->getChildInvariants(dts, context->scheduler, field));
 }
@@ -299,7 +299,7 @@ void disarmModule::processInvariants(SmacqGraphNode * i) {
   }
 }
 
-disarmModule::disarmModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
+disarmModule::disarmModule(smacq_init * context) : SmacqModule(context) {
   smacq_opt infile, port, hostname;
   char * end_date;
 

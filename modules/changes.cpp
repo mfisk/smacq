@@ -155,7 +155,7 @@ smacq_result changesModule::consume(DtsObject datum, int & outchan) {
   return SMACQ_PASS;
 }
 
-changesModule::changesModule(struct SmacqModule::smacq_init * context) 
+changesModule::changesModule(smacq_init * context) 
   : SmacqModule(context)
 {
   int argc;

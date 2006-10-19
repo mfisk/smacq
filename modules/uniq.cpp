@@ -43,7 +43,7 @@ smacq_result uniqModule::consume(DtsObject datum, int & outchan) {
   }
 }
 
-uniqModule::uniqModule(struct SmacqModule::smacq_init * context) 
+uniqModule::uniqModule(smacq_init * context) 
   : SmacqModule(context), perfectset(NULL), probset(NULL)
 {
   int argc;

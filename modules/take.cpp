@@ -15,7 +15,7 @@ smacq_result takeModule::consume(DtsObject datum, int & outchan) {
   return SMACQ_FREE;
 }
 
-takeModule::takeModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
+takeModule::takeModule(smacq_init * context) : SmacqModule(context) {
   int argc = context->argc-1;
   char ** argv = context->argv+1;;
 

@@ -58,7 +58,7 @@ smacq_result entropyModule::consume(DtsObject datum, int & outchan) {
 	}
 }
 
-entropyModule::entropyModule(struct SmacqModule::smacq_init * context) 
+entropyModule::entropyModule(smacq_init * context) 
   : SmacqModule(context) 
 {
   {

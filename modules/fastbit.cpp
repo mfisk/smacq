@@ -65,7 +65,7 @@ static void string_strip(std::string & str, const std::string & strip) {
   }
 }
 	 
-fastbitModule::fastbitModule(struct SmacqModule::smacq_init * context) : SmacqModule(context), iterator(0) {
+fastbitModule::fastbitModule(smacq_init * context) : SmacqModule(context), iterator(0) {
   smacq_opt infile, attribute;
 
   struct smacq_optval optvals[] = {

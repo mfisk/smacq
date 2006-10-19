@@ -20,7 +20,7 @@ smacq_result streamaliasModule::consume(DtsObject datum, int & outchan) {
   return SMACQ_FREE;
 }
 
-streamaliasModule::streamaliasModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
+streamaliasModule::streamaliasModule(smacq_init * context) : SmacqModule(context) {
   int argc = context->argc-1;
   char ** argv = context->argv+1;;
 

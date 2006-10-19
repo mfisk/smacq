@@ -36,7 +36,7 @@ distributeModule::~distributeModule() {
   	Gasnet.RequestShort(i, AM_ENDINPUT, 0);
 }
 
-distributeModule::distributeModule(struct SmacqModule::smacq_init * context) 
+distributeModule::distributeModule(smacq_init * context) 
   : SmacqModule(context), ni(1)
 {
   int argc;

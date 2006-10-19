@@ -53,7 +53,7 @@ smacq_result countModule::consume(DtsObject datum, int & outchan) {
   }
 }
 
-countModule::countModule(struct SmacqModule::smacq_init * context) 
+countModule::countModule(smacq_init * context) 
   : SmacqModule(context), counter(0)
 {
   int argc = 0;

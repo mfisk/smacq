@@ -26,7 +26,7 @@ void lorModule::build_clause(char ** argv, int num) {
   graphs.addQuery(dts, sched, argv2string(num, argv));
 }
 
-lorModule::lorModule(struct SmacqModule::smacq_init * context)
+lorModule::lorModule(smacq_init * context)
   : SmacqModule(context), sched(context->scheduler)
 {
   int argc = context->argc-1;

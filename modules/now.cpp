@@ -24,7 +24,7 @@ smacq_result nowModule::consume(DtsObject datum, int & outchan) {
 	return SMACQ_PASS;
 }
 
-nowModule::nowModule(struct SmacqModule::smacq_init * context) 
+nowModule::nowModule(smacq_init * context) 
   : SmacqModule(context)
 {
 	int argc;

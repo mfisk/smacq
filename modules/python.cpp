@@ -486,7 +486,7 @@ static PyObject *pysmacq_wrap(pythonModule *module)
  *
  * Load up a module named by argv
  */
-pythonModule::pythonModule(struct smacq_init *context)
+pythonModule::pythonModule(smacq_init *context)
   : SmacqModule(context)
 {
   PyObject *pSmacq  = NULL;

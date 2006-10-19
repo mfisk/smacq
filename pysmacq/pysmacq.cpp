@@ -59,7 +59,6 @@ DtsObject (DtsObject_::*getfield_fptr_Fo)(DtsField &, bool) = &DtsObject_::getfi
 DtsObject (DtsObject_::*getfield_fptr_s)(char *, bool) = &DtsObject_::getfield;
 // }}}
 
-
 // Exposing smacq methods and functions to python {{{
 using namespace boost::python;
 
@@ -80,8 +79,7 @@ BOOST_PYTHON_MODULE(libpysmacq)
         .def(vector_indexing_suite<std::vector<DtsObject> >())
     ;
 
-    class_<SmacqPyModule>("SmacqPyModule", init<std::string, object, smacq_init_type *>())
-        .def("test", &SmacqPyModule::test)
+    class_<smacq_init_>("smacq_init")
     ;
 
     class_<SmacqGraph>("SmacqGraph", init<>())
@@ -129,4 +127,3 @@ BOOST_PYTHON_MODULE(libpysmacq)
     ;
     
 } // }}} 
-

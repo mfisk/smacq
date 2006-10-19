@@ -148,7 +148,7 @@ smacq_result activeModule::consume(DtsObject datum, int & outchan) {
   return SMACQ_PASS;
 }
 
-activeModule::activeModule(struct SmacqModule::smacq_init * context) {
+activeModule::activeModule(smacq_init * context) {
   int argc = 0;
   char ** argv;
 

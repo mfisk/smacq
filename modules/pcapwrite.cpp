@@ -133,7 +133,7 @@ pcapwriteModule::~pcapwriteModule() {
   delete strucio;
 }
 
-pcapwriteModule::pcapwriteModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
+pcapwriteModule::pcapwriteModule(smacq_init * context) : SmacqModule(context) {
   smacq_opt output, rotate_size, rotate_time, gzip;
 
   //fprintf(stderr, "Loading pcapfile (%d,%d)\n", context->isfirst, context->islast);

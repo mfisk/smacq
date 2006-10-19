@@ -21,11 +21,12 @@
   deprecated for most cases.
 */
 
-  /// This context structure is passed to SmacqModule constructors.
-  /// It will be destroyed after the constructor returns, but the
-  /// elements it points to are guaranteed to be available during the
-  /// lifetime of the object.
-  struct smacq_init_ {
+/// This context structure is passed to SmacqModule constructors.
+/// It will be destroyed after the constructor returns, but the
+/// elements it points to are guaranteed to be available during the
+/// lifetime of the object.
+class smacq_init_ {
+  public:
     SmacqScheduler * scheduler;
     bool isfirst;
     bool islast;
@@ -33,7 +34,8 @@
     int argc;
     DTS * dts;
     SmacqGraphNode * self;
-  };
+    char * sym;
+};
 
 typedef struct smacq_init_ smacq_init;
 
@@ -44,7 +46,7 @@ class SmacqModule {
   /// dynamically loaded into a program.  Each module should use the
   /// SMACQ_MODULE() macro to make sure that the module defines a
   /// constructor function that instantiates the class.
-  typedef SmacqModule*  constructor_fn(struct smacq_init *);
+  typedef SmacqModule*  constructor_fn(smacq_init *);
   
   /// The algebra element is optional and is used only by the dataflow
   /// optimizer.  The following elements of the algebra structure are
@@ -66,7 +68,7 @@ class SmacqModule {
 
   /// Most subclasses will define their own constructor which will
   /// initialize the instance based on the given context.
-  SmacqModule(struct smacq_init * context);
+  SmacqModule(smacq_init * context);
   
   /// A subclass can have its own destructor
   virtual ~SmacqModule();

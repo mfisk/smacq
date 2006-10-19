@@ -198,7 +198,7 @@ smacq_result pcapfileModule::produce(DtsObject &datum, int & outchan) {
     return SMACQ_PASS|SMACQ_PRODUCE;
 }
 
-pcapfileModule::pcapfileModule(struct SmacqModule::smacq_init * context) : SmacqModule(context), fh(NULL) {
+pcapfileModule::pcapfileModule(smacq_init * context) : SmacqModule(context), fh(NULL) {
   SmacqFileModule(context);
 
   snaplen_type = dts->requiretype("int");

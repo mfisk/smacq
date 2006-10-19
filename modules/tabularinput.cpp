@@ -116,7 +116,7 @@ smacq_result tabularinputModule::produce(DtsObject & datump, int & outchan) {
   return (SMACQ_PASS|SMACQ_PRODUCE);
 }
 
-tabularinputModule::tabularinputModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
+tabularinputModule::tabularinputModule(smacq_init * context) : SmacqModule(context) {
   smacq_opt delimitero, fileo;
   int argc;
   char ** argv;

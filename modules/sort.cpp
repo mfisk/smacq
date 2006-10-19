@@ -86,7 +86,7 @@ SMACQ_MODULE(sort,
 ); 
 
 
-sortModule::sortModule(struct SmacqModule::smacq_init * context) 
+sortModule::sortModule(smacq_init * context) 
   : SmacqModule(context)
 {
   int argc = 0;

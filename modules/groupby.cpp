@@ -94,7 +94,7 @@ groupbyModule::~groupbyModule() {
   delete mastergraph;
 }
 
-groupbyModule::groupbyModule(struct SmacqModule::smacq_init * context) 
+groupbyModule::groupbyModule(smacq_init * context) 
   : SmacqModule(context), self(context->self)
 {
   int argc;

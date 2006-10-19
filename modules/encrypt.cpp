@@ -66,7 +66,7 @@ smacq_result encryptModule::consume(DtsObject datum, int & outchan) {
   return (smacq_result)(SMACQ_FREE|SMACQ_PRODUCE);
 }
 
-encryptModule::encryptModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
+encryptModule::encryptModule(smacq_init * context) : SmacqModule(context) {
   int argc = 0;
   char ** argv;
   {

@@ -113,7 +113,7 @@ smacq_result joinModule::consume(DtsObject datum, int & outchan) {
   return SMACQ_FREE;
 }
 
-joinModule::joinModule(SmacqModule::smacq_init * context) 
+joinModule::joinModule(smacq_init * context) 
   : SmacqModule(context)
 {
   emptytype = dts->requiretype("empty");

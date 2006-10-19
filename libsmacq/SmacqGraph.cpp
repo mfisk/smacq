@@ -190,7 +190,7 @@ METHOD void SmacqGraphNode::init_node(DTS * dts, SmacqScheduler * sched) {
 
   scheduler = sched;
 
-  struct SmacqModule::smacq_init context;
+  smacq_init context;
 
   if (argc) {
   	context.islast = !(children[0].size());

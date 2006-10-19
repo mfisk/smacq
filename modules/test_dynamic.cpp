@@ -57,7 +57,7 @@ smacq_result printModule::consume(DtsObject datum, int & outchan) {
   return SMACQ_PASS;
 }
 
-printModule::printModule(struct SmacqModule::smacq_init * context) {
+printModule::printModule(smacq_init * context) {
   struct state * state;
   smacq_opt verbose, flush, delimiter;
   int i;

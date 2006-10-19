@@ -25,7 +25,7 @@ smacq_result constModule::consume(DtsObject datum, int & outchan) {
   return SMACQ_PASS;
 }
 
-constModule::constModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
+constModule::constModule(smacq_init * context) : SmacqModule(context) {
   int argc;
   char ** argv;
   smacq_opt type_opt, field_opt;

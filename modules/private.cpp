@@ -14,6 +14,6 @@ smacq_result privateModule::consume(DtsObject datum, int & outchan) {
   return SMACQ_FREE;
 }
 
-privateModule::privateModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
+privateModule::privateModule(smacq_init * context) : SmacqModule(context) {
 }
 

@@ -168,7 +168,7 @@ smacq_result substrModule::consume(DtsObject datum, int & outchan) {
 
 }
 
-substrModule::substrModule(struct SmacqModule::smacq_init * context) : SmacqModule(context), num_batches(0) {
+substrModule::substrModule(smacq_init * context) : SmacqModule(context), num_batches(0) {
   int i, argc;
   char ** argv;
   smacq_opt field_opt, demux_opt;

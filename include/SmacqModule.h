@@ -16,7 +16,7 @@ private:
 
 #define PROTO_CONSUME() public: smacq_result consume(DtsObject, int&); private:
 #define PROTO_PRODUCE() public: smacq_result produce(DtsObject&, int&); private:
-#define PROTO_CTOR(name) public: name##Module::name##Module(struct SmacqModule::smacq_init *); private:
+#define PROTO_CTOR(name) public: name##Module::name##Module(smacq_init *); private:
 #define PROTO_DTOR(name) public: name##Module::~name##Module(); private:
 
 #define SMACQ_MODULE(name,defs...)		\
@@ -29,8 +29,8 @@ private:
 #define SMACQ_MODULE_THREAD(name,defs...)				\
   class name##Module : public ThreadedSmacqModule {			\
   public:								\
-    smacq_result thread(struct SmacqModule::smacq_init* context);	\
-    name##Module(struct SmacqModule::smacq_init * context) : ThreadedSmacqModule(context) {} \
+    smacq_result thread(smacq_init* context);	\
+    name##Module(smacq_init * context) : ThreadedSmacqModule(context) {} \
   private:								\
     defs								\
       };								\
@@ -63,7 +63,7 @@ private:
   };
 
 #define SMACQ_MODULE_CONSTRUCTOR(name)					\
-  static SmacqModule * name##_constructor(struct SmacqModule::smacq_init * context) { \
+  static SmacqModule * name##_constructor(smacq_init * context) { \
     return new name##Module(context);					\
   }				
 
@@ -89,7 +89,7 @@ inline bool SmacqModule::UsesArray::otherEntry(unsigned int f) const {
   return false;
 }
 
-inline SmacqModule::SmacqModule(struct smacq_init * context) 
+inline SmacqModule::SmacqModule(smacq_init * context) 
   : dts(context->dts), scheduler(context->scheduler), self(context->self)
 {}
 

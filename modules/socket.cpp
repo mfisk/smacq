@@ -202,7 +202,7 @@ void socketModule::client_init(int port, char * hostname) {
   *client_type_array = 0; 
 }
 
-socketModule::socketModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
+socketModule::socketModule(smacq_init * context) : SmacqModule(context) {
   smacq_opt port, hostname, serverd_opt;
   
   {
