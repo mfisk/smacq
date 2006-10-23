@@ -7,7 +7,10 @@ libsmacq_modules_la_SOURCES = print.cpp pcapfile.cpp pcapwrite.cpp socket.cpp un
 
 libsmacq_modules_la_DEPENDENCIES = substr/libsubstr.la patricia/libpatricia.la libsmacq_pcaplive.la @EXTRA_STATIC_MODULES@ 
 libsmacq_modules_la_LIBADD = substr/libsubstr.la patricia/libpatricia.la libsmacq_pcaplive.la @EXTRA_STATIC_MODULES@ -lbz2 -lz -lsmacq
-libsmacq_modules_la_LDFLAGS = $(AM_LDFLAGS) -rpath /usr/lib -static -L$(top_builddir)/libsmacq
+
+# We have to specify libsmacq/.libs explictly because libsmacq.la doesn't exist yet
+# (since libsmacq is built after libsmacq_modules) so libtool thinks it's a traditional library.
+libsmacq_modules_la_LDFLAGS = $(AM_LDFLAGS) -rpath /usr/lib -static -L$(top_builddir)/libsmacq/.libs
 
 libsmacq_distribute_la_SOURCES = distribute.cpp
 
