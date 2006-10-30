@@ -3,6 +3,7 @@
 #include <SmacqGraph.h>
 #include <SmacqScheduler.h>
 #include <string>
+#include <iostream>
 #define RINGSIZE 4
 
 #define SGDEBUG(args...) if (scheduler && scheduler->isDebug()) { log(args); }
@@ -17,7 +18,10 @@ METHOD SmacqGraphNode::~SmacqGraphNode() {
   // Make sure that do_shutdown doesn't end up calling the destructor again
   refcount.increment();
 
-  do_shutdown(this);
+  // Added by pflarr in hopes that it safely fixes a segfault.
+  if (this->instance != NULL) {
+      do_shutdown(this);
+  }
   refcount.decrement();
 
   //log("shutdown from destructor (e.g. refcount==0) done");
@@ -595,7 +599,13 @@ METHOD void SmacqGraphNode::do_shutdown(SmacqGraphNode_ptr f) {
   // RecursiveLock l(f);
 
   // Atomically set shutdown.  Returns false if we set it, true if already set.
+  char ** some_info = f->getArgv(); 
+  //std::cout << "In SmacqGraphNode::do_shutdown. " << "before shutdown.set\n"; 
+  if (some_info != NULL)
+      //std::cout << some_info[0] << '\n';
+
   if (!f->shutdown.set()) {
+    //std::cout << "In SmacqGraphNode::do_shutdown. " << "in shutdown.set\n";
     // Already shutdown, so do nothing
     // (This will happen when our children are shutdown).
     //fprintf(stderr, "do_shutdown(%p) already done\n", f);
@@ -603,10 +613,12 @@ METHOD void SmacqGraphNode::do_shutdown(SmacqGraphNode_ptr f) {
   }
 
   //f->log("do_shutdown");
+  //std::cout << "In SmacqGraphNode::do_shutdown. " << "after shutdown.set, before instance\n";
 
   delete f->instance; // Call the destructor, which may callback to enqueue()
   f->instance = NULL;
 
+  //std::cout << "In SmacqGraphNode::do_shutdown. " << "after instance, before remove_children\n";
   // Remove all children.
   f->remove_children();
 

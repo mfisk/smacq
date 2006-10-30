@@ -15,12 +15,12 @@ libscanner_la_SOURCES=scanner.lpp
 
 libsmacq_la_SOURCES=libsmacq.cpp mem.c args.c dynloader.cpp cmalloc.c parser.ym filter-parser.ym expr-parser.ym #SmacqPyModule.cpp #datalog-parser.ym
 libsmacq_la_LIBADD=libscanner.la @GLIB_LIBS@  $(top_builddir)/modules/libsmacq_modules.la $(top_builddir)/types/libdts_modules.la $(top_builddir)/libgnu/libgnu.la  libpysmacq.la
-libsmacq_la_LDFLAGS = $(AM_LDFLAGS) -rpath /usr/lib -all-static #@LDFLAGS_PYTHON@ @LIBS_PYTHON@
+libsmacq_la_LDFLAGS = $(AM_LDFLAGS) -rpath /usr/lib -all-static 
 
 libpysmacq_la_SOURCES=SmacqPyModule.cpp
 libpysmacq_la_CPPFLAGS=-I/home/pflarr/include/python2.4 -I$(top_srcdir)/include $(AM_CPPFLAGS)
 libpysmacq_la_LIBADD=@GLIB_LIBS@ 
-libpysmacq_la_LDFLAGS = $(AM_LDFLAGS) -rpath /usr/lib -all-static 
+libpysmacq_la_LDFLAGS = $(AM_LDFLAGS)
 
 noinst_HEADERS=grammer.ypp
 BUILT_SOURCES=libsmacq.cpp parser.cpp filter-parser.cpp expr-parser.cpp preload.h

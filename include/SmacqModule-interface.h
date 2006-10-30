@@ -9,7 +9,7 @@
 
 #include <list>
 #include <utility>
-
+#include <string>
 ///
 /// A virtual base class for SMACQ modules.
 ///
@@ -89,7 +89,7 @@ class SmacqModule {
 
   /// This method is called by the join optimizer.
   virtual bool usesOtherFields(DtsField f);
-
+  
  protected:
   class UsesArray : public DynamicArray<bool> {
   public: 
@@ -115,7 +115,7 @@ class SmacqModule {
 
   /// A pointer to ourself in the current dataflow graph
   SmacqGraphNode * self;
-  
+
   /// Enqueue an object for output to the specified output channel.
   void enqueue(DtsObject &, int outchan = 0);
 };

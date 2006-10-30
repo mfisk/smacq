@@ -1,12 +1,12 @@
 SUBDIRS=substr patricia
-noinst_LTLIBRARIES = libsmacq_modules.la libtest_dynamic.la 
-EXTRA_LTLIBRARIES = libsmacq_sql.la libsmacq_pcaplive.la libsmacq_fastbit.la libsmacq_distribute.la libsmacq_python.la
+noinst_LTLIBRARIES = libsmacq_modules.la libtest_dynamic.la  
+EXTRA_LTLIBRARIES = libsmacq_sql.la libsmacq_pcaplive.la libsmacq_fastbit.la libsmacq_distribute.la libsmacq_python.la libsmacq_pymod.la
 SUFFIXES = .sc
 
-libsmacq_modules_la_SOURCES = print.cpp pcapfile.cpp pcapwrite.cpp socket.cpp uniq.cpp count.cpp last.cpp top.cpp head.cpp filter.cpp msgtest.cpp entropy.cpp derivative.cpp encrypt.cpp pdf.cpp fifo.cpp delta.cpp tabularinput.cpp rusage.cpp groupby.cpp flowid.cpp sum.cpp fifodelay.cpp take.cpp project.cpp rename.cpp mask.cpp const.cpp ndjoin.cpp lor.cpp counter_loop.cpp dfa.cpp expr.cpp equals.cpp cflow.cpp clock.cpp disarm.cpp substr-main.cpp iplookup.cpp streamalias.cpp join.cpp changes.cpp histogram.cpp now.cpp div.cpp private.cpp uniqobj.cpp sort.cpp countobj.cpp file.cpp deskew.cpp
+libsmacq_modules_la_SOURCES = print.cpp pcapfile.cpp pcapwrite.cpp socket.cpp uniq.cpp count.cpp last.cpp top.cpp head.cpp filter.cpp msgtest.cpp entropy.cpp derivative.cpp encrypt.cpp pdf.cpp fifo.cpp delta.cpp tabularinput.cpp rusage.cpp groupby.cpp flowid.cpp sum.cpp fifodelay.cpp take.cpp project.cpp rename.cpp mask.cpp const.cpp ndjoin.cpp lor.cpp counter_loop.cpp dfa.cpp expr.cpp equals.cpp cflow.cpp clock.cpp disarm.cpp substr-main.cpp iplookup.cpp streamalias.cpp join.cpp changes.cpp histogram.cpp now.cpp div.cpp private.cpp uniqobj.cpp sort.cpp countobj.cpp file.cpp deskew.cpp 
 
-libsmacq_modules_la_DEPENDENCIES = substr/libsubstr.la patricia/libpatricia.la libsmacq_pcaplive.la @EXTRA_STATIC_MODULES@
-libsmacq_modules_la_LIBADD = $(libsmacq_modules_la_DEPENDENCIES) -lbz2 -lz
+libsmacq_modules_la_DEPENDENCIES = substr/libsubstr.la patricia/libpatricia.la libsmacq_pcaplive.la libsmacq_pymod.la @EXTRA_STATIC_MODULES@ 
+libsmacq_modules_la_LIBADD = $(libsmacq_modules_la_DEPENDENCIES) -lbz2 -lz 
 
 libsmacq_distribute_la_SOURCES =distribute.cpp
 
@@ -38,6 +38,11 @@ libsmacq_pcaplive_la_LIBS = -lpcap
 libsmacq_fastbit_la_SOURCES = fastbit.cpp
 libsmacq_fastbit_la_LDFLAGS = $(AM_LDFLAGS) @LDFLAGS_FASTBIT@
 libsmacq_fastbit_la_CPPFLAGS = $(AM_CPPFLAGS) @CFLAGS_FASTBIT@
+
+libsmacq_pymod_la_SOURCES = pymod.cpp
+libsmacq_pymod_la_LDFLAGS = $(AM_LDFLAGS) @LDFLAGS_PYTHON@ @LIBS_PYTHON@
+libsmacq_pymod_la_LIBADD = -lboost_python
+libsmacq_pymod_la_CPPFLAGS = $(AM_CPPFLAGS) @CFLAGS_PYTHON@ 
 
 #libbench_field_la_SOURCES = bench_field-main.c bench_field-virtual.C 
 

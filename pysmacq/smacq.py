@@ -12,7 +12,7 @@ class SmacqQuery:  # {{{
     scheduler = None
     running = False
 
-    def __init__(self, query_str = None, run_now = False):  
+    def __init__(self, query_str = None, run_now = False):  # {{{ 
         self.__running = False
         self.scheduler = libpysmacq.SmacqScheduler()
         self.dts = libpysmacq.DTS()
@@ -22,8 +22,9 @@ class SmacqQuery:  # {{{
 
         if run_now:
             self.run()
+    # }}}
 
-    def run(self, ignoreDups = False):  
+    def run(self, ignoreDups = False): # {{{ 
         """Adds this query to the main SmacqGraph and runs it.  If the scheduler hasn't already been
 started, then it is started."""
 
@@ -37,6 +38,7 @@ started, then it is started."""
                 self.__running = True
         
         return  
+    # }}}
 
     def is_running(self): 
         return self.__running
@@ -49,9 +51,11 @@ started, then it is started."""
 
         self.run(True)
         query_results = []
-
+        
+        print "In smacq.py: getting result"
         for i in range(num_results):
             result = self.scheduler.get()
+            print "In smacq.py: got result"
             if result:
                 query_results.append( result )
             else:
