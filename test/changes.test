@@ -1,0 +1,1 @@
+pcapfile 0325@1112-snort.pcap | changes -a -i srcip len | print srcip len len.mean len.sigma severity
