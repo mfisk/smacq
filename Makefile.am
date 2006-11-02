@@ -21,8 +21,9 @@ fink: smacq.list
 	fink=yes srcdir=$(top_srcdir) epm -f deb -a darwin-`uname -p` --output-dir . smacq $<
 
 tarball: all
-	$(MAKE) DESTDIR=install/ install
-	
+	$(MAKE) DESTDIR=`pwd`/install/ install
+	tar -C install -czvf smacq.tar.gz usr
+
 deb.real: 
 	cp -pr $(top_srcdir)/debian .
 	fakeroot make -f debian/rules top_srcdir=$(top_srcdir)/ binary
