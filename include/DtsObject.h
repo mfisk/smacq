@@ -33,9 +33,27 @@ SMDEBUG(static int DtsObject_virtual_count = 0;)
 /// DtsObject auto-pointers (the auto-pointer keeps track of
 /// reference counts for the user).
 ///
-/// An object is read-only except for initializaiton, when it is
-/// assumed to only have a single user (and therefore not require
-/// locking.).  Only the field cache is locked for thread safety.
+/// An object is read-only except for initializaton (when it is
+/// assumed to only have a single user and therefore not require
+/// locking).  Only the field cache is locked for thread safety.
+///
+/// A DtsObject is mainly accessed by requesting one of its fields 
+/// with the getfield() method.  Most objects will have
+/// a "string" and/or "double" field for accessing string or double 
+/// representations of the object (if applicable).  
+/// 
+/// To access the raw contents of an object, use the getdata() 
+/// and getsize() methods or the dts_data_as(object, type) macro
+/// which will cast the data to the given type.
+///
+/// All DtsObjects have an underlying type that defines 0 or more fields
+/// that can be extracted from that object.  The gettype() method
+/// returns the dts_typeid.  However, a DtsObject may have additional fields
+/// added to it at runtime with the attach_field() method.  To get
+/// a list of all of the current fields, you can use the fieldcache()
+/// method.  To ensure that the fieldcache contains all available fields for the underlying
+/// type, precede the fieldcache() call with a call to prime_all_fields()
+
 class DtsObject_ : public PthreadMutex {
 
 /// This macro casts a datum to a "type*"
@@ -70,13 +88,16 @@ class DtsObject_ : public PthreadMutex {
 	void setsize(int size);
 	int getsize() const { return(len); }
 
+	/// Return the unique numeric identifier of the object
 	unsigned long getid() const { return(id); }
 
+	/// Return the raw data contents of the object
 	unsigned char * getdata() const { return((unsigned char*)data); }
     std::string pygetdata() const { 
       return (std::string)(char *)data;
     }
 
+	/// Return the type of the object
 	dts_typeid gettype() const { return(type); }
 	void settype(int type) {
 	  this->type = type;
@@ -102,15 +123,20 @@ class DtsObject_ : public PthreadMutex {
 		return getfield(f, nowarn);
 	}
 
+	/// Attach an object as a field
 	void attach_field(DtsField &field, DtsObject field_data);
 	/// @}
 
 	DtsObject make_writable();
 
+	/// Instantiate all fields defined by the type of this object
 	void prime_all_fields();
+
+	/// Instantiate a specific field
 	void prime_field(dts_field_info*);
 
-	/// Get a copy of the entire field cache
+	/// Get a copy of all instantiated fields.
+	/// You may want to use prime_all_fields() first.
     std::vector<DtsObject> fieldcache() {
 	   return fields.snapshot();
 	}
