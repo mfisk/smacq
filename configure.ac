@@ -202,7 +202,7 @@ AC_ARG_ENABLE(profile,
 			[enable gprof profiling]),
 		AM_CPPFLAGS="$AM_CPPFLAGS -pg"
 		AM_LDFLAGS="$AM_LDFLAGS -pg"
-	],)
+	)
 
 ##
 ## Debug
