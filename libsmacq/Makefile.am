@@ -19,8 +19,8 @@ libsmacq_la_LDFLAGS = $(AM_LDFLAGS) -rpath /usr/lib -all-static -shared
 
 noinst_HEADERS=grammer.ypp
 BUILT_SOURCES=libsmacq.cpp parser.cpp filter-parser.cpp expr-parser.cpp preload.h
-preload.h: Makefile $(top_srcdir)/misc/preloadsyms
-	(nm $(top_builddir)/modules/.libs/libsmacq_modules.a* $(top_builddir)/types/.libs/libdts_modules.a* | egrep -x '[0-9a-fA-F]* D _?(dts_type|smacq)_[^_]*_(table|fields)' | awk '{print $$3};'  | sed 's/^_//' | $(top_srcdir)/misc/preloadsyms > $@) || rm $@
+preload.h: Makefile $(top_srcdir)/misc/preloadsyms ../modules/libsmacq_modules.la ../types/libdts_modules.la
+	(nm $(top_builddir)/modules/.libs/libsmacq_modules.a* $(top_builddir)/types/.libs/libdts_modules.a* | egrep -x '[0-9a-fA-F]* [DB] _?(dts_type|smacq)_[^_]*_(table|fields)' | awk '{print $$3};'  | sed 's/^_//' | $(top_srcdir)/misc/preloadsyms > $@) || rm $@
 
 filter-parser.ypp: grammer.ypp
 expr-parser.ypp: grammer.ypp
