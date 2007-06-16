@@ -57,7 +57,11 @@ double DtsObject_::eval_arith_operand(struct dts_operand * op) {
 	  case FIELD:
 		 fetch_operand(op);
 		 if (op->valueo) {
-		   	assert(op->valueo->type == dts->typenum_byname("double"));
+			//fprintf(stderr, "eval got operand obj %p type %s\n", op->valueo.get(), dts->typename_bynum(op->valueo->type));
+		   	if (op->valueo->type != dts->typenum_byname("double")) {
+				op->valueo = op->valueo->getfield("double");
+			}
+			//fprintf(stderr, "eval got operand obj %p type %s value %g\n", op->valueo.get(), dts->typename_bynum(op->valueo->type), dts_data_as(op->valueo, double));
   		   	return dts_data_as(op->valueo, double);
 		 } else {
 			fprintf(stderr, "Warning: no field %s to eval, using NaN for value\n", op->origin.literal.str);
@@ -91,7 +95,7 @@ double DtsObject_::eval_arith_operand(struct dts_operand * op) {
 				return val1 / val2;
 				break;
 			case MULT:
-			  //fprintf(stderr, "%g * %g\n", val1, val2);
+			  //fprintf(stderr, "%p: %g(%p) * %p: %g(%p)\n", op->origin.arith.op1, val1, op->origin.arith.op1->valueo.get(), op->origin.arith.op2, val2, op->origin.arith.op2->valueo.get());
 				return val1 * val2;
 				break;
 		}
@@ -245,6 +249,7 @@ void DtsObject_::fetch_operand(struct dts_operand * op) {
   switch(op->type) {
 	case FIELD:
 	  op->valueo = this->getfield(op->origin.literal.field);
+	  //fprintf(stderr, "fetched operand %p %d\n", op->valueo.get(), op->origin.literal.field[0]);
 	  //if (!op->valueo) fprintf(stderr, "Field %s not found in obj %p\n", op->origin.literal.str, this);
 	  break;
 
