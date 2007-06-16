@@ -3,7 +3,6 @@
 #include <DynamicArray.h>
 #include <FieldVecDB.h>
 #include <stdexcept>
-#include <ndbm.h>
 #include <errno.h>
 
 static struct smacq_options options[] = {
@@ -37,6 +36,7 @@ public:
         field = dts->requirefield(dts_fieldname_append(field_name, "double"));
         raw_field = dts->requirefield(field_name);
   }
+  per_dimension_state(const per_dimension_state & p) : id(p.id), field(p.field), raw_field(p.raw_field), last_field(p.last_field) {}
 
   FieldVecDB<per_id_dimension_state> id;
   DtsField field, raw_field;

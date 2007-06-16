@@ -5,6 +5,7 @@
 #include <smacq-gda.h>
 #include <stdexcept>
 #include <SmacqModule.h>
+#include <smacq-gda.h>
 #define BUFSIZE 8192
 
 SMACQ_MODULE(sqlinsert,

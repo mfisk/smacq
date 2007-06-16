@@ -1,5 +1,5 @@
 #include <FieldVec.h>
-#include <db.h>
+#include <db_cxx.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <string.h>
@@ -8,38 +8,41 @@
 template <class T>
 class FieldVecDB {
  public:
+   /// Copy Constructor.
+   FieldVecDB(const FieldVecDB<T> & d) : db(NULL, 0), filename(d.filename) {
+        db.open(NULL, filename.c_str(), NULL, DB_BTREE, (O_RDWR | O_CREAT), 0666);
+   }
+
    /// Instantiate a database with the given name (may include path).
-   FieldVecDB(const std::string & file) {
-        db = dbopen(file.c_str(), (O_RDWR | O_CREAT), 0666, DB_BTREE, NULL);
-        if (!db) throw std::runtime_error(strerror(errno));
+   FieldVecDB(const std::string & file) : db(NULL, 0), filename(file) {
+        db.open(NULL, filename.c_str(), NULL, DB_BTREE, (O_RDWR | O_CREAT), 0666);
    }
 
    ~FieldVecDB() {
-	if (db) {
-		if (-1 == db->close(db)) {
-        		throw std::runtime_error(strerror(errno));
-		}
-	}
+	db.close(0);
+   }
+
+   void operator = (const FieldVecDB& d) {
+	db.close(0);
+	filename = d.filename;
+        db.open(NULL, filename.c_str(), NULL, DB_BTREE, (O_RDWR | O_CREAT), 0666);
    }
 
    T get(const DtsObjectVec & v) {
         DtsDigest digest(v);
 
-	DBT key;
-	key.size = sizeof(DtsDigest);
-	key.data = &digest;
-
-        DBT val;
-        int ret = db->get(db, &key, &val, 0);
+	Dbt key(&digest, sizeof(DtsDigest));
+        Dbt val;
+        int ret = db.get(NULL, &key, &val, 0);
 	if (ret == -1) {
-        	throw std::runtime_error(strerror(errno));
-	} else if (ret == 1) {
+        	throw std::runtime_error("db.get returned -1");
+	} else if (0 /*ret == DB::DB_NOTFOUND*/) {
 		// Did not exist; create
                 T empty;
                 return empty;
  	} else {
-                assert(val.size == sizeof(T));
-                T cpy(*(T *)(val.data));
+                assert(val.get_size() == sizeof(T));
+                T cpy(*(T *)(val.get_data()));
                 return cpy;
         }
    }
@@ -47,20 +50,15 @@ class FieldVecDB {
    void put(const DtsObjectVec & v, T & value) {
         DtsDigest digest(v);
 
-	DBT key;
-	key.size = sizeof(DtsDigest);
-	key.data = &digest;
+	Dbt key(&digest, sizeof(DtsDigest));
+        Dbt val(&value, sizeof(T));
 
-        DBT val;
-        val.size = sizeof(T);
-        val.data = &value;
-
-        int ret = db->put(db, &key, &val, 0);
+        int ret = db.put(NULL, &key, &val, 0);
         if (ret != 0) throw std::runtime_error(strerror(errno));
    }
 
  private:
-   DB * db;
-
+   Db db;
+   std::string filename;
 };
 

@@ -14,9 +14,9 @@ class FieldVec;
 /// A vector of DtsObject elements.
 class DtsObjectVec : public std::vector<DtsObject> {
  public:
-  DtsObjectVec::DtsObjectVec() {}
-  DtsObjectVec::DtsObjectVec(FieldVec & v);
-  DtsObjectVec::DtsObjectVec(DtsObject & o);
+  DtsObjectVec() {}
+  DtsObjectVec(FieldVec & v);
+  DtsObjectVec(DtsObject & o);
 
   /// Hash into value in [0..range]
   size_t hash(int seed = 0) const;

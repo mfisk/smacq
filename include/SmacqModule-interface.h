@@ -97,7 +97,7 @@ class SmacqModule {
   void comp_uses(dts_comparison * c);
 
   /// Return a newly constructed dts_comparison datastructure from the given arguments
-  dts_comparison * SmacqModule::parse_tests(std::string);
+  dts_comparison * parse_tests(std::string);
 
   /// This method wraps DTS::usesfield() but keeps track of what 
   /// this module uses.

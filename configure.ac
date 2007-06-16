@@ -7,7 +7,6 @@ AM_CONFIG_HEADER(include/config.h)
 AM_INIT_AUTOMAKE(1.7)
 AC_CONFIG_SRCDIR([bin])
 
-
 ##
 ## Checks for programs
 ##
@@ -400,6 +399,10 @@ if test "X$with_python" = "Xyes"; then
 		AC_MSG_FAILURE([Python config script failed])
 	    fi
 	fi
+
+	# Python C API violates C specs: http://sourceforge.net/tracker/index.php?func=detail&aid=766696&group_id=5470&atid=105470
+	CFLAGS_PYTHON="$CFLAGS_PYTHON -fno-strict-aliasing"
+
 	AC_MSG_RESULT($CFLAGS_PYTHON)
 
 	AC_MSG_CHECKING([LIBS_PYTHON])

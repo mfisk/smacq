@@ -95,7 +95,7 @@ public:
   void join_threads();
   void thread_loop();
 
-  friend void * iterative_scheduler_thread_start(void * arg) {
+  static void * iterative_scheduler_thread_start(void * arg) {
         SmacqScheduler * s = (SmacqScheduler*)arg;
         s->thread_loop();
         return NULL;

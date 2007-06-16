@@ -1,5 +1,6 @@
 bin_PROGRAMS = smacqq #smacqq-static #iterative-example
-SHELL=env PATH=$(top_srcdir)/misc:$$PATH sh
+#SHELL=env PATH=$(top_srcdir)/misc:$$PATH bash
+#SHELL=bash
 
 if GASNET
 smacqq_SOURCES = psmacqq.cpp 
@@ -13,7 +14,7 @@ endif
 smacqq_DEPENDENCIES = $(top_builddir)/libsmacq/libsmacq.la $(top_builddir)/modules/libsmacq_modules.la $(top_builddir)/types/libdts_modules.la
 smacqq_LDFLAGS = $(AM_LDFLAGS) -export-dynamic $(FRAMEWORKADD) -static $(smacqq_DEPENDENCIES) 
 smacqq_LDADD = -lsmacq -lsmacq_modules -ldts_modules -lltdl
-CXXLD=$(top_srcdir)/misc/g++
+#CXXLD=$(top_srcdir)/misc/g++
 
 #smacqq_LDFLAGS = $(AM_LDFLAGS) -export-dynamic $(BUILTINS) $(FRAMEWORKADD) -static -v -Wl,-static,-lglib-2.0,-Bdynamic
 #smacqq_static_LDFLAGS = -export-dynamic -all-static $(BUILTINS)

@@ -285,7 +285,7 @@ class SmacqGraphNode : private PthreadMutex {
   void runable(DtsObject);
 
   /// Scheduler is done handling a mustProduce.
-  void SmacqGraphNode::produce_done();
+  void produce_done();
 
   /// @}
  private:

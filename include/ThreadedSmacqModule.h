@@ -16,7 +16,7 @@ class ThreadedSmacqModule : public SmacqModule	{
   ThreadedSmacqModule(smacq_init *);
   ~ThreadedSmacqModule();
 
-  friend void run_thread(int args, ThreadedSmacqModule * ths) {
+  static void run_thread(int args, ThreadedSmacqModule * ths) {
       ths->thread(ths->context);
   }
 

@@ -68,10 +68,13 @@ In addition to the dependencies in README, you probably want the following:
 	apt-get install tetex-extra ghostscript bison automake1.7 opensp4 docbook-dtd doxygen graphviz
 
  - MacOS/X + Darwinports:
-	port install autoconf automake libtool-devel bison graphviz teTeX doxygen
+	port install autoconf automake libtool-devel bison graphviz teTeX doxygen flex
 
  - Debian:		
-	apt-get install tetex-extra ghostscript bison automake1.7 docbook-to-man doxygen graphviz
+	apt-get install tetex-extra ghostscript bison automake1.7 docbook-to-man doxygen graphviz flex
+
+ - Ubuntu:		
+	apt-get install tetex-extra gs bison automake1.7 docbook-to-man doxygen graphviz
 
  - ArchLinux:
 	pacmac -S tetex ghostscript bison doxygen graphviz

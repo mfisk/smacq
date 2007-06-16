@@ -141,7 +141,7 @@ class DtsObject_ : public PthreadMutex {
 	   return fields.snapshot();
 	}
 
-	int DtsObject_::write(struct pickle * pickle, int fd);
+	int write(struct pickle * pickle, int fd);
 
 	void send(dts_field_element fieldnum, dts_comparison * comparisons) {
 	  dts->send_message(this, fieldnum, comparisons);

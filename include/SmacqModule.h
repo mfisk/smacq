@@ -16,8 +16,8 @@ private:
 
 #define PROTO_CONSUME() public: smacq_result consume(DtsObject, int&); private:
 #define PROTO_PRODUCE() public: smacq_result produce(DtsObject&, int&); private:
-#define PROTO_CTOR(name) public: name##Module::name##Module(struct SmacqModule::smacq_init *); private:
-#define PROTO_DTOR(name) public: name##Module::~name##Module(); private:
+#define PROTO_CTOR(name) public: name##Module(struct SmacqModule::smacq_init *); private:
+#define PROTO_DTOR(name) public: ~name##Module(); private:
 
 #define SMACQ_MODULE(name,defs...)		\
   class name##Module : public SmacqModule {	\

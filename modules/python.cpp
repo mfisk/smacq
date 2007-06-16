@@ -68,7 +68,7 @@ static void PyDtsObject_dealloc(PyObject *p)
   PyObject_Del(p);
 }
 
-static int PyDtsObject_length(PyObject *p)
+static Py_ssize_t PyDtsObject_length(PyObject *p)
 {
   return 0;
 }
@@ -666,8 +666,9 @@ smacq_result pythonModule::consume(DtsObject datum, int &outchan)
       /* If they returned None, the buck stops here. */
       ret = SMACQ_FREE;
     } else {
+      PyObject * o = (PyObject*)&PyDtsObjectType;
       /* Otherwise, it's gotta be a PyDtsObject */
-      if (! PyObject_IsInstance(pRet, (PyObject *)&PyDtsObjectType)) {
+      if (! PyObject_IsInstance(pRet, o)) {
         fprintf(stderr, "Invalid return value: must be data object\n");
         break;
       }
