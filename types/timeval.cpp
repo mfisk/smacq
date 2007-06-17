@@ -19,8 +19,8 @@ struct timeval_32 {
 
 static int smacqtype_timeval_get_sec(DtsObject o, DtsObject field) {
   struct timeval_32 * t = (struct timeval_32 *)o->getdata();
-  unsigned long sec = t->tv_sec;
-  return dts_set(field, unsigned long, sec);
+  uint32_t sec = t->tv_sec;
+  return dts_set(field, uint32_t, sec);
 }
 
 static int smacqtype_timeval_get_double(DtsObject o, DtsObject field) {

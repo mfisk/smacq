@@ -16,28 +16,28 @@ static int smacqtype_uint32_get_hexstring(DtsObject o, DtsObject field) {
 }
 
 static int smacqtype_uint32_get_double(DtsObject o, DtsObject field) {
-  unsigned long l = dts_data_as(o, unsigned long);
+  uint32_t l = dts_data_as(o, uint32_t);
   double d = l;
   return dts_set(field, double, d);
 }
 
 static int parse_string(const char* buf, DtsObject d) {
-        unsigned long val;
+        uint32_t val;
         char * left = NULL;
         val = strtoul(buf, &left, 10);
         if (left == buf) {
                 return(0);
         }
  
-        return dts_set(d, unsigned long, val);
+        return dts_set(d, uint32_t, val);
 }
  
 static int uint32_lt(void * num1, int size1, void * num2, int size2) {
-        unsigned long * a = (unsigned long *)num1;
-        unsigned long * b = (unsigned long *)num2;
+        uint32_t * a = (uint32_t *)num1;
+        uint32_t * b = (uint32_t *)num2;
  
-        assert(size1 == sizeof(unsigned long));
-        assert(size2 == sizeof(unsigned long));
+        assert(size1 == sizeof(uint32_t));
+        assert(size2 == sizeof(uint32_t));
  
         return(*a < *b);
 }

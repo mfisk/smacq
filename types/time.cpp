@@ -33,10 +33,10 @@ static int smacqtype_time_get_ctime(DtsObject o, DtsObject field) {
 }
 
 static int time_lt(void * p1, int len1, void * p2, int len2) {
-  assert(len1 == sizeof(unsigned long));
-  assert(len2 == sizeof(unsigned long));
+  assert(len1 == sizeof(uint32_t));
+  assert(len2 == sizeof(uint32_t));
 
-  return((*(unsigned long*)p1 <  *(unsigned long*)p2));
+  return((*(uint32_t*)p1 <  *(uint32_t*)p2));
 }
 
 static int parse_timeval(const char* buf,  DtsObject d) {
