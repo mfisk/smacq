@@ -46,14 +46,14 @@ SMACQ can build with the following optional functionality:
 -----------------------------------------------------------------------------
 OS            |	glib2>=2.4	boost		libpcap		zlib		
               	bz2		g++		libgda		libltdl
-                gmake		openssl		libdb4
+                gmake		openssl		libdb4		libgda-sqlite
 --------------+--------------------------------------------------------------
 MacPorts      |	glib2-devel	boost +python	libpcap	
               					libgda +with_sqlite
 						db45
 Debian        |	libglib2.0-dev	libboost-python-dev	libpcap-dev	zlib1g-dev
               	libbz2-dev	g++		libgda2-dev	libltdl3-dev
-				libssl-dev	libdb4.5++-dev
+				libssl-dev	libdb4.5++-dev	gda2-sqlite
 RHEL	      | glib2-devel	boost-devel			zlib-devel
               	bzip2-devel			libgda-devel
 						db4-devel
