@@ -519,17 +519,8 @@ struct dts_operand * comp_operand(enum dts_operand_type type, char * str) {
   comp->type = type;
   comp->origin.literal.str = str;
 
-  switch (type) {
-  case FIELD:
+  if (type == FIELD) {
     comp->origin.literal.field = parse_dts->requirefield(str);
-    break;
-
-  case CONST:
-    break;
-
-  case ARITH:
-    assert(0);
-    break;
   }
 
   return comp;
@@ -537,18 +528,6 @@ struct dts_operand * comp_operand(enum dts_operand_type type, char * str) {
 
 static double zero = 0;
 
-void DTS::make_fields_doubles(struct dts_operand * operand) {
-  assert(operand);
-  if (operand->type == FIELD) {
-    char * old = operand->origin.literal.str;
-    operand->origin.literal.str = dts_fieldname_append(old, "double");
-    //delete(old);
- 
-    operand->origin.literal.field = requirefield(operand->origin.literal.str);
-  }
-}
-
-		
 struct dts_operand * DTS::comp_arith(enum dts_arith_operand_type op, struct dts_operand * op1, struct dts_operand * op2) {
   dts_operand * comp = new dts_operand;
    
@@ -557,9 +536,6 @@ struct dts_operand * DTS::comp_arith(enum dts_arith_operand_type op, struct dts_
   comp->origin.arith.op1 = op1;
   comp->origin.arith.op2 = op2;
   comp->valueo = construct(requiretype("double"), &zero);
-
-  make_fields_doubles(op1);
-  make_fields_doubles(op2);
 
   return comp;
 }
