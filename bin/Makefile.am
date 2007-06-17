@@ -1,5 +1,5 @@
 bin_PROGRAMS = smacqq #smacqq-static #iterative-example
-#SHELL=env PATH=$(top_srcdir)/misc:$$PATH bash
+SHELL=PATH=$(top_srcdir)/misc:$$PATH bash
 #SHELL=bash
 
 if GASNET
