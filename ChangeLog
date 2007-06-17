@@ -5,6 +5,9 @@ VERSION 2.6 - Future
 2006-09 - Group by can now be used in pipes as well as FROMs
 2006-09 - SmacqGraphContainer::newQuery replaced with SmacqGraphContainer::addQuery
 2006-09 - Renamed SmacqGraph to SmacqGraphNode and SmacqGraphContainer to SmacqGraph
+2007-06 - GDA 1.3 support added (with backwards compatiblity to 1.2)
+2007-06 - Ubuntu 7.04 x86_64 support
+2007-06 - gcc 4.1.2 support (more pedantic)
 
 VERSION 2.5 - 29 August 2006
 ============================
