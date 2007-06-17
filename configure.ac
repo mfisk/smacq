@@ -470,7 +470,7 @@ gl_INIT
 ##
 AM_CPPFLAGS="$AM_CPPFLAGS -I\${top_srcdir}/include -D_GNU_SOURCE -D_ISOC99_SOURCE"
 if test -n "$GCC"; then
-	AM_CPPFLAGS="$AM_CPPFLAGS -Wall -Werror"
+	AM_CPPFLAGS="$AM_CPPFLAGS -Wall -Werror -fPIC"
 fi
 
 ##
