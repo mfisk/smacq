@@ -1,47 +1,62 @@
-AUTHORS
-=======
-Unless otherwise indicated, all files in this package were authored
-Mike Fisk <mfisk@lanl.gov>.
+No copyright has been asserted for this software and ancillary information,
+unless specifically labelled otherwise on a file-by-file basis.  This work 
+contains software written under contract with the United States Government.  
+Copyright can that software can only be asserted with permission of the 
+United States Government.
 
-LICENSE
-=======
-This software and ancillary information (herein called "SOFTWARE")
-called "SMACQ" is made available under the terms described here.  The
-SOFTWARE has been approved for release with associated LA-CC number
-02-058.
+The following is a summary of copyrights and licenses that apply to this
+distribution.  In summary, this software package can be distributed under
+the terms of the GPL with additional requirements for preserving copyright
+information and marking authorship.
+
+SMACQ version 0.2 
+-----------------
+  This software and ancillary information (herein called "SOFTWARE")
+  called "SMACQ" is made available under the terms described here.  The
+  SOFTWARE has been approved for release with associated LA-CC number
+  02-058.
   
-Unless otherwise indicated, this SOFTWARE has been authored by an
-employee or employees of the University of California, operator of the
-Los Alamos National Laboratory under Contract No. W-7405-ENG-36 with
-the U.S.  Department of Energy. The U.S. Government has rights to use,
-reproduce, and distribute this SOFTWARE. The public may copy,
-distribute, prepare derivative works and publicly display this
-SOFTWARE without charge, provided that this Notice and any statement
-of authorship are reproduced on all copies. Neither the Government nor
-the University makes any warranty, express or implied, or assumes any
-liability or responsibility for the use of this SOFTWARE. If SOFTWARE
-is modified to produce derivative works, such modified SOFTWARE should
-be clearly marked, so as not to confuse it with the version available
-from LANL.
+  This SOFTWARE has been authored by an employee or employees of the 
+  University of California, operator of the Los Alamos National Laboratory 
+  under Contract No. W-7405-ENG-36 with the U.S.  Department of Energy. 
+  The U.S. Government has rights to use, reproduce, and distribute this 
+  SOFTWARE.  Neither the Government nor the University makes any warranty, 
+  express or implied, or assumes any liability or responsibility for the use of 
+  this SOFTWARE. If SOFTWARE is modified to produce derivative works, such 
+  modified SOFTWARE should be clearly marked, so as not to confuse it with 
+  the version available from LANL.
 
-All source-code contained here-in is relesased under the GNU Lesser
-General Public License version 2.1, unless stated otherwise elsewhere
-in this distribution.
-  
-If you have not received a copy of the GNU Lesser General Public
-License, write to the Free Software Foundation, Inc., 59 Temple Place,
-Suite 330, Boston, MA 02111-1307 USA.
-
-NON-LANL WORKS
-==============
-The following software is included in this package and the authors
-greatfully acknowledged:
+  Additionally, this program is free software; you can distribute it and/or
+  modify it under the terms of the GNU General Public License as published
+  by the Free Software Foundation; either version 2 of the License, or any
+  later version.  Accordingly, this program is distributed with the hope
+  that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+  warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See
+  the GNU General Public License for more details.
 
 TCPDUMP
 -------
-pcap handling routines were derived from tcpdump, which was developed by
-the Network Research Group at Lawrence Berkeley National Lab, and is
-copyrighted by the University of California Regents.
+pcap handling routines were derived from Tcpdump, which is licensed as 
+follows:
+  Licensed under the 3-clause BSD license: 
+ 
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions
+  are met:
+  
+    1. Redistributions of source code must retain the above copyright
+       notice, this list of conditions and the following disclaimer.
+    2. Redistributions in binary form must reproduce the above copyright
+       notice, this list of conditions and the following disclaimer in
+       the documentation and/or other materials provided with the
+       distribution.
+    3. The names of the authors may not be used to endorse or promote
+       products derived from this software without specific prior
+       written permission.
+    
+  THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
+  IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
+  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
   	
 GNULIB
 ------
@@ -56,7 +71,49 @@ The PATRICIA implementation in the patricia subdirectory is extracted
 from Dave Plonka's Net::Patricia package (released under the GPL) for
 perl which in turn extracted it from MRT's patricia code from
 radix.[ch], which was worked on by Masaki Hirabaru and Craig Labovitz.
-For more info on MRT see: http://www.mrtd.net/
-   
-The MRT patricia code owes some heritage to GateD's radix code, which
-in turn owes something to the BSD kernel.
+For more info on MRT see: http://www.mrtd.net/.   The MRT patricia code 
+owes some heritage to GateD's radix code, which in turn owes something 
+to the BSD kernel.  The MRT Copyright is as follows:
+  Copyright (c) 1997, 1998, 1999
+
+  The Regents of the University of Michigan ("The Regents") and Merit Network,
+  Inc.  All rights reserved.
+  Redistribution and use in source and binary forms, with or without
+  modification, are permitted provided that the following conditions are met:
+  1.  Redistributions of source code must retain the above 
+      copyright notice, this list of conditions and the 
+      following disclaimer.
+  2.  Redistributions in binary form must reproduce the above 
+      copyright notice, this list of conditions and the 
+      following disclaimer in the documentation and/or other 
+      materials provided with the distribution.
+  3.  All advertising materials mentioning features or use of 
+      this software must display the following acknowledgement:  
+  This product includes software developed by the University of Michigan, Merit
+  Network, Inc., and their contributors. 
+  4.  Neither the name of the University, Merit Network, nor the
+      names of their contributors may be used to endorse or 
+      promote products derived from this software without 
+      specific prior written permission.
+  THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS "AS IS" AND ANY
+  EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+  DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE FOR ANY
+  DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+  ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.  
+  
+Bison
+-----
+Portions of this software were generated automatically by Bison and 
+the Copyright is held by the Free Software Foundation.  This machine-
+generated software is licensed under the GPL with the following
+special exception granted:
+   As a special exception, you may create a larger work that contains
+   part or all of the Bison parser skeleton and distribute that work
+   under terms of your choice, so long as that work isn't itself a
+   parser generator using the skeleton or a modified version thereof
+   as a parser skeleton.  
