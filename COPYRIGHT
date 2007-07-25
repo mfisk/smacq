@@ -1,13 +1,29 @@
-No copyright has been asserted for this software and ancillary information,
-unless specifically labelled otherwise on a file-by-file basis.  This work 
-contains software written under contract with the United States Government.  
-Copyright can that software can only be asserted with permission of the 
-United States Government.
-
+ASSERTIONS
+==========
 The following is a summary of copyrights and licenses that apply to this
 distribution.  In summary, this software package can be distributed under
 the terms of the GPL with additional requirements for preserving copyright
 information and marking authorship.
+
+Export Control
+--------------
+TSPA: Technical data or Software Publicly Available
+
+LANS, LLC
+---------
+  This software has been authored by an employee or employees of Los
+  Alamos National Security, LLC, operator of the Los Alamos National
+  Laboratory (LANL) under Contract No. DE-AC52-06NA25396 with the
+  U.S. Department of Energy.  The U.S. Government has rights to use,
+  reproduce, and distribute this software.  The public may copy,
+  distribute, prepare derivative works and publicly display this
+  software without charge, provided that this Notice and any statement
+  of authorship are reproduced on all copies.  Neither the Government
+  nor LANS makes any warranty, express or implied, or assumes any
+  liability or responsibility for the use of this software.  If software
+  is modified to produce derivative works, such modified software should
+  be clearly marked, so as not to confuse it with the version available
+  from LANL.
 
 SMACQ version 0.2 
 -----------------
@@ -71,6 +87,7 @@ The PATRICIA implementation in the patricia subdirectory is extracted
 from Dave Plonka's Net::Patricia package (released under the GPL) for
 perl which in turn extracted it from MRT's patricia code from
 radix.[ch], which was worked on by Masaki Hirabaru and Craig Labovitz.
+
 For more info on MRT see: http://www.mrtd.net/.   The MRT patricia code 
 owes some heritage to GateD's radix code, which in turn owes something 
 to the BSD kernel.  The MRT Copyright is as follows:
