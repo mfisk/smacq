@@ -8,9 +8,9 @@
 #include <map>
 #include <string>
 
+extern char * yytext;
 BEGIN_C_DECLS
 
-extern char * yytext;
 extern char * yystring;
 extern void yyerror(const char * msg);
 extern SmacqGraph * Graph;

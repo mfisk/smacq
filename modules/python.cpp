@@ -68,7 +68,7 @@ static void PyDtsObject_dealloc(PyObject *p)
   PyObject_Del(p);
 }
 
-static Py_ssize_t PyDtsObject_length(PyObject *p)
+static int PyDtsObject_length(PyObject *p)
 {
   return 0;
 }

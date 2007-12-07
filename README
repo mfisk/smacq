@@ -54,9 +54,9 @@ MacPorts      |	glib2-devel	boost +python	libpcap
 Debian        |	libglib2.0-dev	libboost-python-dev	libpcap-dev	zlib1g-dev
               	libbz2-dev	g++		libgda2-dev	libltdl3-dev
 				libssl-dev	libdb4.5++-dev	gda2-sqlite
-RHEL	      | glib2-devel	boost-devel			zlib-devel
-              	bzip2-devel			libgda-devel
-						db4-devel
+RHEL	      | glib2-devel	boost-devel	libpcap-devel	zlib-devel
+              	bzip2-devel	gcc-c++		libgda-devel	libtool-ltdl-devel
+			 	openssl-devel	db4-devel
 FreeBSD       |	glib20						
               				
 	        gmake
