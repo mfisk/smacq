@@ -68,6 +68,7 @@ static inline void list_free(struct list * l) {
 }
 
 static inline void * list_peek_value(struct list * l) {
+	if (! l->head) return NULL;
 	return l->head->data;
 }
 
