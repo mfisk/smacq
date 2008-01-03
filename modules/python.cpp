@@ -68,7 +68,10 @@ static void PyDtsObject_dealloc(PyObject *p)
   PyObject_Del(p);
 }
 
-static int PyDtsObject_length(PyObject *p)
+#if (PY_MAJOR_VERSION <= 2) && (PY_MINOR_VERSION < 5)
+typedef int  Py_ssize_t P;
+#endif 
+static Py_ssize_t PyDtsObject_length(PyObject *p)
 {
   return 0;
 }
