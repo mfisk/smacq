@@ -27,7 +27,10 @@ int DtsObject_::match_one(dts_comparison * c) {
 
   switch (c->op) {
   case EXIST:
-    this->fetch_operand(c->op1);
+    // Use a non-warning getfield here since by filtering on 
+    // the existance of a field, you must believe it won't always
+    // be there. 
+    this->fetch_operand(c->op1, true);
     break;
 
   case EQ:

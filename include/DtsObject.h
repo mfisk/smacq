@@ -205,7 +205,7 @@ class DtsObject_ : public PthreadMutex {
 
 	/// @name Matching
 	/// @{
-	void fetch_operand(struct dts_operand * op);
+	void fetch_operand(struct dts_operand * op, bool nowarn = false);
 	void fetch_const_operand(struct dts_operand * op, dts_typeid const_type);
 	int match_one(dts_comparison * c);
 	int match_andor(dts_comparison * comps, int op);

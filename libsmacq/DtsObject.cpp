@@ -245,10 +245,10 @@ void DtsObject_::fetch_const_operand(struct dts_operand * op, dts_typeid const_t
 	if (!op->valueo) fprintf(stderr, "Could not parse %s\n", op->origin.literal.str);
 }
 
-void DtsObject_::fetch_operand(struct dts_operand * op) {
+void DtsObject_::fetch_operand(struct dts_operand * op, bool nowarn) {
   switch(op->type) {
 	case FIELD:
-	  op->valueo = this->getfield(op->origin.literal.field);
+	  op->valueo = this->getfield(op->origin.literal.field, nowarn);
 	  //fprintf(stderr, "fetched operand %p %d\n", op->valueo.get(), op->origin.literal.field[0]);
 	  //if (!op->valueo) fprintf(stderr, "Field %s not found in obj %p\n", op->origin.literal.str, this);
 	  break;
