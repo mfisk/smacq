@@ -69,7 +69,7 @@ static void PyDtsObject_dealloc(PyObject *p)
 }
 
 #if (PY_MAJOR_VERSION <= 2) && (PY_MINOR_VERSION < 5)
-typedef int  Py_ssize_t P;
+typedef int  Py_ssize_t;
 #endif 
 static Py_ssize_t PyDtsObject_length(PyObject *p)
 {
