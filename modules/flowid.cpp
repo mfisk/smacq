@@ -73,13 +73,13 @@ SMACQ_MODULE(flowid,
 
   struct list timers;
 
-  FieldVecHash<SrcStat*> stats;
+  FieldVecHash<SrcStat> stats;
   
   int reverse;
 
-  void attach_stats(SrcStat * s, DtsObject datum);
-  void output(SrcStat * s);
-  void finalize(SrcStat * s);
+  void attach_stats(SrcStat & s, DtsObject datum);
+  void output(SrcStat & s);
+  void finalize(SrcStat & s);
   SrcStat * stats_lookup(DtsObject datum, int * swapped);
   void timers_manage();
 ); 
@@ -103,33 +103,33 @@ static int timeval_past(struct timeval x, struct timeval y) {
   return 0;
 }
 
-void flowidModule::attach_stats(SrcStat * s, DtsObject datum) {
+void flowidModule::attach_stats(SrcStat & s, DtsObject datum) {
   DtsObject msgdata;
 
-  msgdata = dts->construct(timeval_type, &s->starttime);
+  msgdata = dts->construct(timeval_type, &s.starttime);
   datum->attach_field(start_field, msgdata);
   
-  msgdata = dts->construct(len_type, &s->byte_count);
+  msgdata = dts->construct(len_type, &s.byte_count);
   datum->attach_field(byte_count_field, msgdata);
   
-  msgdata = dts->construct(len_type, &s->byte_count_back);
+  msgdata = dts->construct(len_type, &s.byte_count_back);
   datum->attach_field(byte_count_back_field, msgdata);
   
-  msgdata = dts->construct(len_type, &s->packet_count);
+  msgdata = dts->construct(len_type, &s.packet_count);
   datum->attach_field(packet_count_field, msgdata);
   
-  msgdata = dts->construct(len_type, &s->packet_count_back);
+  msgdata = dts->construct(len_type, &s.packet_count_back);
   datum->attach_field(packet_count_back_field, msgdata);
 
 }
 
-inline void flowidModule::output(SrcStat * s) {
+inline void flowidModule::output(SrcStat & s) {
       // Output refresh record
       DtsObject msgdata;
       DtsObject refresh = dts->construct(refresh_type, NULL);
-      DtsObjectVec ov = s->fields.getobjs();
+      DtsObjectVec ov = s.fields.getobjs();
 
-      msgdata = dts->construct(id_type, &s->id);
+      msgdata = dts->construct(id_type, &s.id);
       refresh->attach_field(flowid_field, msgdata);
 
       DtsObjectVec::iterator i;
@@ -137,11 +137,11 @@ inline void flowidModule::output(SrcStat * s) {
       for (i = ov.begin(); 
 	   i != ov.end(); 
 	   i++) {
-	refresh->attach_field(s->fields[j]->num, *i);
+	refresh->attach_field(s.fields[j]->num, *i);
 	j++;
       }
 
-      msgdata = dts->construct(timeval_type, &s->lasttime);
+      msgdata = dts->construct(timeval_type, &s.lasttime);
       refresh->attach_field(finish_field, msgdata);
 
       //refresh->attach_field(ts_field, msgdata);
@@ -152,7 +152,7 @@ inline void flowidModule::output(SrcStat * s) {
       enqueue(refresh, 0);
 }
 
-inline void flowidModule::finalize(SrcStat * s) {
+inline void flowidModule::finalize(SrcStat & s) {
     output(s);
 
     active--;
@@ -161,12 +161,12 @@ inline void flowidModule::finalize(SrcStat * s) {
     // Cleanup
     /* Don't have to decref fields, since their refcount will be picked up from being attached in the output routine */
 
-    delete s;
+    //delete s;
 }
 
 inline SrcStat * flowidModule::stats_lookup(DtsObject datum, int * swapped) {
-  FieldVecHash<SrcStat *>::iterator s = stats.find(fieldvec);
-  if (s != stats.end()) return s->second;
+  FieldVecHash<SrcStat>::iterator s = stats.find(fieldvec);
+  if (s != stats.end()) return &s->second;
   
   /* Try reverse */
   if (reverse) {
@@ -174,7 +174,7 @@ inline SrcStat * flowidModule::stats_lookup(DtsObject datum, int * swapped) {
     s = stats.find(fieldvec2);
     if (s != stats.end()) {
       *swapped = 1;
-      return s->second;
+      return &s->second;
     }
   }
   
@@ -210,7 +210,7 @@ void flowidModule::timers_manage() {
 	list_element_free(&timers, list_pop_element(&timers));
 
 	/* Output and free */
-	finalize(s);
+	finalize(*s);
 
 	/* fprintf(stderr, "remove element %p hash %p\n", s, s->hash_entry); */
     }
@@ -225,7 +225,6 @@ void flowidModule::timers_manage() {
  *
  */
 smacq_result flowidModule::consume(DtsObject datum, int & outchan) {
-  SrcStat * s;
   smacq_result status = SMACQ_FREE;
 
   DtsObject field;
@@ -263,11 +262,11 @@ smacq_result flowidModule::consume(DtsObject datum, int & outchan) {
 
 	return SMACQ_FREE;
   }
-  s = stats_lookup(datum, &swapped);
+  SrcStat * s = stats_lookup(datum, &swapped);
 
   // Make new entry if necessary 
   if (!s) {
-      s = new SrcStat;
+      s = &stats[fieldvec];
       //fprintf(stderr, "new %p\n", s);
       
       s->id = flowid++;
@@ -275,8 +274,6 @@ smacq_result flowidModule::consume(DtsObject datum, int & outchan) {
       s->lasttime = tsnow;
       s->fields = fieldvec;
       
-      stats[fieldvec] = s;
-
       if (hasinterval) {
 	s->timer_entry = list_append_value(&timers, s);
 	s->timer_index = s->lasttime;
@@ -311,7 +308,7 @@ smacq_result flowidModule::consume(DtsObject datum, int & outchan) {
     // Attach flowid to this datum
     msgdata = dts->construct(id_type, &s->id);
     datum->attach_field(flowid_field, msgdata);
-    attach_stats(s, datum);
+    attach_stats(*s, datum);
   }
 
   if (hasinterval) 
@@ -387,7 +384,7 @@ flowidModule::flowidModule(struct SmacqModule::smacq_init * context) : SmacqModu
 }
 
 flowidModule::~flowidModule() {
-   FieldVecHash<SrcStat*>::iterator i;
+   FieldVecHash<SrcStat>::iterator i;
    for (i=stats.begin(); i!=stats.end(); i++) {
       finalize(i->second);
    }
