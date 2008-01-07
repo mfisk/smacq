@@ -27,7 +27,7 @@ toksymbols	[\|\,\=\<\>\(\)\[\]]|{arithop}
 number		{sign}{digits}+
 id		[^\!\'\"\,\=\<\>\(\)[:space:]\|]+
 capid		[A-Z]{id}
-comment		#.*
+comment		[%#].*
 
 %x xdquote
 %x xquote

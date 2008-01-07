@@ -117,9 +117,11 @@ int smacqq(int argc, char ** argv) {
       }
 
       if (!strcmp(qfile.string_t, "-")) {
-	      fh = stdin;
+	      fh = popen("cpp", "r");
       } else {
-	      fh = fopen(qfile.string_t, "r");
+	      std::string s("cpp ");
+	      s += qfile.string_t;
+	      fh = popen(s.c_str(), "r");
       }
       while(fgets(queryline, MAX_QUERY_SIZE, fh)) {
 	      graphs.addQuery(&dts, &s, queryline);

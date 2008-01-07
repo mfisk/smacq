@@ -1,23 +1,23 @@
 Packets :- pcapfile(0325@1112-snort.pcap)
 
-# This line shouldn't affect anything
+% This line shouldn't affect anything
 Junk :- Packets | where srcip = dstip
 
-# This line should have no results
+% This line should have no results
 Junk | print
 
 UpperSlash25 :- Packets | mask(srcip, '192.168.0.128/25')
 
-# We can even override a real module name
+% We can even override a real module name
 Print :- print(-v srcip)
 
-# Do the same query in two different ways
-#Print from UpperSlash25
-#UpperSlash25 | Print
+% Do the same query in two different ways
+%Print from UpperSlash25
+%UpperSlash25 | Print
 
-# A nice SQL-style join.  Unfortunately, our parser can't deal with it...
-#print from Foo a, Foo b where a.srcport = b.srcport
+% A nice SQL-style join.  Unfortunately, our parser can't deal with it...
+%print from Foo a, Foo b where a.srcport = b.srcport
 
-# ...we have to put parens around things
+% ...we have to put parens around things
 print(a.srcip a.srcport b.srcip b.srcport) from UpperSlash25() a, b where a.srcport = b.srcport
 
