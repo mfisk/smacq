@@ -3,6 +3,13 @@
 %debug
 
 %{
+/*
+#undef yyerror
+
+#define YYPARSE_PARAM yycontrol
+#define YYLEX_PARAM yycontrol
+*/
+
 void yysmacql_error(char*);
      #define    yymaxdepth yysmacql_maxdepth
      #define    yyparse yysmacql_parse
@@ -46,12 +53,13 @@ void yysmacql_error(char*);
      #define yyrule   yysmacql_yyrule
 
 #include <smacq-parser.h>
+#include <parser.hpp>
 #include <SmacqGraph.h>
 
 static SmacqGraph * nullgraph = NULL;
 SmacqGraph * Graph;
 std::map<std::string, SmacqGraph *> Graphs;
-extern int yylex();
+#include <smacq-parser-internals.h>
 %}
 %defines
 

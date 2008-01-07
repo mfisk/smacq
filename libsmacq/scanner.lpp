@@ -15,6 +15,7 @@ char *yystring;
 
 %option nounput
 %option noyywrap
+%option bison-locations
 
 quote		\'
 dquote		\"
@@ -32,29 +33,35 @@ comment		#.*
 %x xquote
 
 %%
-
-where|WHERE	return WHERE;
-until|UNTIL	return UNTIL;
-union|UNION	return UNION;
-from|FROM	return FROM;
-group|GROUP	return GROUP;
-by|BY		return BY;
-as|AS		return AS;
-having|HAVING	return HAVING;
-"&&"|and|AND    return YYAND;
-"||"|or|OR      return YYOR;
-!|not|NOT       return YYNOT;
-">="		return YYGEQ;
-"<="		return YYLEQ;
-"!="		return YYNEQ;
-"=="		return '=';
-":-"		return YYDEFINE;
+%{
+//#define SET_COLUMNS yylloc_param->first_column = (int)(yyg->yytext_r - YY_CURRENT_BUFFER_LVALUE->yy_ch_buf);yylloc_param->last_column = yylloc_param->last_column + yyleng - 1; yylloc_param->first_line = yylloc_param->last_line = 1 
+#define SET_COLUMNS yylloc_param->first_column = yylloc_param->last_column;yylloc_param->last_column = yylloc_param->last_column + yyleng - 1; yylloc_param->first_line = yylloc_param->last_line = 1 
+	//fprintf(stderr, "yylex adding %d for %s.\n", strlen(yytext), yytext);
+	//yylloc_param->last_column += strlen(yytext);
+%}
+where|WHERE	{SET_COLUMNS; return WHERE;}
+until|UNTIL	{SET_COLUMNS; return UNTIL;}
+union|UNION	{SET_COLUMNS; return UNION;}
+from|FROM	{SET_COLUMNS; return FROM;}
+group|GROUP	{SET_COLUMNS; return GROUP;}
+by|BY		{SET_COLUMNS; return BY;}
+as|AS		{SET_COLUMNS; return AS;}
+having|HAVING	{SET_COLUMNS; return HAVING;}
+"&&"|and|AND    {SET_COLUMNS; return YYAND;}
+"||"|or|OR      {SET_COLUMNS; return YYOR;}
+!|not|NOT       {SET_COLUMNS; return YYNOT;}
+">="		{SET_COLUMNS; return YYGEQ;}
+"<="		{SET_COLUMNS; return YYLEQ;}
+"!="		{SET_COLUMNS; return YYNEQ;}
+"=="		{SET_COLUMNS; return '=';}
+":-"		{SET_COLUMNS; return YYDEFINE;}
 
 {quote}		BEGIN(xquote);
 <xquote>{
 	{quote}	BEGIN(0);
 	[^']+	{
 			yystring = strdup(yytext);
+			SET_COLUMNS;
 			return YYSTRING;
 		}
 
@@ -74,31 +81,35 @@ having|HAVING	return HAVING;
 	{dquote}	{
 				*yystring = '\0'; 
 			 	yystring = strdup(string_buf);
+				SET_COLUMNS;
 			 	BEGIN(0); 
 				return YYSTRING;
 			}
 	.		*yystring++ = yytext[0];
 	}
 
-{space}	{ ; }
-{comment} { ; }
+{space}	{  SET_COLUMNS; }
+{comment} { SET_COLUMNS; }
 
 <<EOF>>		{ return YYSTOP; }
 
-{toksymbols}    	return yytext[0];
+{toksymbols}    	{ SET_COLUMNS; return yytext[0]; }
 
 {number}	{ 
 			yystring = strdup((char *)yytext); 
+			SET_COLUMNS;
 			return YYNUMBER; 
 	}
 
 {id}	{ 
 			yystring = strdup((char *)yytext); 
+			SET_COLUMNS;
 			return YYIDSTR; 
 	}
 
 {capid}	{ 
 			yystring = strdup((char *)yytext); 
+			SET_COLUMNS;
 			return YYCAPID; 
 	}
 

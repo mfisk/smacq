@@ -1,5 +1,7 @@
 %start exprline
 %type <operand> exprline
+%locations
+%debug
 
 %{
      #define    yymaxdepth yyexprmaxdepth
@@ -43,10 +45,13 @@
      #define yyname   yyexpryyname
      #define yyrule   yyexpryyrule
 #include <smacq.h>
+#include <SmacqGraph.h> 
+#include <smacq-parser.h> 
+#include <dts-filter.h>
+#include <expr-parser.hpp>
 struct dts_operand * Expr;
 #define yyexprlex yysmacql_lex
-extern int yylex();
-void yyexprerror(char*);
+#include <smacq-parser-internals.h>
 %}
 
 m4_include(grammer.ypp)

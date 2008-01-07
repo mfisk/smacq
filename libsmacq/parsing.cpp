@@ -5,6 +5,7 @@
 #include <string>
 
 #define tmalloc(type, number) ((number) ? ((type*)malloc(number*sizeof(type))) : NULL)
+#include "parser.hpp"
 
 DTS * parse_dts;
 SmacqScheduler * parse_sched;
@@ -731,9 +732,9 @@ SmacqGraph * joinlist2graph(joinlist * joinlist, SmacqGraph * where) {
   return graphs;
 }
 
-void yyerror(const char * msg) {
+void yyerror(YYLTYPE* yylloc, const char * msg) {
   if (yytext[0] != '\0') {
-    fprintf(stderr, "Error: %s near \"%s\" in line: %s\n", msg, yytext, ParsedString.c_str());
+    fprintf(stderr, "Error: line %d: %s near column %d: \"%s\"\n", yylloc->first_line, msg, yylloc->last_column, ParsedString.c_str()+yylloc->last_column);
   } else {
     fprintf(stderr, "Error: Unexpected end of statement: %s\n", ParsedString.c_str());
   }

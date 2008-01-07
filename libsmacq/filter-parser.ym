@@ -1,5 +1,7 @@
 %start booleanline
 %type <comp> booleanline
+%debug
+%locations
 
 %{
      #define    yymaxdepth yyfiltermaxdepth
@@ -43,10 +45,13 @@
      #define yyname   yyfilteryyname
      #define yyrule   yyfilteryyrule
 #include <smacq.h>
+#include <SmacqGraph.h>
+#include <smacq-parser.h>
 #include <dts-filter.h>
+#include <filter-parser.hpp>
 dts_comparison * Comp;
 #define yyfilterlex yysmacql_lex
-extern int yylex();
+#include <smacq-parser-internals.h>
 %}
 m4_include(grammer.ypp)
 

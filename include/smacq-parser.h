@@ -12,7 +12,6 @@ extern char * yytext;
 BEGIN_C_DECLS
 
 extern char * yystring;
-extern void yyerror(const char * msg);
 extern SmacqGraph * Graph;
 extern std::map<std::string, SmacqGraph *> Graphs;
 
