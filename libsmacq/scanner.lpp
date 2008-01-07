@@ -34,10 +34,7 @@ comment		#.*
 
 %%
 %{
-//#define SET_COLUMNS yylloc_param->first_column = (int)(yyg->yytext_r - YY_CURRENT_BUFFER_LVALUE->yy_ch_buf);yylloc_param->last_column = yylloc_param->last_column + yyleng - 1; yylloc_param->first_line = yylloc_param->last_line = 1 
-#define SET_COLUMNS yylloc_param->first_column = yylloc_param->last_column;yylloc_param->last_column = yylloc_param->last_column + yyleng - 1; yylloc_param->first_line = yylloc_param->last_line = 1 
-	//fprintf(stderr, "yylex adding %d for %s.\n", strlen(yytext), yytext);
-	//yylloc_param->last_column += strlen(yytext);
+#define SET_COLUMNS yylloc_param->first_column = yylloc_param->last_column;yylloc_param->last_column = yylloc_param->last_column + yyleng; yylloc_param->first_line = yylloc_param->last_line = 1 
 %}
 where|WHERE	{SET_COLUMNS; return WHERE;}
 until|UNTIL	{SET_COLUMNS; return UNTIL;}
@@ -88,14 +85,14 @@ having|HAVING	{SET_COLUMNS; return HAVING;}
 	.		*yystring++ = yytext[0];
 	}
 
-{space}	{  SET_COLUMNS; }
+{space}	{ SET_COLUMNS; }
 {comment} { SET_COLUMNS; }
 
 <<EOF>>		{ return YYSTOP; }
 
 {toksymbols}    	{ SET_COLUMNS; return yytext[0]; }
 
-{number}	{ 
+{number} { 
 			yystring = strdup((char *)yytext); 
 			SET_COLUMNS;
 			return YYNUMBER; 
@@ -113,7 +110,7 @@ having|HAVING	{SET_COLUMNS; return HAVING;}
 			return YYCAPID; 
 	}
 
-.	{ fprintf(stderr, "Unexpected character \"%s\"\n", yytext); return -1; }
+.	{ SET_COLUMNS; fprintf(stderr, "Unexpected character \"%s\"\n", yytext); return -1; }
 
 %%
 

@@ -12,6 +12,7 @@ VERSION 2.6 - Future
 2008-01 - Python <2.5 support
 2008-01 - flowid module: bugfix
 2008-01 - Don't warn (ala -q) when testing for existance of a field and it doesn't exist
+2008-01 - Print column number in parse error messages
 
 VERSION 2.5 - 29 August 2006
 ============================

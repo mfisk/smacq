@@ -734,7 +734,7 @@ SmacqGraph * joinlist2graph(joinlist * joinlist, SmacqGraph * where) {
 
 void yyerror(YYLTYPE* yylloc, const char * msg) {
   if (yytext[0] != '\0') {
-    fprintf(stderr, "Error: line %d: %s near column %d: \"%s\"\n", yylloc->first_line, msg, yylloc->last_column, ParsedString.c_str()+yylloc->last_column);
+    fprintf(stderr, "Error: %s near columns %d-%d: \"%s\"\n", msg, yylloc->first_column, yylloc->last_column, ParsedString.c_str()+yylloc->first_column);
   } else {
     fprintf(stderr, "Error: Unexpected end of statement: %s\n", ParsedString.c_str());
   }
