@@ -1,56 +1,3 @@
-.\" $Header: /aolnet/dev/src/CVS/sgml/docbook-to-man/cmd/docbook-to-man.sh,v 1.1.1.1 1998/11/13 21:31:59 db3l Exp $
-.\"
-.\"	transcript compatibility for postscript use.
-.\"
-.\"	synopsis:  .P! <file.ps>
-.\"
-.de P!
-.fl
-\!!1 setgray
-.fl
-\\&.\"
-.fl
-\!!0 setgray
-.fl			\" force out current output buffer
-\!!save /psv exch def currentpoint translate 0 0 moveto
-\!!/showpage{}def
-.fl			\" prolog
-.sy sed -e 's/^/!/' \\$1\" bring in postscript file
-\!!psv restore
-.
-.de pF
-.ie     \\*(f1 .ds f1 \\n(.f
-.el .ie \\*(f2 .ds f2 \\n(.f
-.el .ie \\*(f3 .ds f3 \\n(.f
-.el .ie \\*(f4 .ds f4 \\n(.f
-.el .tm ? font overflow
-.ft \\$1
-..
-.de fP
-.ie     !\\*(f4 \{\
-.	ft \\*(f4
-.	ds f4\"
-'	br \}
-.el .ie !\\*(f3 \{\
-.	ft \\*(f3
-.	ds f3\"
-'	br \}
-.el .ie !\\*(f2 \{\
-.	ft \\*(f2
-.	ds f2\"
-'	br \}
-.el .ie !\\*(f1 \{\
-.	ft \\*(f1
-.	ds f1\"
-'	br \}
-.el .tm ? font underflow
-..
-.ds f1\"
-.ds f2\"
-.ds f3\"
-.ds f4\"
-'\" t 
-.ta 8n 16n 24n 32n 40n 48n 56n 64n 72n  
 .TH "smacq" "1" 
 .SH "NAME" 
 smacq \(em System for Modular Analysis and Continuous Queries 
@@ -68,33 +15,46 @@ Boolean, Annotation, and Miscellaneous Analysis functions.
 Queries are executed using SMACQ's command-line utility, 
 \fBsmacqq(1)\fR, or the SMACQ C++ API. 
  
-.PP 
 The primary difference from standard relational databases is 
 that data is not stored in preloaded tables, but is instead 
 produced by data source modules.  Also, the select operation 
 does not automatically print fields.  If printable output is 
 desired, use the \fBprint\fR command. 
  
-.PP 
 The following example prints the "srcip" and "dstip" fields from 
 a stream of packets stored in a tcpdump-format file named "/tmp/dump": 
  
-\f(CW	smacqq 'print srcip, dstip from pcapfile("/tmp/dump")' 
+\f(CW	print srcip, dstip from pcapfile("/tmp/dump") 
 \fP  
 Nested queries are also supported.  For example: 
  
 \f(CW	print srcip, dstip from (uniq srcip, dstip from pcapfile("/tmp/dump")) 
-\fP        
+\fP  
+When queries are nested deeply, the syntax described above can become 
+complex.  As a result, commas are optional between arguments, and SMACQ  
+also supports the | symbol used in Unix shells.  The result is a syntax  
+much more familiar to Unix shell users.  Thus the following queries are  
+equivalent: 
+ 
+\f(CW	print srcip, dstip from (uniq srcip, dstip from pcapfile("/tmp/dump")) 
+\fP  
+\f(CW	pcapfile "/tmp/dump" | uniq srcip dstip | print srcip dstip 
+\fP  
 "Where" clauses are supported for both boolean tests based on <, 
 <=, >, >=, =, !=, or arbitrary filtering functions. 
  
 \f(CW	print dstip from pcapfile("/tmp/dump") where srcip = 128.129.1.2 
 \fP  
+\f(CW	pcapfile /tmp/dump | where srcip = 128.129.1.2 | print dstip  
+\fP  
 \f(CW	print dstip from pcapfile("/tmp/dump") where mask(srcip, 128.129.0.0/16) 
 \fP  
+\f(CW	pcapfile /tmp/dump | mask srcip 128.129.0.0/16 | print dstip  
+\fP  
 Aliasing with "as" is supported: 
- 
-\f(CW	print dstip, totalbytes from (select dstip, sum(len) as totalbytes from pcapfile("/tmp/dump")) 
+\f(CW	print \-v dstip, sum(len) as totalbytes from pcapfile("/tmp/dump")) 
+\fP  
+\f(CW	pcapfile /tmp/dump | print \-v dstip sum(len) as totalbytes 
 \fP  
 Joins are supported as well: 
  
@@ -111,13 +71,13 @@ Extended relational algebra provides aggregate functions and the
 different semantics.  For example, the following query would 
 behave as it would in SQL: 
  
-\f(CW	print dstip, sum(len) from pcapfile("/tmp/dump") group 
-by dstip 
+\f(CW	print dstip, sum(len) from pcapfile("/tmp/dump") group by dstip 
+\fP  
+\f(CW	pcapfile /tmp/dump | print dstip sum(len) group by dstip 
 \fP  
 but is also the same as: 
  
-\f(CW	print dstip, sum from (groupby dstip, '--', sum, len from 
-pcapfile("/tmp/dump")) 
+\f(CW	pcapfile /tmp/dump | groupby dstip \-\- sum len | print dstip sum 
 \fP  
 However the use of a function (such as "sum()") as one of the 
 arguments will result in the "sum" module processing the data 
@@ -130,36 +90,18 @@ side-effects to the data.  Finally, functions can be used whether or
 not "group by" is used. 
  
  
-.PP 
-When queries are nested deeply, the syntax described above can become 
-complex.  As a result, commas are optional between arguments, and SMACQ  
-also supports the | symbol used in Unix shells.  The result is a syntax  
-much more familiar to Unix shell users.  Thus the following queries are  
-all equivalent: 
- 
-\f(CW	print srcip, dstip from (uniq srcip, dstip from pcapfile("/tmp/dump")) 
-\fP  
-\f(CW	print srcip, dstip from uniq srcip, dstip from pcapfile "/tmp/dump" 
-\fP  
-\f(CW	print srcip dstip from uniq srcip dstip from pcapfile "/tmp/dump" 
-\fP  
-\f(CW	pcapfile "/tmp/dump" | uniq srcip dstip | print srcip dstip 
-\fP  
-. 
- 
-.PP 
 SMACQ is an extensible system that the user can add modules to. 
 See the \fBsmacqp\fR(1) manpage for a detailed 
 description of modules.  Many modules take flags which, like all 
 arguments, can be separated with commas or spaces: 
  
-\f(CW	print -v, srcip, dstip from pcapfile("/tmp/dump") 
+\f(CW	print \-v, srcip, dstip from pcapfile("/tmp/dump") 
 \fP\  
  
 .SH "INPUT/OUTPUT FUNCTIONS" 
 .SS "Print" 
 .PP 
-\fBprint\fR [-x]  [-v]  [-B]  [-d \fIdelimiter\fR]  [fields \&...]  
+\fBprint\fR [\-x]  [\-v]  [\-B]  [\-d \fIdelimiter\fR]  [fields \&...]  
 .PP 
 Print the specified fields for every record that has them If 
 the \fB-v\fP option is given, then warnings are 
@@ -175,7 +117,7 @@ are printed.
  
 .SS "Tabular Input" 
 .PP 
-\fBtabularinput\fR [-d \fIdelimiter\fR]  [-f \fIfilename\fR]  [field [:type]  \&...]  
+\fBtabularinput\fR [\-d \fIdelimiter\fR]  [\-f \fIfilename\fR]  [field [:type]  \&...]  
 .PP 
 Read records from STDIN by default, or a filename specified with 
 the \fB-f\fP option, one per line, with fields delimited 
@@ -191,7 +133,7 @@ If no type is sepecified for a field, it is treated as a double if possible, or 
  
 .SS "Packet Capture" 
 .PP 
-\fBpcaplive\fR [-i \fIinterface\fR]  [-s \fIsnaplen\fR]  [-p]  [\fIfilter\fR \&...]  
+\fBpcaplive\fR [\-i \fIinterface\fR]  [\-s \fIsnaplen\fR]  [\-p]  [\fIfilter\fR \&...]  
 .PP 
 The \fBpcaplive\fR module reads packets from a 
 network interfaces using libpcap.  It can only be used at the 
@@ -210,11 +152,11 @@ placed in promiscuous mode.
 An optional filter string is a BPF filter string (see 
 \fBtcpdump\fR(1)). 
  
-.SS "Packet Trace File" 
+.SS "Packet Capture File" 
 .PP 
 \fBpcapfile\fR \fIfilename\fR \&...  
 .PP 
-\fBpcapfile\fR -w \fIfilename\fR  [-l ]  [-s \fImegabytes\fR]  
+\fBpcapfile\fR \-w \fIfilename\fR  [\-l ]  [\-s \fImegabytes\fR]  
 .PP 
 The \fBpcapfile\fR module either reads from or 
 writes to a tcpdump-style, libpcap packet trace file.  If the 
@@ -241,7 +183,7 @@ be split between as many files as necessary.
  
 .SS "cflowd Raw Flow File" 
 .PP 
-\fBcflow\fR \fIfilename\fR \&...  [-l ]  
+\fBcflow\fR \fIfilename\fR \&...  [\-l ]  
 .PP 
 The \fBcflow\fR module reads from a raw flow file 
 as created by cflowd.   
@@ -254,7 +196,7 @@ the arguments.
  
 .SS "Socket" 
 .PP 
-\fBsocket\fR [-p \fIport\fR]  [-h \fIhost\fR]  [-d]  
+\fBsocket\fR [\-p \fIport\fR]  [\-h \fIhost\fR]  [\-d]  
 .PP 
 The \fBsocket\fR module is used to send records 
 across the network to another instantiation of the 
@@ -334,7 +276,7 @@ operation from relational algebra ("where" in SQL).
  
 .SS "Unique Filter" 
 .PP 
-\fBuniq\fR [-m \fImegabytes\fR]  \fIfields\fR \&...  
+\fBuniq\fR [\-m \fImegabytes\fR]  \fIfields\fR \&...  
 .PP 
 Treat the specified field(s) as a tuple and filter out all 
 occurrences of duplicate values of that tuple. 
@@ -348,7 +290,7 @@ perfect algorithm.
  
 .SS "Top" 
 .PP 
-\fBtop\fR [-m \fImegabytes\fR]  [-r \fIdeviation\fR]  \fIfields\fR \&...  
+\fBtop\fR [\-m \fImegabytes\fR]  [\-r \fIdeviation\fR]  \fIfields\fR \&...  
 .PP 
 Treat the specified field(s) as a tuple and count the number 
 of occurrences of each values of that tuple.  Filter out all 
@@ -387,7 +329,7 @@ the name of that field is identical to the name of the function.
  
 .SS "Clock" 
 .PP 
-\fBclock\fR [ -t \fIseconds\fR]  \fIfield\fR  
+\fBclock\fR [ \-t \fIseconds\fR]  \fIfield\fR  
 .PP 
 The clock module is used to bin input data into discrete 
 clock periods.  Each object is annotated with a clock field 
@@ -399,7 +341,7 @@ The input is assumed to be sorted in increasing order.
  
 .SS "Constant Annotation" 
 .PP 
-\fBconst\fR [-t \fItype\fR]  [-f \fIfield\fR]  \fIstring\fR  [\fIfield\fR]  
+\fBconst\fR [\-t \fItype\fR]  [\-f \fIfield\fR]  \fIstring\fR  [\fIfield\fR]  
 .PP 
 Annotate each object with a field containing the specified constant.  The default field name is "const" and the default type is "string". 
  
@@ -422,7 +364,7 @@ to doubles as well.
  
 .SS "Div" 
 .PP 
-\fBdiv\fR [ -d \fIdivisor\fR]  [\fIfield\fR]  
+\fBdiv\fR [ \-d \fIdivisor\fR]  [\fIfield\fR]  
 .PP 
 The div module annotates each object with a field of type 
 "int" and the name "div".  The field is computed by dividing 
@@ -432,7 +374,7 @@ module for similar functionality.
  
 .SS "Flow ID" 
 .PP 
-\fBflowid\fR [-t \fItime\fR]  [-r ]  \fIfields\fR \&...  
+\fBflowid\fR [\-t \fItime\fR]  [\-r ]  \fIfields\fR \&...  
 .PP 
 Treat the specified field(s) as a tuple and assign a unique 
 flow id number to each object based on the typle value.  The 
@@ -454,7 +396,7 @@ packet and byte counters ("packets", "packetsback", "bytes",
  
 .SS "Now" 
 .PP 
-\fBnow\fR [ -f \fIfield\fR]  
+\fBnow\fR [ \-f \fIfield\fR]  
 .PP 
 The now module annotates each object with an object of type 
 "timeval" (a struct timeval) with the given name, or "now" by 
@@ -463,7 +405,7 @@ default.
 .SH "MISCELLANEOUS ANALYSIS FUNCTIONS" 
 .SS "Counter" 
 .PP 
-\fBcount\fR [-a]  [-f \fIcountname\fR]  [-p]  [\fIfields\fR \&...]  
+\fBcount\fR [\-a]  [\-f \fIcountname\fR]  [\-p]  [\fIfields\fR \&...]  
 .PP 
 If no fields are specified, simply count the number of records 
 seen.  If one or more fields are specified, treat those fields 
@@ -471,28 +413,28 @@ as a tuple and count the number of occurrences of each value
 for that tuple.   
  
 .PP 
-Unless the "-p" flag is specified, then a double value named 
-"probability" is annotated instead.  The "-f" flag can still 
+Unless the "\-p" flag is specified, then a double value named 
+"probability" is annotated instead.  The "\-f" flag can still 
 be used to specify an alternate field name. 
  
 .PP 
 Normally an annotation is made to only the final object and all 
-other objects are filtered out.  However, if the "-a" flag is given,  
+other objects are filtered out.  However, if the "\-a" flag is given,  
 then every object is passed and annotated with a 
 running value. 
  
 .SS "Deskew" 
 .PP 
-\fBdeskew\fR [-s \fIsecondaryfield\fI\fR\fR]  [-b \fImin\fI\fR\fR]  [-e \fImax\fI\fR\fR]  [\fIfields\fR \&...]  
+\fBdeskew\fR [\-s \fIsecondaryfield\fI\fR\fR]  [\-b \fImin\fI\fR\fR]  [\-e \fImax\fI\fR\fR]  [\fIfields\fR \&...]  
 .PP 
-The deskew module is designed to take a stream of in-order timeseries data where some of the time values are incorrect and outside a range of possible values.  The range is specified with "-b" and "-e".  Any such illegal values are replaced with the previous valid value in the stream.  This operation is performed on the specified field.  If a second field is specified with "-s", then that field is adjusted by an equal amount. 
+The deskew module is designed to take a stream of in-order timeseries data where some of the time values are incorrect and outside a range of possible values.  The range is specified with "\-b" and "\-e".  Any such illegal values are replaced with the previous valid value in the stream.  This operation is performed on the specified field.  If a second field is specified with "\-s", then that field is adjusted by an equal amount. 
  
 .SS "Sort" 
 .PP 
-\fBsort\fR [-r]  [-b \fIbatchsize\fR]  [\fIfields\fR \&...]  
+\fBsort\fR [\-r]  [\-b \fIbatchsize\fR]  [\fIfields\fR \&...]  
 .PP 
-Buffer-up the input datastream and output a sorted stream.  If "-b" is not specified,  
-no data will be output until the input stream closes.  If "-b n" is specified, then sorted 
+Buffer-up the input datastream and output a sorted stream.  If "\-b" is not specified,  
+no data will be output until the input stream closes.  If "\-b n" is specified, then sorted 
 data will be output after every n records. 
  
 .PP 
@@ -500,7 +442,7 @@ Any fields that are specified that have "double" fields, will be sorted numerica
 other fields will be sorted byte by byte in their native storage format. 
  
 .PP 
-The -r option specifies descending order instead of the default, ascending order. 
+The \-r option specifies descending order instead of the default, ascending order. 
  
 .SS "Take" 
 .PP 
@@ -543,7 +485,7 @@ a new machine is created.
  
 .SS "Last" 
 .PP 
-\fBlast\fR [-t \fItime\fR]  [\fIfields\fR \&...]  
+\fBlast\fR [\-t \fItime\fR]  [\fIfields\fR \&...]  
 .PP 
 If any fields are specified, treat those fields as a tuple and keep track of the last object seen  
 with that tuple value.  After there is no more data, output the objet for each tuple value. 
@@ -610,7 +552,7 @@ See the "\fBlast\fP" module for more information on \fBrefresh\fP objects.
  
 .SS "Group-By" 
 .PP 
-\fBgroupby\fR \fIfields\fR \&...  --   \fIquery\fR \&...  
+\fBgroupby\fR \fIfields\fR \&...  \-\-   \fIquery\fR \&...  
 .PP 
 Treat the specified field(s) as a tuple and instantiate the 
 specified query for each tuple.  If a record of type "refresh" 
@@ -619,7 +561,7 @@ terminated.
  
 .SS "Time Sort" 
 .PP 
-\fBfifodelay\fR [-t \fItime\fR]  [-i \fIinput-time-field\fR]  [-o \fIoutput-time-field\fR]  
+\fBfifodelay\fR [\-t \fItime\fR]  [\-i \fIinput-time-field\fR]  [\-o \fIoutput-time-field\fR]  
 .PP 
 Sort a series of input records and output them sorted by an 
 output time field that is specified with the 
@@ -635,7 +577,6 @@ SMACQ queries are specified using the following SQL-like grammer:
  
 .PP 
 .nf 
-.ta 8n 16n 24n 32n 40n 48n 56n 64n 72n 
 query:  
 action from [alias, joins] [WHERE boolean] [GROUP BY args [HAVING boolean]] 
 | action [WHERE boolean] 
@@ -668,7 +609,6 @@ given the specified alias.
  
 .PP 
 .nf 
-.ta 8n 16n 24n 32n 40n 48n 56n 64n 72n 
 argument:  
 word  
 | function ( args )  
@@ -690,4 +630,4 @@ boolean:
 \fBDTS\fR(3),  
 \fBSmacqGraph\fR(3) 
  
-.\" created by instant / docbook-to-man, Mon 28 Aug 2006, 12:33 
+.\" created by instant / docbook-to-man, Mon 07 Jan 2008, 17:08 

@@ -12,7 +12,7 @@
       <firstname>Mike</firstname>
       <surname>Fisk</surname>
     </author>
-    <date>$Date: 2005/03/29 22:35:22 $</date>
+    <date>$Date: 2006/08/18 20:39:26 $</date>
   </refentryinfo>
   <refmeta>
     <refentrytitle>smacq</refentrytitle>
@@ -26,7 +26,7 @@
   <refsect1>
     <title>DESCRIPTION</title>
 
-    <para>
+      <para>
       The System for Modular Analysis and Continuous Queries (SMACQ)
       is an extensible component system for analyzing streams of
       structured data.  Users with a familiarity of SQL will
@@ -38,22 +38,18 @@
       Boolean, Annotation, and Miscellaneous Analysis functions.
       Queries are executed using SMACQ's command-line utility,
       <command>smacqq(1)</command>, or the SMACQ C++ API.
-    </para>
 
-    <para>
       The primary difference from standard relational databases is
       that data is not stored in preloaded tables, but is instead
       produced by data source modules.  Also, the select operation
       does not automatically print fields.  If printable output is
       desired, use the <command>print</command> command.
-    </para>
 
-    <para>
       The following example prints the "srcip" and "dstip" fields from
       a stream of packets stored in a tcpdump-format file named "/tmp/dump":
 
       <computeroutput>
-	smacqq 'print srcip, dstip from pcapfile("/tmp/dump")'
+	print srcip, dstip from pcapfile("/tmp/dump")
       </computeroutput>
 
       Nested queries are also supported.  For example:
@@ -61,7 +57,21 @@
       <computeroutput>
 	print srcip, dstip from (uniq srcip, dstip from pcapfile("/tmp/dump"))
       </computeroutput>
-      
+
+      When queries are nested deeply, the syntax described above can become
+      complex.  As a result, commas are optional between arguments, and SMACQ 
+      also supports the | symbol used in Unix shells.  The result is a syntax 
+      much more familiar to Unix shell users.  Thus the following queries are 
+      equivalent:
+
+      <computeroutput>
+	print srcip, dstip from (uniq srcip, dstip from pcapfile("/tmp/dump"))
+      </computeroutput>
+
+      <computeroutput>
+	pcapfile "/tmp/dump" | uniq srcip dstip | print srcip dstip
+      </computeroutput>
+
       "Where" clauses are supported for both boolean tests based on <,
       <=, >, >=, =, !=, or arbitrary filtering functions.
 
@@ -70,16 +80,27 @@
       </computeroutput>
 
       <computeroutput>
+	pcapfile /tmp/dump | where srcip = 128.129.1.2 | print dstip 
+      </computeroutput>
+
+      <computeroutput>
 	print dstip from pcapfile("/tmp/dump") where mask(srcip, 128.129.0.0/16)
       </computeroutput>
 
-      Aliasing with "as" is supported:
-      
       <computeroutput>
-	print dstip, totalbytes from (select dstip, sum(len) as totalbytes from pcapfile("/tmp/dump"))
+	pcapfile /tmp/dump | mask srcip 128.129.0.0/16 | print dstip 
       </computeroutput>
 
-	Joins are supported as well:
+      Aliasing with "as" is supported:
+      <computeroutput>
+	print -v dstip, sum(len) as totalbytes from pcapfile("/tmp/dump"))
+      </computeroutput>
+
+      <computeroutput>
+	pcapfile /tmp/dump | print -v dstip sum(len) as totalbytes
+      </computeroutput>
+
+    	Joins are supported as well:
 
 	<computeroutput>
 	print a.srcip, b.srcip from pcapfile("/tmp/dump") a, b where a.srcip != b.srcip	
@@ -99,15 +120,17 @@
       behave as it would in SQL:
 
       <computeroutput>
-	print dstip, sum(len) from pcapfile("/tmp/dump") group
-	by dstip
+	print dstip, sum(len) from pcapfile("/tmp/dump") group by dstip
+      </computeroutput>
+
+      <computeroutput>
+	pcapfile /tmp/dump | print dstip sum(len) group by dstip
       </computeroutput>
 
       but is also the same as:
 
       <computeroutput>
-	print dstip, sum from (groupby dstip, '--', sum, len from
-	pcapfile("/tmp/dump"))
+	pcapfile /tmp/dump | groupby dstip -- sum len | print dstip sum
       </computeroutput>
 
       However the use of a function (such as "sum()") as one of the
@@ -120,35 +143,7 @@
       side-effects to the data.  Finally, functions can be used whether or
       not "group by" is used.
 
-    </para>
 
-    <para>
-      When queries are nested deeply, the syntax described above can become
-      complex.  As a result, commas are optional between arguments, and SMACQ 
-      also supports the | symbol used in Unix shells.  The result is a syntax 
-      much more familiar to Unix shell users.  Thus the following queries are 
-      all equivalent:
-
-      <computeroutput>
-	print srcip, dstip from (uniq srcip, dstip from pcapfile("/tmp/dump"))
-      </computeroutput>
-
-      <computeroutput>
-	print srcip, dstip from uniq srcip, dstip from pcapfile "/tmp/dump"
-      </computeroutput>
-
-      <computeroutput>
-	print srcip dstip from uniq srcip dstip from pcapfile "/tmp/dump"
-      </computeroutput>
-
-      <computeroutput>
-	pcapfile "/tmp/dump" | uniq srcip dstip | print srcip dstip
-      </computeroutput>
-
-      .
-    </para>
-
-    <para>
       SMACQ is an extensible system that the user can add modules to.
       See the <command>smacqp</command>(1) manpage for a detailed
       description of modules.  Many modules take flags which, like all
@@ -157,8 +152,7 @@
       <computeroutput>
 	print -v, srcip, dstip from pcapfile("/tmp/dump")
       </computeroutput>&nbsp;
-    </para>
-
+      </para>
   </refsect1>
 
   <refsect1>
@@ -248,7 +242,7 @@
     </refsect2>
 
     <refsect2>
-      <title>Packet Trace File</title>
+      <title>Packet Capture File</title>
       <cmdsynopsis>
 	<command>pcapfile</command>
 	<arg choice="req" rep="repeat"> <replaceable>filename</replaceable></arg>
@@ -343,7 +337,6 @@
 	it closes, and then terminate.
       </para>
     </refsect2>
-
 
   </refsect1>
   <refsect1>
