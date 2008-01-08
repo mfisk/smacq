@@ -1,9 +1,7 @@
-DOCS=smacq.1 smacqq.1 dts-modules.3 
 apidocdir=$(docdir)/api
 apihtmldocdir=$(apidocdir)/html
-DOCDSTS=$(patsubst %,$(srcdir)/%,$(DOCS))
 
-dist_man1_MANS=$(srcdir)/smacq.1 $(srcdir)/smacqq.1
+dist_man1_MANS=$(srcdir)/smacq.1 $(srcdir)/smacqq.1 $(srcdir)/smacqq.1.catman $(srcdir)/smacq.1.catman
 dist_man3_MANS=$(srcdir)/dts-modules.3 $(srcdir)/api/man3/[^_]*.3
 dist_doc_DATA=smacq.1.pdf smacqq.1.pdf index.html gotsmacq.png icon.png 
 apidoc_DATA=api/refman.pdf

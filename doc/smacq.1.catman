@@ -3,7 +3,7 @@ smacq(1)                                                              smacq(1)
 
 
 NNAAMMEE
-       smacq -- System for Modular Analysis and Continuous Queries
+       smacq — System for Modular Analysis and Continuous Queries
 
 DDEESSCCRRIIPPTTIIOONN
        The  System  for  Modular Analysis and Continuous Queries (SMACQ) is an
@@ -14,62 +14,76 @@ DDEESSCCRRIIPPTTIIOONN
        This manpage describes the query syntax and the modules  included  with
        the  system  by  default,  which  are  grouped  into  sections for I/O,
        Boolean, Annotation, and Miscellaneous Analysis functions.  Queries are
-       executed  using  SMACQ's  command-line utility, ssmmaaccqqqq((11)), or the SMACQ
+       executed  using  SMACQ’s  command-line utility, ssmmaaccqqqq((11)), or the SMACQ
        C++ API.
-
 
        The primary difference from standard relational databases is that  data
        is  not  stored  in  preloaded  tables, but is instead produced by data
        source modules.  Also, the  select  operation  does  not  automatically
        print fields.  If printable output is desired, use the pprriinntt command.
 
-
        The  following  example  prints  the  "srcip" and "dstip" fields from a
        stream of packets stored in a tcpdump-format file named "/tmp/dump":
 
-            smacqq 'print srcip, dstip from pcapfile("/tmp/dump")'
+            print srcip, dstip from pcapfile("/tmp/dump")
 
        Nested queries are also supported.  For example:
 
-            print  srcip,  dstip  from   (uniq   srcip,   dstip   from   pcap-
+            print  srcip,  dstip  from   (uniq   srcip,   dstip   from   pcap‐
        file("/tmp/dump"))
+
+       When  queries  are nested deeply, the syntax described above can become
+       complex.  As a result, commas are optional between arguments, and SMACQ
+       also supports the | symbol used in Unix shells.  The result is a syntax
+       much more familiar to Unix shell users.  Thus the following queries are
+       equivalent:
+
+            print   srcip,   dstip   from   (uniq   srcip,  dstip  from  pcap‐
+       file("/tmp/dump"))
+
+            pcapfile "/tmp/dump" | uniq srcip dstip | print srcip dstip
 
        "Where" clauses are supported for both boolean tests based on <, <=, >,
        >=, =, !=, or arbitrary filtering functions.
 
             print dstip from pcapfile("/tmp/dump") where srcip = 128.129.1.2
 
+            pcapfile /tmp/dump | where srcip = 128.129.1.2 | print dstip
+
             print   dstip   from   pcapfile("/tmp/dump")   where   mask(srcip,
        128.129.0.0/16)
 
-       Aliasing with "as" is supported:
+            pcapfile /tmp/dump | mask srcip 128.129.0.0/16 | print dstip
 
-            print dstip, totalbytes from (select dstip, sum(len) as totalbytes
-       from pcapfile("/tmp/dump"))
+       Aliasing with "as" is  supported:       print  -v  dstip,  sum(len)  as
+       totalbytes from pcapfile("/tmp/dump"))
+
+            pcapfile /tmp/dump | print -v dstip sum(len) as totalbytes
 
        Joins are supported as well:
 
-            print a.srcip,  b.srcip  from  pcapfile("/tmp/dump")  a,  b  where
+            print  a.srcip,  b.srcip  from  pcapfile("/tmp/dump")  a,  b where
        a.srcip != b.srcip
 
-       When  used  with  streams,  joins require very large amounts of memory.
-       The "until" term can be used to define when  elements  can  be  removed
+       When used with streams, joins require very  large  amounts  of  memory.
+       The  "until"  term  can  be used to define when elements can be removed
        from the pool of possible values in a join:
 
-            print   a.srcip,   b.srcip   from  pcapfile("/tmp/dump")  a  until
+            print  a.srcip,  b.srcip  from   pcapfile("/tmp/dump")   a   until
        (new.a.ts > a.ts), b where a.srcip != b.srcip
 
        Extended relational algebra provides aggregate functions and the "group
-       by"  and  "having"  terms.  This syntax is supported, but with slightly
-       different semantics.  For example, the following query would behave  as
+       by" and "having" terms.  This syntax is supported,  but  with  slightly
+       different  semantics.  For example, the following query would behave as
        it would in SQL:
 
             print dstip, sum(len) from pcapfile("/tmp/dump") group by dstip
 
+            pcapfile /tmp/dump | print dstip sum(len) group by dstip
+
        but is also the same as:
 
-            print  dstip,  sum  from (groupby dstip, '--', sum, len from pcap-
-       file("/tmp/dump"))
+            pcapfile /tmp/dump | groupby dstip -- sum len | print dstip sum
 
        However the use of a function (such as "sum()") as one of the arguments
        will  result in the "sum" module processing the data before the "print"
@@ -81,28 +95,8 @@ DDEESSCCRRIIPPTTIIOONN
        whether or not "group by" is used.
 
 
-
-       When  queries  are nested deeply, the syntax described above can become
-       complex.  As a result, commas are optional between arguments, and SMACQ
-       also supports the | symbol used in Unix shells.  The result is a syntax
-       much more familiar to Unix shell users.  Thus the following queries are
-       all equivalent:
-
-            print   srcip,   dstip   from   (uniq   srcip,  dstip  from  pcap-
-       file("/tmp/dump"))
-
-            print  srcip,  dstip  from  uniq  srcip,   dstip   from   pcapfile
-       "/tmp/dump"
-
-            print srcip dstip from uniq srcip dstip from pcapfile "/tmp/dump"
-
-            pcapfile "/tmp/dump" | uniq srcip dstip | print srcip dstip
-
-       .
-
-
        SMACQ  is  an  extensible system that the user can add modules to.  See
-       the ssmmaaccqqpp(1) manpage for a detailed description of modules.  Many mod-
+       the ssmmaaccqqpp(1) manpage for a detailed description of modules.  Many mod‐
        ules take flags which, like all arguments, can be separated with commas
        or spaces:
 
@@ -114,11 +108,11 @@ IINNPPUUTT//OOUUTTPPUUTT FFUUNNCCTTIIOONNSS
        pprriinntt [-x]  [-v]  [-B]  [-d _d_e_l_i_m_i_t_e_r]  [fields ...]
 
        Print the specified fields for every record that has  them  If  the  --vv
-       option  is given, then warnings are printed when fields aren't present,
+       option  is given, then warnings are printed when fields aren’t present,
        and field values are preceded by the  field  name.   If  --xx  option  is
        given,  fields are surrounded with XML-style tags.  If the --BB option is
        specified, then output is not buffered (output is  flushed  after  each
-       record).  Fields are separated by a delimiter string which can be spec-
+       record).  Fields are separated by a delimiter string which can be spec‐
        ified by --dd and defaults to TAB.  If no fields are specified, then  all
        fields are printed.
 
@@ -129,9 +123,9 @@ IINNPPUUTT//OOUUTTPPUUTT FFUUNNCCTTIIOONNSS
        Read records from STDIN by default, or a filename specified with the --ff
        option, one per line, with fields  delimited  by  TAB  or  an  alterate
        delimiter  specified by --dd.  If field names are specified, data columns
-       are  assigned  those  names  sequentially.   If  no  field  names   are
-       specified,  or  there are more columns that field names, unnamed fields
-       are named numericaly starting at 1.
+       are assigned those names sequentially.  If no field  names  are  speci‐
+       fied,  or  there  are more columns that field names, unnamed fields are
+       named numericaly starting at 1.
 
 
        Field types can be specified by appending a colon and the type name  to
@@ -142,13 +136,13 @@ IINNPPUUTT//OOUUTTPPUUTT FFUUNNCCTTIIOONNSS
    PPaacckkeett CCaappttuurree
        ppccaapplliivvee [-i _i_n_t_e_r_f_a_c_e]  [-s _s_n_a_p_l_e_n]  [-p]  [_f_i_l_t_e_r ...]
 
-       The ppccaapplliivvee module reads packets from a network interfaces using libp-
-       cap.   It can only be used at the beginning of a pipeline.  Root privi-
+       The ppccaapplliivvee module reads packets from a network interfaces using libp‐
+       cap.   It can only be used at the beginning of a pipeline.  Root privi‐
        leges are typically required to run this module.
 
 
        The --ii option specifies an interface to listen  on  (default  is  aannyy).
-       The  --ss option specifies the maximum number of bytes per packet to cap-
+       The  --ss option specifies the maximum number of bytes per packet to cap‐
        ture (default is 68).  The --pp specifies that the interface  should  NOT
        be placed in promiscuous mode.
 
@@ -156,7 +150,7 @@ IINNPPUUTT//OOUUTTPPUUTT FFUUNNCCTTIIOONNSS
        An optional filter string is a BPF filter string (see ttccppdduummpp(1)).
 
 
-   PPaacckkeett TTrraaccee FFiillee
+   PPaacckkeett CCaappttuurree FFiillee
        ppccaappffiillee _f_i_l_e_n_a_m_e ...
 
        ppccaappffiillee -w _f_i_l_e_n_a_m_e  [-l ]  [-s _m_e_g_a_b_y_t_e_s]
@@ -176,8 +170,8 @@ IINNPPUUTT//OOUUTTPPUUTT FFUUNNCCTTIIOONNSS
 
 
        The --ss option specifies the maximum file size (in megabytes) for output
-       files.  If specified, the output file will have a two-digit suffix num-
-       ber appended and output will be split between as many files  as  neces-
+       files.  If specified, the output file will have a two-digit suffix num‐
+       ber appended and output will be split between as many files  as  neces‐
        sary.
 
 
@@ -195,10 +189,10 @@ IINNPPUUTT//OOUUTTPPUUTT FFUUNNCCTTIIOONNSS
 
        The ssoocckkeett module is used to send records across the network to another
        instantiation  of  the  ssoocckkeett module.  It can be used in two different
-       ways: as a producer who  receives  data  from  the  network,  or  as  a
-       consumer that writes data to a network.  If the module is at the begin-
-       ning of a pipeline, it is assumed to be a server.  Otherwise  it  is  a
-       consumer that writes data to the network.
+       ways: as a producer who receives data from the network, or  as  a  con‐
+       sumer that writes data to a network.  If the module is at the beginning
+       of a pipeline, it is assumed to be a server.  Otherwise it  is  a  con‐
+       sumer that writes data to the network.
 
 
        The  --hh and --pp options specify a host and port, respectively.  The host
@@ -235,7 +229,7 @@ BBOOOOLLEEAANN FFUUNNCCTTIIOONNSS
        The  "addr/cidr"  argument  is a CIDR netmask.  If the mask size is not
        specified, 32 is assumed.  An object is filtered out if and only if the
        specified field does not exist or does not match the given netmask.  If
-       the address begins with a '!', then  the  logic  is  reversed  and  the
+       the address begins with a ’!’, then  the  logic  is  reversed  and  the
        object is filtered out if the field does match the netmask.
 
 
@@ -279,7 +273,7 @@ BBOOOOLLEEAANN FFUUNNCCTTIIOONNSS
    TToopp
        ttoopp [-m _m_e_g_a_b_y_t_e_s]  [-r _d_e_v_i_a_t_i_o_n]  _f_i_e_l_d_s ...
 
-       Treat  the specified field(s) as a tuple and count the number of occur-
+       Treat  the specified field(s) as a tuple and count the number of occur‐
        rences of each values of that tuple.  Filter  out  all  records  except
        those  whose occurrence deviates from the average by more than a factor
        of ddeevviiaattiioonn.  If no --rr option  is  specified,  the  default  deviation
@@ -287,8 +281,8 @@ BBOOOOLLEEAANN FFUUNNCCTTIIOONNSS
 
 
        If  --mm  is specified, then probabilistic counters are used, consuming a
-       max of mmeeggaabbyytteess memory, at the expense of some records not being  fil-
-       tered even though they're value is rare.
+       max of mmeeggaabbyytteess memory, at the expense of some records not being  fil‐
+       tered even though they’re value is rare.
 
 
        It  is  often  useful  to  follow this module with uunniiqq in order to get
@@ -315,7 +309,7 @@ AANNNNOOTTAATTIIOONN FFUUNNCCTTIIOONNSS
        The clock module is used to bin input data into discrete clock periods.
        Each object is annotated with a clock field  containing  the  numerical
        value  of  the current clock.  The current clock value is determined by
-       keeping track of the largest value seen for the specified  field  (pre-
+       keeping track of the largest value seen for the specified  field  (pre‐
        sumably  a  time)  and dividing that value by the optional time period,
        which defaults to 1.  The input is assumed to be sorted  in  increasing
        order.
@@ -333,8 +327,8 @@ AANNNNOOTTAATTIIOONN FFUUNNCCTTIIOONNSS
 
        For each data object seen, compute the delta from the previous x  field
        to  this  current  xfield.   The data object is annotate with a "ddeellttaa"
-       field of type "ddoouubbllee" containing the result.  The x field must be con-
-       vertable to doubles as well.
+       field of type "ddoouubbllee" containing the result.   The  x  field  must  be
+       convertable to doubles as well.
 
 
    DDeerriivvaattiivvee
@@ -343,7 +337,7 @@ AANNNNOOTTAATTIIOONN FFUUNNCCTTIIOONNSS
        For  each  data object seen, compute the derivative of the y field with
        respect to the x field between this point and  the  last  object  seen.
        The  data object is annotate with a "ddeerriivvaattiivvee" field of type "ddoouubbllee"
-       containing the result.  The x and y fields must be convertable to  dou-
+       containing the result.  The x and y fields must be convertable to  dou‐
        bles as well.
 
 
@@ -370,8 +364,8 @@ AANNNNOOTTAATTIIOONN FFUUNNCCTTIIOONNSS
 
 
        The --tt option specifies a number of seconds idle time before a flow  is
-       timed out.  When it times out a REFRESH record with the flows identify-
-       ing fields (as specified in the arguments),  the  current  time  (time-
+       timed out.  When it times out a REFRESH record with the flows identify‐
+       ing fields (as specified in the arguments),  the  current  time  (time‐
        series)  and  the  packet  and byte counters ("packets", "packetsback",
        "bytes", "bytesout") and the "start" and "finish" times.
 
@@ -392,7 +386,7 @@ MMIISSCCEELLLLAANNEEOOUUSS AANNAALLYYSSIISS FFUUNNCCTT
        count the number of occurrences of each value for that tuple.
 
 
-       Unless the "-p" flag is specified, then a double value named "probabil-
+       Unless the "-p" flag is specified, then a double value named "probabil‐
        ity" is annotated instead.  The "-f" flag can still be used to  specify
        an alternate field name.
 
@@ -400,6 +394,51 @@ MMIISSCCEELLLLAANNEEOOUUSS AANNAALLYYSSIISS FFUUNNCCTT
        Normally  an  annotation is made to only the final object and all other
        objects are filtered out.  However, if the "-a"  flag  is  given,  then
        every object is passed and annotated with a running value.
+
+
+   DDeesskkeeww
+       ddeesskkeeww [-s _s_e_c_o_n_d_a_r_y_f_i_e_l_d]  [-b _m_i_n]  [-e _m_a_x]  [_f_i_e_l_d_s ...]
+
+       The  deskew  module is designed to take a stream of in-order timeseries
+       data where some of the time values are incorrect and outside a range of
+       possible  values.  The range is specified with "-b" and "-e".  Any such
+       illegal values are replaced  with  the  previous  valid  value  in  the
+       stream.  This operation is performed on the specified field.  If a sec‐
+       ond field is specified with "-s", then that field  is  adjusted  by  an
+       equal amount.
+
+
+   SSoorrtt
+       ssoorrtt [-r]  [-b _b_a_t_c_h_s_i_z_e]  [_f_i_e_l_d_s ...]
+
+       Buffer-up  the input datastream and output a sorted stream.  If "-b" is
+       not specified, no data will be output until the  input  stream  closes.
+       If  "-b  n" is specified, then sorted data will be output after every n
+       records.
+
+
+       Any fields that are specified that have "double" fields, will be sorted
+       numerically.   All  other  fields  will be sorted byte by byte in their
+       native storage format.
+
+
+       The -r option  specifies  descending  order  instead  of  the  default,
+       ascending order.
+
+
+   TTaakkee
+       ttaakkee [_f_i_e_l_d]
+
+       This  module  outputs the object specified field of every input object.
+       For example, if an input stream consists of objects with a  "timestamp"
+       field  (and  any number of other fields), and "timestamp" is the speci‐
+       fied field name for take, then the output stream will consist of  those
+       timestamp fields.
+
+
+       This  is similar to the "project" function, and the project operator in
+       relational algebra (select in SQL), except  that  a  single  object  is
+       returned rather than a tuple of values.
 
 
    SSttaatteeffuull MMaattcchhiinngg
@@ -417,12 +456,12 @@ MMIISSCCEELLLLAANNEEOOUUSS AANNAALLYYSSIISS FFUUNNCCTT
        machine.   However,  a given input object is used by at most 1 of those
        instantiations.  When the DFA module  receives  an  input  object,  any
        existing state machines are checked for possible transitions that would
-       be satisfied by the object.  If none of the transitions from  the  cur-
+       be satisfied by the object.  If none of the transitions from  the  cur‐
        rent  state  of that machine are matched, then that machine will remain
        in the current state.  After a machine does match and transition on  an
        input,  no  other  machines  will  receive  that input.  If no existing
        machines can use the input, then transitions from the START  state  are
-       checked.   If  the  START state can be left, then a new machine is cre-
+       checked.   If  the  START state can be left, then a new machine is cre‐
        ated.
 
 
@@ -458,7 +497,7 @@ MMIISSCCEELLLLAANNEEOOUUSS AANNAALLYYSSIISS FFUUNNCCTT
    PPrriivvaattee FFiieelldd NNaammeessppaaccee
        pprriivvaattee
 
-       Return a new object that shares the same data, but has its  own  names-
+       Return a new object that shares the same data, but has its  own  names‐
        pace  for fields.  The namespace is initially the same as the original,
        but new fields that are added are private to the new copy.
 
@@ -503,11 +542,11 @@ MMIISSCCEELLLLAANNEEOOUUSS AANNAALLYYSSIISS FFUUNNCCTT
        ffiiffooddeellaayy [-t _t_i_m_e]  [-i _i_n_p_u_t_-_t_i_m_e_-_f_i_e_l_d]  [-o _o_u_t_p_u_t_-_t_i_m_e_-_f_i_e_l_d]
 
        Sort a series of input records and output them sorted by an output time
-       field  that  is  specified  with  the  --oo option and defaults to "time-
+       field  that  is  specified  with  the  --oo option and defaults to "time‐
        series".  All records that are  past  the  edge  time  are  immediately
-       updated.   The  edge time is determined by the input time field (speci-
+       updated.   The  edge time is determined by the input time field (speci‐
        fied with the --ii option and defaullting  to  "timseries")  and  a  time
-       delay  which is specified with the --tt   option which defaults to 0 sec-
+       delay  which is specified with the --tt   option which defaults to 0 sec‐
        onds.
 
 
@@ -519,7 +558,7 @@ QQUUEERRYY SSYYNNTTAAXX
        action from [alias, joins] [WHERE boolean] [GROUP BY args [HAVING boolean]]
        | action [WHERE boolean]
        | WHERE boolean
-       | query '|' action [WHERE boolean] [GROUP BY args [HAVING boolean]]
+       | query ’|’ action [WHERE boolean] [GROUP BY args [HAVING boolean]]
 
        action:
        function args
@@ -548,7 +587,7 @@ QQUUEERRYY SSYYNNTTAAXX
        argument:
        word
        | function ( args )
-       | '[' expression ']'
+       | ’[’ expression ’]’
 
        boolean:
        ( boolean )
