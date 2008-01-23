@@ -40,7 +40,9 @@ DtsObject tabularinputModule::default_parse(char * startp, char * endp) {
       DtsObject msgdata;
       double d = strtod(startp, &badp);
 
-      if (badp && badp != endp) {
+      if (startp[0] == '\0') {
+        msgdata = dts->newObject(empty_type);
+      } else if (badp && badp != endp) {
 	//fprintf(stderr, "Double test failed, '%s' remains\n", badp);
 	msgdata = dts->construct_fromstring(string_type, startp);
       } else {
