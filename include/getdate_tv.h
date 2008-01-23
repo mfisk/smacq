@@ -57,7 +57,8 @@ static inline bool dts_set_object_to_time_string(DtsObject field, time_t seconds
   if (usec) {
         result += sprintf(result, ".%06d", usec);
   }
-  nstrftime(result, 64, "%:z", &time_tm, 0, 0);
+  result += nstrftime(result, 64, "%:z", &time_tm, 0, 0);
+  field->setsize(result - (char*)field->getdata());
   return true;
 }
 
