@@ -93,9 +93,11 @@ class DtsObject_ : public PthreadMutex {
 
 	/// Return the raw data contents of the object
 	unsigned char * getdata() const { return((unsigned char*)data); }
-    std::string pygetdata() const { 
-      return (std::string)(char *)data;
-    }
+
+	/// Return the raw data contents as a C++ string
+        std::string pygetdata() const { 
+           return (std::string)(char *)data;
+        }
 
 	/// Return the type of the object
 	dts_typeid gettype() const { return(type); }
@@ -165,7 +167,11 @@ class DtsObject_ : public PthreadMutex {
 	/// Pointer to the DTS used by this type
 	DTS * getDts() const { return dts; }
 
+	/// Return field name
+	std::string getfieldname(dts_field_element f) { return std::string(dts->field_getname(f)); }
+
  private:
+	/// Pointer to type system for this objecT
  	DTS * dts;
 
 	/// @name Reference Counting

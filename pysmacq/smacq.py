@@ -49,7 +49,7 @@ started, then it is started."""
 # Fetching Methods {{{  
     def fetchone(self):
 	"""Fetch the next result object and return it, or None when no more data is available"""
-	return self.fetchmay(1)
+	return self.fetchmany(1)
 
     def fetchmany(self, num_results = 1): # {{{
         """Returns num_results DtsObject objects in a list.  This will wait for results if it
@@ -207,19 +207,43 @@ If the right hand side is a query string, it is used to create a new query objec
 
 # end SmacqQuery }}}
 
-def DtsObjectGetItem(self, index):
+def DtsObject_getdata(self):
+	if len(self):
+	  	return self.get()._getdata()
+	else:
+		return None
+		
+def DtsObject_getitem(self, index):
 	x = self.get().getfield(index, True) 
+	if not x.get() and self.has_key(index):
+		return None
 	if not x.get():
 		raise KeyError, "DtsObject instance does not contain field " + index
 	return x
-libpysmacq.DtsObject.__getitem__ =  DtsObjectGetItem
-del DtsObjectGetItem
 
+libpysmacq.DtsObject.__len__ = lambda self: self.get().__len__()
 libpysmacq.DtsObject.has_key = lambda self, name: (self.get().getfield(name, True).get() != None)
 libpysmacq.DtsObject.__getattr__ = lambda self, name: self.get().__getattribute__(name)
-libpysmacq.DtsObject.__str__ = lambda self: self["string"].getdata()
-libpysmacq.DtsObject.__repr__ = lambda self: self.get().getdata()
 libpysmacq.DtsObject.__nonzero__ = lambda self: (self.get() != None)
+
+def DtsObject_dict(self):
+	"""Construct a dictionary of all possible fields"""
+	d = {}
+	for f in self.keys():
+	    d[f] = self[f]
+	return d
+
+def DtsObject_str(self):
+	return str(self.dict())
+
+def DtsObject_repr(self):
+	"""Return human-readable version of DtsObject"""
+	if self.has_key("string"):
+	    s = self["string"]
+	    if s.getdata():
+		return s.getdata()
+
+	return repr(self.getdata())
 
 def DtsObject_keys(self, field_refs = False): 
         """Returns a list of field names for this object.  
@@ -244,12 +268,18 @@ def DtsObject_keys(self, field_refs = False):
 
         else:
             # Make a list of field names
-            field_getname = dts.field_getname
-    
+            field_getname = self.getfieldname
+
             for i in field_nums:
-                field_names.append( field_getname( libpysmacq.DtsField(i) ) )
+                field_names.append( field_getname( i ) )
         
         return field_names
-libpysmacq.DtsObject_.keys = DtsObject_keys
-del DtsObject_keys
+
+libpysmacq.DtsObject.dict = DtsObject_dict
+libpysmacq.DtsObject.keys = DtsObject_keys
+libpysmacq.DtsObject.getdata =  DtsObject_getdata
+libpysmacq.DtsObject.__str__ = DtsObject_str
+libpysmacq.DtsObject.__repr__ = DtsObject_repr
+libpysmacq.DtsObject.__getitem__ =  DtsObject_getitem
+del DtsObject_keys, DtsObject_str, DtsObject_dict, DtsObject_getitem, DtsObject_repr, DtsObject_getdata
 	

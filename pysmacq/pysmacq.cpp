@@ -102,9 +102,12 @@ BOOST_PYTHON_MODULE(libpysmacq)
     class_<DtsObject_>("DtsObject_", init<DTS *, int, int>())
         .def("getfield", getfield_fptr_s, dtsO_getfield_s_overloads())
         .def("getfield", getfield_fptr_Fo, dtsO_getfield_Fo_overloads())
-        .def("getdata", &DtsObject_::pygetdata,
+        .def("__len__", &DtsObject_::getsize)
+        .def("_getdata", &DtsObject_::pygetdata,
             return_value_policy<return_by_value>())
         .def("prime_all_fields", &DtsObject_::prime_all_fields)
+        .def("getfieldname", &DtsObject_::getfieldname,
+            return_value_policy<return_by_value>())
         .def("fieldcache", &DtsObject_::fieldcache)
     ;
 

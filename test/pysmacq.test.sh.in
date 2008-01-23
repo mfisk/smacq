@@ -15,10 +15,9 @@ pcapfile = '0325@1112-snort.pcap'
 q = smacq.SmacqQuery('pcapfile(%s)' % (pcapfile))
 q >>= 'where srcport > 137'
 
-print q
-
+print 'Query string:', q
 for d in q:
-	print d['srcip'], d['dstip'], d['srcport'], d['dstport'], d.has_key('foo')
+	print repr(d), d
 
 EOF
 
