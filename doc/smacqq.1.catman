@@ -11,13 +11,14 @@ DDEESSCCRRIIPPTTIIOONN
 
 
 UUSSAAGGEE
-       ssmmaaccqqqq [-m]  [-O]  [-g]  [-t _t_y_p_e] query
+       ssmmaaccqqqq [-f _t_y_p_e]  [-g]  [-t _t_y_p_e]  [-q] query
 
        The --gg option describes the query graph created by the given  query  or
        queries.   The  --tt option outputs a description of the given type.  The
-       --mm option causes multiple query lines to be read from STDIN instead  of
-       the command line.  The --OO option causes optional query optimizations to
-       be made.
+       --ff option specifies a file to read one or more query  lines  from  ('-'
+       can  be used to specify standard input).  The --qq option will remove any
+       warnings about missing fields (which can result from typos and mistakes
+       in queries, as well as legitimate variation in data).
 
 
 SSEEEE AALLSSOO
