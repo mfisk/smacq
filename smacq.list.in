@@ -29,8 +29,8 @@ $MAN3EXT=3
 f 0555 root sys ${bindir}/smacqq bin/smacqq
 
 # Python libraries
-f 0555 root sys ${pydir}/libpysmacq.so.0
-f 0555 root sys ${pydir}/smacq.py
+f 0555 root sys ${pydir}/libpysmacq.so pysmacq/.libs/libpysmacq.so.0
+f 0555 root sys ${pydir}/smacq.py ${srcdir}/pysmacq/smacq.py
 
 # Documentation
 f 0444 root sys ${docdir}/AUTHORS ${srcdir}/AUTHORS
