@@ -22,6 +22,7 @@
 #include <SmacqModule.h>
 
 #include <dts_packet.h>
+#include <pcap.h>
  
 static struct smacq_options options[] = {
   {"i", {string_t:"any"}, "Interface", SMACQ_OPT_TYPE_STRING},
@@ -36,7 +37,7 @@ SMACQ_MODULE(pcaplive,
   PROTO_PRODUCE();
 
  public:
-  void ProcessPacket(const struct old_pcap_pkthdr * hdr, const struct ether_header * ethhdr);
+  void ProcessPacket(const struct pcap_pkthdr * hdr, const struct ether_header * ethhdr);
 
  private:
 
@@ -60,23 +61,31 @@ SMACQ_MODULE(pcaplive,
 void process_wrapper(u_char * user, const struct pcap_pkthdr * hdr, const u_char * data) {
 	struct ether_header * ethhdr = (struct ether_header*)data;
 	pcapliveModule * o = (pcapliveModule*)user;
-	o->ProcessPacket((const struct old_pcap_pkthdr*)hdr, ethhdr);
+	o->ProcessPacket(hdr, ethhdr);
 }
 
-inline void pcapliveModule::ProcessPacket(const struct old_pcap_pkthdr * hdr, 
+inline void pcapliveModule::ProcessPacket(const struct pcap_pkthdr * hdr, 
 		   const struct ether_header * ethhdr) {
   struct dts_pkthdr * pkt;
 
   datum = dts->newObject(dts_pkthdr_type, hdr->len + sizeof(struct dts_pkthdr));
   pkt = (struct dts_pkthdr*)datum->getdata();
 
-  pkt->pcap_pkthdr = *hdr;
-  // extended header is uninitialized
+  /* We used to use a memcpy to copy header values between the 
+   * libpcap() captured pcap_pkthdr and smacq's old_pcap_hdr.
+   * Unfortuantely, that's not very robust to changes in the size
+   * of struct timeval and such (and why do I want 2^64 microseconds 
+   * per second?).  So now we just explicitly copy the 4 values we want
+   * and let the compiler sort out any cast issues.  This also ignores any
+   * "extended" attributes from Alexei's funky libpcap that RedHat shipped
+   * for a while.
+   */
+  pkt->pcap_pkthdr.ts.tv_sec = hdr->ts.tv_sec;
+  pkt->pcap_pkthdr.ts.tv_usec = hdr->ts.tv_usec;
+  pkt->pcap_pkthdr.caplen = hdr->caplen;
+  pkt->pcap_pkthdr.len = hdr->len;
 
-  
   datum->attach_field(snaplen_field, snaplen_o);
-
-  
   datum->attach_field(linktype_field, linktype_o);
 
   memcpy(datum->getdata() + sizeof(struct dts_pkthdr), ethhdr, hdr->caplen);
