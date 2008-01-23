@@ -7,7 +7,9 @@
 
 static int smacqtype_ip_get_string(DtsObject datum, DtsObject data) {
   data->setsize(INET_ADDRSTRLEN);
-  return (0 != inet_ntop(AF_INET, datum->getdata(), (char*)data->getdata(), INET_ADDRSTRLEN));
+  const char * r = inet_ntop(AF_INET, datum->getdata(), (char*)data->getdata(), INET_ADDRSTRLEN);
+  data->setsize(strlen((char*)data->getdata()));
+  return (NULL != r);
 }
 
 static int smacqtype_ip_get_nuint32(DtsObject datum, DtsObject data) {

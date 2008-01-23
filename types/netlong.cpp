@@ -6,7 +6,7 @@
 
 static int smacqtype_netlong_get_string(DtsObject o, DtsObject field) {
   field->setsize(64); // Only has to hold log10(2**32)
-  snprintf((char*)field->getdata(), 64, "%u", dts_data_as(o, unsigned int));
+  field->setsize(1+snprintf((char*)field->getdata(), 64, "%u", dts_data_as(o, unsigned int)));
   return 1;
 }
 

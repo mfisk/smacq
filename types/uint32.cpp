@@ -5,13 +5,13 @@
 
 static int smacqtype_uint32_get_string(DtsObject o, DtsObject field) {
   field->setsize(64); // Only has to hold log10(2**32)
-  snprintf((char*)field->getdata(), 64, "%u", dts_data_as(o, unsigned int));
+  field->setsize(1+snprintf((char*)field->getdata(), 64, "%u", dts_data_as(o, unsigned int)));
   return 1;
 }
 
 static int smacqtype_uint32_get_hexstring(DtsObject o, DtsObject field) {
   field->setsize(16); // 4 bytes -> 8 chars + 3 = 11
-  snprintf((char*)field->getdata(), 64, "0x%x", dts_data_as(o, unsigned int));
+  field->setsize(1+snprintf((char*)field->getdata(), 64, "0x%x", dts_data_as(o, unsigned int)));
   return 1;
 }
 

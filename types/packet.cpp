@@ -106,8 +106,8 @@ static inline int getipfield(DtsObject datum, DtsObject data, int offset) {
 * Methods
 */
 int dts_pkthdr_get_packet(DtsObject datum, DtsObject data) {
-	data->setdata(datum->getdata() + sizeof(struct dts_pkthdr));
 	data->setsize(datum->getsize() - sizeof(struct dts_pkthdr));
+	data->setdata(datum->getdata() + sizeof(struct dts_pkthdr));
 	//fprintf(stderr, "packet is %d bytes vs. caplen of %d bytes\n", data->getsize(), get_pcap(datum)->pcap_pkthdr.caplen);
 
 	return 1;

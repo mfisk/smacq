@@ -19,7 +19,7 @@ static int smacqtype_ipproto_get_string(DtsObject obj, DtsObject field) {
 	strcpy((char*)field->getdata(), p->p_name);
   } else {
 	field->setsize(64);
-  	snprintf((char*)field->getdata(), 64, "%hu", dts_data_as(obj, unsigned char)); 
+  	field->setsize(1+snprintf((char*)field->getdata(), 64, "%hu", dts_data_as(obj, unsigned char)));
   }
 
   return 1;

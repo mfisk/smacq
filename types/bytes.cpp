@@ -22,6 +22,7 @@ static int smacqtype_bytes_get_string(DtsObject o, DtsObject field) {
 
   /* Make sure it's NULL terminated */
   *dp++ = '\0';
+  field->setsize(dp - (char*)field->getdata());
 
   return 1;
 }

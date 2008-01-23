@@ -13,7 +13,7 @@ static int smacqtype_ushort_get_double(DtsObject o, DtsObject field) {
 
 static int smacqtype_ushort_get_string(DtsObject o, DtsObject field) {
   field->setsize(64); // Only has to hold log10(2**32)
-  snprintf((char*)field->getdata(), 64, "%hu", dts_data_as(o, unsigned short));
+  field->setsize(1+snprintf((char*)field->getdata(), 64, "%hu", dts_data_as(o, unsigned short)));
   return 1;
 }
 
