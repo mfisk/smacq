@@ -15,7 +15,7 @@ native inst slackware setld depot swinstall tardist osx aix bsd deb: smacq.list
 
 rpm: smacq.list
 	srcdir=$(top_srcdir) epm -v --output-dir . -f $@ smacq $<
-	rpmbuild -bb smacq.spec 
+#rpmbuild -bb smacq.spec 
 
 fink: smacq.list
 	fink=yes srcdir=$(top_srcdir) epm -f deb -a darwin-`uname -p` --output-dir . smacq $<
