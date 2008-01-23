@@ -16,6 +16,12 @@ static int smacqtype_double_get_string(DtsObject o, DtsObject field) {
 static int parse_string(const char* buf,  DtsObject d) {
   double dbl;
   char * left = NULL;
+
+  // strtod will convert NULL to 0, but that's not what we want.
+  if (buf[0] == '\0') {
+	return 0;
+  }
+
   dbl = strtod(buf, &left);
   if (left == buf) {
 	return 0;
