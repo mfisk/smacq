@@ -1,5 +1,5 @@
-VERSION 2.6 - Future
-====================
+VERSION 2.6 - 23 Jan 2008
+=========================
 2006-09 - libtool -static linking happily links against installed dynamic libraries even if static is available.  We now use a wrapper script when building smacqq to prefer static libraries if present.
 2006-09 - Define support added (the :- operator) 
 2006-09 - Group by can now be used in pipes as well as FROMs
@@ -14,6 +14,10 @@ VERSION 2.6 - Future
 2008-01 - Don't warn (ala -q) when testing for existance of a field and it doesn't exist
 2008-01 - Print column number in parse error messages
 2008-01 - pcaplive: Support 64-bit timeval (RHEL5 x86-64)
+2008-01 - python bindings: 
+	- repr(), str() improvements
+	- strings can contain NULLs now (DTS string obj lengths now exact)
+	- RPM fixes
 
 VERSION 2.5 - 29 August 2006
 ============================
