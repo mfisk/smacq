@@ -214,6 +214,7 @@ def DtsObject_getdata(self):
 		return None
 		
 def DtsObject_getitem(self, index):
+	index = str(index) # Covert numeric indices to strings
 	x = self.get().getfield(index, True) 
 	if not x.get() and self.has_key(index):
 		return None
@@ -222,7 +223,7 @@ def DtsObject_getitem(self, index):
 	return x
 
 libpysmacq.DtsObject.__len__ = lambda self: self.get().__len__()
-libpysmacq.DtsObject.has_key = lambda self, name: (self.get().getfield(name, True).get() != None)
+libpysmacq.DtsObject.has_key = lambda self, name: (self.get().getfield(str(name), True).get() != None)
 libpysmacq.DtsObject.__getattr__ = lambda self, name: self.get().__getattribute__(name)
 libpysmacq.DtsObject.__nonzero__ = lambda self: (self.get() != None)
 
@@ -234,14 +235,16 @@ def DtsObject_dict(self):
 	return d
 
 def DtsObject_str(self):
+	"""Return human-readable version of DtsObject by showing all of its fields"""
 	return str(self.dict())
 
 def DtsObject_repr(self):
-	"""Return human-readable version of DtsObject"""
+	"""Return string representation of DtsObject"""
 	if self.has_key("string"):
 	    s = self["string"]
-	    if s.getdata():
-		return s.getdata()
+	    if s: 
+		# SMACQ strings are NULL-terminated, so ignore final byte
+		return s.getdata()[:-1]
 
 	return repr(self.getdata())
 
