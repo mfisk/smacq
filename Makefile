@@ -24,9 +24,9 @@ importgnulib:
 	cvs add libgnu/[a-z]* libgnu/m4/[a-z]*
 
 pushrelease: dist rpm
-	@set -x; cd doc && rsync -a -e ssh -Ltv *.pdf *.png *.html api ../ChangeLog smacq.sf.net:smacqweb/
-	@set -x; scp build/*/smacq-*.tar.gz build/*/RPMS/*/smacq*rpm smacq.sf.net:smacqweb/downloads/
-	@set -x; scp build/*/RPMS/*/smacq*rpm packrat1.ds:/var/redhat/netnanny/RPMS/
+	@set -x; cd doc && rsync -a -e ssh -Ltv ../build/*/doc/*.pdf *.png *.html api ../ChangeLog smacq.sf.net:smacqweb/
+	@set -x; scp build/*/smacq-*.tar.gz build/*/smacq-*.rpm smacq.sf.net:smacqweb/downloads/
+	@set -x; scp build/*/smacq-*.rpm packrat1.ds:/var/redhat/netnanny/RPMS/
 
 mydistcheck:
 	misc/buildarch dist
