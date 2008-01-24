@@ -8,7 +8,7 @@ static int smacqtype_uint64_get_string(DtsObject o, DtsObject field) {
 #if __WORDSIZE==64
   field->setsize(1+snprintf((char*)field->getdata(), 64, "%lu", dts_data_as(o, uint64_t)));
 #else
-  field->sizesize(1+snprintf((char*)field->getdata(), 64, "%llu", dts_data_as(o, uint64_t)));
+  field->setsize(1+snprintf((char*)field->getdata(), 64, "%llu", dts_data_as(o, uint64_t)));
 #endif
 
   return 1;
