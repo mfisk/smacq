@@ -42,20 +42,19 @@ static int smacqtype_string_get_hexdecode(DtsObject o, DtsObject field) {
   end = p + o->getsize();
   dp = field->getdata();
 
+  if ( (o->getsize() % 2) != 0) {
+	fprintf(stderr, "Odd length hex string.\n");
+  }
+
   while (p < end) {
-	  if (p+2 < end) {
+	if (0 < sscanf((const char*)p, "%2hhx", dp)) {
+		p += 2;
+		dp++;
 		shrink += 1;
-		if (0 < sscanf((const char*)p, "%2hhx", dp)) {
-			p += 2;
-			dp++;
-		} else {
-			fprintf(stderr, "Invalid hex data in string.\n");
-	  		*dp++ = *p++;
-		}
-	  } else {
-		fprintf(stderr, "Odd-length hex string.\n");
-	  	*dp++ = *p++;
-	  }
+	} else {
+		fprintf(stderr, "Invalid hex data in string.\n");
+  		*dp++ = *p++;
+	}
   }
 
   field->setsize(o->getsize() - shrink);
