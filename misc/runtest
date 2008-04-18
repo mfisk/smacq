@@ -51,7 +51,7 @@ export TZ=MST
 SMACQQ="$BINDIR/smacqq" Run < /dev/null > $run 2>$err
 
 # See if the output was as expected or not
-diff -u $out $run > $diffout 
+diff -a -u $out $run > $diffout 
 stat="$?"
 if [ "$stat" != "0" ]; then 
 	# This test failed...
@@ -64,7 +64,7 @@ if [ "$stat" != "0" ]; then
  	sortedout=$OUTDIR/$basetest.out.sort	
         sort $out > $sortedout
         sort $run > $run.sort
-	diff -u $sortedout $run.sort > $OUTDIR/$basetest.sort.diff
+	diff -a -u $sortedout $run.sort > $OUTDIR/$basetest.sort.diff
 	if [ "$?" = "0" ]; then
 		echo ===== FYI, files are identical except for line order
 	fi 
