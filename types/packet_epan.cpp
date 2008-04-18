@@ -159,8 +159,8 @@ int epan_getname(struct dts_pkthdr * dhdr, const char * dts_name, DtsObject fiel
     break;
     
   default:
-    fprintf(stderr, "packet: warning: unsupported EPAN type %s being converted to 'bytes'\n", ftype_pretty_name(hfinfo->type));
-    fieldo->settype(dts->requiretype("bytes"));
+    fprintf(stderr, "packet: warning: unsupported EPAN type %s being converted to 'string'\n", ftype_pretty_name(hfinfo->type));
+    fieldo->settype(dts->requiretype("string"));
     fieldo->setdata(fvalue_get(&finfo->value));
     fieldo->setsize(fvalue_length(&finfo->value));
     break;

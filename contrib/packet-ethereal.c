@@ -148,8 +148,8 @@ int epan_getfield(DtsObject packet, DtsObject fieldo, dts_field_element element)
       break;
 
   default:
-      fprintf(stderr, "packet: warning: unsupported EPAN type %s being converted to 'bytes'\n", ftype_pretty_name(hfinfo->type));
-      fieldo->type = packet->tenv->requiretype("bytes");
+      fprintf(stderr, "packet: warning: unsupported EPAN type %s being converted to 'string'\n", ftype_pretty_name(hfinfo->type));
+      fieldo->type = packet->tenv->requiretype("string");
       fieldo->data = fvalue_get(finfo->value);
       fieldo->len = fvalue_length(finfo->value);
       break;

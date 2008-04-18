@@ -33,7 +33,7 @@ static int smacqtype_ntime_get_ctime(DtsObject o, DtsObject field) {
   struct tm tm;
   time_t t = ntohl(dts_data_as(o, uint32_t));
   field->setsize(32);
-  strftime((char*)field->getdata(), 32, "%T", localtime_r(&t, &tm));
+  field->setsize(strftime((char*)field->getdata(), 32, "%T", localtime_r(&t, &tm)));
  
   return 1;
 }
@@ -42,7 +42,7 @@ static int smacqtype_ntime_get_sql(DtsObject o, DtsObject field) {
   struct tm tm;
   time_t t = ntohl(dts_data_as(o, uint32_t));
   field->setsize(32);
-  strftime((char*)field->getdata(), 32, "%Y-%m-%d %T", localtime_r(&t, &tm));
+  field->setsize(strftime((char*)field->getdata(), 32, "%Y-%m-%d %T", localtime_r(&t, &tm)));
  
   return 1;
 }
@@ -51,7 +51,7 @@ static int smacqtype_ntime_get_date(DtsObject o, DtsObject field) {
   struct tm tm;
   time_t t = ntohl(dts_data_as(o, uint32_t));
   field->setsize(32);
-  strftime((char*)field->getdata(), 32, "%F", localtime_r(&t, &tm));
+  field->setsize(strftime((char*)field->getdata(), 32, "%F", localtime_r(&t, &tm)));
  
   return 1;
 }

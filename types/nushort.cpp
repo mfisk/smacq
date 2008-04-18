@@ -7,7 +7,7 @@
 
 static int smacqtype_nushort_get_string(DtsObject obj, DtsObject field) {
   field->setsize(64); // Only has to hold log10(2**32)
-  field->setsize(1 + snprintf((char*)field->getdata(), 64, "%hu", ntohs(dts_data_as(obj, unsigned short))));
+  field->setsize(snprintf((char*)field->getdata(), 64, "%hu", ntohs(dts_data_as(obj, unsigned short))));
   return 1;
 }
 

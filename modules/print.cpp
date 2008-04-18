@@ -65,20 +65,22 @@ void printModule::print_field(std::string & s, DtsObject field, char * fname) {
   if (verbose) printed = 1;
   if (!field) return; 
 
+  std::string sfield((char*)field->getdata(), field->getsize());
+
   if (tagged) {
-    s += str(format("<%s>%s</%s>") % fname % (char *)field->getdata() % fname);
+    s += str(format("<%s>%s</%s>") % fname % sfield % fname);
 
   } else if (boulder) {
-    s += str(format("%s=%s") % fname % (char *)field->getdata());
+    s += str(format("%s=%s") % fname % sfield);
 
   } else if (verbose) {
-    s += str(format("%.20s = %s") % fname % (char *)field->getdata());
+    s += str(format("%.20s = %s") % fname % sfield);
 
   } else if (internals) {
-    s += str(format("%.20s = (obj %p) %s") % fname % field.get() % (char *)field->getdata());
+    s += str(format("%.20s = (obj %p) %s") % fname % field.get() % sfield);
 
   } else {
-    s += (char*)field->getdata();
+    s += sfield;
   }
 
   printed = 1;

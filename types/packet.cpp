@@ -256,7 +256,7 @@ struct dts_field_spec dts_type_packet_fields[] = {
 */
 
 { "ipproto",	"ipprotocol",	dts_pkthdr_get_protocol },
-{ "bytes",	"packet",	dts_pkthdr_get_packet },
+{ "string",	"packet",	dts_pkthdr_get_packet },
 
 { "macaddr",	"srcmac",	dts_pkthdr_get_srcmac },
 { "macaddr",	"dstmac",	dts_pkthdr_get_dstmac },
@@ -276,7 +276,7 @@ struct dts_field_spec dts_type_packet_fields[] = {
 { "ubyte",	"urg",    dts_pkthdr_get_urg },
 { "nushort",	"tcpwindow",    dts_pkthdr_get_tcpwindow },
 
-{ "bytes",	"payload",    dts_pkthdr_get_payload },
+{ "string",	"payload",    dts_pkthdr_get_payload },
 
 { "ubyte",	"icmptype",    dts_pkthdr_get_icmp_type },
 

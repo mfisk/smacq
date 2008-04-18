@@ -39,8 +39,7 @@ static int smacqtype_timeval_get_sql(DtsObject o, DtsObject field) {
   struct tm tm;
   field->setsize(32);
   time_t s = t->tv_sec;
-  strftime((char*)field->getdata(), 32, "%Y-%m-%d %T", localtime_r(&s, &tm));
-  strftime((char*)field->getdata(), 32, "%Y-%m-%d %T", localtime_r(&s, &tm));
+  field->setsize(strftime((char*)field->getdata(), 32, "%Y-%m-%d %T", localtime_r(&s, &tm)));
   
   return 1;
 }
@@ -50,7 +49,7 @@ static int smacqtype_timeval_get_ctime(DtsObject o, DtsObject field) {
   struct tm tm;
   field->setsize(32);
   time_t s = t->tv_sec;
-  strftime((char*)field->getdata(), 32, "%T", localtime_r(&s, &tm));
+  field->setsize(strftime((char*)field->getdata(), 32, "%T", localtime_r(&s, &tm)));
   
   return 1;
 }
@@ -60,7 +59,7 @@ static int smacqtype_timeval_get_date(DtsObject o, DtsObject field) {
   struct tm tm;
   field->setsize(32);
   time_t s = t->tv_sec;
-  strftime((char*)field->getdata(), 32, "%Y-%m-%d", localtime_r(&s, &tm));
+  field->setsize(strftime((char*)field->getdata(), 32, "%Y-%m-%d", localtime_r(&s, &tm)));
   
   return 1;
 }

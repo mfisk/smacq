@@ -292,8 +292,8 @@ inline void StrucioStream::Follow() {
 
 inline StrucioStream * StrucioStream::MagicOpen(DtsObject fo) {
   //assert(fo->gettype() = fo->dts->requiretype("string"));
-  char * filename = (char *)fo->getdata();
-  StrucioStream * o = MagicOpen(filename);
+  std::string filename((char *)fo->getdata(), fo->getsize());
+  StrucioStream * o = MagicOpen(filename.c_str());
   DtsObject doFollow = fo->getfield("doFollow", true);
   if (doFollow) {
 	o->Follow();

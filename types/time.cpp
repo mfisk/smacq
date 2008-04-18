@@ -27,7 +27,7 @@ static int smacqtype_time_get_ctime(DtsObject o, DtsObject field) {
   struct tm tm;
   time_t t = dts_data_as(o, uint32_t);
   field->setsize(32);
-  strftime((char*)field->getdata(), 32, "%T", localtime_r(&t, &tm));
+  field->setsize(strftime((char*)field->getdata(), 32, "%T", localtime_r(&t, &tm)));
   
   return 1;
 }

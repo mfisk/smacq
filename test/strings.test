@@ -1,0 +1,1 @@
+print const.urldecode from const("foo%20bar%00") from head(1) from pcapfile(0325@1112-snort.pcap) 

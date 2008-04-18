@@ -96,7 +96,7 @@ class DtsObject_ : public PthreadMutex {
 
 	/// Return the raw data contents as a C++ string
         std::string pygetdata() const { 
-           return std::string((char*)data, len);
+           return std::string((char*)data, len) + '\0';
         }
 
 	/// Return the type of the object

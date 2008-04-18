@@ -15,11 +15,11 @@ static int smacqtype_ipproto_get_string(DtsObject obj, DtsObject field) {
   struct protoent * p = getprotobynumber(pnum);
 
   if (p) {
-	field->setsize(strlen(p->p_name)+1);
-	strcpy((char*)field->getdata(), p->p_name);
+	field->setsize(strlen(p->p_name));
+	memcpy((char*)field->getdata(), p->p_name, field->getsize());
   } else {
 	field->setsize(64);
-  	field->setsize(1+snprintf((char*)field->getdata(), 64, "%hu", dts_data_as(obj, unsigned char)));
+  	field->setsize(snprintf((char*)field->getdata(), 64, "%hu", dts_data_as(obj, unsigned char)));
   }
 
   return 1;

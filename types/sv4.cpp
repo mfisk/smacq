@@ -25,7 +25,7 @@ static int get_sv4_data(DtsObject datum, DtsObject data) {
 static int get_sv4_prompt(DtsObject o, DtsObject stro) {
 	void * p = o->getdata()+ 47;
 	ushort prompt = ntohs( *(ushort*)p );
-	stro->setsize(6);
+	stro->setsize(5);
 	unsigned char * str = stro->getdata();
 
 	str[0] = ((prompt & 16) ? '<' : ' ');
@@ -33,7 +33,6 @@ static int get_sv4_prompt(DtsObject o, DtsObject stro) {
 	str[2] = ((prompt & 4) ? '*' : ' ');
 	str[3] = ((prompt & 2) ? '>' : ' ');
 	str[4] = ((prompt & 1) ? '>' : ' ');
-	str[5] = '\0';
 	/* sprintf(str+5, " %d", prompt); */
 
 	return 1;
@@ -57,7 +56,7 @@ struct dts_field_spec dts_type_sv4_fields[] = {
 	{ "ubyte",	"ipprotocol",	NULL },
 	{ "nushort",	"prompt",	NULL },
 	{ "string",	"promptstr",	get_sv4_prompt },
-	{ "bytes",	"payload",	get_sv4_data },
+	{ "string",	"payload",	get_sv4_data },
 	{ "timeval",	"start",	get_sv4_start },
 	{ "timeval",	"stop",		get_sv4_stop },
         { NULL,		NULL,		NULL }

@@ -5,7 +5,7 @@
 
 static int smacqtype_ubyte_get_string(DtsObject o, DtsObject field) {
   field->setsize(64); // Only has to hold log10(2**32)
-  field->setsize(1+snprintf((char*)field->getdata(), 64, "%hhu", dts_data_as(o, char)));
+  field->setsize(snprintf((char*)field->getdata(), 64, "%hhu", dts_data_as(o, char)));
   return 1;
 }
 

@@ -1,3 +1,8 @@
+VERSION 2.7pre
+==============
+2008-04 - "bytes" type now consolidated with "string" type; strings no longer NULL terminated
+2008-04 - Deal with RHEL3 libdb_cxx naming issues
+
 VERSION 2.6 - 23 Jan 2008
 =========================
 2006-09 - libtool -static linking happily links against installed dynamic libraries even if static is available.  We now use a wrapper script when building smacqq to prefer static libraries if present.
