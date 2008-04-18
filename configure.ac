@@ -174,6 +174,20 @@ dnl Run the check for --with-docdir
 WITH_DOCDIR
 
 ##
+## libdb_cxx
+##
+AC_MSG_CHECKING([libdb_cxx])
+AC_CHECK_LIB([db_cxx], [db_version], [LIBDB_CXX_LIBS=-ldb_cxx])
+if test x$HAVELIBDB_CXX = x ; then
+  # Thank you RHEL3:
+  lib=`ls /usr/lib/libdb_cxx-*.so | sort -nr | head -1 | sed -e 's,^/usr/lib/lib,,' -e 's,\.so$,,'`
+  if test x$lib != x ; then
+	AC_CHECK_LIB([$lib], [db_version], [LIBDB_CXX_LIBS=-l$lib])
+  fi
+fi
+AC_SUBST(LIBDB_CXX_LIBS)
+
+##
 ## libgda
 ##
 PKG_CHECK_MODULES(GDA, libgda-2.0,
@@ -292,15 +306,15 @@ AM_CONDITIONAL(GASNET, [test "$GASNET_CPPFLAGS" != ""])
 ##
 ## Ethereal
 ##
-AC_ARG_WITH([ethereal], 
-	AC_HELP_STRING([--with-ethereal],
+AC_ARG_WITH([wireshark], 
+	AC_HELP_STRING([--with-wireshark],
 			[Include Ethereal packet decoding]))
 
-if test "X$with_ethereal" != "X"; then
-	if test "X$with_ethereal" = "Xyes"; then
-		AC_MSG_ERROR([Must specify path to source with --with-ethereal=])
+if test "X$with_wireshark" != "X"; then
+	if test "X$with_wireshark" = "Xyes"; then
+		AC_MSG_ERROR([Must specify path to source with --with-wireshark=])
 	fi
-	ETHEREAL_LDFLAGS=$withval/epan/libethereal.la -lsnmp -lcrypto
+	ETHEREAL_LDFLAGS=$withval/epan/libwireshark.la -lsnmp -lcrypto
 	ETHEREAL_CPPFLAGS="-DWITH_ETHEREAL=$withval -I$withval"
 fi
 
