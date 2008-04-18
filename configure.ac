@@ -178,7 +178,7 @@ WITH_DOCDIR
 ##
 AC_MSG_CHECKING([libdb_cxx])
 AC_CHECK_LIB([db_cxx], [db_version], [LIBDB_CXX_LIBS=-ldb_cxx])
-if test x$HAVELIBDB_CXX = x ; then
+if test x$LIBDB_CXX_LIBS = x ; then
   # Thank you RHEL3:
   lib=`ls /usr/lib/libdb_cxx-*.so | sort -nr | head -1 | sed -e 's,^/usr/lib/lib,,' -e 's,\.so$,,'`
   if test x$lib != x ; then
