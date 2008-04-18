@@ -61,7 +61,7 @@ static int smacqtype_bytes_url_decode(DtsObject o, DtsObject field) {
 
 struct dts_field_spec dts_type_bytes_fields[] = {
   { "string",   "string",	smacqtype_bytes_get_string },
-  { "bytes",    "urldecode",	smacqtype_bytes_url_decode },
+  { "string",   "urldecode",	smacqtype_bytes_url_decode },
   { NULL,        NULL }
 };
 
