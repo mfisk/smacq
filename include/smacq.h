@@ -3,7 +3,7 @@
 
 /*!
 
-\version 2.5
+\version 2.7pre
 
 \mainpage System for Modular Analysis and Continuous Queries
 
