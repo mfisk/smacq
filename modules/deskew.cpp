@@ -63,7 +63,7 @@ smacq_result deskewModule::consume(DtsObject datum, int & outchan) {
 	return SMACQ_PASS;
   }
 
-  //fprintf(stderr, "got something of type %s\n", dts->typename_bynum(this->fieldType));
+  //fprintf(stderr, "got something of type %s\n", this->obj->getfieldname());
   if ((begin && ts < begin) || (end && ts > end)) {
 	if (!previousTs) previousTs = begin;
 	double diff = previousTs - ts;

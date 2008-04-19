@@ -31,7 +31,7 @@ DtsObject DTS::construct(dts_typeid type, void * data) {
 }
 
 char * DTS::field_getname(DtsField &f) {
-  char * name;
+  const char * name;
 
   char buf[1024];
   buf[0] = '\0';
@@ -61,7 +61,7 @@ char * DTS::field_getname(DtsField &f) {
   }
 }
 
-dts_field_element DTS::requirefield_single(char * name) {
+dts_field_element DTS::requirefield_single(const char * name) {
   dts_field_element el = 0;
   if (fields_byname.get(name, el)) {
 	return (el);
@@ -99,7 +99,7 @@ int dts_comparefields(DtsField &fa, DtsField &fb) {
 	}
 }
 
-DtsField DTS::requirefield(char * name) {
+DtsField DTS::requirefield(const char * name) {
   char * p;
   int i = 0;
   DtsField f;

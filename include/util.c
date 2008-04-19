@@ -18,7 +18,7 @@ static inline void * crealloc(void * ptr, int newsize, int oldsize) {
   return newp;
 }
 
-static inline char * strcatn(char * dest, int len, char * src) {
+static inline char * strcatn(char * dest, int len, const char * src) {
 	int left = len - strlen(dest) - 1;
 	return strncat(dest, src, left);
 }

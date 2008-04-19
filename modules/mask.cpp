@@ -32,7 +32,11 @@ smacq_result maskModule::consume(DtsObject datum, int & outchan) {
   DtsObject fieldo = datum->getfield(field);
   //if (!fieldo) fprintf(stderr, "mask: No such field (%d) on %p\n", field[0], datum);
   if (!fieldo) return SMACQ_FREE;
-  assert(fieldo->gettype() == ip_type);
+
+  if (fieldo->gettype() != ip_type) {
+	fprintf(stderr, "field %s is type %s instead of %s\n", dts->field_getname(field), fieldo->gettypename(), dts->typename_bynum(ip_type));
+	return SMACQ_FREE;
+  }
 
   f = dts_data_as(fieldo, in_addr_t);
   	

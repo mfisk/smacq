@@ -116,7 +116,7 @@ class DTS : PthreadMutex {
   ///@{
 
   	/// Convert the given field name into a numeric identifier.
-  DtsField requirefield(char * name);
+  DtsField requirefield(const char * name);
 
 	/// Find the location, size, and type of a field of the specified object
   //int getfieldoffset(DtsObject datum, dts_field_element fnum, dts_typeid * dtype, int * offset, int * len);
@@ -130,7 +130,7 @@ class DTS : PthreadMutex {
   }
 
   	/// Return the name of the specified field.
-  char * field_getname(dts_field_element f) { return(fields_bynum[f]); }
+  const char * field_getname(dts_field_element f) { return(fields_bynum[f]); }
 
   ///@}
 
@@ -213,7 +213,7 @@ class DTS : PthreadMutex {
   ThreadSafeMap<const char *, dts_field_element, ltstr> fields_byname;
   ThreadSafeDynamicArray<dts_message*> messages_byfield;
   ThreadSafeDynamicArray<struct dts_type *> types; 
-  ThreadSafeDynamicArray<char*> fields_bynum; 
+  ThreadSafeDynamicArray<const char*> fields_bynum; 
   
   //  	DtsField double_field;
   //  	int double_type;
@@ -226,7 +226,7 @@ class DTS : PthreadMutex {
 	gasnet_resume_interrupts();
   }
 #endif
-  dts_field_element requirefield_single(char * name);
+  dts_field_element requirefield_single(const char * name);
   
   int pickle_getnewtype(int fd, struct sockdatum * hdr, struct pickle * pickle);
   int pickle_addnewtype(char * name, unsigned int extnum, struct pickle * pickle, int fd);

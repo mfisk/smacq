@@ -47,7 +47,7 @@ void    (SmacqGraph::*join_fptr)(SmacqGraph *, bool)    = &SmacqGraph::join;
 void    (SmacqScheduler::*seed_produce_fptr)(SmacqGraph *)   = &SmacqScheduler::seed_produce;
 DtsObject (DTS::*newObject_fptr)(dts_typeid) = &DTS::newObject;
 DtsObject (DtsObject_::*getfield_fptr_Fo)(DtsField &, bool) = &DtsObject_::getfield;
-DtsObject (DtsObject_::*getfield_fptr_s)(char *, bool) = &DtsObject_::getfield;
+DtsObject (DtsObject_::*getfield_fptr_s)(const char *, bool) = &DtsObject_::getfield;
 // }}}
 
 // Exposing smacq methods and functions to python {{{

@@ -99,8 +99,12 @@ class DtsObject_ : public PthreadMutex {
            return std::string((char*)data, len) + '\0';
         }
 
+	/// Return the type name of the object
+	const char * gettypename() const { return dts->typename_bynum(type); }
+
 	/// Return the type of the object
 	dts_typeid gettype() const { return(type); }
+
 	void settype(int type) {
 	  this->type = type;
 	  setsize(dts->type_bynum(type)->info.size);
@@ -120,7 +124,7 @@ class DtsObject_ : public PthreadMutex {
 	DtsObject getfield(DtsField &fieldv, bool nowarn = false);
 
 		/// Less efficient lookup by string
-	DtsObject getfield(char * s, bool nowarn = false) {
+	DtsObject getfield(const char * s, bool nowarn = false) {
 		DtsField f = dts->requirefield(s);
 		return getfield(f, nowarn);
 	}

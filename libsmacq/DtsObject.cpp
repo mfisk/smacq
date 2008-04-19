@@ -57,11 +57,11 @@ double DtsObject_::eval_arith_operand(struct dts_operand * op) {
 	  case FIELD:
 		 fetch_operand(op);
 		 if (op->valueo) {
-			//fprintf(stderr, "eval got operand obj %p type %s\n", op->valueo.get(), dts->typename_bynum(op->valueo->type));
+			//fprintf(stderr, "eval got operand obj %p type %s\n", op->valueo.get(), op->valueo->gettypename());
 		   	if (op->valueo->type != dts->typenum_byname("double")) {
 				op->valueo = op->valueo->getfield("double");
 			}
-			//fprintf(stderr, "eval got operand obj %p type %s value %g\n", op->valueo.get(), dts->typename_bynum(op->valueo->type), dts_data_as(op->valueo, double));
+			//fprintf(stderr, "eval got operand obj %p type %s value %g\n", op->valueo.get(), op->valueo->gettypename(), dts_data_as(op->valueo, double));
   		   	return dts_data_as(op->valueo, double);
 		 } else {
 			fprintf(stderr, "Warning: no field %s to eval, using NaN for value\n", op->origin.literal.str);

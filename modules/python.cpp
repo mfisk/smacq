@@ -137,12 +137,7 @@ enum datatype {
 static PyObject *PyDtsObject_gettype(PyObject *p, void *closure)
 {
   PyDtsObject *self = (PyDtsObject *)p;
-  char        *dtsname;
-  dts_typeid   dtstype;
-
-  dtstype = self->d->gettype();
-  dtsname = self->d->getDts()->typename_bynum(dtstype);
-  return Py_BuildValue("s", dtsname);
+  return Py_BuildValue("s", self->d->gettypename());
 }
 
 /** Return raw data
@@ -163,13 +158,13 @@ static PyObject *PyDtsObject_getvalue(PyObject *p, void *closure)
 {
   PyDtsObject *self = (PyDtsObject *)p;
   dts_typeid   dtstype;
-  char        *dtsname;
+  const char  *dtsname;
   void        *data;
   PyObject    *pRet;
 
   data    = self->d->getdata();
   dtstype = self->d->gettype();
-  dtsname = self->d->getDts()->typename_bynum(dtstype);
+  dtsname = self->d->gettypename();
 
   if (strcmp(dtsname, "ubyte") == 0) {
     pRet = PyInt_FromLong((long)*((unsigned char *)data));
@@ -219,12 +214,12 @@ static int PyDtsObject_setvalue(PyObject *p,
 {
   PyDtsObject        *self = (PyDtsObject *)p;
   dts_typeid          dtstype;
-  char               *dtsname;
+  const char               *dtsname;
   void               *data;
 
   data    = self->d->getdata();
   dtstype = self->d->gettype();
-  dtsname = self->d->getDts()->typename_bynum(dtstype);
+  dtsname = self->d->gettypename();
 
   if (strcmp(dtsname, "ubyte") == 0) {
       long i;

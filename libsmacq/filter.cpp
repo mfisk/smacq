@@ -62,13 +62,13 @@ int DtsObject_::match_one(dts_comparison * c) {
 		        dts_typeid op1type = op1->valueo->gettype();
 			dts_typeid op2type = op2->valueo->gettype();
 			if (op1type != op2type) {
-				//fprintf(stderr, "cast to %s to %s\n", dts->typename_bynum(op2type), dts->typename_bynum(op1type));
-				DtsObject cast = op2->valueo->getfield(dts->typename_bynum(op1type));
+				//fprintf(stderr, "cast to %s to %s\n", op2->valueo->gettypename(), op1->valueo->gettypename());
+				DtsObject cast = op2->valueo->getfield(op1->valueo->gettypename());
 				if (cast) {
 					op2->valueo = cast;
 				} else {
-					fprintf(stderr, "Warning cannot cast %s to %s; trying reverse\n", dts->typename_bynum(op2type), dts->typename_bynum(op1type));
-					op1->valueo = op1->valueo->getfield(dts->typename_bynum(op2type));
+					fprintf(stderr, "Warning cannot cast %s to %s; trying reverse\n", op2->valueo->gettypename(), op1->valueo->gettypename());
+					op1->valueo = op1->valueo->getfield(op2->valueo->gettypename());
 				}
 			}
 		}

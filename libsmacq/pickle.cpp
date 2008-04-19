@@ -156,7 +156,7 @@ DtsObject DTS::readObject(struct pickle * pickle, int fd) {
 int DtsObject_::write(struct pickle * pickle, int fd) {
   struct sockdatum hdr;
   int * typep = get_type(pickle, fd, this->gettype());
-  char * name = NULL;
+  const char * name = NULL;
     
   memcpy(&hdr.datum, this, sizeof(DtsObject));
   hdr.namelen = 0;
@@ -164,12 +164,11 @@ int DtsObject_::write(struct pickle * pickle, int fd) {
   if (! *typep) {
     *typep = 1;
 
-    name = dts->typename_bynum(hdr.datum->gettype());
+    name = hdr.datum->gettypename();
     hdr.namelen=strlen(name);
     //fprintf(stderr, "Sending new type %d -> %s\n", &hdr.datum->gettype(), name);
   } else {
-    //name=dts->typename_bynum(&hdr.datum->gettype());
-    //fprintf(stderr, "Sending old type %d -> %s\n", &hdr.datum->gettype(), name);
+    //fprintf(stderr, "Sending old type %d -> %s\n", &hdr.datum->gettype(), &hdr.datum->gettypbyname());
   }
 
   if (1 > send_it(fd, (unsigned char*)&hdr, sizeof(struct sockdatum)))  
