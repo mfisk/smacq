@@ -34,16 +34,16 @@ class FilelistBounded : public Filelist {
 /// Return a single filename.
 class FilelistConstant : public Filelist {
  public:
-  FilelistConstant(char * filename) : file(filename) {;}
+  FilelistConstant(const std::string filename) : file(filename) {;}
 
   void nextfilename(char * filename, int len) { 
-     if (this->file) {
-	g_strlcpy(filename, this->file, len);
+     if (this->file.length()) {
+	g_strlcpy(filename, this->file.c_str(), len);
      }
   }
 
  protected:
-  char * file;
+  std::string file;
 };
 
 /// Return a single filename.

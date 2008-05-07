@@ -25,11 +25,11 @@ SMACQ_MODULE(print,
 	     int syslog_priority;
 	     std::vector<DtsField> fields;
 	     DtsField string_transform, filefield;
-	     char * delimiter, * record_delimiter, * output_name;
+	     const char * delimiter, * record_delimiter, * output_name;
 	     
-	     void print_field(std::string &, DtsObject fieldo, char * fname);
+	     void print_field(std::string &, DtsObject fieldo, const std::string & fname);
 
-	     char * last_file_field;
+	     const char * last_file_field;
 
 	     // Per-record state
 	     int printed, column;
@@ -54,7 +54,7 @@ static struct smacq_options options[] = {
   END_SMACQ_OPTIONS
 };
 
-void printModule::print_field(std::string & s, DtsObject field, char * fname) {
+void printModule::print_field(std::string & s, DtsObject field, const std::string & fname) {
   if (printed) {
     s += delimiter;
   } else if (field) {
