@@ -131,8 +131,10 @@ inline size_t DtsObjectVec::hash(const int seed) const {
   DtsObjectVec::const_iterator i;
   
   for (i = begin(); i != end(); ++i) {
-    result = bhash((*i)->getdata(), 
+    if (*i) {
+       result = bhash((*i)->getdata(), 
 		   (*i)->getsize(), result);
+    }
   }
   
   //fprintf(stderr, "hash to %xld\n", result);
