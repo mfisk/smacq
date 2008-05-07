@@ -48,6 +48,7 @@ void    (SmacqScheduler::*seed_produce_fptr)(SmacqGraph *)   = &SmacqScheduler::
 DtsObject (DTS::*newObject_fptr)(dts_typeid) = &DTS::newObject;
 DtsObject (DtsObject_::*getfield_fptr_Fo)(DtsField &, bool) = &DtsObject_::getfield;
 DtsObject (DtsObject_::*getfield_fptr_s)(const char *, bool) = &DtsObject_::getfield;
+std::string (DTS::*field_getname_fptr_s)(DtsField&) = &DTS::field_getname;
 // }}}
 
 // Exposing smacq methods and functions to python {{{
@@ -87,7 +88,7 @@ BOOST_PYTHON_MODULE(libpysmacq)
     class_<DTS>("DTS", init<>())
         .def("newObject", newObject_fptr)
         .def("requirefield", &DTS::requirefield)
-        .def("field_getname", &DTS::pyfield_getname)
+        .def("field_getname", field_getname_fptr_s)
 //            return_value_policy<manage_new_object>())
     ;
 
