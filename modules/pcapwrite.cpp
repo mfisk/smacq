@@ -4,17 +4,20 @@
 #include <sys/types.h>
 #include <net/ethernet.h>
 #include <SmacqModule.h>
+#include <FieldVec.h>
 #include <dts_packet.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <StrucioWriter.h>
 #include <dts.h>
+#include <boost/format.hpp>
 
 static struct smacq_options options[] = {
   {"f", {string_t:"-"}, "Output file", SMACQ_OPT_TYPE_STRING},
   {"s", {uint32_t:0}, "Maximum output file size (MB)", SMACQ_OPT_TYPE_UINT32},
   {"t", {uint32_t:0}, "Maximum output file time (seconds)", SMACQ_OPT_TYPE_UINT32},
   {"z", {boolean_t:0}, "Use gzip compression", SMACQ_OPT_TYPE_BOOLEAN},
+  {"b", {uint32_t:0}, "Number of buckets to hash packets into", SMACQ_OPT_TYPE_UINT32},
   END_SMACQ_OPTIONS
 };
 
@@ -22,8 +25,10 @@ class pcapwriteModule;
 
 class StrucioPcapWriter : public StrucioWriter {
  public:
-  StrucioPcapWriter(pcapwriteModule * o) { pcap = o; }
+  StrucioPcapWriter() : pcap(NULL) {}
+  //StrucioPcapWriter(const StrucioPcapWriter & s) : pcap(NULL) { newFilelist(NULL); }
   void newfile_hook();
+  void setPcap(pcapwriteModule * o) { pcap = o; }
 
  private:
   pcapwriteModule * pcap;
@@ -34,25 +39,23 @@ SMACQ_MODULE(pcapwrite,
   PROTO_DTOR(pcapwrite);
   PROTO_CONSUME();
 
-  StrucioWriter * strucio;
+  std::vector<StrucioPcapWriter>strucio;
   DtsObject datum;	
   int argc;
   char ** argv;
   int dts_pkthdr_type;		
   DtsObject current_datum;
+  int buckets;
 
   /* Booleans */
-  bool do_produce;			/* Does this instance produce */
-  bool swapped;
-  bool extended;
-
-  int hdr_size;
   struct pcap_file_header pcap_file_header;
 
   DtsObject snaplen_o;
   DtsObject linktype_o;
   DtsField snaplen_field;
   DtsField linktype_field;
+
+  FieldVec fieldvec;
 
   /* Const: */
   int snaplen_type;
@@ -111,13 +114,22 @@ void StrucioPcapWriter::newfile_hook() {
 
 smacq_result pcapwriteModule::consume(DtsObject datum, int & outchan) {
   assert(datum);
+  int b;
+
+  if (buckets > 1) {
+    fieldvec.getfields(datum);
+    b = fieldvec.getobjs().hash() % buckets;
+    //fprintf(stderr, "Bucket %d\n", b);
+  } else {
+    b = 0;
+  }
 
   current_datum = datum;
 
   if (datum->gettype() == dts_pkthdr_type) {
     struct dts_pkthdr * pkt = (struct dts_pkthdr*)datum->getdata();
 
-    if (!strucio->write(pkt, sizeof(struct old_pcap_pkthdr) + pkt->pcap_pkthdr.caplen)) {
+    if (!strucio[b].write(pkt, sizeof(struct old_pcap_pkthdr) + pkt->pcap_pkthdr.caplen)) {
       return (smacq_result)(SMACQ_PASS|SMACQ_END|SMACQ_ERROR);
     }
 
@@ -130,11 +142,10 @@ smacq_result pcapwriteModule::consume(DtsObject datum, int & outchan) {
 }
 
 pcapwriteModule::~pcapwriteModule() {
-  delete strucio;
 }
 
 pcapwriteModule::pcapwriteModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
-  smacq_opt output, rotate_size, rotate_time, gzip;
+  smacq_opt output, rotate_size, rotate_time, gzip, buckets_opt;
 
   //fprintf(stderr, "Loading pcapfile (%d,%d)\n", context->isfirst, context->islast);
   dts->requiretype("packet");
@@ -145,23 +156,37 @@ pcapwriteModule::pcapwriteModule(struct SmacqModule::smacq_init * context) : Sma
       { "s", &rotate_size}, 
       { "t", &rotate_time}, 
       { "z", &gzip}, 
+      { "b", &buckets_opt}, 
       {NULL, NULL}
     };
     output.uint32_t = 0;
     smacq_getoptsbyname(context->argc-1, context->argv+1,
 				 &argc, &argv,
 				 options, optvals);
-    
-    strucio = new StrucioPcapWriter(this); 
-
-    if (rotate_size.uint32_t) {
-      strucio->set_rotate_size(rotate_size.uint32_t * 1024 * 1024);
-    } else if (rotate_time.uint32_t) {
-      strucio->set_rotate_time(rotate_time.uint32_t);
+ 
+    buckets = buckets_opt.uint32_t;
+    if (buckets < 1) buckets = 1;
+    if (buckets > 1) {
+	char * fvargs[] = { "srcip", "dstip", "ipprotocol", "srcip", "dstip" };
+        fieldvec.init(dts, 5, fvargs);
     }
 
-    strucio->register_file(output.string_t);
-    strucio->set_use_gzip(gzip.boolean_t);
+    strucio.resize(buckets);
+    for (int i = 0; i < buckets; ++i) {
+	strucio[i].setPcap(this);
+
+    	if (rotate_size.uint32_t) {
+      		strucio[i].set_rotate_size(rotate_size.uint32_t * 1024 * 1024);
+    	} else if (rotate_time.uint32_t) {
+      		strucio[i].set_rotate_time(rotate_time.uint32_t);
+    	}
+
+	std::string fname(output.string_t);
+	if (buckets > 1) fname += str(boost::format(".%d") % i);
+	strucio[i].register_file(fname.c_str());
+
+    	strucio[i].set_use_gzip(gzip.boolean_t);
+    }
   }
 
   snaplen_type = dts->requiretype("int");
