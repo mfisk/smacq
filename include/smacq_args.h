@@ -15,7 +15,7 @@ union _smacq_opt {
 typedef union _smacq_opt smacq_opt;
 
 struct smacq_optval {
-  char * name;
+  const char * name;
   smacq_opt * location;
 };
 
@@ -25,9 +25,9 @@ typedef enum smacq_opt_type {
 } smacq_opt_type;
 
 struct smacq_options {
-  char * name;
+  const char * name;
   smacq_opt default_value;
-  char * description;
+  const char * description;
   smacq_opt_type type;
   int flags;
 };

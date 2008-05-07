@@ -6,7 +6,7 @@
 #include <glib.h>
 #include <smacq_args.h>
 
-struct smacq_options * get_optstruct_byname(struct smacq_options * opts, char * name) {
+struct smacq_options * get_optstruct_byname(struct smacq_options * opts, const char * name) {
 	assert(opts);
 	for(; opts->name; opts++) {
 		if (strcmp(opts->name, name)) continue;
@@ -18,7 +18,7 @@ struct smacq_options * get_optstruct_byname(struct smacq_options * opts, char * 
 
 
 /* Return the pointer to the option value as specirfied in the optval list */
-struct smacq_optval * get_optval_byname(struct smacq_optval * opts, char * name) {
+struct smacq_optval * get_optval_byname(struct smacq_optval * opts, const char * name) {
   int i;
   assert(opts);
   assert(name);
@@ -100,7 +100,7 @@ void print_help(struct smacq_options * opt) {
 }
 
 int parse_opt(struct smacq_options * options, struct smacq_optval * optvals, 
-	char * arg, char * nextarg) {
+	const char * arg, char * nextarg) {
 	struct smacq_options * opt = get_optstruct_byname(options, arg);
 
 	if (!opt) {
