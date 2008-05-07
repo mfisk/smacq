@@ -95,13 +95,13 @@ class StrucioStream {
 		if (!strcmp(filename, "-")) {
 			fd = 0;
 		} else {
-			fd = open(filename, O_RDONLY, 666);
+			fd = open(filename, O_RDONLY|O_LARGEFILE, 666);
 		}
 	} else if (!strcmp(mode, "w") || !strcmp(mode, "wb")) {
 		if (!strcmp(filename, "-")) {
 			fd = 1;
 		} else {
-			fd = open(filename, O_WRONLY|O_TRUNC|O_CREAT, 666);
+			fd = open(filename, O_WRONLY|O_TRUNC|O_CREAT|O_LARGEFILE, 666);
 		}
 	} else {
 		fprintf(stderr, "Unsupported Open mode: %s\n", mode);
@@ -207,7 +207,7 @@ inline StrucioStream * StrucioStream::MagicOpen(const char * fname, const char *
   if ((!fname) || (!strcmp(fname, "-"))) {
 	fd = 0;
   } else {
-	fd = open(fname, O_RDONLY, 666);
+	fd = open(fname, O_RDONLY|O_LARGEFILE, 666);
   }
   if (fd == -1) {
   	fprintf(stderr, "Error opening file %s\n", fname);
