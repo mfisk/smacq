@@ -61,7 +61,7 @@ namespace std {
 				
 				// In case we get here, but the vectors are different lengths
 				// The shorter one is "less" than the longer one
-				if (j != ao.end()) return true;
+				if (i == ao.end() && j != bo.end()) return true;
 
 				return false;
 			}
