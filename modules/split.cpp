@@ -34,14 +34,14 @@ smacq_result splitModule::consume(DtsObject datum, int & outchan) {
     this->bucket = ((this->bucket)  % children);
     bucket = this->bucket;
   } else if (mode == BUCKET) {
-    bucket = fieldvec.hash() % children;
+    bucket = fieldvec.getobjs().hash() % children;
   } else if (mode == UNIQUE) {
     bucket = hashtable[fieldvec];
     if (!bucket) {
 	SmacqGraphNode_ptr newClone;
 	bucket = bucket++;
 	//fprintf(stderr, "Cloning %d\n", bucket);
-        newClone = self->clone_tree(NULL);
+        newClone = self->clone();
 	newClone->init(dts);
 
 	// 0 return value is error, so everything is inflated by 1
@@ -70,9 +70,10 @@ splitModule::splitModule(struct SmacqModule::smacq_init * context)
   self = context->self;
 
   {
-	smacq_opt buckets;
+	smacq_opt buckets, hash;
 
   	struct smacq_optval optvals[] = {
+    		{"h", &hash},
     		{"b", &buckets},
     		{NULL, NULL}
   	};
@@ -96,7 +97,7 @@ splitModule::splitModule(struct SmacqModule::smacq_init * context)
 	fprintf(stderr, "Must specify either -b or fields\n");
 	assert(0);
   } else {
-	mode = ROUND_ROBIN;
+	mode = BUCKET;
 
   	for  (i=1; i < children; i++) {
 	  context->self->clone_tree(NULL);
