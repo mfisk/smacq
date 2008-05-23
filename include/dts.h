@@ -64,9 +64,9 @@ typedef struct _dts_msg {
 
 struct ltstr 
 {
-  bool operator()(const char* s1, const char* s2) const
+  bool operator()(const std::string& s1, const std::string& s2) const
   {
-    return strcmp(s1, s2) < 0;
+    return strcmp(s1.c_str(), s2.c_str()) < 0;
   }
 };
 
@@ -122,15 +122,10 @@ class DTS : PthreadMutex {
   //int getfieldoffset(DtsObject datum, dts_field_element fnum, dts_typeid * dtype, int * offset, int * len);
 
   	/// Return the name of the specified field.
-  char * field_getname(DtsField &f);
-
-  /// A boost.python happy version 
-  std::string pyfield_getname(DtsField &f) {
-    return field_getname(f);
-  }
+  std::string field_getname(DtsField &f);
 
   	/// Return the name of the specified field.
-  const char * field_getname(dts_field_element f) { return(fields_bynum[f]); }
+  std::string field_getname(dts_field_element f) { return(fields_bynum[f].c_str()); }
 
   ///@}
 
@@ -151,7 +146,7 @@ class DTS : PthreadMutex {
   	/// If the specified type module is already loaded, this
   	/// result is the same as requiretype().  Unlike
   	/// requiretype(), if the type is not loaded, -1 is returned.
-  dts_typeid typenum_byname(const char * name);
+  dts_typeid typenum_byname(const std::string &name);
 
   	/// Return the name of the given type 
   char * typename_bynum(const dts_typeid);
@@ -209,11 +204,11 @@ class DTS : PthreadMutex {
   bool warnings;
   bool isProxy;
 
-  ThreadSafeMap<const char *, struct dts_type *, ltstr> types_byname;
-  ThreadSafeMap<const char *, dts_field_element, ltstr> fields_byname;
+  ThreadSafeMap<std::string, struct dts_type *, ltstr> types_byname;
+  ThreadSafeMap<std::string, dts_field_element, ltstr> fields_byname;
   ThreadSafeDynamicArray<dts_message*> messages_byfield;
   ThreadSafeDynamicArray<struct dts_type *> types; 
-  ThreadSafeDynamicArray<const char*> fields_bynum; 
+  ThreadSafeDynamicArray<std::string> fields_bynum; 
   
   //  	DtsField double_field;
   //  	int double_type;
@@ -246,7 +241,7 @@ inline char * DTS::typename_bynum(const dts_typeid num) {
   return type_bynum(num)->name;
 }
 
-inline int DTS::typenum_byname(const char * name) {
+inline int DTS::typenum_byname(const std::string &name) {
   dts_type * t = types_byname[name];
   if (t) {
   	return t->num;

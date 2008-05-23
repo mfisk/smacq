@@ -30,11 +30,8 @@ DtsObject DTS::construct(dts_typeid type, void * data) {
 	return dobj;
 }
 
-char * DTS::field_getname(DtsField &f) {
-  const char * name;
-
-  char buf[1024];
-  buf[0] = '\0';
+std::string DTS::field_getname(DtsField &f) {
+  std::string buf;
 
   assert(f.size());
 
@@ -42,20 +39,20 @@ char * DTS::field_getname(DtsField &f) {
 
   while (1) {
 	  if (v == f.end()) {
-		return strdup(buf);
+		return buf;
 	  } else if (buf[0] != '\0') {
-	  	strcatn(buf, 1024, ".");
+	  	buf += ".";
 	  }
 		
-	  name = fields_bynum[*v];
+	  std::string name = fields_bynum[*v];
 
-	  if (!name) {
+	  if (!name.length()) {
   		char elbuf[64];
 	  	snprintf(elbuf, 64, "%d", *v);
 	  	name = elbuf;
 	  }
 
-	  strcatn(buf, 1024, name);
+	  buf += name;
 
   	  ++v;
   }

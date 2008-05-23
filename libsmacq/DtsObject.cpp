@@ -181,9 +181,9 @@ DtsObject DtsObject_::getfield(DtsField &fieldv, bool nowarn) {
 	f = f->getfield_single(*i);
 	if (!f) {
     		if (dts->warn_missing_fields() && !nowarn) {
-			char * fieldname = dts->field_getname(fieldv);
+			std::string fieldname = dts->field_getname(fieldv);
 			// This is an ugly exclusion (see uniqobj module):
-			fprintf(stderr, "Warning: requested field %s not present\n", fieldname);
+			fprintf(stderr, "Warning: requested field %s not present\n", fieldname.c_str());
 		}
 
 		return f;

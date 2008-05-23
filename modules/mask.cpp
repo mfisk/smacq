@@ -34,7 +34,7 @@ smacq_result maskModule::consume(DtsObject datum, int & outchan) {
   if (!fieldo) return SMACQ_FREE;
 
   if (fieldo->gettype() != ip_type) {
-	fprintf(stderr, "field %s is type %s instead of %s\n", dts->field_getname(field), fieldo->gettypename(), dts->typename_bynum(ip_type));
+	fprintf(stderr, "field %s is type %s(%d) instead of %s(%d)\n", dts->field_getname(field).c_str(), fieldo->gettypename(), fieldo->gettype(), dts->typename_bynum(ip_type), ip_type);
 	return SMACQ_FREE;
   }
 
