@@ -160,6 +160,7 @@ tabularinputModule::tabularinputModule(struct SmacqModule::smacq_init * context)
     } else {
       type[0] = '\0';
       field_type[i] = dts->requiretype(type+1);
+      //fprintf(stderr, "type %s -> %d\n", type+1, field_type[i]);
     }
     fieldvec[i] = dts->requirefield(name);
     free(name);
