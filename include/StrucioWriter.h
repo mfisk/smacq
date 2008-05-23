@@ -25,7 +25,8 @@ class StrucioWriter {
 	void register_filelist_stdin();
 	void register_filelist_args(int argc, char ** argv);
 	void register_filelist_bounded(char * index_location, long long lower, long long upper);
-	void register_file(char * filename);
+	void register_file(const std::string &);
+	void register_file(const char *);
 	
 	void set_rotate_time(long long);
 	void set_rotate_size(long long);
@@ -84,7 +85,11 @@ inline void StrucioWriter::register_filelist_args(int argc, char ** argv) {
   newFilelist(new FilelistArgs(argc, argv));
 }
 
-inline void StrucioWriter::register_file(char * filename) {
+inline void StrucioWriter::register_file(const std::string & filename) {
+  filelist = new FilelistConstant(filename);
+}
+
+inline void StrucioWriter::register_file(const char * filename) {
   filelist = new FilelistConstant(filename);
 }
 
@@ -157,18 +162,20 @@ inline bool StrucioWriter::write(void * record, size_t len) {
 }
 
 inline void StrucioWriter::newFilelist(Filelist * fl) {
-  if (this->filelist)
-    delete this->filelist;
-  this->filelist = fl;
+  if (filelist) delete filelist;
+  filelist = fl;
 }
 
 inline StrucioWriter::StrucioWriter() :
   filename(NULL), fs(NULL), outputleft(0), maxfilesize(0), maxfileseconds(0),
-  filelist(new FilelistError()) // We're pure virtual
+  filelist(NULL)
 { }
 
 inline StrucioWriter::~StrucioWriter() {
   close_file();
-  delete filelist;
+  if (filelist) {
+    delete filelist;
+    filelist = NULL;
+  }
 }
 
