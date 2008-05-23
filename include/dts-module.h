@@ -7,8 +7,8 @@
 typedef int field_getfunc_fn(DtsObject, DtsObject);
 
 struct dts_field_spec {
-  char * type;
-  char * name;
+  const char * type;
+  const char * name;
   field_getfunc_fn * getfunc;
 };
 
