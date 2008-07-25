@@ -449,6 +449,7 @@ SmacqGraph * optimize_bools(dts_comparison * c) {
       g = newmodule("equals", arglist);
 
     } else {
+      // Use "filter" module for EXIST, GT, LT, NEQ, and comparisons like field == field or const == const 
       arglist = newarg(print_comparison(c), (argtype)0, NULL);
       g = newmodule("filter", arglist);
     }
