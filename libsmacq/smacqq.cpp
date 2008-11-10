@@ -112,11 +112,6 @@ int smacqq(int argc, const char ** argv) {
 
       queryline = (char*)malloc(MAX_QUERY_SIZE);
 
-      if (qargc) {
-	      fprintf(stderr, "Cannot specify query on command line with -f option\n");
-	      return -1;
-      }
-
       if (!strcmp(qfile.string_t, "-")) {
 	      fh = popen("cpp", "r");
       } else {
@@ -128,7 +123,9 @@ int smacqq(int argc, const char ** argv) {
 	      graphs.addQuery(&dts, &s, queryline);
       }
 
-  } else {
+  } 
+
+  if (qargc) {
     graphs.addQuery(&dts, &s, argv2string(qargc, qargv));
   }
 
