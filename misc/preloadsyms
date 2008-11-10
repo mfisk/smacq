@@ -1,5 +1,8 @@
 #!/bin/sh
 
+echo "#ifndef SMACQ_PRELOADS"
+echo "#define SMACQ_PRELOADS"
+
 syms=`cat`
 for s in $syms; do
 	echo "extern void * $s;"
@@ -10,3 +13,4 @@ for s in $syms; do
 done
 echo "  {NULL, NULL}"
 echo "};"
+echo "#endif"
