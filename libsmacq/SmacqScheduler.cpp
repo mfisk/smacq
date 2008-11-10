@@ -225,7 +225,7 @@ METHOD bool SmacqScheduler::run_consume(SmacqGraphNode_ptr i) {
 METHOD SmacqGraphNode_ptr SmacqScheduler::pop_lock(runq<SmacqGraphNode_ptr> & q) {
   SmacqGraphNode_ptr nullp;
   SmacqGraphNode_ptr g;
-  RecursiveLock l(q);
+  RECURSIVE_LOCK(q);
 
   if (q.peek(g) && g->try_lock()) {
      SmacqGraphNode_ptr newg; 
@@ -244,9 +244,9 @@ METHOD bool SmacqScheduler::done() {
   int retval;
 
   //std::cout << "before lock 1 closes\n";
-  RecursiveLock l1(consumeq);
+  RECURSIVE_LOCK(consumeq);
   //std::cout << "after lock 1 closes and before lock 2 closes\n";
-  RecursiveLock l3(produceq);
+  RECURSIVE_LOCK_NAMED(l3, produceq);
   //std::cout << "after lock 2 closes\n";
  
   retval = consumeq.empty();

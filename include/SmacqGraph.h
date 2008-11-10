@@ -13,7 +13,7 @@
 #define DEREF(x) (bind(&SmacqGraphNode_ptr::get, x))
 
 #define FOREACH_CHILD(x, y)						\
-   RecursiveLock l((x)->children);                                      \
+   RECURSIVE_LOCK((x)->children);                                      \
    for (unsigned int i = 0; i < (x)->children.size(); i ++)             \
      for (unsigned int j = 0; j < (x)->children[i].size(); j ++) {      \
        SmacqGraphNode * child = (x)->children[i][j].get();                  \
@@ -21,7 +21,7 @@
     }
 /*
 #define FOREACH_CHILD(x, y)						\
-  RecursiveLock l((x)->children);					\
+  RECURSIVE_LOCK((x)->children);					\
   for (ThreadSafeVector<ThreadSafeMultiSet<SmacqGraphNode_ptr> >::iterator i = (x)->children.begin();		\
 	i != (x)->children.end();					\
 	++i)								\

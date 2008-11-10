@@ -1,5 +1,7 @@
 VERSION 2.7pre
 ==============
+2008-11 - Make all thread-safe lock code conditional on SMACQ_CONFIG_THREAD_SAFE (improve performance on default single-thread builds)
+2008-11 - Port to g++ version 4's (pedanticism about string contants)
 2008-04 - "bytes" type now consolidated with "string" type; strings no longer NULL terminated
 2008-04 - Deal with RHEL3 libdb_cxx naming issues
 

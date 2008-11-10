@@ -27,7 +27,7 @@ METHOD SmacqGraphNode::~SmacqGraphNode() {
 
 /// Establish a parent/child relationship on the specified channel
 METHOD void SmacqGraphNode::add_child(SmacqGraphNode_ptr newo, unsigned int channel) {
-  RecursiveLock l(children);
+  RECURSIVE_LOCK(children);
 
   assert(newo != this);
   if (channel >= children.size()) {
@@ -186,7 +186,7 @@ METHOD SmacqGraphNode * SmacqGraphNode::init(DTS * dts, SmacqScheduler * sched) 
 METHOD void SmacqGraphNode::init_node(DTS * dts, SmacqScheduler * sched) {
   using namespace boost::lambda;
   using namespace std;
-  RecursiveLock l (this);
+  RECURSIVE_LOCK (this);
 
   scheduler = sched;
 
@@ -353,7 +353,7 @@ METHOD void SmacqGraphNode::remove_child(SmacqGraphNode_ptr oldchild) {
 
 // Remove all children.
 METHOD void SmacqGraphNode::remove_children() {
-  RecursiveLock l(children);
+  RECURSIVE_LOCK(children);
 
   // Reference counting will cause orphaned children to shutdown 
   // automatically (after any more scheduled consumptions).
@@ -467,7 +467,7 @@ METHOD void SmacqGraphNode::add_parent(SmacqGraphNode * p) {
 }		
 
 METHOD void SmacqGraph::share_children_of(SmacqGraphNode * g) {
-  RecursiveLock l(g->children);
+  RECURSIVE_LOCK(g->children);
 
   assert(g->children.size() == 1);
   if (!g->children[0].size()) return;
@@ -502,7 +502,7 @@ METHOD void SmacqGraphNode::dynamic_insert(SmacqGraphNode * g, DTS * dts) {
 
 /// Modify parent(s) and children to replace myself with the specified graph.
 METHOD void SmacqGraphNode::replace(SmacqGraph * g) {
-  RecursiveLock l(this);
+  RECURSIVE_LOCK(this);
 
   if (children[0].size()) {
     SmacqGraph down;
@@ -530,7 +530,7 @@ METHOD void SmacqGraphNode::replace(SmacqGraph * g) {
 }
 
 METHOD SmacqGraphNode * SmacqGraphNode::getChildInvariants(DTS* dts, SmacqScheduler* sched, DtsField& field) {
-	RecursiveLock l(children);
+	RECURSIVE_LOCK(children);
 	if (children.size() == 1 && children[0].size() == 1) {
 		return children[0][0]->getInvariants(dts, sched, field);
       	} else {
@@ -592,7 +592,7 @@ METHOD void SmacqGraphNode::do_shutdown(SmacqGraphNode_ptr f) {
 
   //// Don't take a RecursiveLock in this scope since it might also 
   //// try to unlock us after we're destroyed.
-  // RecursiveLock l(f);
+  // RECURSIVE_LOCK(f);
 
   // Atomically set shutdown.  Returns false if we set it, true if already set.
   if (!f->shutdown.set()) {

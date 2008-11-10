@@ -54,7 +54,7 @@ SMDEBUG(static int DtsObject_virtual_count = 0;)
 /// method.  To ensure that the fieldcache contains all available fields for the underlying
 /// type, precede the fieldcache() call with a call to prime_all_fields()
 
-class DtsObject_ : public PthreadMutex {
+class DtsObject_ : protected PthreadMutex {
 
 /// This macro casts a datum to a "type*"
 #define dts_data_as(datum,type) (*((type*)((datum)->getdata())))

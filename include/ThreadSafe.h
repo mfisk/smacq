@@ -7,6 +7,14 @@
 #include <boost/lambda/if.hpp>
 #include <pthread.h>
 
+#define RECURSIVE_LOCK(o) RECURSIVE_LOCK_NAMED(_lock, o);
+
+#ifdef SMACQ_CONFIG_THREAD_SAFE 
+#define ATOMIC_GET(x) g_atomic_int_get(& x)
+#define RECURSIVE_LOCK_NAMED(n, o) RecursiveLock n(o);
+#define ATOMIC_INT_COMPARE_AND_SET(x, y, z) g_atomic_int_compare_and_exchange(&x, y, z);
+#define protected PthreadMutex, protected PthreadMutex, 
+
 /// This is a Mutex that can be acquired multiple times, recursively, by the same thread
 /// without causing deadlock.
 class PthreadMutex {
@@ -63,6 +71,25 @@ class RecursiveLock {
   private:
     PthreadMutex * m;
 };
+#else // Thread-safe (not)
+#define ATOMIC_GET(x) x
+#define RECURSIVE_LOCK_NAMED(n, o)
+static inline gboolean int_compare_and_set(int & x, int y, int z) {
+	if (x==y) { 
+		x = z;
+		return TRUE; 
+	} else { 
+		return FALSE; 
+	}
+}
+#define ATOMIC_INT_COMPARE_AND_SET(x, y, z) int_compare_and_set(x, y, z);
+class PthreadMutex {
+    public:
+	bool try_lock() { return true; }
+	bool unlock() { return true; }
+};
+#endif
+
 
 #include <map>
 
@@ -73,7 +100,7 @@ class ThreadSafeMap : protected PthreadMutex, private std::map<KEY, VALUE, LT> {
     /// Return true iff key already exists.  
     bool get(KEY k, VALUE & v) {
 	typename std::map<KEY, VALUE, LT>::iterator i;
-	RecursiveLock l(this);
+        RECURSIVE_LOCK(this);
 
  	i = std::map<KEY, VALUE, LT>::find(k);
   	if (i != std::map<KEY, VALUE, LT>::end()) {
@@ -85,7 +112,7 @@ class ThreadSafeMap : protected PthreadMutex, private std::map<KEY, VALUE, LT> {
     }
 
     VALUE&  operator[](KEY k) {
-	RecursiveLock l(this);
+        RECURSIVE_LOCK(this);
 	return std::map<KEY, VALUE, LT>::operator[](k);
     }
 };
@@ -116,25 +143,25 @@ class ThreadSafeContainer : protected PthreadMutex, protected CONTAINER {
     ThreadSafeContainer(int x) : CONTAINER(x) {}
 
     void clear() {
-	RecursiveLock l(this);
+	RECURSIVE_LOCK(this);
 	CONTAINER::clear();
     }
     typename CONTAINER::size_type size() {
-	RecursiveLock l(this);
+	RECURSIVE_LOCK(this);
 	return CONTAINER::size();
     }
     bool empty() {
-	RecursiveLock l(this);
+	RECURSIVE_LOCK(this);
 	return CONTAINER::empty();
     }
 	
     CONTAINER snapshot() {
-	RecursiveLock l(this);
+	RECURSIVE_LOCK(this);
 	return *this;
     }
 
     void resize(const typename CONTAINER::size_type x) {
-	RecursiveLock l(this);
+	RECURSIVE_LOCK(this);
 	return CONTAINER::resize(x);
     }
  
@@ -142,20 +169,20 @@ class ThreadSafeContainer : protected PthreadMutex, protected CONTAINER {
     void foreach(U cb) {
     	using namespace boost::lambda;
 
-	RecursiveLock l(this);
+	RECURSIVE_LOCK(this);
 	if (!empty())
         	for_each(CONTAINER::begin(), CONTAINER::end(), cb);
     };
 
     template<typename U> 
     typename CONTAINER::iterator findIf(U cb) {
-	RecursiveLock l(this);
+	RECURSIVE_LOCK(this);
         return find_if(CONTAINER::begin(), CONTAINER::end(), cb);
     };
 
     template<class U> 
     bool has_if(U cb) {
-	RecursiveLock l(this);
+ 	RECURSIVE_LOCK(this);
         typename CONTAINER::iterator f = findIf(cb);
 	if (f == CONTAINER::end()) {
 		return false;
@@ -166,7 +193,7 @@ class ThreadSafeContainer : protected PthreadMutex, protected CONTAINER {
 
     template<typename U> 
     bool erase_first_match(U cb) {
-	RecursiveLock l(this);
+	RECURSIVE_LOCK(this);
         typename U::iterator f = findIf(CONTAINER::begin(), CONTAINER::end(), cb);
 	if (f == CONTAINER::end()) {
 		return false;
@@ -185,11 +212,11 @@ class ThreadSafeRandomAccessContainer : public ThreadSafeContainer<T, CONTAINER>
     ThreadSafeRandomAccessContainer(int x) : ThreadSafeContainer<T, CONTAINER >(x) {}
 
     T& operator[](size_t i) {
-	RecursiveLock l(this);
+	RECURSIVE_LOCK(this);
 	return CONTAINER::operator[](i);
     }
     void push_back(T x) {
-	RecursiveLock l(this);
+	RECURSIVE_LOCK(this);
 	return CONTAINER::push_back(x);
     }
 
@@ -212,10 +239,10 @@ class ThreadSafeDynamicArray : public ThreadSafeRandomAccessContainer<T, Dynamic
 #include <stack>
 /// A thread-safe version of the STL stack class.
 template <class T>
-class ThreadSafeStack : private PthreadMutex, private std::stack<T> {
+class ThreadSafeStack : protected PthreadMutex, private std::stack<T> {
   public:
     bool pop(T & ret) {
-	RecursiveLock l(this);
+	RECURSIVE_LOCK(this);
 	if (std::stack<T>::empty()) {
 		return false;
 	}
@@ -227,7 +254,7 @@ class ThreadSafeStack : private PthreadMutex, private std::stack<T> {
     }
 
     void push(T x) {
-	RecursiveLock l(this);
+	RECURSIVE_LOCK(this);
 	std::stack<T>::push(x);
     }
 
@@ -242,12 +269,12 @@ template <class T>
 class ThreadSafeMultiSet : public ThreadSafeRandomAccessContainer<T, std::vector<T> > {
   public:
     void insert(const T & x) {
-	RecursiveLock l(this);
+	RECURSIVE_LOCK(this);
 	return std::vector<T>::push_back(x);
     }
 
     void erase(unsigned int i) {
-           RecursiveLock l(this);
+           RECURSIVE_LOCK(this);
            
            // Swap, drop, and roll...
            unsigned int last = std::vector<T>::size() - 1;
@@ -258,7 +285,7 @@ class ThreadSafeMultiSet : public ThreadSafeRandomAccessContainer<T, std::vector
            std::vector<T>::pop_back();
     }  
     bool erase(T x) {
-	RecursiveLock l(this);
+	RECURSIVE_LOCK(this);
 	unsigned int max = std::vector<T>::size();
 
 	for (unsigned int i = 0; i < max; ++i) {
@@ -297,16 +324,13 @@ class ThreadSafeCounter {
 #endif
     }
     gint get() {
-#ifdef SMACQ_CONFIG_THREAD_SAFE
-	return g_atomic_int_get(&_val);
-#else
-	return _val;
-#endif
+	return ATOMIC_GET(_val);
     }
 
   private:
     gint _val;
 };
+
 
 /// A thread-safe boolean value.
 class ThreadSafeBoolean {
@@ -315,21 +339,19 @@ class ThreadSafeBoolean {
 
     /// Return the current status.
     bool get() {
-	return g_atomic_int_get(&val);
+	return ATOMIC_GET(val);
     }
 
     /// Atempt to set the boolean to true.  Return false iff already set.
     bool set() {
-	bool r = g_atomic_int_compare_and_exchange(&val, 0, 1);
-	assert (g_atomic_int_get(&val));
+	bool r = ATOMIC_INT_COMPARE_AND_SET(val, 0, 1);
+	assert (ATOMIC_GET(val));
 	return r;
-
-	//return g_atomic_int_compare_and_exchange(&val, 0, 1);
     }
 
     /// Atempt to set the boolean to false.  Return false iff already false.
     bool clear() {
-	bool r = g_atomic_int_compare_and_exchange(&val, 1, 0);
+	bool r = ATOMIC_INT_COMPARE_AND_SET(val, 1, 0);
 	return r;
     }
 

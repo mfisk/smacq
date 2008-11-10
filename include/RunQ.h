@@ -30,7 +30,7 @@ class runq : public PthreadMutex {
 
   /// Copy the first element from the runq.  Set f & d accordingly.
   bool peek(T& val) {
-    RecursiveLock l(this);
+    RECURSIVE_LOCK(this);
 
     if (!this->head) {
       return false;
@@ -42,7 +42,7 @@ class runq : public PthreadMutex {
 
   /// Remove the first element from the runq.  Set f & d accordingly.
   bool pop(T& val) {
-    RecursiveLock l(this);
+    RECURSIVE_LOCK(this);
 
     if (!this->head) {
       //fprintf(stderr, "queue %p/%p empty\n", this, this->head);
@@ -65,7 +65,7 @@ class runq : public PthreadMutex {
 
   /// Add a new element to the end of the runq.  Return true iff this is only element on queue
   bool enqueue(T val) {
-    RecursiveLock l(this);
+    RECURSIVE_LOCK(this);
 
     struct qel * el = insertion_point();
 
@@ -83,7 +83,7 @@ class runq : public PthreadMutex {
 
   /// Print the contents of the runq.
   void print(FILE * fh) {
-    RecursiveLock l(this);
+    RECURSIVE_LOCK(this);
 
     fprintf(fh, "Queue:");
     if (head) {

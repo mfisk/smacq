@@ -153,7 +153,7 @@ dts_typeid DTS::requiretype(const char * name) {
   }
 
   /// Didn't already exist, so do it the hard way
-  RecursiveLock l(this);
+  RECURSIVE_LOCK(this);
 
   struct dts_type *& t = types_byname[name];
 
@@ -277,7 +277,7 @@ void DTS::send_message(DtsObject msgo, dts_field_element fieldnum, dts_compariso
   msg->field_data = msgo;
   msg->criteria = comparisons;
 
-  RecursiveLock l(this);
+  RECURSIVE_LOCK(this);
 
   dts_message * mlist = (dts_message*)this->messages_byfield[fieldnum];
 
