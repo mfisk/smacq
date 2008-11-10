@@ -14,8 +14,8 @@ libscanner_la_CPPFLAGS = $(AM_CPPFLAGS) -Wno-sign-compare
 libscanner_la_SOURCES=scanner.lpp
 
 libsmacq_la_SOURCES=libsmacq.cpp mem.c args.c dynloader.c cmalloc.c parser.ym filter-parser.ym expr-parser.ym 
-libsmacq_la_LIBADD=libscanner.la @GLIB_LIBS@ @LIBDB_CXX_LIBS@ -lltdl
-libsmacq_la_LDFLAGS = $(AM_LDFLAGS) -rpath /usr/lib -all-static -shared
+libsmacq_la_LIBADD=libscanner.la @GLIB_LIBS@ @LIBDB_CXX_LIBS@ -lltdl -ldts_modules -lsmacq_modules
+libsmacq_la_LDFLAGS = $(AM_LDFLAGS) -rpath /usr/lib -all-static -shared -L$(top_builddir)/types -L$(top_builddir)/modules
 
 noinst_HEADERS=grammer.ypp
 BUILT_SOURCES=libsmacq.cpp parser.cpp filter-parser.cpp expr-parser.cpp preload.h
