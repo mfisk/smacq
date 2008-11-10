@@ -27,9 +27,9 @@ static struct smacq_options options[] = {
 smacq_result entropyModule::consume(DtsObject datum, int & outchan) {
 	if (datum->gettype() == refreshtype) {
 		double tot = total / log(2);
-    	DtsObject msgdata = dts->construct(probtype, &tot);
+    		DtsObject msgdata = dts->construct(probtype, &tot);
 		// fprintf(stderr, "Got refresh\n");
-    	datum->attach_field(entropyfield, msgdata); 
+    		datum->attach_field(entropyfield, msgdata); 
 		
 		prev_total = total;
 		total = 0;
@@ -44,7 +44,6 @@ smacq_result entropyModule::consume(DtsObject datum, int & outchan) {
 		assert(lasto != datum);
 		if (lasto) 
 		lasto = datum;
-		
 
 		if (!(probo = datum->getfield(probfield))) {
 			fprintf(stderr, "No probability field\n");
@@ -63,7 +62,7 @@ entropyModule::entropyModule(struct SmacqModule::smacq_init * context)
 {
   {
   	int argc = 0;
-  	char ** argv;
+  	const char ** argv;
 
   	struct smacq_optval optvals[] = {
     		{NULL, NULL}
@@ -80,17 +79,18 @@ entropyModule::entropyModule(struct SmacqModule::smacq_init * context)
 }
 
 entropyModule::~entropyModule() {
-  double tot = total;
-  if (!tot) tot = prev_total;
-
-  tot /= log(2);
   // fprintf(stderr, "TOTAL is %g\n", total);
 
-  if (tot) {
-    //DtsObject refresh = dts->construct(refreshtype, NULL);
-    DtsObject msgdata = dts->construct(probtype, &tot);
-    lasto->attach_field(entropyfield, msgdata); 
-	enqueue(lasto);
+  if (total && lasto) {
+		double tot = total / log(2);
+    		DtsObject msgdata = dts->construct(probtype, &tot);
+		// fprintf(stderr, "Got refresh\n");
+    		lasto->attach_field(entropyfield, msgdata); 
+		
+		prev_total = total;
+		total = 0;
+	
+		enqueue(lasto);
   }
 }
 
