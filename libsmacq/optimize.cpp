@@ -2,7 +2,15 @@
 #include <SmacqGraph.h>
 #include <string>
 
+/// Iterate over pairs of elements in a container.
+/// Evaluate EXPR with i and j set to the locations of the elements in the container (e.g. vector indices)
+#define FOR_IJ_IN(LIST, EXPR) for (unsigned int i = 0; i+1 < LIST.size(); ++i) for (unsigned int j = i+1; j < LIST.size(); ++j) { EXPR };
+
 inline bool SmacqGraphNode::compare_element_names(SmacqGraphNode * a, SmacqGraphNode * b) {
+  if (!a->argv || !b->argv) {
+     fprintf(stderr, "compare_element_names found empty argument vector: %p cmp %p\n", a, b);
+     return false;
+  }
   return !strcmp(a->argv[0], b->argv[0]);
 }
   
@@ -73,6 +81,7 @@ inline void SmacqGraphNode::move_children(SmacqGraphNode * from, SmacqGraphNode 
 /// The nodes should have the same inputs (including no inputs).
 /// Return true iff b is eliminated.
 inline bool SmacqGraphNode::merge_nodes(SmacqGraphNode * a, SmacqGraphNode * b) {
+  fprintf(stderr, "merge_nodes? called on %p and %p\n", a, b);
   if ( (a==b) // Can't merge self with self
        // Can only merge stateless
        || !a->algebra.stateless || !b->algebra.stateless 
@@ -80,6 +89,14 @@ inline bool SmacqGraphNode::merge_nodes(SmacqGraphNode * a, SmacqGraphNode * b) 
        || !compare_element_names(a,b)
        ) 
     {
+/*
+      if (a==b) return false;
+      fprintf(stderr, "merge_nodes? %p and %p: !=...\n", a, b);
+      if (!a->algebra.stateless) return false;
+      fprintf(stderr, "merge_nodes? %p and %p: stateless...\n", a, b);
+      if (!compare_element_names(a,b)) return false;
+      fprintf(stderr, "merge_nodes? %p and %p: same args...\n", a, b);
+*/
       return false;
     }
 
@@ -93,6 +110,7 @@ inline bool SmacqGraphNode::merge_nodes(SmacqGraphNode * a, SmacqGraphNode * b) 
     move_children(b, a);
     return true;
   } else {
+    fprintf(stderr, "merge_nodes? %p and %p: not vector or equiv\n", a, b);
     return false;
   }
 }
@@ -101,10 +119,9 @@ inline bool SmacqGraphNode::merge_nodes(SmacqGraphNode * a, SmacqGraphNode * b) 
 /// Their children will be combined.
 void SmacqGraphNode::merge_redundant_children() {
   for (unsigned int k = 0; k < children.size(); k++) {
-    for (unsigned int i = 0; i < children[k].size(); i++) {
-      SmacqGraphNode * twina = children[k][i].get();
-      // Look for twins among siblings
-      for (unsigned int j = 0; j < children[k].size(); j++) {
+    FOR_IJ_IN(children[k], {
+        // Look for twins among siblings
+        SmacqGraphNode * twina = children[k][i].get();
 	SmacqGraphNode * twinb = children[k][j].get();	
 	if (merge_nodes(twina, twinb)) {
 	  // Remove twin 
@@ -114,8 +131,10 @@ void SmacqGraphNode::merge_redundant_children() {
 	  return merge_redundant_children();
 	}
       }
-      
-      // Recurse
+    )
+    
+    // Recurse
+    for (unsigned int i = 0; i < children[k].size(); ++i) {
       children[k][i]->merge_redundant_children();
     }
   }
@@ -127,19 +146,17 @@ inline bool SmacqGraphNode::same_children(SmacqGraphNode * a, SmacqGraphNode * b
     SmacqGraphNode * g = a;
     a = b; b = g;
   }
-    
+   
   // This works even if a->children.size() is larger, but sparse 
-  for (unsigned int i = 0; i < a->children.size(); i++) {
+  FOR_IJ_IN(a->children, {
     if (i >= b->children.size() 
 	|| a->children[i].size() != a->children[i].size()) {
       return false;
     }
-    for (unsigned int j = 0; j < a->children.size(); j++) {
-      if (a->children[i][j] != b->children[i][j]) {
+    if (a->children[i][j] != b->children[i][j]) {
 	return false;
-      }
     }
-  }
+  });
   return true;
 }
 
@@ -151,9 +168,8 @@ bool SmacqGraphNode::merge_redundant_parents() {
       if (child->merge_redundant_parents()) return true;
     });
 
-  for (unsigned int i = 0; i < parent.size(); i++) {
+  FOR_IJ_IN(parent, 
     if (parent[i]->algebra.stateless) {
-      for (unsigned int j = i+1; j < parent.size(); j++) {
 	if (parent[i] != parent[j] && equiv(parent[i], parent[j]) && 
 	    same_children(parent[i], parent[j])) {
 
@@ -167,14 +183,16 @@ bool SmacqGraphNode::merge_redundant_parents() {
 	    departing->parent[0]->add_child(parent[i]);
 	    departing->parent[0]->remove_child(departing.get());
 	  }
+
+          // XXX. if grandparents are just containers, then the merged parent needs to have as listed as a child twice.
+          if (!parent[i]->argv) parent[i]->add_child(this);
 	  
 	  departing->remove_children();
 
 	  return true; // Iterators hosed, so ask to be restarted
 	}
-      }
     }
-  }
+  );
 
   return false;
 }
@@ -194,17 +212,17 @@ class GraphVector : public std::vector<SmacqGraphNode*> {
 void SmacqGraph::merge_heads() {
 #ifndef SMACQ_OPT_NOHEADS
   /* Merge identical heads */
-  for (unsigned int i = 0; i < head.size(); i++) {
-    for (unsigned int j = 0; j < head.size(); j++) {
+
+  FOR_IJ_IN(head, 
       if (SmacqGraphNode::merge_nodes(head[i].get(), head[j].get())) {
 	// Remove j from list
 	head.erase(j);
 
 	// Fixup iterator
-	j--;
+	//j--;
+        return merge_heads();
       }
-    }
-  }
+  )
 #else
 #warning "SMACQ_OPT_NOHEADS set"
 #endif
@@ -215,35 +233,35 @@ void SmacqGraph::optimize() {
   print(stderr, 8);
 #endif
 
-  //fprintf(stderr, "Before optimize: \n");
-  //this->print(stderr, 15);
+  fprintf(stderr, "Before optimize: \n");
+  this->print(stderr, 15);
 
   merge_heads();
 
-  //fprintf(stderr, "Merged heads\n");
-  //this->print(stderr, 15);
+  fprintf(stderr, "Merged heads\n");
+  this->print(stderr, 15);
 
   /* Do the merge again from the tails up */
   merge_tails();
 
-  //fprintf(stderr, "Merged tails\n");
-  //this->print(stderr, 15);
+  fprintf(stderr, "Merged tails\n");
+  this->print(stderr, 15);
 
   // From the bottoms up, identify redundant parents
   for (unsigned int i = 0; i < head.size(); i++) {
     while (head[i]->merge_redundant_parents()) ;
   }
 
-  //fprintf(stderr, "Merged parents\n");
-  //this->print(stderr, 15);
+  fprintf(stderr, "Merged parents\n");
+  this->print(stderr, 15);
 
   // From the top down, identify redundant (twin) children
   for (unsigned int i = 0; i < head.size(); i++) {
   	head[i]->merge_redundant_children();
   }
 
-  //fprintf(stderr, "Merged children\n");
-  //this->print(stderr, 15);
+  fprintf(stderr, "Merged children\n");
+  this->print(stderr, 15);
 
 #ifdef SMACQ_DEBUG
   fprintf(stderr, "--- final is ---\n");
