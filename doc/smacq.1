@@ -154,9 +154,9 @@ An optional filter string is a BPF filter string (see
  
 .SS "Packet Capture File" 
 .PP 
-\fBpcapfile\fR \fIfilename\fR \&...  
+\fBpcapfile\fR  \fIfilename\fR 
 .PP 
-\fBpcapfile\fR \-w \fIfilename\fR  [\-l ]  [\-s \fImegabytes\fR]  
+\fBpcapfile\fR  \-w \fIfilename\fR [\-l ]  [\-s \fImegabytes\fR]  
 .PP 
 The \fBpcapfile\fR module either reads from or 
 writes to a tcpdump-style, libpcap packet trace file.  If the 
@@ -183,7 +183,7 @@ be split between as many files as necessary.
  
 .SS "cflowd Raw Flow File" 
 .PP 
-\fBcflow\fR \fIfilename\fR \&...  [\-l ]  
+\fBcflow\fR  \fIfilename\fR [\-l ]  
 .PP 
 The \fBcflow\fR module reads from a raw flow file 
 as created by cflowd.   
@@ -227,7 +227,7 @@ data object they are given.
  
 .SS "IP Address Mask Lookup" 
 .PP 
-\fBiplookup\fR\fIfield\fR  
+\fBiplookup\fR \fIfield\fR 
 .PP 
 The "addr/cidr" argument is a CIDR netmask.  
 An object is filtered out if 
@@ -240,7 +240,7 @@ to efficiently lookups in large vectors of masks.
  
 .SS "IP Address Mask" 
 .PP 
-\fBmask\fR\fIfield\fR [!]\fIaddr/cidr\fR  
+\fBmask\fR \fIfield\fR [!]\fIaddr/cidr\fR 
 .PP 
 The "addr/cidr" argument is a CIDR netmask.  If the mask size 
 is not specified, 32 is assumed.  An object is filtered out if 
@@ -254,7 +254,7 @@ See also the iplookup module.
  
 .SS "Substring" 
 .PP 
-\fBsubstr\fR [\fIfield\fR] \fIstring\fR  [ ; \fIstring\fR \&...]  
+\fBsubstr\fR [\fIfield\fR]  \fIstring\fR [ ; \fIstring\fR \&...]  
 .PP 
 Search for each byte string in the specified field, or in the 
 whole data object if no field is given.  If multiple strings 
@@ -264,19 +264,13 @@ match.
  
 .SS "Filter" 
 .PP 
-\fBfilter\fR \fIfield [[<=>] value] ...\fR \&...  
+\fBfilter\fR  \fIboolean-expression\fR 
 .PP 
-Filter out all objects in the stream that do not satisfy all 
-of the specified criteria.  Expressions can be arbitrarily complex and include AND and OR  
-statements and parentheses for grouping. 
- 
-.PP 
-This is the select (sigma) 
-operation from relational algebra ("where" in SQL). 
+Do not specify this module; it is used internally for evaluating boolean expressions that do not have more optimal implementations.  Use a "where" clause in your query instead; "where" will instantiate a "filter" module only if necessary. 
  
 .SS "Unique Filter" 
 .PP 
-\fBuniq\fR [\-m \fImegabytes\fR]  \fIfields\fR \&...  
+\fBuniq\fR [\-m \fImegabytes\fR]   \fIfields\fR 
 .PP 
 Treat the specified field(s) as a tuple and filter out all 
 occurrences of duplicate values of that tuple. 
@@ -290,7 +284,7 @@ perfect algorithm.
  
 .SS "Top" 
 .PP 
-\fBtop\fR [\-m \fImegabytes\fR]  [\-r \fIdeviation\fR]  \fIfields\fR \&...  
+\fBtop\fR [\-m \fImegabytes\fR]  [\-r \fIdeviation\fR]   \fIfields\fR 
 .PP 
 Treat the specified field(s) as a tuple and count the number 
 of occurrences of each values of that tuple.  Filter out all 
@@ -314,7 +308,7 @@ records that pass this filter.
  
 .SS "Head" 
 .PP 
-\fBhead\fR \fInumber\fR  
+\fBhead\fR  \fInumber\fR 
 .PP 
 Pass the first \fBnumber\fR records through 
 and then end the pipeline.  Those records will be processed by 
@@ -329,7 +323,7 @@ the name of that field is identical to the name of the function.
  
 .SS "Clock" 
 .PP 
-\fBclock\fR [ \-t \fIseconds\fR]  \fIfield\fR  
+\fBclock\fR [ \-t \fIseconds\fR]   \fIfield\fR 
 .PP 
 The clock module is used to bin input data into discrete 
 clock periods.  Each object is annotated with a clock field 
@@ -341,13 +335,13 @@ The input is assumed to be sorted in increasing order.
  
 .SS "Constant Annotation" 
 .PP 
-\fBconst\fR [\-t \fItype\fR]  [\-f \fIfield\fR]  \fIstring\fR  [\fIfield\fR]  
+\fBconst\fR [\-t \fItype\fR]  [\-f \fIfield\fR]   \fIstring\fR [\fIfield\fR]  
 .PP 
 Annotate each object with a field containing the specified constant.  The default field name is "const" and the default type is "string". 
  
 .SS "Delta" 
 .PP 
-\fBdelta\fR \fIxfield\fR  
+\fBdelta\fR  \fIxfield\fR 
 .PP 
 For each data object seen, compute the delta from the previous x field to this current xfield. 
 The data object is annotate with a "\fBdelta\fP" 
@@ -355,7 +349,7 @@ field of type "\fBdouble\fP" containing the result.  The x field must be convert
  
 .SS "Derivative" 
 .PP 
-\fBderivative\fR \fIyfield\fR \fIxfield\fR  
+\fBderivative\fR  \fIyfield\fR \fIxfield\fR 
 .PP 
 For each data object seen, compute the derivative of the y field with respect to the x field 
 between this point and the last object seen.  The data object is annotate with a "\fBderivative\fP" 
@@ -374,7 +368,7 @@ module for similar functionality.
  
 .SS "Flow ID" 
 .PP 
-\fBflowid\fR [\-t \fItime\fR]  [\-r ]  \fIfields\fR \&...  
+\fBflowid\fR [\-t \fItime\fR]  [\-r ]   \fIfields\fR 
 .PP 
 Treat the specified field(s) as a tuple and assign a unique 
 flow id number to each object based on the typle value.  The 
@@ -458,7 +452,7 @@ object is returned rather than a tuple of values.
  
 .SS "Stateful Matching" 
 .PP 
-\fBdfa\fR \fIstatefile\fR  
+\fBdfa\fR  \fIstatefile\fR 
 .PP 
 The DFA module takes a input file describing 
 transitions in a state machine.  Each line contains 
@@ -525,7 +519,7 @@ that are added are private to the new copy.
  
 .SS "Project" 
 .PP 
-\fBproject\fR \fIfields\fR \&...  
+\fBproject\fR  \fIfields\fR 
 .PP 
 Replace all objects in the input stream with new objects 
 containing only the specified fields.  This is the project (Pi) 
@@ -533,7 +527,7 @@ operation from relational algebra ("select <fields>" in SQL).
  
 .SS "Rename" 
 .PP 
-\fBrename\fR \fIoldfield newfield\fR \&...  
+\fBrename\fR  \fIoldfield newfield\fR 
 .PP 
 Given a list of alternating old and new field names, make a copy of the old field with the new name. 
 Combined with the Project module, this can implement the rename (rho) 
@@ -552,7 +546,7 @@ See the "\fBlast\fP" module for more information on \fBrefresh\fP objects.
  
 .SS "Group-By" 
 .PP 
-\fBgroupby\fR \fIfields\fR \&...  \-\-   \fIquery\fR \&...  
+\fBgroupby\fR  \fIfields\fR  \-\-   \fIquery\fR 
 .PP 
 Treat the specified field(s) as a tuple and instantiate the 
 specified query for each tuple.  If a record of type "refresh" 
@@ -630,4 +624,4 @@ boolean:
 \fBDTS\fR(3),  
 \fBSmacqGraph\fR(3) 
  
-.\" created by instant / docbook-to-man, Mon 07 Jan 2008, 17:11 
+.\" created by instant / docbook-to-man, Sun 09 Nov 2008, 15:41 

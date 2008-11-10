@@ -151,9 +151,9 @@ IINNPPUUTT//OOUUTTPPUUTT FFUUNNCCTTIIOONNSS
 
 
    PPaacckkeett CCaappttuurree FFiillee
-       ppccaappffiillee _f_i_l_e_n_a_m_e ...
+       ppccaappffiillee  _f_i_l_e_n_a_m_e
 
-       ppccaappffiillee -w _f_i_l_e_n_a_m_e  [-l ]  [-s _m_e_g_a_b_y_t_e_s]
+       ppccaappffiillee  -w _f_i_l_e_n_a_m_e [-l ]  [-s _m_e_g_a_b_y_t_e_s]
 
        The  ppccaappffiillee  module  either  reads from or writes to a tcpdump-style,
        libpcap packet trace file.  If the module is  at  the  beginning  of  a
@@ -176,7 +176,7 @@ IINNPPUUTT//OOUUTTPPUUTT FFUUNNCCTTIIOONNSS
 
 
    ccfflloowwdd RRaaww FFllooww FFiillee
-       ccffllooww _f_i_l_e_n_a_m_e ...  [-l ]
+       ccffllooww  _f_i_l_e_n_a_m_e [-l ]
 
        The  ccffllooww module reads from a raw flow file as created by cflowd.  One
        or more files must be specified.  Use -- for stdin.   Input  files  that
@@ -212,7 +212,7 @@ BBOOOOLLEEAANN FFUUNNCCTTIIOONNSS
 
 
    IIPP AAddddrreessss MMaasskk LLooookkuupp
-       iippllooookkuupp_f_i_e_l_d
+       iippllooookkuupp _f_i_e_l_d
 
        The "addr/cidr" argument is a CIDR netmask.  An object is filtered  out
        if and only if the specified field does not exist or does not match the
@@ -224,7 +224,7 @@ BBOOOOLLEEAANN FFUUNNCCTTIIOONNSS
 
 
    IIPP AAddddrreessss MMaasskk
-       mmaasskk_f_i_e_l_d [!]_a_d_d_r_/_c_i_d_r
+       mmaasskk _f_i_e_l_d [!]_a_d_d_r_/_c_i_d_r
 
        The  "addr/cidr"  argument  is a CIDR netmask.  If the mask size is not
        specified, 32 is assumed.  An object is filtered out if and only if the
@@ -237,7 +237,7 @@ BBOOOOLLEEAANN FFUUNNCCTTIIOONNSS
 
 
    SSuubbssttrriinngg
-       ssuubbssttrr [_f_i_e_l_d] _s_t_r_i_n_g  [ ; _s_t_r_i_n_g ...]
+       ssuubbssttrr [_f_i_e_l_d]  _s_t_r_i_n_g [ ; _s_t_r_i_n_g ...]
 
        Search  for  each  byte  string in the specified field, or in the whole
        data object if no field is given.  If multiple strings are given,  then
@@ -246,19 +246,16 @@ BBOOOOLLEEAANN FFUUNNCCTTIIOONNSS
 
 
    FFiilltteerr
-       ffiilltteerr _f_i_e_l_d _[_[_<_=_>_] _v_a_l_u_e_] _._._. ...
+       ffiilltteerr  _b_o_o_l_e_a_n_-_e_x_p_r_e_s_s_i_o_n
 
-       Filter out all objects in the stream that do not  satisfy  all  of  the
-       specified criteria.  Expressions can be arbitrarily complex and include
-       AND and OR statements and parentheses for grouping.
-
-
-       This is the select (sigma) operation from relational  algebra  ("where"
-       in SQL).
+       Do not specify this  module;  it  is  used  internally  for  evaluating
+       boolean expressions that do not have more optimal implementations.  Use
+       a "where" clause in your query  instead;  "where"  will  instantiate  a
+       "filter" module only if necessary.
 
 
    UUnniiqquuee FFiilltteerr
-       uunniiqq [-m _m_e_g_a_b_y_t_e_s]  _f_i_e_l_d_s ...
+       uunniiqq [-m _m_e_g_a_b_y_t_e_s]   _f_i_e_l_d_s
 
        Treat  the specified field(s) as a tuple and filter out all occurrences
        of duplicate values of that tuple.
@@ -271,7 +268,7 @@ BBOOOOLLEEAANN FFUUNNCCTTIIOONNSS
 
 
    TToopp
-       ttoopp [-m _m_e_g_a_b_y_t_e_s]  [-r _d_e_v_i_a_t_i_o_n]  _f_i_e_l_d_s ...
+       ttoopp [-m _m_e_g_a_b_y_t_e_s]  [-r _d_e_v_i_a_t_i_o_n]   _f_i_e_l_d_s
 
        Treat  the specified field(s) as a tuple and count the number of occur‐
        rences of each values of that tuple.  Filter  out  all  records  except
@@ -290,7 +287,7 @@ BBOOOOLLEEAANN FFUUNNCCTTIIOONNSS
 
 
    HHeeaadd
-       hheeaadd _n_u_m_b_e_r
+       hheeaadd  _n_u_m_b_e_r
 
        Pass the first nnuummbbeerr records through and then end the pipeline.  Those
        records will be processed by all subsequent modules in the pipeline and
@@ -304,7 +301,7 @@ AANNNNOOTTAATTIIOONN FFUUNNCCTTIIOONNSS
 
 
    CClloocckk
-       cclloocckk [ -t _s_e_c_o_n_d_s]  _f_i_e_l_d
+       cclloocckk [ -t _s_e_c_o_n_d_s]   _f_i_e_l_d
 
        The clock module is used to bin input data into discrete clock periods.
        Each object is annotated with a clock field  containing  the  numerical
@@ -316,23 +313,23 @@ AANNNNOOTTAATTIIOONN FFUUNNCCTTIIOONNSS
 
 
    CCoonnssttaanntt AAnnnnoottaattiioonn
-       ccoonnsstt [-t _t_y_p_e]  [-f _f_i_e_l_d]  _s_t_r_i_n_g  [_f_i_e_l_d]
+       ccoonnsstt [-t _t_y_p_e]  [-f _f_i_e_l_d]   _s_t_r_i_n_g [_f_i_e_l_d]
 
        Annotate  each  object  with a field containing the specified constant.
        The default field name is "const" and the default type is "string".
 
 
    DDeellttaa
-       ddeellttaa _x_f_i_e_l_d
+       ddeellttaa  _x_f_i_e_l_d
 
        For each data object seen, compute the delta from the previous x  field
        to  this  current  xfield.   The data object is annotate with a "ddeellttaa"
-       field of type "ddoouubbllee" containing the result.   The  x  field  must  be
-       convertable to doubles as well.
+       field of type "ddoouubbllee" containing the result.  The x field must be con‐
+       vertable to doubles as well.
 
 
    DDeerriivvaattiivvee
-       ddeerriivvaattiivvee _y_f_i_e_l_d _x_f_i_e_l_d
+       ddeerriivvaattiivvee  _y_f_i_e_l_d _x_f_i_e_l_d
 
        For  each  data object seen, compute the derivative of the y field with
        respect to the x field between this point and  the  last  object  seen.
@@ -351,7 +348,7 @@ AANNNNOOTTAATTIIOONN FFUUNNCCTTIIOONNSS
 
 
    FFllooww IIDD
-       fflloowwiidd [-t _t_i_m_e]  [-r ]  _f_i_e_l_d_s ...
+       fflloowwiidd [-t _t_i_m_e]  [-r ]   _f_i_e_l_d_s
 
        Treat the specified field(s) as a tuple and assign  a  unique  flow  id
        number to each object based on the typle value.  The annotated field is
@@ -442,7 +439,7 @@ MMIISSCCEELLLLAANNEEOOUUSS AANNAALLYYSSIISS FFUUNNCCTT
 
 
    SSttaatteeffuull MMaattcchhiinngg
-       ddffaa _s_t_a_t_e_f_i_l_e
+       ddffaa  _s_t_a_t_e_f_i_l_e
 
        The  DFA  module  takes  a input file describing transitions in a state
        machine.  Each line contains a current state, a subsequent state, and a
@@ -503,7 +500,7 @@ MMIISSCCEELLLLAANNEEOOUUSS AANNAALLYYSSIISS FFUUNNCCTT
 
 
    PPrroojjeecctt
-       pprroojjeecctt _f_i_e_l_d_s ...
+       pprroojjeecctt  _f_i_e_l_d_s
 
        Replace all objects in the input stream  with  new  objects  containing
        only  the  specified  fields.   This is the project (Pi) operation from
@@ -511,7 +508,7 @@ MMIISSCCEELLLLAANNEEOOUUSS AANNAALLYYSSIISS FFUUNNCCTT
 
 
    RReennaammee
-       rreennaammee _o_l_d_f_i_e_l_d _n_e_w_f_i_e_l_d ...
+       rreennaammee  _o_l_d_f_i_e_l_d _n_e_w_f_i_e_l_d
 
        Given a list of alternating old and new field names, make a copy of the
        old  field  with  the new name.  Combined with the Project module, this
@@ -531,7 +528,7 @@ MMIISSCCEELLLLAANNEEOOUUSS AANNAALLYYSSIISS FFUUNNCCTT
 
 
    GGrroouupp--BByy
-       ggrroouuppbbyy _f_i_e_l_d_s ...  --   _q_u_e_r_y ...
+       ggrroouuppbbyy  _f_i_e_l_d_s  --   _q_u_e_r_y
 
        Treat the specified field(s) as a tuple and instantiate  the  specified
        query  for each tuple.  If a record of type "refresh" is received, then
