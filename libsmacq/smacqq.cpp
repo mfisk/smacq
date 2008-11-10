@@ -65,9 +65,10 @@ int smacqq(int argc, const char ** argv) {
 #endif
 
   if (argc <= 1) {
-	  fprintf(stderr, "Usage: %s [-m] query\n", argv[0]);
+	  fprintf(stderr, "Usage: %s query\n", argv[0]);
 	  fprintf(stderr, "Version %s; Build date %s\n", 
 		  PACKAGE_VERSION, SMACQ_BUILD_DATE);
+          smacq_print_help(options);
 	  return -1;
   }
 

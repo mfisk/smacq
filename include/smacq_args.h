@@ -41,6 +41,8 @@ int smacq_getoptsbyname(int argc, const char ** argv,
 			      struct smacq_options *, 
 			      struct smacq_optval *);
 
+void smacq_print_help(struct smacq_options *);
+
 END_C_DECLS
 
 #endif

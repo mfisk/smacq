@@ -44,7 +44,7 @@ void set_opts_to_default(struct smacq_options * smacq_options,
 	}
 }
 
-void print_help(struct smacq_options * opt) {
+void smacq_print_help(struct smacq_options * opt) {
 	char defbuf[256];
 	double t;
 	for (; opt->name; opt++) {
@@ -107,7 +107,7 @@ int parse_opt(struct smacq_options * options, struct smacq_optval * optvals,
 		// XXX: handle --docbook option here
 
 		fprintf(stderr, "Unknown option %s:\n", arg);
-		print_help(options);
+		smacq_print_help(options);
 	   	exit(-1);
 	}
 
@@ -116,7 +116,7 @@ int parse_opt(struct smacq_options * options, struct smacq_optval * optvals,
 
 	if (!nextarg && opt->type != SMACQ_OPT_TYPE_BOOLEAN) {
 	    fprintf(stderr, "Option %s needs argument:\n", arg);
-		print_help(options);
+		smacq_print_help(options);
 	    exit(-1);
 	}
 	  
@@ -179,7 +179,7 @@ int smacq_getoptsbyname( int argc, const char ** argv,
 		  return 0;
 	    } else {
 	      fprintf(stderr, "Unknown option %s", argv[i]);
-		  print_help(options);
+		  smacq_print_help(options);
 	      exit(-1);
 	    }
 	  } else if (argv[i][0] == '-' && argv[i][1] == '-') {
