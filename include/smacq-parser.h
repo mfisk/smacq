@@ -16,8 +16,8 @@ extern SmacqGraph * Graph;
 extern std::map<std::string, SmacqGraph *> Graphs;
 
 struct arglist {
-    char * arg;
-    char * rename;
+    const char * arg;
+    const char * rename;
     struct arglist * next;
     struct arglist * func_args;
     struct dts_operand * expr;
@@ -35,7 +35,7 @@ class DatalogNamespace : public std::map<char*,SmacqGraphNode *> {
 
 class joinlist {
  public:
-        joinlist(char * n, SmacqGraph * g, SmacqGraph * u)
+        joinlist(const char * n, SmacqGraph * g, SmacqGraph * u)
                 : next(NULL), graph(g), name(n), until(u) 
 		{}
 
@@ -47,7 +47,7 @@ class joinlist {
 
         joinlist * next;
         SmacqGraph * graph;
-        char * name;
+        const char * name;
 	SmacqGraph * until;	
 };
 
@@ -64,7 +64,7 @@ struct TermList {
 };
 
 struct vphrase {
-      char * verb;
+      const char * verb;
       struct arglist * args;
 };
 
@@ -76,19 +76,19 @@ struct group {
 enum argtype { WORD, FUNCTION };
 
 char * expression2fieldname(struct dts_operand * expr);
-SmacqGraph * newmodule(char * module, struct arglist * alist);
+SmacqGraph * newmodule(const char * module, struct arglist * alist);
 void graph_join(SmacqGraph * & graph, SmacqGraph * newg);
 SmacqGraph * newgroup(struct group, SmacqGraph * vphrase);
-void arglist2argv(struct arglist * al, int * argc, char *** argv);
+void arglist2argv(struct arglist * al, int * argc, const char *** argv);
 char * arglist2str(struct arglist * al);
-struct arglist * newarg(char * arg, enum argtype argtype, struct arglist * func_args);
+struct arglist * newarg(const char * arg, enum argtype argtype, struct arglist * func_args);
 struct arglist * arglist_append(struct arglist * tail, struct arglist * addition);
-struct vphrase newvphrase(char * verb, struct arglist * args);
+struct vphrase newvphrase(const char * verb, struct arglist * args);
 SmacqGraph * optimize_bools(dts_comparison *);
 dts_comparison * comp_join(dts_comparison *, dts_comparison *, dts_compare_operation);
-struct dts_operand * comp_operand(enum dts_operand_type type, char * str);
+struct dts_operand * comp_operand(enum dts_operand_type type, const char * str);
 dts_comparison * comp_new(dts_compare_operation op, struct dts_operand *, struct dts_operand *);
-dts_comparison * comp_new_func(char *, int, char **, struct arglist *);
+dts_comparison * comp_new_func(const char *, int, const char **, struct arglist *);
 char * print_comparison(dts_comparison * comp);
 char * print_operand(struct dts_operand * op);
 

@@ -77,7 +77,7 @@ ndjoinModule::ndjoinModule(struct SmacqModule::smacq_init * context)
   : SmacqModule(context), sched(context->scheduler)
 {
   int argc = context->argc-1;
-  char ** argv = context->argv+1;
+  const char ** argv = context->argv+1;
 
   assert(argc > 3);
 

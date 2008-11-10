@@ -68,7 +68,7 @@ smacq_result sumModule::consume(DtsObject datum, int & outchan) {
 
 sumModule::sumModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
   int argc = 0;
-  char ** argv;
+  const char ** argv;
 
   smacq_opt outputallo, fieldo;
 

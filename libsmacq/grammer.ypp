@@ -55,7 +55,7 @@
   SmacqGraph * graph;
   struct arglist * arglist;
   struct vphrase vphrase;
-  char * string;
+  const char * string;
   struct group group;
   dts_compare_operation op;
   enum dts_arith_operand_type arithop;
@@ -164,7 +164,7 @@ test :
 	operand		{  $$ = comp_new(EXIST, $1, $1); }
 	| subexpression op subexpression      { $$ = comp_new($2, $1, $3); }
 	| id '(' args0 ')'	{ 
-				  int argc; char ** argv;
+				  int argc; const char ** argv;
 				  arglist2argv($3, &argc, &argv);
 				  $$ = comp_new_func($1, argc, argv, $3);
 				}

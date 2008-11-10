@@ -47,7 +47,7 @@ uniqModule::uniqModule(struct SmacqModule::smacq_init * context)
   : SmacqModule(context), perfectset(NULL), probset(NULL)
 {
   int argc;
-  char ** argv = NULL;
+  const char ** argv = NULL;
 
   {
 	smacq_opt prob_opt, obj_opt;

@@ -12,10 +12,10 @@ SMACQ_MODULE(lor,
 	     
 	     SmacqGraph graphs;
 	     SmacqScheduler * sched;
-	     void build_clause(char ** argv, int num);
+	     void build_clause(const char ** argv, int num);
 );
 
-void lorModule::build_clause(char ** argv, int num) {
+void lorModule::build_clause(const char ** argv, int num) {
   //fprintf(stderr, "Build clause from %s(%p)+%d ... %s\n", argv[0], argv, num, argv[num-1]);
 
   if (num < 1) {
@@ -30,7 +30,7 @@ lorModule::lorModule(struct SmacqModule::smacq_init * context)
   : SmacqModule(context), sched(context->scheduler)
 {
   int argc = context->argc-1;
-  char ** argv = context->argv+1;
+  const char ** argv = context->argv+1;
 
   {
     int start = 0;

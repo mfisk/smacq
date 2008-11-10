@@ -11,24 +11,15 @@
 #include <ext/hash_map>
 namespace stdext = ::__gnu_cxx;
 
-namespace std {
-  template<>
-  struct equal_to<char*> {
-	bool operator()(const char * x, const char * y) {
-		return (!strcmp(x,y));
-	}
-  };
-}
-
 template <class T>
-class IdMap : public stdext::hash_map<T, int> {
+class IdMap : public std::map<T, int> {
    public:
   	IdMap() : ids(0) {}
 
         int operator[](const T & x) {
-		if (find(x) == stdext::hash_map<T,int>::end()) {
+		if (find(x) == std::map<T,int>::end()) {
 			// New
-                	int & i = stdext::hash_map<T,int>::operator[](strdup(x));
+                	int & i = std::map<T,int>::operator[](x);
 			i = ids;
 			return ids++;
 		} else {
@@ -50,9 +41,9 @@ SMACQ_MODULE(dfa,
   int stop_state;
   DtsField previous_field;
 
-  IdMap<char *> ids;
+  IdMap<std::string> ids;
 
-  int parse_dfa(char * filename);
+  int parse_dfa(const char * filename);
   int try_transition(DtsObject datum, struct transition & t);
   int dfa_try(DtsObject datum, int current_state); 
   SmacqScheduler * sched;
@@ -159,7 +150,7 @@ smacq_result dfaModule::consume(DtsObject datum, int & outchan) {
   return SMACQ_FREE;
 }
 
-int dfaModule::parse_dfa(char * filename) {
+int dfaModule::parse_dfa(const char * filename) {
   FILE * fh = fopen(filename, "r");
 
   if (!fh) {
@@ -222,7 +213,7 @@ int dfaModule::parse_dfa(char * filename) {
 
   } 
 
-  IdMap<char*>::iterator i = ids.find("START");
+  IdMap<std::string>::iterator i = ids.find("START");
 
   if (i == ids.end()) {
     smacq_log("dfa", ERROR, "No state named START");
@@ -248,7 +239,7 @@ dfaModule::dfaModule(struct SmacqModule::smacq_init * context)
   : SmacqModule(context), sched(context->scheduler) 
 {
   int argc = context->argc-1;
-  char ** argv = context->argv+1;
+  const char ** argv = context->argv+1;
 
   assert(argc == 1);
 

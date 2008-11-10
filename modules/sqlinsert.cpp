@@ -18,7 +18,7 @@ SMACQ_MODULE(sqlinsert,
   GdaConnection * gda_connection;
   std::string insert_format;
 
-  char ** argv;
+  const char ** argv;
   int argc;
   std::vector<DtsField> fields;
   DtsField string_transform;

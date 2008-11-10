@@ -150,7 +150,7 @@ smacq_result activeModule::consume(DtsObject datum, int & outchan) {
 
 activeModule::activeModule(struct SmacqModule::smacq_init * context) {
   int argc = 0;
-  char ** argv;
+  const char ** argv;
 
   {
 	smacq_opt interval;

@@ -22,7 +22,7 @@ smacq_result streamaliasModule::consume(DtsObject datum, int & outchan) {
 
 streamaliasModule::streamaliasModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
   int argc = context->argc-1;
-  char ** argv = context->argv+1;;
+  const char ** argv = context->argv+1;;
 
   assert(argc == 1);
   newfield = dts->requirefield(argv[0]);

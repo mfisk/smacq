@@ -52,7 +52,7 @@ smacq_result divModule::consume(DtsObject datum, int & outchan) {
 
 divModule::divModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
   int argc = 0;
-  char ** argv;
+  const char ** argv;
 
   {
     smacq_opt div_opt;

@@ -1,5 +1,5 @@
 /*
- * $Id: patricia.h,v 1.2 2004/07/05 03:39:24 mfisk Exp $
+ * $Id: patricia.h,v 1.3 2006/05/23 04:42:20 mfisk Exp $
  * Dave Plonka <plonka@doit.wisc.edu>
  *
  * This product includes software developed by the University of Michigan,
@@ -95,7 +95,7 @@ void patricia_process (patricia_tree_t *patricia, void_fn_t func);
 /* { from demo.c */
 
 prefix_t *
-ascii2prefix (int family, char *string);
+ascii2prefix (int family, const char *string);
 
 patricia_node_t *
 make_and_lookup (patricia_tree_t *tree, char *string);

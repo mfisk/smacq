@@ -24,7 +24,7 @@ static struct smacq_options options[] = {
   END_SMACQ_OPTIONS
 };
 
-char * program_name;
+const char * program_name;
 
 #ifdef REFINFO
 
@@ -50,11 +50,11 @@ void print_field(dts_field_info * i) {
 	if (i) printf("%30s: type %s\n", i->desc.name, i->desc.type);
 }
 
-int smacqq(int argc, char ** argv) {
+int smacqq(int argc, const char ** argv) {
  try {
   smacq_opt optimize, qfile, showpregraph, showgraph, cpus, showtype, quiet, debug;
   int qargc;
-  char ** qargv;
+  const char ** qargv;
   DTS dts;
   FILE * fh;
   DtsObject product;
@@ -147,6 +147,12 @@ int smacqq(int argc, char ** argv) {
 
   s.seed_produce(&graphs);
 
+#ifndef SMACQ_CONFIG_THREAD_SAFE
+  if (cpus.int_t > 1) {
+    fprintf(stderr, "Non-thread-safe version, ignoring -c");
+    cpus.int_t = 1;
+  }
+#endif
   s.start_threads(cpus.int_t - 1);
 
   // Work yourself too

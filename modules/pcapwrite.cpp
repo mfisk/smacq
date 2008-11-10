@@ -42,7 +42,7 @@ SMACQ_MODULE(pcapwrite,
   std::vector<StrucioPcapWriter>strucio;
   DtsObject datum;	
   int argc;
-  char ** argv;
+  const char ** argv;
   int dts_pkthdr_type;		
   DtsObject current_datum;
   int buckets;
@@ -118,7 +118,7 @@ smacq_result pcapwriteModule::consume(DtsObject datum, int & outchan) {
 
   if (buckets > 1) {
     fieldvec.getfields(datum);
-    b = fieldvec.getobjs().hash() % buckets;
+    b = fieldvec.getobjs().sethash() % buckets;
     //fprintf(stderr, "Bucket %d\n", b);
   } else {
     b = 0;
@@ -167,7 +167,7 @@ pcapwriteModule::pcapwriteModule(struct SmacqModule::smacq_init * context) : Sma
     buckets = buckets_opt.uint32_t;
     if (buckets < 1) buckets = 1;
     if (buckets > 1) {
-	char * fvargs[] = { "srcip", "dstip", "ipprotocol", "srcip", "dstip" };
+	const char * fvargs[] = { "srcip", "dstip", "ipprotocol", "srcip", "dstip" };
         fieldvec.init(dts, 5, fvargs);
     }
 

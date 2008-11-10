@@ -19,7 +19,7 @@ smacq_result headModule::consume(DtsObject datum, int & outchan) {
 
 headModule::headModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
   int argc = context->argc - 1;
-  char ** argv = context->argv + 1;
+  const char ** argv = context->argv + 1;
 
   assert(argc);
 

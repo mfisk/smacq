@@ -25,7 +25,7 @@ smacq_result counterModule::thread(struct SmacqModule::smacq_init * context) {
   DtsObject datum;
   int counter = 0;
   int argc = 0;
-  char ** argv;
+  const char ** argv;
   smacq_opt probability, countfieldo;
 
   struct smacq_optval optvals[] = {

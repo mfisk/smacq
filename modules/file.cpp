@@ -15,7 +15,7 @@ SMACQ_MODULE(file,
   PROTO_PRODUCE();
 
   int argc;
-  char ** argv;
+  const char ** argv;
 
   bool use_stdin;
   DtsObject followObject;

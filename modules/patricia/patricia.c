@@ -1,5 +1,5 @@
 /*
- * $Id: patricia.c,v 1.4 2006/07/09 05:58:48 mfisk Exp $
+ * $Id: patricia.c,v 1.5 2006/10/08 17:40:34 mfisk Exp $
  * Dave Plonka <plonka@doit.wisc.edu>
  *
  * This product includes software developed by the University of Michigan,
@@ -270,7 +270,7 @@ New_Prefix (int family, void *dest, int bitlen)
 /* ascii2prefix
  */
 prefix_t *
-ascii2prefix (int family, char *string)
+ascii2prefix (int family, const char *string)
 {
     u_long bitlen, maxbitlen = 0;
     char *cp;

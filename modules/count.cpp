@@ -56,7 +56,7 @@ countModule::countModule(struct SmacqModule::smacq_init * context)
   : SmacqModule(context), counter(0)
 {
   int argc = 0;
-  char ** argv = NULL;
+  const char ** argv = NULL;
   smacq_opt probability, countopt, allflag;
 
   {

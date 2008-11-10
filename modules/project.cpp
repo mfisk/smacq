@@ -28,7 +28,7 @@ smacq_result projectModule::consume(DtsObject datum, int & outchan) {
 
 projectModule::projectModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
   int argc = context->argc-1;
-  char ** argv = context->argv+1;;
+  const char ** argv = context->argv+1;;
 
   assert(argc>=1);
   fieldvec.init(dts, argc, argv);

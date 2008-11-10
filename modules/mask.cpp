@@ -56,7 +56,7 @@ maskModule::maskModule(struct SmacqModule::smacq_init * context) : SmacqModule(c
   int i;
   test.isnot = 0;
   int argc = context->argc-1;
-  char ** argv = context->argv+1;
+  const char ** argv = context->argv+1;
 
   field = usesfield(argv[0]);
   //fprintf(stderr, "Mask on field %s, %d (env %p)\n", argv[0], field[0], env);

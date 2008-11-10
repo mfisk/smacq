@@ -67,8 +67,11 @@ int DtsObject_::match_one(dts_comparison * c) {
 				if (cast) {
 					op2->valueo = cast;
 				} else {
-					fprintf(stderr, "Warning cannot cast %s to %s; trying reverse\n", op2->valueo->gettypename(), op1->valueo->gettypename());
+					//fprintf(stderr, "Warning cannot cast %s to %s; trying reverse\n", op2->valueo->gettypename(), op1->valueo->gettypename());
 					op1->valueo = op1->valueo->getfield(op2->valueo->gettypename());
+					if (!op1->valueo) {
+						fprintf(stderr, "Warning cannot cast %s to %s or vice-versa\n", op2->valueo->gettypename(), op1->valueo->gettypename());
+					}
 				}
 			}
 		}

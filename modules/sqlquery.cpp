@@ -27,7 +27,7 @@ SMACQ_MODULE(sqlquery,
   void processInvariants(int, SmacqGraphNode_ptr);
   void endClause();
   void startClause();
-  void addConstant(int column, char * constant);
+  void addConstant(int column, const char * constant);
 
 );
 
@@ -49,7 +49,7 @@ inline void sqlqueryModule::endClause() {
 	where += ")";
 }
 
-inline void sqlqueryModule::addConstant(int column, char * constant) {
+inline void sqlqueryModule::addConstant(int column, const char * constant) {
 	// Don't put quotes around numbers
  	GdaValue * val = (GdaValue*)gda_data_model_get_value_at(schema, column, 0);
 	if (gda_value_is_number(val)) {
@@ -65,7 +65,7 @@ void sqlqueryModule::processInvariants(int column, SmacqGraphNode_ptr g) {
 	if (!g) return;
 
 	int const argc = g->getArgc();
-	char ** argv = g->getArgv();
+	const char ** argv = g->getArgv();
 
 	if (!strcmp(argv[0], "equals") && argc == 3) {
 		startClause();
@@ -133,7 +133,7 @@ sqlqueryModule::sqlqueryModule(struct SmacqModule::smacq_init * context)
   : SmacqModule(context)
 {
   smacq_opt cnc, source, username, password, provider;
-  char ** argv; int argc;
+  const char ** argv; int argc;
 
   {
     struct smacq_optval optvals[] = {

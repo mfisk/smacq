@@ -23,7 +23,7 @@ static inline char * strcatn(char * dest, int len, const char * src) {
 	return strncat(dest, src, left);
 }
 
-static inline std::string argv2string(int argc, char ** argv) {
+static inline std::string argv2string(int argc, const char ** argv) {
   int i;
 
   std::string qstr;

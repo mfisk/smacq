@@ -32,7 +32,7 @@ public:
 
 class per_dimension_state {
 public:
-  per_dimension_state(DTS * dts, char * field_name, const char * file_name) : id((std::string(file_name) + "-") + field_name) {
+  per_dimension_state(DTS * dts, const char * field_name, const char * file_name) : id((std::string(file_name) + "-") + field_name) {
         field = dts->requirefield(dts_fieldname_append(field_name, "double"));
         raw_field = dts->requirefield(field_name);
   }
@@ -156,7 +156,7 @@ changesModule::changesModule(struct SmacqModule::smacq_init * context)
   : SmacqModule(context)
 {
   int argc;
-  char ** argv;
+  const char ** argv;
   smacq_opt opt_threshold, opt_severity, opt_id, opt_alpha_avg_up, opt_alpha_avg_down, opt_alpha_stddev, opt_all, opt_base, opt_file;
     
   struct smacq_optval optvals[] = {

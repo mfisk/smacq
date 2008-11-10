@@ -71,7 +71,7 @@ inline bool SmacqModule::usesOtherFields(DtsField f) {
   return usesFields.otherEntry(f[0]);
 }
 
-inline DtsField SmacqModule::usesfield(char * name) {
+inline DtsField SmacqModule::usesfield(const char * name) {
   DtsField res = dts->requirefield(name);	
   usesFields[res[0]] = true;
   return res;	

@@ -18,14 +18,14 @@ SMACQ_MODULE(iplookup,
   int num_batches;
   int ipaddr_type;
 
-  void add_entry(char * field, char * needle, int output);
-  struct batch * get_batch(char * field);
+  void add_entry(const char * field, const char * needle, int output);
+  struct batch * get_batch(const char * field);
 );
 
 struct batch {
   patricia_tree_t * trie;
   DtsField field;
-  char * fieldname;
+  const char * fieldname;
 };
 
 static struct smacq_options options[] = {
@@ -34,7 +34,7 @@ static struct smacq_options options[] = {
   END_SMACQ_OPTIONS
 };
 
-struct batch * iplookupModule::get_batch(char * field) {
+struct batch * iplookupModule::get_batch(const char * field) {
 	struct batch * mybatch;
 	int i;
 	DtsField f = usesfield(field);
@@ -56,7 +56,7 @@ struct batch * iplookupModule::get_batch(char * field) {
 	return mybatch;
 }
 
-void iplookupModule::add_entry(char * field, char * needle, int output) {
+void iplookupModule::add_entry(const char * field, const char * needle, int output) {
   struct batch * mybatch = NULL;
   prefix_t * pfx;
 
@@ -134,10 +134,10 @@ iplookupModule::iplookupModule(struct SmacqModule::smacq_init * context)
  	: SmacqModule(context), num_batches(0)
 {
   int i, argc;
-  char ** argv;
+  const char ** argv;
   smacq_opt field_opt, demux_opt;
-  char * field = NULL;
-  char * pattern = NULL;
+  const char * field = NULL;
+  const char * pattern = NULL;
   int output = 0;
 
   batch = (struct batch*)calloc(sizeof(struct batch), 1);

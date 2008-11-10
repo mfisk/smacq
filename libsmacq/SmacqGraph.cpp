@@ -233,13 +233,13 @@ METHOD void SmacqGraphNode::init_node_recursively(DTS * dts, SmacqScheduler * sc
 }
   
 
-METHOD SmacqGraphNode::SmacqGraphNode(int argc, char ** argv) 
+METHOD SmacqGraphNode::SmacqGraphNode(int argc, const char ** argv) 
 		  : instance(NULL), q(RINGSIZE), scheduler(NULL)
 {
   set(argc, argv);
 }
 
-METHOD SmacqGraphNode * SmacqGraphNode::new_child(int argc, char ** argv) {
+METHOD SmacqGraphNode * SmacqGraphNode::new_child(int argc, const char ** argv) {
   SmacqGraphNode * newo = new SmacqGraphNode(argc, argv);
   add_child(newo);
   return newo;
@@ -707,7 +707,7 @@ METHOD void SmacqGraphNode::produce_done() {
 #include <SmacqModule-interface.h>
 
 /// Setup a graph node based on the given argument vector.
-METHOD bool SmacqGraphNode::set(int argc, char ** argv) {
+METHOD bool SmacqGraphNode::set(int argc, const char ** argv) {
   this->argv = argv;
   this->argc = argc;
   

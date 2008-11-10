@@ -99,7 +99,7 @@ static smacq_result bench_field_consume DtsObject datum, int & outchan) {
 
 static smacq_result bench_field_init(struct SmacqModule::smacq_init * context) {
   int argc = 0;
-  char ** argv;
+  const char ** argv;
 
   {
     smacq_opt field;

@@ -68,7 +68,7 @@ smacq_result encryptModule::consume(DtsObject datum, int & outchan) {
 
 encryptModule::encryptModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
   int argc = 0;
-  char ** argv;
+  const char ** argv;
   {
     smacq_opt add_opt;
     

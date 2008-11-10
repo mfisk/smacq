@@ -30,7 +30,7 @@ smacq_result renameModule::consume(DtsObject datum, int & outchan) {
 
 renameModule::renameModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
   int argc = context->argc-1;
-  char ** argv = context->argv+1;;
+  const char ** argv = context->argv+1;;
 
   assert(argc && ((argc%2) == 0));
   fieldvec.init(dts, argc, argv);

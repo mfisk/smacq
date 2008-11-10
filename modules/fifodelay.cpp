@@ -113,7 +113,7 @@ smacq_result fifodelayModule::consume(DtsObject datum, int & outchan) {
 
 fifodelayModule::fifodelayModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
   int argc = 0;
-  char ** argv;
+  const char ** argv;
 
   {
     smacq_opt intervalo, ifieldname, ofieldname;

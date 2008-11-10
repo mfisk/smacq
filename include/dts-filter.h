@@ -25,7 +25,7 @@ class dts_literal_operand {
  public:
   dts_literal_operand() : str(NULL) {}
 
-  char * str;
+  const char * str;
   DtsField field;
 };
 
@@ -42,10 +42,10 @@ class dts_operand {
 };
 
 struct dts_comp_func {
-  char * name;
+  const char * name;
   struct arglist * arglist;
   int argc;
-  char ** argv;
+  const char ** argv;
 };
 
 class dts_comparison {

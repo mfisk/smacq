@@ -98,7 +98,7 @@ groupbyModule::groupbyModule(struct SmacqModule::smacq_init * context)
   : SmacqModule(context), self(context->self)
 {
   int argc;
-  char ** argv;
+  const char ** argv;
 
   {
   	smacq_opt ptr, print_graph;

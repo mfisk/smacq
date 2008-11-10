@@ -18,7 +18,7 @@ SMACQ_MODULE(print,
 	     PROTO_CTOR(print);
 	     PROTO_CONSUME();
 	     
-	     char ** argv;
+	     const char ** argv;
 	     int argc;
 	     FILE * outputfh;
 	     bool verbose, tagged, flush, internals, boulder, binary, use_file_pattern, mysql, useSyslog;

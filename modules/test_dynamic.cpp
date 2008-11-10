@@ -5,7 +5,7 @@
 
 struct state {
   DTS * env;
-  char ** argv;
+  const char ** argv;
   int argc;
   int verbose;
   int flush;

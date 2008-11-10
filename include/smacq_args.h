@@ -4,7 +4,7 @@
 #include <sys/time.h>
 
 union _smacq_opt { 
-  char * string_t;
+  const char * string_t;
   int int_t;
   double double_t;
   unsigned long uint32_t;
@@ -36,8 +36,8 @@ struct smacq_options {
 
 BEGIN_C_DECLS
 
-int smacq_getoptsbyname(int argc, char ** argv, 
-			      int * , char***, 
+int smacq_getoptsbyname(int argc, const char ** argv, 
+			      int * , const char***, 
 			      struct smacq_options *, 
 			      struct smacq_optval *);
 

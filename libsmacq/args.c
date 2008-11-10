@@ -49,10 +49,10 @@ void print_help(struct smacq_options * opt) {
 	double t;
 	for (; opt->name; opt++) {
 		char * defval = defbuf;
-		char * valtype = "";
+		const char * valtype = "";
 		switch (opt->type) {
 		case SMACQ_OPT_TYPE_STRING:
-			defval = opt->default_value.string_t;
+			defval = (char*)opt->default_value.string_t;
 			valtype = " name";
 			break;
 		case SMACQ_OPT_TYPE_BOOLEAN:
@@ -100,7 +100,7 @@ void print_help(struct smacq_options * opt) {
 }
 
 int parse_opt(struct smacq_options * options, struct smacq_optval * optvals, 
-	const char * arg, char * nextarg) {
+	const char * arg, const char * nextarg) {
 	struct smacq_options * opt = get_optstruct_byname(options, arg);
 
 	if (!opt) {
@@ -156,8 +156,8 @@ int parse_opt(struct smacq_options * options, struct smacq_optval * optvals,
 }
 
 
-int smacq_getoptsbyname( int argc, char ** argv,
-			int * argc_left, char *** argv_left,
+int smacq_getoptsbyname( int argc, const char ** argv,
+			int * argc_left, const char *** argv_left,
 			struct smacq_options * options, 
 			struct smacq_optval * optvals) {
 	int i;
@@ -183,7 +183,7 @@ int smacq_getoptsbyname( int argc, char ** argv,
 	      exit(-1);
 	    }
 	  } else if (argv[i][0] == '-' && argv[i][1] == '-') {
-		char * nextarg;
+		const char * nextarg;
 		if (i < (argc-1)) {
 			nextarg = argv[i+1];
 		} else {
@@ -191,7 +191,7 @@ int smacq_getoptsbyname( int argc, char ** argv,
 		}
 		i += parse_opt(options, optvals, argv[i]+2, i < (argc-1) ? argv[i+1] : NULL);
 	  } else {
-		char * o;
+		const char * o;
 		char opt[2] = "\0\0";
 
 		for(o = argv[i]+1; *o; o++) {

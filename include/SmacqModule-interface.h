@@ -32,7 +32,7 @@ class SmacqModule {
     SmacqScheduler * scheduler;
     bool isfirst;
     bool islast;
-    char ** argv;
+    const char ** argv;
     int argc;
     DTS * dts;
     SmacqGraphNode * self;
@@ -101,7 +101,7 @@ class SmacqModule {
 
   /// This method wraps DTS::usesfield() but keeps track of what 
   /// this module uses.
-  virtual DtsField usesfield(char * name);
+  virtual DtsField usesfield(const char * name);
 
   /// Each module instance runs in the context of a DTS instance.
   DTS * dts;

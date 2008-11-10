@@ -48,7 +48,7 @@ SMACQ_MODULE(pcaplive,
 
 	/* Dynamic dataflow environment */
   int argc;
-  char ** argv;
+  const char ** argv;
   int dts_pkthdr_type;		
 
   DtsObject linktype_o;
@@ -115,7 +115,7 @@ pcapliveModule::~pcapliveModule() {
 	}
 }
 
-static char * merge_args(int argc, char ** argv) {
+static char * merge_args(int argc, const char ** argv) {
   int len = argc;
   int i;
   char * buf, *bp;
@@ -162,16 +162,16 @@ pcapliveModule::pcapliveModule(struct SmacqModule::smacq_init * context) : Smacq
   {
     struct bpf_program filter;
     bpf_u_int32 net, netmask;
-    char * filterstr = merge_args(argc, argv);
+    const char * filterstr = merge_args(argc, argv);
     
     if (pcap_lookupnet(interfaceo.string_t, &net, &netmask, ebuf)) 
-      pcap_perror(pcap, "pcap_lookupnet");
+      pcap_perror(pcap, (char*)"pcap_lookupnet");
     
     if (pcap_compile(pcap, &filter, filterstr, 1, netmask))
-      pcap_perror(pcap, "pcap_compile");
+      pcap_perror(pcap, (char*)"pcap_compile");
     
     if (pcap_setfilter(pcap, &filter))
-      pcap_perror(pcap, "pcap_setfilter");
+      pcap_perror(pcap, (char*)"pcap_setfilter");
     
     //free(filterstr);
   }

@@ -8,7 +8,7 @@ SMACQ_MODULE(msgtest,
   PROTO_CTOR(msgtest);
   PROTO_CONSUME();
   int argc;
-  char ** argv;
+  const char ** argv;
 );
 
 static struct smacq_options options[] = {

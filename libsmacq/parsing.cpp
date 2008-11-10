@@ -37,9 +37,9 @@ struct vphrase newvphrase(char * verb, struct arglist * args) {
   return vphrase;
 }
 
-void arglist2argv(struct arglist * alist, int * argc, char *** argvp) {
+void arglist2argv(struct arglist * alist, int * argc, const char *** argvp) {
   int i = 0;
-  char ** argv;
+  const char ** argv;
   struct arglist * al;
 
   /* Count length of list */
@@ -47,7 +47,7 @@ void arglist2argv(struct arglist * alist, int * argc, char *** argvp) {
     i++;
   }
 
-  argv = tmalloc(char *, i);
+  argv = tmalloc(const char *, i);
   *argc = i;
   *argvp = argv;
 
@@ -136,7 +136,7 @@ SmacqGraph * newgroup(struct group group, SmacqGraph * vphrase) {
   return g;
 }
 
-SmacqGraph * newmodule(char * module, struct arglist * alist) {
+SmacqGraph * newmodule(const char * module, struct arglist * alist) {
   //fprintf(stderr, "module ref: %s, alist %p\n", module, alist);
 
   // Check defines
@@ -148,10 +148,10 @@ SmacqGraph * newmodule(char * module, struct arglist * alist) {
   SmacqGraph * graphs = new SmacqGraph;
 
   int argc;
-  char ** argv;
+  const char ** argv;
 
   int rename_argc = 1;
-  char ** rename_argv = NULL;
+  const char ** rename_argv = NULL;
   struct arglist * ap;
   int num_funcs = 0;
   SmacqGraphNode * uniq_obj = NULL;
@@ -167,7 +167,7 @@ SmacqGraph * newmodule(char * module, struct arglist * alist) {
   }
 
   if (num_funcs > 1) {
-	char ** argv = (char**)malloc(sizeof(char**));
+	const char ** argv = (const char**)malloc(sizeof(char**));
 	argv[0] = "uniqobj";
 	uniq_obj = new SmacqGraphNode(1, argv);
   }
@@ -176,7 +176,7 @@ SmacqGraph * newmodule(char * module, struct arglist * alist) {
     /* Check for function arguments */
     if (ap->isfunc) { 
       struct arglist * arglist;
-      char * argname = ap->arg;
+      const char * argname = ap->arg;
 
       if (ap->rename) {
   	arglist = newarg("-f", (argtype)0, NULL);
@@ -197,7 +197,7 @@ SmacqGraph * newmodule(char * module, struct arglist * alist) {
     	/* Check for rename options on arguments */
     	if (ap->rename) {
       		rename_argc += 2;
-      		rename_argv = (char**)realloc(rename_argv, rename_argc * sizeof(char*));
+      		rename_argv = (const char**)realloc(rename_argv, rename_argc * sizeof(char*));
       		rename_argv[rename_argc - 2] = ap->arg;
       		rename_argv[rename_argc - 1] = ap->rename;
       		ap->arg = ap->rename;
@@ -218,7 +218,7 @@ SmacqGraph * newmodule(char * module, struct arglist * alist) {
   return graphs;
 }
 
-struct arglist * newarg(char * arg, enum argtype argtype, struct arglist * func_args) {
+struct arglist * newarg(const char * arg, enum argtype argtype, struct arglist * func_args) {
   struct arglist * al;
   if (!arg) return NULL;
      
@@ -233,7 +233,7 @@ struct arglist * newarg(char * arg, enum argtype argtype, struct arglist * func_
   return(al);
 }
 
-char * opstr(dts_comparison * comp) {
+const char * opstr(dts_comparison * comp) {
   switch (comp->op) {
   case LT:
     return "<";
@@ -515,7 +515,7 @@ dts_comparison * comp_join(dts_comparison * lh, dts_comparison * rh, dts_compare
 }
 
 
-struct dts_operand * comp_operand(enum dts_operand_type type, char * str) {
+struct dts_operand * comp_operand(enum dts_operand_type type, const char * str) {
   dts_operand * comp = new dts_operand;
 
   comp->type = type;
@@ -580,7 +580,7 @@ dts_comparison * comp_new(dts_compare_operation op, struct dts_operand * op1, st
   return comp;
 }
 
-dts_comparison * comp_new_func(char * str, int argc, char ** argv, struct arglist * arglist) {
+dts_comparison * comp_new_func(const char * str, int argc, const char ** argv, struct arglist * arglist) {
   dts_comparison * comp = comp_new(FUNC, NULL, NULL);
 
   comp->func.name = str;

@@ -48,7 +48,7 @@ inline void SmacqGraph::merge_tails() {
 
 inline void SmacqGraphNode::add_args(SmacqGraphNode * b) {
   int i;
-  this->argv = (char**)realloc(this->argv, (this->argc + b->argc) * sizeof(char*));
+  this->argv = (const char**)realloc(this->argv, (this->argc + b->argc) * sizeof(char*));
   this->argv[this->argc++] = ";";
   for (i=1; i < b->argc; i++) {
     this->argv[this->argc++] = b->argv[i];

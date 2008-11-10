@@ -11,7 +11,7 @@ SMACQ_MODULE(filter,
   PROTO_CONSUME();
   
 		     private:
-		     char ** argv;
+		     const char ** argv;
 		     int argc;
 		     dts_comparison * comp;
 		     int type;

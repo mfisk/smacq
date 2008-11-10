@@ -70,7 +70,7 @@ smacq_result clockModule::consume(DtsObject datum, int & outchan) {
 
 clockModule::clockModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
   int argc = 0;
-  char ** argv;
+  const char ** argv;
 
   {
     smacq_opt period_opt;

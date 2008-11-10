@@ -65,7 +65,7 @@ splitModule::splitModule(struct SmacqModule::smacq_init * context)
     bucket(0)
 {
   int argc = 0;
-  char ** argv;
+  const char ** argv;
   int i;
   self = context->self;
 

@@ -16,13 +16,13 @@ SMACQ_MODULE(substr,
   struct batch * batch;
   int num_batches;
 
-  void add_entry(char * field, char * needle, int output);
+  void add_entry(const char * field, const char * needle, int output);
 );
 
 struct batch {
   struct ruleset * set;
   DtsField field;
-  char * fieldname;
+  const char * fieldname;
 };
 
 static struct smacq_options options[] = {
@@ -31,6 +31,7 @@ static struct smacq_options options[] = {
   END_SMACQ_OPTIONS
 };
 
+// In-place decode
 static int cdecode(char * needle) {
   int used;
   int esc = 0;
@@ -75,7 +76,7 @@ static int cdecode(char * needle) {
   return len;
 }
 
-void substrModule::add_entry(char * field, char * needle, int output) {
+void substrModule::add_entry(const char * field, const char * needle, int output) {
   struct batch * mybatch = NULL;
   int nlen;
   if (!field && !needle) return;
@@ -108,11 +109,11 @@ void substrModule::add_entry(char * field, char * needle, int output) {
 	}
   }
 
-  nlen = strlen((char*)needle);
+  nlen = strlen(needle);
 #ifdef DEBUG
   fprintf(stderr, "decoded %s(%d) to search string of ", needle, nlen);
 #endif
-  nlen = cdecode(needle);
+  nlen = cdecode((char*)needle);
 #ifdef DEBUG
   fprintf(stderr, "%s(%d)\n", needle, nlen);
 #endif
@@ -170,10 +171,10 @@ smacq_result substrModule::consume(DtsObject datum, int & outchan) {
 
 substrModule::substrModule(struct SmacqModule::smacq_init * context) : SmacqModule(context), num_batches(0) {
   int i, argc;
-  char ** argv;
+  const char ** argv;
   smacq_opt field_opt, demux_opt;
-  char * field = NULL;
-  char * pattern = NULL;
+  const char * field = NULL;
+  const char * pattern = NULL;
   int output = 0;
 
   batch = (struct batch*)calloc(sizeof(struct batch), 1);

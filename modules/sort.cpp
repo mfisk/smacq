@@ -90,7 +90,7 @@ sortModule::sortModule(struct SmacqModule::smacq_init * context)
   : SmacqModule(context)
 {
   int argc = 0;
-  char ** argv;
+  const char ** argv;
 
     smacq_opt batch_opt, reverse_opt;
     

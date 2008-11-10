@@ -84,7 +84,7 @@ smacq_result deskewModule::consume(DtsObject datum, int & outchan) {
 
 deskewModule::deskewModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
   int argc = 0;
-  char ** argv;
+  const char ** argv;
 
   {
     smacq_opt beginOpt, endOpt, secondaryOpt;

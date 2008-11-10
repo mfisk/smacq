@@ -37,7 +37,7 @@ void fastbitModule::processInvariants(SmacqGraphNode_ptr g) {
   if (!g) return;
 
   int const argc = g->getArgc();
-  char ** argv = g->getArgv();
+  const char ** argv = g->getArgv();
  
   if (!strcmp(argv[0], "equals") && argc == 3) {
     if (where.length()) where += " && ";

@@ -22,7 +22,7 @@ class PerType {
   dts_typeid tid;
   FieldVecHash<int> outChan;
 
-  PerType(DTS * dts, dts_typeid idt, std::vector<char*> argv)
+  PerType(DTS * dts, dts_typeid idt, std::vector<const char*> argv)
     : tid(idt)
   {
     for (unsigned int i=0; i < argv.size(); i++) {
@@ -40,7 +40,7 @@ SMACQ_MODULE(equals,
 
   DtsField field;
 
-  std::vector<char *> argv;
+  std::vector<const char *> argv;
   TypeMap typeSet;
 );
 

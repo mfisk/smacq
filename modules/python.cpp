@@ -277,9 +277,9 @@ static int PyDtsObject_setvalue(PyObject *p,
 
 
 static PyGetSetDef PyDtsObject_getset[] = {
-  {"type",  PyDtsObject_gettype,  NULL, "named type of data"},
-  {"raw",   PyDtsObject_getraw,   NULL, "raw data as a string"},
-  {"value", PyDtsObject_getvalue, PyDtsObject_setvalue, "data as an appropriate Python type"},
+  {(char*)"type",  PyDtsObject_gettype,  NULL, (char*)"named type of data"},
+  {(char*)"raw",   PyDtsObject_getraw,   NULL, (char*)"raw data as a string"},
+  {(char*)"value", PyDtsObject_getvalue, PyDtsObject_setvalue, (char*)"data as an appropriate Python type"},
   {NULL}                        /* Sentinel */
 };
 
@@ -522,7 +522,7 @@ pythonModule::pythonModule(struct smacq_init *context)
   do {
     int   i;
     char  modname[50];
-    char *classname;
+    const char *classname;
 
     /* If the module name has a period (.) in it, split it into module
        name, class name */
@@ -654,7 +654,7 @@ smacq_result pythonModule::consume(DtsObject datum, int &outchan)
     }
 
     /* Send it to the consume function */
-    pRet = PyObject_CallFunction(this->pConsume, "O", pDtsObj);
+    pRet = PyObject_CallFunction(this->pConsume, (char*)"O", pDtsObj);
     if (! pRet) {
       PyErr_Print();
       break;

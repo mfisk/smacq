@@ -76,7 +76,7 @@ typedef boost::intrusive_ptr<SmacqGraphNode> SmacqGraphNode_ptr;
 
 enum smacq_log_level { INFO, WARN, ERROR, };
 
-static inline void smacq_log(char * name, enum smacq_log_level level, char * msg) {
+static inline void smacq_log(const char * name, enum smacq_log_level level, const char * msg) {
   fprintf(stderr, "%s: %s\n", name, msg);
 }
 
@@ -88,9 +88,9 @@ static inline void smacq_log(char * name, enum smacq_log_level level, char * msg
 
 BEGIN_C_DECLS
 /// Parse a query and run to completion
-int smacqq(int argc, char ** argv);
+int smacqq(int argc, const char ** argv);
 
-void * smacq_find_module(lt_dlhandle* gmodulep, char * envvar, char * envdefault, char * modformat, char * symformat, char * sym);
+void * smacq_find_module(lt_dlhandle* gmodulep, const char * envvar, const char * envdefault, const char * modformat, const char * symformat, const char * sym);
 END_C_DECLS
 
 #endif

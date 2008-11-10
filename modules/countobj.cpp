@@ -46,7 +46,7 @@ countobjModule::countobjModule(struct SmacqModule::smacq_init * context)
 {
   smacq_opt threshold_opt;
   int argc; 
-  char ** argv;
+  const char ** argv;
 
   struct smacq_optval optvals[] = {
       {"t", &threshold_opt},

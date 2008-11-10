@@ -152,16 +152,16 @@ class SmacqGraph {
 class SmacqGraphNode : private PthreadMutex {
  public:
   /// (Re-)Initialize module
-  bool set(int argc, char ** argv);
+  bool set(int argc, const char ** argv);
 
   /// Return argc
   const int getArgc() const { return argc; }
 
   /// Return argv (do not modify)
-  char ** const getArgv() const { return argv; }
+  const char ** const getArgv() const { return argv; }
 
  protected:
-  char ** argv;  // set by set()
+  const char ** argv;  // set by set()
   int argc; // set by set()
   struct SmacqModule::algebra algebra; // set by load_module()
 
@@ -186,7 +186,7 @@ class SmacqGraphNode : private PthreadMutex {
 
  public:
   SmacqGraphNode(std::string);
-  SmacqGraphNode(int argc, char ** argv);
+  SmacqGraphNode(int argc, const char ** argv);
 
   ~SmacqGraphNode();
 
@@ -235,7 +235,7 @@ class SmacqGraphNode : private PthreadMutex {
 
   /// Construct a new graph using the given arguments.  The new graph
   /// is automatically attached as a child of the current graph.
-  SmacqGraphNode * new_child(int argc, char ** argv);
+  SmacqGraphNode * new_child(int argc, const char ** argv);
 
   /// Recursively clone a graph.  The clone is made a child of
   /// newParent, unless newParent is NULL.

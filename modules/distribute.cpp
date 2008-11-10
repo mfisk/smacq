@@ -40,7 +40,7 @@ distributeModule::distributeModule(struct SmacqModule::smacq_init * context)
   : SmacqModule(context), ni(1)
 {
   int argc;
-  char ** argv;
+  const char ** argv;
 
   smacq_opt seed;
   struct smacq_optval optvals[] = {

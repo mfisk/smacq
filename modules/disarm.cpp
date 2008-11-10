@@ -36,19 +36,19 @@ SMACQ_MODULE(disarm,
   unsigned long lineno;
   int sv4_type;
   struct get_line linebuf;
-  char * date_string;
-  char * srcip_string;
-  char * dstip_string;
-  char * srcport_string;
-  char * dstport_string;
+  const char * date_string;
+  const char * srcip_string;
+  const char * dstip_string;
+  const char * srcport_string;
+  const char * dstport_string;
 
   void init_get_line(struct get_line * s, FILE * fh);
   int get_line(char ** buf, struct get_line * s);
   int server_init(struct sockaddr_in * addrp);
-  int client_init(int port, char * hostname, char ** ipstr);
+  int client_init(int port, const char * hostname, char ** ipstr);
 
   void processInvariants(SmacqGraphNode*);
-  void get_my_invariants(SmacqModule::smacq_init * context, char* name);
+  void get_my_invariants(SmacqModule::smacq_init * context, const char* name);
 
 );
 
@@ -224,7 +224,7 @@ int disarmModule::server_init(struct sockaddr_in * addrp) {
   return listen_fd;
 }
 
-int disarmModule::client_init(int port, char * hostname, char ** ipstr) {
+int disarmModule::client_init(int port, const char * hostname, char ** ipstr) {
   int host;
   int client_fd;
   struct sockaddr_in their_addr;
@@ -270,7 +270,7 @@ int disarmModule::client_init(int port, char * hostname, char ** ipstr) {
   return(client_fd);
 }
 
-void disarmModule::get_my_invariants(SmacqModule::smacq_init * context, char* name) {
+void disarmModule::get_my_invariants(SmacqModule::smacq_init * context, const char* name) {
 	DtsField field = dts->requirefield(name);
 	processInvariants(context->self->getChildInvariants(dts, context->scheduler, field));
 }
@@ -278,7 +278,7 @@ void disarmModule::get_my_invariants(SmacqModule::smacq_init * context, char* na
 void disarmModule::processInvariants(SmacqGraphNode * i) {
   if (!i ) return;
 
-  char ** argv = i->getArgv();
+  const char ** argv = i->getArgv();
   int argc = i->getArgc();
 
   if (!strcmp(argv[0], "equals") && argc == 3) {

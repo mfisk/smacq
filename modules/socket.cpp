@@ -28,7 +28,7 @@ SMACQ_MODULE(socket,
   
   int close_it(int closefd);
   void server_init(int port);
-  void client_init(int port, char * hostname);
+  void client_init(int port, const char * hostname);
 
   DtsObject datum;
   struct pickle *pickle; 
@@ -166,7 +166,7 @@ void socketModule::server_init(int port) {
   max_fd = listen_fd;
 }
 
-void socketModule::client_init(int port, char * hostname) {
+void socketModule::client_init(int port, const char * hostname) {
   int host;
   struct sockaddr_in their_addr;
   struct hostent *hostn;

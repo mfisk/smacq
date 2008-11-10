@@ -322,7 +322,7 @@ smacq_result flowidModule::consume(DtsObject datum, int & outchan) {
 
 flowidModule::flowidModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
   int argc = 0;
-  char ** argv;
+  const char ** argv;
 
   refresh_type = dts->requiretype("refresh");
 
@@ -366,7 +366,7 @@ flowidModule::flowidModule(struct SmacqModule::smacq_init * context) : SmacqModu
 
   if (reverse) {
     int i;
-    char ** rargv = g_new(char*, argc);
+    const char ** rargv = g_new(const char*, argc);
     for (i = 0; i < argc; i++) {
       if (i %2) {
 	assert(i > 0);
