@@ -297,7 +297,8 @@ inline void DtsObject_::incref() {
 
 inline void DtsObject_::decref() {
   //DUMP_p(this);
-  int r = refcount.decrement();
+  refcount.decrement();
+  int r = refcount.get();
   assert(r >= 0);
 
   //fprintf(stderr, "%p now %d, %d\n", this, refcount, usecount);

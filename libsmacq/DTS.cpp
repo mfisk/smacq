@@ -74,7 +74,8 @@ dts_field_element DTS::requirefield_single(const char * name) {
 #else
 	{
 #endif
-		f = max_field.increment();
+		max_field.increment();
+		f = max_field.get();
 	}
 	fields_byname[name] = f;
     	fields_bynum[f] = name;
@@ -168,7 +169,8 @@ dts_typeid DTS::requiretype(const char * name) {
 #else
   {
 #endif
-  	t->num = max_type.increment();
+  	max_type.increment();
+  	t->num = max_type.get();
   }
   types[t->num] = t;
   

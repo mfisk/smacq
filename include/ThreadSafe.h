@@ -279,16 +279,29 @@ class ThreadSafeMultiSet : public ThreadSafeRandomAccessContainer<T, std::vector
 class ThreadSafeCounter {
   public: 
     ThreadSafeCounter() : _val(0) {}
- 
-    gint increment() {
-	return g_atomic_int_exchange_and_add(&_val, 1) + 1;
+
+    void increment() {
+#ifdef SMACQ_CONFIG_THREAD_SAFE 
+	g_atomic_int_inc(&_val);
+#else
+	++_val;
+#endif
     }
 
-    gint decrement() {
-	return g_atomic_int_exchange_and_add(&_val, -1) - 1;
+    /// Atomic decrement; return false iff 0 after decrementing
+    gboolean decrement() {
+#ifdef SMACQ_CONFIG_THREAD_SAFE 
+	return !g_atomic_int_dec_and_test(&_val);
+#else
+	return(--_val != 0);
+#endif
     }
     gint get() {
+#ifdef SMACQ_CONFIG_THREAD_SAFE
 	return g_atomic_int_get(&_val);
+#else
+	return _val;
+#endif
     }
 
   private:
