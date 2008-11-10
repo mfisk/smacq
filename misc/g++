@@ -12,7 +12,9 @@ findlib() {
 	lib=`basename "$1"`
 	dir=`dirname "$1"`
 	case $lib in 
-	   libc|libpthread|libdl|libltdl|libintl)
+	   libc|libpthread|libdl|libintl)
+			lib=`echo $lib | sed 's/lib/-l/'`
+			echo "$lib"
 			return 0
 			;;
 	esac
@@ -21,23 +23,49 @@ findlib() {
 		#ls $d/${lib}.a
 		if [ -r $d/${lib}.a ]; then
 			# Replace -l argument with explicit .a file
-			word="$d/${lib}.a"
-			echo "Using $word for $1" 1>&2
-			return 0
+			res="-l:$d/${lib}.a"
+			echo "Using $res for $lib" 1>&2
+
+			if [ -r $d/$lib.so ]; then
+				root=`ldd $d/$lib.so | cut -d= -f1 | sed 's/\..*//'`
+				ldd $d/$lib.so | cut -d= -f1 | sed 's/\..*//' 1>&2
+				for d in $root; do
+					deps=`findlib $d`	
+					if [ "$?" != "0" ]; then 
+						echo 
+						return 1
+					fi
+
+					if [ "$deps" != "" ]; then
+						echo "Recursive dependency $deps" 1>&2
+						res="$res $deps"
+					fi
+				done
+                        fi
+			echo "$res"
+			return 1
 		fi
+		return 1 #No static version
 	done
 }
 
 for word in "$@"; do
+	sublib $word
+done
+
+sublib() {
 	case $word in
 		/*.so)
-			findlib `echo "$word" | sed 's/\.so//'`
+			root=`echo "$word" | sed 's/\.so//'`
+			word=`findlib $root`
 			;;
 		/*.dylib)
-			findlib `echo "$word" | sed 's/\.dylib//'`
+			root=`echo "$word" | sed 's/\.dylib//'`
+			word=`findlib $root`
 			;;
 		-l*)
-			findlib `echo "$word" | sed 's/^-l/lib/'`
+			root=`echo "$word" | sed 's/^-l/lib/'`
+			word=`findlib $root`
 			;;
 		-L*)
 			dir=`echo "$word" | sed 's/^-L//'`
@@ -46,7 +74,7 @@ for word in "$@"; do
 	esac
 
 	args="$args$word "
-done
+}
 
 # Remove our directory from the path
 for f in `echo $PATH | sed 's/:/ /g'`; do 
