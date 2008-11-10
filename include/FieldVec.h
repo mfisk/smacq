@@ -18,8 +18,11 @@ class DtsObjectVec : public std::vector<DtsObject> {
   DtsObjectVec(FieldVec & v);
   DtsObjectVec(DtsObject & o);
 
-  /// Hash into value in [0..range]
+  /// Hash vector
   size_t hash(int seed = 0) const;
+
+  /// Hash vector in an order-independent way
+  size_t sethash(int seed = 0) const;
 
   bool masks (const DtsObjectVec &b) const;
 };
@@ -30,7 +33,7 @@ class FieldVecElement {
   friend class FieldVec;
 
  public:
-  char * name;
+  const char * name;
   DtsField num;
 };
 
@@ -46,13 +49,13 @@ class FieldVec : public std::vector<FieldVecElement*> {
 
   /// Initialize field vector from an argument vector.  Deletes any
   /// previous contents.
-  void init(DTS *, int argc, char ** argv);
+  void init(DTS *, int argc, const char ** argv);
  
   /// Construct an empty vector.  Use init() to initialize later
   FieldVec() : dts(NULL) {};
 
   /// Construct and initialize field vector from an argument vector
-  FieldVec(DTS * dts, int argc, char** argv) { init(dts, argc, argv); }
+  FieldVec(DTS * dts, int argc, const char** argv) { init(dts, argc, argv); }
 
   /// Return a copy of the vector of current objects.
   //DtsObjectVec operator () () { return objs; }
@@ -79,7 +82,7 @@ inline DtsObjectVec::DtsObjectVec(DtsObject & o)
   (*this)[0] = o; 
 }
 
-inline void FieldVec::init(DTS * dts, int argc, char ** argv) {
+inline void FieldVec::init(DTS * dts, int argc, const char ** argv) {
   this->dts = dts;
   clear(); // Empty all elements
 
@@ -124,6 +127,23 @@ inline bool FieldVec::has_undefined () const {
   }
   
   return false;
+}
+
+inline size_t DtsObjectVec::sethash(const int seed) const {
+  uint32_t result = seed;
+  DtsObjectVec::const_iterator i;
+  
+  for (i = begin(); i != end(); ++i) {
+    if (*i) {
+	// This version alwasy hashes with the seed and then just XORs
+	// the results
+       result += bhash((*i)->getdata(), 
+		   (*i)->getsize(), seed);
+    }
+  }
+  
+  //fprintf(stderr, "hash to %xld\n", result);
+  return result;
 }
 
 inline size_t DtsObjectVec::hash(const int seed) const {
