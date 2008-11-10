@@ -8,7 +8,7 @@
 #include <assert.h>
 #include <SmacqModule.h>
 
-#define MAX_STR 4096
+#define MAX_STR 8192
 
 static struct smacq_options options[] = {
   {"d", {string_t:"\t"}, "Delimiter", SMACQ_OPT_TYPE_STRING},
@@ -69,7 +69,7 @@ smacq_result tabularinputModule::produce(DtsObject & datump, int & outchan) {
   }
   stopp = index(line, '\n');
   if (!stopp) {
-    if (strlen(line) < MAX_STR) {
+    if (strlen(line) < MAX_STR-1) {
     	//fprintf(stderr, "tabularinput: Warning: Unterminated line: %s\n", line);
     	stopp = line+MAX_STR-1;
     } else {
