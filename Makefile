@@ -20,7 +20,7 @@ small:
 
 importgnulib:
 	DIR=/tmp/gnulib.$$$$; mkdir $$DIR; (cd $$DIR && cvs -z3 -d:pserver:anonymous@cvs.savannah.gnu.org:/sources/gnulib co gnulib); \
-		$$DIR/gnulib/gnulib-tool --libtool --m4-base=libgnu/m4 --source-base=libgnu --import getdate gettime xalloc-die strftime
+		$$DIR/gnulib/gnulib-tool --libtool --m4-base=libgnu/m4 --doc-base=libgnu/doc --source-base=libgnu --import getdate gettime xalloc-die strftime
 	cvs add libgnu/[a-z]* libgnu/m4/[a-z]*
 
 pushrelease: dist rpm

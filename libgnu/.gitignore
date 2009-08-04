@@ -2,3 +2,13 @@ Makefile.in
 .libs
 libgnu.la
 Makefile
+intprops.h
+malloca.c
+malloca.h
+malloca.valgrind
+stdlib_.h
+sys_time_.h
+time_.h
+unistd_.h
+verify.h
+wchar_.h
