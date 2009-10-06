@@ -12,7 +12,7 @@ static inline void smacq_gda_set_error(GdaConnection * conn, GError ** err) {
       assert(errorlist);
       GdaError * error = (GdaError*) errorlist->data;
       assert(error);
-      g_set_error(err, 0, gda_error_get_number(error), gda_error_get_description(error));
+      g_set_error(err, 0, gda_error_get_number(error), "%s", gda_error_get_description(error));
       if (g_list_next(errorlist)) {
 	fprintf(stderr, "Warning: additional GDA errors not displayed\n");
       }
