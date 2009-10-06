@@ -82,7 +82,8 @@ PKG_CHECK_MODULES(GLIB, glib-2.0 >= 2.4)
 	# so don't make it specific to targets that use GLIB_CFLAGS
 AM_CPPFLAGS="$AM_CPPFLAGS ${GLIB_CFLAGS}"
 GLIB_CFLAGS=
-AC_SUBST(GLIB_CFLAGS GLIB_LIBS)
+AC_SUBST(GLIB_CFLAGS)
+AC_SUBST(GLIB_LIBS)
 
 ##
 ## Checks for header files.
@@ -341,7 +342,7 @@ AC_SUBST(LDFLAGS_FASTBIT)
 ## Python
 ##
 AC_ARG_VAR(PYTHON, [Python interpreter command])
-AC_CHECK_PROGS([PYTHON], [python2.5 python2.4 python2.3], :)
+AC_CHECK_PROGS([PYTHON], [python2.6 python2.5 python2.4 python2.3], :)
 
 AC_ARG_WITH([python],
 	AC_HELP_STRING([--with-python], 
