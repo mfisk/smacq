@@ -14,7 +14,7 @@ native inst slackware setld depot swinstall tardist osx aix bsd: smacq.list
 	srcdir=$(top_srcdir) epm -v --output-dir . -f $@ smacq $<
 
 deb: smacq.list
-	. /etc/lsb-release; srcdir=$(top_srcdir) epm -v --output-dir . -a `dpkg --print-architecture` -f $@ smacq -m `echo $$DISTRIB_DESCRIPTION | sed 's/[^a-zA-Z0-9]/_/g'`-`dpkg --print-architecture` $<
+	. /etc/lsb-release; srcdir=$(top_srcdir) epm -v --output-dir . -a `dpkg --print-architecture` -f $@ smacq -m `echo $$DISTRIB_DESCRIPTION | sed 's/\s//g'`-`dpkg --print-architecture` $<
 
 rpm: smacq.list
 	srcdir=$(top_srcdir) epm -v --output-dir . -f $@ smacq $<

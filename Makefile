@@ -29,9 +29,9 @@ importgnulib:
 		$$DIR/gnulib/gnulib-tool --libtool --m4-base=libgnu/m4 --doc-base=libgnu/doc --source-base=libgnu --import getdate gettime xalloc-die strftime
 	cvs add libgnu/[a-z]* libgnu/m4/[a-z]*
 
-pushrelease: dist rpm
-	@set -x; cd doc && rsync -a -e ssh -Ltv ../build/*/doc/*.pdf *.png *.html api ../ChangeLog smacq.sf.net:smacqweb/
-	@set -x; scp build/*/smacq-*.tar.gz build/*/smacq-*.rpm smacq.sf.net:smacqweb/downloads/
+pushrelease: #dist rpm
+	@set -x; cd doc && rsync -a -e ssh -Ltv ../build/*/doc/*.pdf *.png *.html api ../ChangeLog mfisk,smacq@web.sf.net:htdocs/
+	@set -x; scp build/*/smacq-*.tar.gz build/*/smacq-*.deb build/*/smacq-*.rpm mfisk,smacq@web.sf.net:htdocs/downloads/
 	@set -x; scp build/*/smacq-*.rpm packrat1.ds:/var/redhat/netnanny/RPMS/
 
 mydistcheck:
