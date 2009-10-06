@@ -1,5 +1,5 @@
-VERSION 2.7pre
-==============
+VERSION 2.7 - 6 Oct 2009
+========================
 2008-11 - Make all thread-safe lock code conditional on SMACQ_CONFIG_THREAD_SAFE (improve performance on default single-thread builds)
 2008-11 - Port to g++ version 4's (pedanticism about string contants)
 2008-04 - "bytes" type now consolidated with "string" type; strings no longer NULL terminated
