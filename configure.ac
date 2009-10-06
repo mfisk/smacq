@@ -219,6 +219,15 @@ AC_ARG_ENABLE(profile,
 	)
 
 ##
+## Pedantic
+##
+AC_ARG_ENABLE(pedantic,
+	AC_HELP_STRING([--enable-pedantic],
+			[enable pedantic compile-time checks]),
+		AM_CPPFLAGS="$AM_CPPFLAGS -Werror"
+	)
+
+##
 ## Debug
 ##	
 AC_ARG_ENABLE(debug,
@@ -485,7 +494,7 @@ gl_INIT
 ##
 AM_CPPFLAGS="$AM_CPPFLAGS -I\${top_srcdir}/include -D_GNU_SOURCE -D_ISOC99_SOURCE"
 if test -n "$GCC"; then
-	AM_CPPFLAGS="$AM_CPPFLAGS -Wall -Werror -fPIC"
+	AM_CPPFLAGS="$AM_CPPFLAGS -Wall -fPIC"
 fi
 
 ##

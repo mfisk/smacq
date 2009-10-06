@@ -1,23 +1,28 @@
 #AUTOMAKE_VERSION=-1.9
 #AUTOCONF_VERSION=2.59
 
+# We don't make this the default in distributions so that we're more robust 
+# to future gcc pedanticism, but for developers (who run this Makefile), 
+# be as pedantic as possible.
+CONFIG=--enable-pedantic
+
 default: config/config.guess
-	+MAKEFLAGS="$(MAKEFLAGS)" misc/buildarch
+	MAKEFLAGS="$(MAKEFLAGS)" CONFIG="$(CONFIG)" misc/buildarch
 
 config/config.guess: 
 	$(MAKE) $(MAKEFLAGS) bootstrap
 
 debug:
-	+MAKEFLAGS="$(MAKEFLAGS)" BUILDNAME=debug CONFIG="$$CONFIG --enable-profile --enable-debug" misc/buildarch 
+	+MAKEFLAGS="$(MAKEFLAGS)" BUILDNAME=debug CONFIG="$(CONFIG) --enable-profile --enable-debug" misc/buildarch 
 
 gdb:
-	+MAKEFLAGS="$(MAKEFLAGS)" interactive=yes BUILDNAME=debug CONFIG="$$CONFIG --enable-profile --enable-debug" misc/buildarch gdb 
+	+MAKEFLAGS="$(MAKEFLAGS)" interactive=yes BUILDNAME=debug CONFIG="$(CONFIG) --enable-profile --enable-debug" misc/buildarch gdb 
 
 profile:
-	+MAKEFLAGS="$(MAKEFLAGS)" BUILDNAME=profile CONFIG="$$CONFIG --enable-profile" misc/buildarch  
+	+MAKEFLAGS="$(MAKEFLAGS)" BUILDNAME=profile CONFIG="$(CONFIG) --enable-profile" misc/buildarch  
 
 small:
-	+MAKEFLAGS="$(MAKEFLAGS)" BUILDNAME=small CONFIG="$$CONFIG --enable-small" misc/buildarch 
+	+MAKEFLAGS="$(MAKEFLAGS)" BUILDNAME=small CONFIG="$(CONFIG) --enable-small" misc/buildarch 
 
 importgnulib:
 	DIR=/tmp/gnulib.$$$$; mkdir $$DIR; (cd $$DIR && cvs -z3 -d:pserver:anonymous@cvs.savannah.gnu.org:/sources/gnulib co gnulib); \
