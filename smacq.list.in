@@ -7,7 +7,7 @@ $bindir=${exec_prefix}/bin
 $datadir=${exec_prefix}/share
 $docdir=${datadir}/doc/smacq
 $libdir=${exec_prefix}/lib
-$pydir=$libdir/@PYTHON@/site-packages
+$pydir=@SITE_PACKAGES@
 $mandir=${datadir}/man
 $srcdir=.
 

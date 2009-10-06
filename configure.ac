@@ -386,9 +386,7 @@ for i in sys.argv[1:]:
 print ' '.join(res)
 ]
 EOF
-fi
 
-if test "X$with_python" != "Xno"; then
 	CFLAGS_PYTHON=`$PYTHON $PYCONF CFLAGS 2>&5`
 	if test $? -ne 0; then
             AC_MSG_NOTICE([Error configuring Python; building without])
@@ -462,6 +460,17 @@ if test "X$with_python" = "Xyes"; then
 	fi
 	AC_MSG_RESULT($LDSHARED_PYTHON)
 
+	AC_MSG_CHECKING([Installation location for python modules])
+        if test -d /usr/lib/$PYTHON/site-packages ; then 
+                SITE_PACKAGES=/usr/lib/$PYTHON/site-packages
+        elif test -d /usr/lib/$PYTHON/dist-packages ; then 
+                SITE_PACKAGES=/usr/lib/$PYTHON/dist-packages
+        else
+                AC_MSG_FAILURE([Could not locate /usr/lib/$PYTHON/site-packages or dist-packages])
+        fi
+        AC_MSG_RESULT($SITE_PACKAGES)
+        AC_SUBST(SITE_PACKAGES)
+		
 	EXTRA_STATIC_MODULES="${EXTRA_STATIC_MODULES} libsmacq_python.la"
 	OPTIONAL_TESTS="${OPTIONAL_TESTS} python.test.sh pysmacq.test.sh"
 
