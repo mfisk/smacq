@@ -36,14 +36,19 @@ int linux_getrusage(int who, struct rusage * usage) {
 
 	  assert(proc);
 
-	  fscanf(proc, "%d %s %c %d %d %d %d %d %u %u %u %u %u %d %d %d %d %d %d %u %u %d %u %u %u %u %u %u %u %u %d %d %d %d %u",
+	  int res = fscanf(proc, "%d %s %c %d %d %d %d %d %u %u %u %u %u %d %d %d %d %d %d %u %u %d %u %u %u %u %u %u %u %u %d %d %d %d %u",
 			  &pid, comm, &state, &ppid, &pgrp, &session, &tty, &tpgid,
 			  &flags, &minflt, &cminflt, &majflt, &cmajflt, &utime,
 			  &stime, &cutime, &cstime, &counter, &priority, &timeout,
 			  &itrealvalue, &starttime, &vsize, &rss, &rlim, &startcode,
 			  &endcode, &startstack, &kstkesp, &kstkeip, &signal,
 			  &blocked, &sigignore, &sigcatch, &wchan);
-	  usage->ru_maxrss = rss;
+          if (res > 34) {
+	     usage->ru_maxrss = rss;
+          } else {
+             fprintf(stderr, "Warning: couldn't read /proc/self/stat\n");
+             usage->ru_maxrss = 0;
+          }
 	  fclose(proc);
   }
 
