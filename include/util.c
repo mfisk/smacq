@@ -2,6 +2,7 @@
 #define SMACQ_UTIL_C
 
 #include <stdlib.h>
+#include <string.h>
 #include <string>
 
 static inline void * memdup(void * buf, int size) {

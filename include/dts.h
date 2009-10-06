@@ -13,6 +13,7 @@
 #include <dts-module.h>
 #include <DtsField.h>
 #include <ThreadSafe.h>
+#include <string.h>
 #include <string>
 
 #ifdef USE_GASNET
