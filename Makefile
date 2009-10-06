@@ -1,4 +1,5 @@
 #AUTOMAKE_VERSION=-1.9
+#AUTOCONF_VERSION=2.59
 
 default: config/config.guess
 	+MAKEFLAGS="$(MAKEFLAGS)" misc/buildarch
@@ -38,9 +39,9 @@ bootstrap:
 	export PATH=/sw/bin:$$PATH; \
 	(glibtoolize --copy --force || libtoolize --copy --force); \
 	aclocal$(AUTOMAKE_VERSION) -I libgnu/m4; \
-	autoheader; \
+	autoheader$(AUTOCONF_VERSION); \
 	automake$(AUTOMAKE_VERSION) -a; \
-	autoconf
+	autoconf$(AUTOCONF_VERSION)
 
 cvsinterforce: cvsinter
 		# Have to force timestamp update even if contents unchanged
