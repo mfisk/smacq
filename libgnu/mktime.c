@@ -1,7 +1,7 @@
 /* Convert a `struct tm' to a time_t value.
-   Copyright (C) 1993-1999, 2002-2005, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 1993-1999, 2002-2004, 2005 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Paul Eggert <eggert@twinsun.com>.
+   Contributed by Paul Eggert (eggert@twinsun.com).
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
    mktime.  */
 /* #define DEBUG 1 */
 
-#ifndef _LIBC
+#ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
 
@@ -32,6 +32,7 @@
 # define LEAP_SECONDS_POSSIBLE 1
 #endif
 
+#include <sys/types.h>		/* Some systems define `time_t' here.  */
 #include <time.h>
 
 #include <limits.h>
@@ -140,10 +141,11 @@ const unsigned short int __mon_yday[2][13] =
 
 
 #ifndef _LIBC
-/* Portable standalone applications should supply a <time.h> that
+/* Portable standalone applications should supply a "time_r.h" that
    declares a POSIX-compliant localtime_r, for the benefit of older
    implementations that lack localtime_r or have a nonstandard one.
    See the gnulib time_r module for one way to implement this.  */
+# include "time_r.h"
 # undef __localtime_r
 # define __localtime_r localtime_r
 # define __mktime_internal mktime_internal
@@ -213,11 +215,10 @@ guess_time_tm (long int year, long int yday, int hour, int min, int sec,
   /* Overflow occurred one way or another.  Return the nearest result
      that is actually in range, except don't report a zero difference
      if the actual difference is nonzero, as that would cause a false
-     match; and don't oscillate between two values, as that would
-     confuse the spring-forward gap detector.  */
+     match.  */
   return (*t < TIME_T_MIDPOINT
-	  ? (*t <= TIME_T_MIN + 1 ? *t + 1 : TIME_T_MIN)
-	  : (TIME_T_MAX - 1 <= *t ? *t - 1 : TIME_T_MAX));
+	  ? TIME_T_MIN + (*t == TIME_T_MIN)
+	  : TIME_T_MAX - (*t == TIME_T_MAX));
 }
 
 /* Use CONVERT to convert *T to a broken down time in *TP.

@@ -1,7 +1,6 @@
 /* Parse a string into an internal time stamp.
 
-   Copyright (C) 1995, 1997, 1998, 2003, 2004, 2007 Free Software
-   Foundation, Inc.
+   Copyright (C) 1995, 1997, 1998, 2003, 2004 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -18,6 +17,6 @@
    Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.  */
 
 #include <stdbool.h>
-#include <time.h>
+#include "timespec.h"
 
 bool get_date (struct timespec *, char const *, struct timespec const *);

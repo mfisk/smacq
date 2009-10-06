@@ -1,6 +1,6 @@
 /* Failure exit status
 
-   Copyright (C) 2002, 2003, 2005, 2006, 2007 Free Software Foundation, Inc.
+   Copyright (C) 2002, 2003 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -17,10 +17,11 @@
    If not, write to the Free Software Foundation,
    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.  */
 
-#include <config.h>
+#ifdef HAVE_CONFIG_H
+# include <config.h>
+#endif
 
 #include "exitfail.h"
-
-#include <stdlib.h>
+#include "exit.h"
 
 int volatile exit_failure = EXIT_FAILURE;
