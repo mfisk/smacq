@@ -10,8 +10,12 @@ gdb:
 quiet:
 	$(MAKE) all >/dev/null
 
-native inst slackware setld depot swinstall tardist osx aix bsd deb: smacq.list
+native inst slackware setld depot swinstall tardist osx aix bsd: smacq.list
 	srcdir=$(top_srcdir) epm -v --output-dir . -f $@ smacq $<
+
+deb: smacq.list
+	srcdir=$(top_srcdir) epm -v --output-dir . -a `dpkg --print-architecture` -f $@ smacq $<
+
 
 rpm: smacq.list
 	srcdir=$(top_srcdir) epm -v --output-dir . -f $@ smacq $<
