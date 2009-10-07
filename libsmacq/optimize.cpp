@@ -233,35 +233,35 @@ void SmacqGraph::optimize() {
   print(stderr, 8);
 #endif
 
-  fprintf(stderr, "Before optimize: \n");
-  this->print(stderr, 15);
+  //fprintf(stderr, "Before optimize: \n");
+  //this->print(stderr, 15);
 
   merge_heads();
 
-  fprintf(stderr, "Merged heads\n");
-  this->print(stderr, 15);
+  //fprintf(stderr, "Merged heads\n");
+  //this->print(stderr, 15);
 
   /* Do the merge again from the tails up */
   merge_tails();
 
-  fprintf(stderr, "Merged tails\n");
-  this->print(stderr, 15);
+  //fprintf(stderr, "Merged tails\n");
+  //this->print(stderr, 15);
 
   // From the bottoms up, identify redundant parents
   for (unsigned int i = 0; i < head.size(); i++) {
     while (head[i]->merge_redundant_parents()) ;
   }
 
-  fprintf(stderr, "Merged parents\n");
-  this->print(stderr, 15);
+  //fprintf(stderr, "Merged parents\n");
+  //this->print(stderr, 15);
 
   // From the top down, identify redundant (twin) children
   for (unsigned int i = 0; i < head.size(); i++) {
   	head[i]->merge_redundant_children();
   }
 
-  fprintf(stderr, "Merged children\n");
-  this->print(stderr, 15);
+  //fprintf(stderr, "Merged children\n");
+  //this->print(stderr, 15);
 
 #ifdef SMACQ_DEBUG
   fprintf(stderr, "--- final is ---\n");
