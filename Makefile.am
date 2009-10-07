@@ -1,5 +1,5 @@
 SUBDIRS = include libgnu types modules libsmacq bin pysmacq doc test 
-EXTRA_DIST = misc test smacq.spec smacq.list.in debian
+EXTRA_DIST = misc smacq.spec smacq.list.in debian
 ACLOCAL_AMFLAGS = -I $(top_srcdir)/libgnu/m4
 
 test: check
@@ -10,10 +10,10 @@ gdb:
 quiet:
 	$(MAKE) all >/dev/null
 
-native inst slackware setld depot swinstall tardist osx aix bsd: smacq.list
+native inst slackware setld depot swinstall tardist osx aix bsd: smacq.list check
 	srcdir=$(top_srcdir) epm -v --output-dir . -f $@ smacq $<
 
-deb: smacq.list
+deb: smacq.list check
 	. /etc/lsb-release; srcdir=$(top_srcdir) epm -v --output-dir . -a `dpkg --print-architecture` -f $@ smacq -m `echo $$DISTRIB_DESCRIPTION | sed 's/\s//g'`-`dpkg --print-architecture` $<
 
 rpm: smacq.list

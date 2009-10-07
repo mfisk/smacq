@@ -34,8 +34,10 @@ pushrelease: #dist rpm
 	@set -x; scp build/*/smacq-*.tar.gz build/*/smacq-*.deb build/*/smacq-*.rpm mfisk,smacq@web.sf.net:htdocs/downloads/
 	@set -x; scp build/*/smacq-*.rpm packrat1.ds:/var/redhat/netnanny/RPMS/
 
+#dist:
+	(set -ex; misc/buildarch dist; d=/tmp/$$$$; mkdir $$d; tar -C $$d -xzf build/*/smacq-*.tar.gz; cd $$d/smacq-*; ./configure; make clean dist); cp -ip /tmp/$$$$/smacq-*/smacq-*.tar.gz . 1>&2
+
 mydistcheck:
-	misc/buildarch dist
 	(set -ex; misc/buildarch dist; d=/tmp/$$$$; mkdir $$d; tar -C $$d -xzf build/*/smacq-*.tar.gz; cd $$d/smacq-*; ./configure; make check); echo "IT'S A KEEPER:" build/*/smacq-*.tar.gz 1>&2
 
 bootstrap:
