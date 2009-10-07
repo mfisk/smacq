@@ -551,7 +551,7 @@ pythonModule::pythonModule(struct smacq_init *context)
     }
 
     /* Find the init function */
-    pInit = PyObject_GetAttrString(pModule, classname);
+    pInit = PyObject_GetAttrString(pModule, (char*)classname);
     if (! pInit) {
       PyErr_Print();
       break;

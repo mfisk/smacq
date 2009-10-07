@@ -378,7 +378,7 @@ for i in sys.argv[1:]:
     if i == 'CFLAGS':
         res.append('-I %s' % sysconfig.get_python_inc())
     elif i == 'PYTHON_LIB':
-        res.append(sysconfig.get_python_lib())
+        res.append(sysconfig.get_python_lib(plat_specific=True))
     elif i == 'VERSION':
         res.append(sys.version[:3])
     else:
@@ -460,17 +460,6 @@ if test "X$with_python" = "Xyes"; then
 	fi
 	AC_MSG_RESULT($LDSHARED_PYTHON)
 
-	AC_MSG_CHECKING([Installation location for python modules])
-        if test -d /usr/lib/$PYTHON/site-packages ; then 
-                SITE_PACKAGES=/usr/lib/$PYTHON/site-packages
-        elif test -d /usr/lib/$PYTHON/dist-packages ; then 
-                SITE_PACKAGES=/usr/lib/$PYTHON/dist-packages
-        else
-                AC_MSG_FAILURE([Could not locate /usr/lib/$PYTHON/site-packages or dist-packages])
-        fi
-        AC_MSG_RESULT($SITE_PACKAGES)
-        AC_SUBST(SITE_PACKAGES)
-		
 	EXTRA_STATIC_MODULES="${EXTRA_STATIC_MODULES} libsmacq_python.la"
 	OPTIONAL_TESTS="${OPTIONAL_TESTS} python.test.sh pysmacq.test.sh"
 
@@ -483,6 +472,7 @@ AC_SUBST(LIBS_PYTHON)
 AC_SUBST(LIBINST_PYTHON)
 AC_SUBST(LDSHARED_PYTHON)
 AC_SUBST(FRAMEWORKADD) # Apple Frameworks aren't propagated by libtool
+AC_SUBST(SITE_PACKAGES)
 
 AM_CONDITIONAL(USE_PYTHON, test x$with_python = xyes)
 

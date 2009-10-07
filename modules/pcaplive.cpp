@@ -167,7 +167,7 @@ pcapliveModule::pcapliveModule(struct SmacqModule::smacq_init * context) : Smacq
     if (pcap_lookupnet(interfaceo.string_t, &net, &netmask, ebuf)) 
       pcap_perror(pcap, (char*)"pcap_lookupnet");
     
-    if (pcap_compile(pcap, &filter, filterstr, 1, netmask))
+    if (pcap_compile(pcap, &filter, (char*)filterstr, 1, netmask))
       pcap_perror(pcap, (char*)"pcap_compile");
     
     if (pcap_setfilter(pcap, &filter))
