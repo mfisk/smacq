@@ -31,7 +31,7 @@ importgnulib:
 
 pushrelease: #dist rpm
 	@set -x; cd doc && rsync -a -e ssh -Ltv ../build/*/doc/*.pdf *.png *.html api ../ChangeLog mfisk,smacq@web.sf.net:htdocs/
-	@set -x; scp build/*/smacq-*.tar.gz build/*/smacq-*.deb build/*/smacq-*.rpm mfisk,smacq@web.sf.net:htdocs/downloads/
+	@set -x; rsync -p build/*/smacq-*.tar.gz build/*/smacq-*.deb build/*/smacq-*.rpm mfisk,smacq@web.sf.net:htdocs/downloads/
 	@set -x; scp build/*/smacq-*.rpm packrat1.ds:/var/redhat/netnanny/RPMS/
 
 #dist:
