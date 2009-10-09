@@ -134,19 +134,19 @@ SHAREDONLY_MODULES="test_dynamic" #reassemble
 BUILTIN_MODULES="print pcaplive pcapfile socket uniq count last top head filter msgtest entropy derivative split encrypt warden pdf fifo delta tabularinput sync rusage groupby flowid sum fifodelay project rename join substr bench_field mask const ndjoin lor counter_loop dfa noop expr equals cflow clock"
 BUILTIN_TYPES="int ushort ubyte timeval uint32 bytes netlong ip nushort nuint32 macaddr string double refresh empty ipproto packet cflow time ntime"
 
-SOURCES_TYPES_BUILTIN=`for f in $BUILTIN_TYPES; do echo -n " $f.c "; done`
+SOURCES_TYPES_BUILTIN=`for f in $BUILTIN_TYPES; do $as_echo_n " $f.c "; done`
 AC_SUBST(SOURCES_TYPES_BUILTIN)
 
-LIBS_MODULES_ALL=`for f in $BUILTIN_MODULES $SHAREDONLY_MODULES; do echo -n " lib$f.la "; done`
+LIBS_MODULES_ALL=`for f in $BUILTIN_MODULES $SHAREDONLY_MODULES; do $as_echo_n " lib$f.la "; done`
 AC_SUBST(LIBS_MODULES_ALL)
 
-SOURCES_MODULES_BUILTIN=`for f in $BUILTIN_MODULES; do echo -n " $f.c "; done`
+SOURCES_MODULES_BUILTIN=`for f in $BUILTIN_MODULES; do $as_echo_n " $f.c "; done`
 AC_SUBST(SOURCES_MODULES_BUILTIN)
 
-OBJECTS_MODULES_BUILTIN=`for f in $BUILTIN_MODULES; do echo -n " lib$f.la "; done`
+OBJECTS_MODULES_BUILTIN=`for f in $BUILTIN_MODULES; do $as_echo_n " lib$f.la "; done`
 AC_SUBST(OBJECTS_MODULES_BUILTIN)
 
-LIBS_MODULES_SHARED=`for f in $SHAREDONLY_MODULES; do echo -n " smacq_$f.la "; done`
+LIBS_MODULES_SHARED=`for f in $SHAREDONLY_MODULES; do $as_echo_n " smacq_$f.la "; done`
 AC_SUBST(LIBS_MODULES_SHARED)
 
 ##
@@ -177,15 +177,27 @@ WITH_DOCDIR
 ##
 ## libdb_cxx
 ##
-AC_MSG_CHECKING([libdb_cxx])
-AC_CHECK_LIB([db_cxx], [db_version], [LIBDB_CXX_LIBS=-ldb_cxx])
-if test x$LIBDB_CXX_LIBS = x ; then
-  # Thank you RHEL3:
-  lib=`ls /usr/lib/libdb_cxx-*.so | sort -nr | head -1 | sed -e 's,^/usr/lib/lib,,' -e 's,\.so$,,'`
-  if test x$lib != x ; then
-	AC_CHECK_LIB([$lib], [db_version], [LIBDB_CXX_LIBS=-l$lib])
-  fi
-fi
+AC_CHECK_LIB([db_cxx], [db_version], [LIBDB_CXX_LIBS=-ldb_cxx], [
+  # Some systems (e.g. RHEL3, DarwinPorts) don't install a libdb_cxx symlink, 
+  # so you have find a specific version number (e.g. -4.3) to use.
+  # Worse, DarwinPorts puts them in /opt/local/lib/db4.?/ directories. 
+  for lib in `find /usr/lib64 /usr/lib /opt/local/lib /opt/local/lib/db* -maxdepth 1 -name libdb_cxx\*.\* -type f 2>/dev/null | sed -e 's,\.[[^\.]]*$,,'`; do
+    libname=`basename $lib | sed 's,^lib,,g'`
+    libpath=`dirname $lib`
+    incpath=`echo $libpath | sed 's,/lib,/include,'`
+    AC_CHECK_LIB([$libname], [db_version], [ 
+       LIBDB_CXX_LIBS=-l$libname
+       AM_CPPFLAGS="$AM_CPPFLAGS -I$incpath"
+       LIBDB_CXX_LIBS="-L$libpath $LIBDB_CXX_LIBS"
+      ], [], [-L$libpath])
+    if test x"$LIBDB_CXX_LIBS" != x; then
+       break
+    fi
+    AC_MSG_FAILURE("Cannot locate libdb_cxx")
+  done
+])
+
+
 AC_SUBST(LIBDB_CXX_LIBS)
 
 ##
@@ -302,7 +314,7 @@ if test "X$with_upc" != "X"; then
 	
 	AC_MSG_CHECKING([GASNET_LIBS])
 	upcc_opts=`$UPCC -network=$network --version`
-	GASNET_LIBS=`for word in $upcc_opts; do case $word in -l*|-L*) echo -n "$word ";; esac; done`
+	GASNET_LIBS=`for word in $upcc_opts; do case $word in -l*|-L*) $as_echo_n "$word ";; esac; done`
 	#GASNET_LIBS=`gasnet_config $mak GASNET_LIBS`
 	AC_MSG_RESULT($GASNET_LIBS)
 

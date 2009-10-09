@@ -1,6 +1,11 @@
 #ifdef linux
 #define _FILE_OFFSET_BITS 64
 #define _LARGEFILE64_SOURCE 1
+#else
+# ifndef O_LARGEFILE
+/* MacOS needs no additional flag */
+# define O_LARGEFILE 0
+# endif
 #endif
 
 #include <sys/stat.h>
