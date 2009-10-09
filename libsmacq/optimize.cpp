@@ -81,7 +81,7 @@ inline void SmacqGraphNode::move_children(SmacqGraphNode * from, SmacqGraphNode 
 /// The nodes should have the same inputs (including no inputs).
 /// Return true iff b is eliminated.
 inline bool SmacqGraphNode::merge_nodes(SmacqGraphNode * a, SmacqGraphNode * b) {
-  fprintf(stderr, "merge_nodes? called on %p and %p\n", a, b);
+  //fprintf(stderr, "merge_nodes? called on %p and %p\n", a, b);
   if ( (a==b) // Can't merge self with self
        // Can only merge stateless
        || !a->algebra.stateless || !b->algebra.stateless 
@@ -91,11 +91,11 @@ inline bool SmacqGraphNode::merge_nodes(SmacqGraphNode * a, SmacqGraphNode * b) 
     {
 /*
       if (a==b) return false;
-      fprintf(stderr, "merge_nodes? %p and %p: !=...\n", a, b);
+      //fprintf(stderr, "merge_nodes? %p and %p: !=...\n", a, b);
       if (!a->algebra.stateless) return false;
-      fprintf(stderr, "merge_nodes? %p and %p: stateless...\n", a, b);
+      //fprintf(stderr, "merge_nodes? %p and %p: stateless...\n", a, b);
       if (!compare_element_names(a,b)) return false;
-      fprintf(stderr, "merge_nodes? %p and %p: same args...\n", a, b);
+      //fprintf(stderr, "merge_nodes? %p and %p: same args...\n", a, b);
 */
       return false;
     }
@@ -110,7 +110,7 @@ inline bool SmacqGraphNode::merge_nodes(SmacqGraphNode * a, SmacqGraphNode * b) 
     move_children(b, a);
     return true;
   } else {
-    fprintf(stderr, "merge_nodes? %p and %p: not vector or equiv\n", a, b);
+    //fprintf(stderr, "merge_nodes? %p and %p: not vector or equiv\n", a, b);
     return false;
   }
 }
