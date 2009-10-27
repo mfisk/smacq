@@ -16,7 +16,8 @@ class StrucioWriter {
 	StrucioWriter();
 	virtual ~StrucioWriter();
 
-	bool write(void * record, size_t len);
+        /// Write a buffer of specified length.  Update current time to now if specified.
+	bool write(void * record, size_t len, time_t now = 0);
 
 	/* Called when new file opened */
 	virtual void newfile_hook() { /* Base class does nothin. */ };
@@ -44,7 +45,7 @@ class StrucioWriter {
   	long long outputleft;
   	long long maxfilesize;
   	long long maxfileseconds;
-	time_t file_end_time;
+	time_t file_end_time, now;
 
 	Filelist * filelist;
 	void newFilelist(Filelist *);
@@ -52,21 +53,16 @@ class StrucioWriter {
 	int openwrite();
 	void close_file();
 
-        void format_filename(char * buf, size_t len) {
-	   int baselen = strlen(buf);
-	   char * basename = (char*)alloca(baselen + 1);
-	   assert(basename);
-	   strcpy(basename, buf);
-	
+        void format_filename(char * basename, char * buf, size_t len) {
+           g_strlcpy(buf, basename, len);
 	   char * p;
            while ((p = strstr(buf, "%T"))) {
-		const char * baseoff = basename + baselen - (strlen(buf) - (p+2 - buf)) ;
-                char now[32];
-                time_t t = time(NULL);
-                nstrftime(now, 31, "%Y-%m-%dT%H:%M:%S%:z", localtime(&t), 0, 0);
+		const char * baseoff = basename + strlen(basename) - (strlen(buf) - (p+2 - buf)) ;
+                char nowstr[32];
+                nstrftime(nowstr, 31, "%Y-%m-%dT%H:%M:%S%:z", localtime(&now), 0, 0);
 
                 p[0] = '\0';
-                g_strlcat(buf, now, len);
+                g_strlcat(buf, nowstr, len);
 		g_strlcat(buf, baseoff, len);
            }
         }
@@ -106,27 +102,27 @@ inline void StrucioWriter::close_file() {
   fs = NULL;
 }
 
-/* -1 iff error */
-/* 0 on success */
+/// Make sure there is an open filestream for writing.
+/// Return -1 iff error; 0 on success 
 inline int StrucioWriter::openwrite() {
-  char filename[256];
+  char filename[256], thisfilename[256];
   
   if (!fs) {
     if (maxfilesize) {
       outputleft = maxfilesize;
     }
     if (maxfileseconds) {
-      file_end_time = ((time(NULL) / maxfileseconds) + 1) * maxfileseconds;
+      file_end_time = ((now / maxfileseconds) + 1) * maxfileseconds;
     }
 
     filelist->nextfilename(filename, 256);
-    format_filename(filename, 256);
-    fprintf(stderr, "Output will be placed in structured file %s\n", filename);
+    format_filename(filename, thisfilename, 256);
+    fprintf(stderr, "Output will be placed in structured file %s\n", thisfilename);
     
     if (use_gzip) {
-      	fs = new FileStream<gzFile>(filename, "wb");
+      	fs = new FileStream<gzFile>(thisfilename, "wb");
     } else {
-      	fs = new FileStream<FILE*>(filename, "wb");
+      	fs = new FileStream<FILE*>(thisfilename, "wb");
     }
     assert(fs);
 
@@ -136,11 +132,19 @@ inline int StrucioWriter::openwrite() {
   return 0;
 }
 
-inline bool StrucioWriter::write(void * record, size_t len) {
+inline bool StrucioWriter::write(void * record, size_t len, time_t t) {
   assert(record);
+  if (t) {
+    now = t;
+  }
 
-  if (maxfileseconds && (time(NULL) >= file_end_time)) {
-    close_file();
+  if (maxfileseconds) {
+    if (!now) {
+       now = time(NULL);
+    }
+    if (now >= file_end_time) {
+       close_file();
+    }
   }
 
   outputleft -= len;
@@ -150,7 +154,7 @@ inline bool StrucioWriter::write(void * record, size_t len) {
     close_file();
   }
 
-  if (0 != StrucioWriter::openwrite()) 
+  if (0 != openwrite()) 
     return false;
   
   if (len != fs->Write(record, len)) {
@@ -167,7 +171,7 @@ inline void StrucioWriter::newFilelist(Filelist * fl) {
 }
 
 inline StrucioWriter::StrucioWriter() :
-  filename(NULL), fs(NULL), outputleft(0), maxfilesize(0), maxfileseconds(0),
+  filename(NULL), fs(NULL), outputleft(0), maxfilesize(0), maxfileseconds(0), now(0),
   filelist(NULL)
 { }
 

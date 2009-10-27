@@ -46,6 +46,7 @@ SMACQ_MODULE(pcapwrite,
   int dts_pkthdr_type;		
   DtsObject current_datum;
   int buckets;
+  uint32_t rotate_time;
 
   /* Booleans */
   struct pcap_file_header pcap_file_header;
@@ -54,6 +55,8 @@ SMACQ_MODULE(pcapwrite,
   DtsObject linktype_o;
   DtsField snaplen_field;
   DtsField linktype_field;
+  DtsField ts_field;
+  DtsField uint32_field;
 
   FieldVec fieldvec;
 
@@ -73,6 +76,7 @@ SMACQ_MODULE(pcapwrite,
 #define TCPDUMP_MAGIC 0xa1b2c3d4
 #define TCPDUMP_MAGIC_NEW 0xa1b2cd34
 
+/// Called after each new file is created to write out per-file header.
 void StrucioPcapWriter::newfile_hook() {
   DtsObject linktype_o, snaplen_o;
   int linktype, snaplen;
@@ -128,8 +132,18 @@ smacq_result pcapwriteModule::consume(DtsObject datum, int & outchan) {
 
   if (datum->gettype() == dts_pkthdr_type) {
     struct dts_pkthdr * pkt = (struct dts_pkthdr*)datum->getdata();
+    uint32_t now = 0;
 
-    if (!strucio[b].write(pkt, sizeof(struct old_pcap_pkthdr) + pkt->pcap_pkthdr.caplen)) {
+    if (rotate_time) {
+      DtsObject tf = datum->getfield(ts_field);
+      if (tf) {
+        tf = tf->getfield(uint32_field);
+        if (tf) {
+          now = dts_data_as(tf, uint32_t);
+        }
+      }
+    }
+    if (!strucio[b].write(pkt, sizeof(struct old_pcap_pkthdr) + pkt->pcap_pkthdr.caplen, now)) {
       return (smacq_result)(SMACQ_PASS|SMACQ_END|SMACQ_ERROR);
     }
 
@@ -145,7 +159,7 @@ pcapwriteModule::~pcapwriteModule() {
 }
 
 pcapwriteModule::pcapwriteModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
-  smacq_opt output, rotate_size, rotate_time, gzip, buckets_opt;
+  smacq_opt output, rotate_size, rotate_time_opt, gzip, buckets_opt;
 
   //fprintf(stderr, "Loading pcapfile (%d,%d)\n", context->isfirst, context->islast);
   dts->requiretype("packet");
@@ -154,7 +168,7 @@ pcapwriteModule::pcapwriteModule(struct SmacqModule::smacq_init * context) : Sma
     struct smacq_optval optvals[] = {
       { "f", &output}, 
       { "s", &rotate_size}, 
-      { "t", &rotate_time}, 
+      { "t", &rotate_time_opt}, 
       { "z", &gzip}, 
       { "b", &buckets_opt}, 
       {NULL, NULL}
@@ -177,8 +191,9 @@ pcapwriteModule::pcapwriteModule(struct SmacqModule::smacq_init * context) : Sma
 
     	if (rotate_size.uint32_t) {
       		strucio[i].set_rotate_size(rotate_size.uint32_t * 1024 * 1024);
-    	} else if (rotate_time.uint32_t) {
-      		strucio[i].set_rotate_time(rotate_time.uint32_t);
+    	} else if (rotate_time_opt.uint32_t) {
+                rotate_time = rotate_time_opt.uint32_t;
+      		strucio[i].set_rotate_time(rotate_time);
     	}
 
 	std::string fname(output.string_t);
@@ -194,6 +209,8 @@ pcapwriteModule::pcapwriteModule(struct SmacqModule::smacq_init * context) : Sma
 
   snaplen_field = dts->requirefield("snaplen");
   linktype_field = dts->requirefield("linktype");
+  ts_field = dts->requirefield("ts");
+  uint32_field = dts->requirefield("uint32");
 
   pcap_file_header.magic = TCPDUMP_MAGIC;
   pcap_file_header.version_major = 2;
