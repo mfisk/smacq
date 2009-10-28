@@ -183,20 +183,16 @@ int smacq_getoptsbyname( int argc, const char ** argv,
 	      exit(-1);
 	    }
 	  } else if (argv[i][0] == '-' && argv[i][1] == '-') {
-		const char * nextarg;
-		if (i < (argc-1)) {
-			nextarg = argv[i+1];
-		} else {
-			nextarg = NULL;
-		}
+                /* Is like --option */
 		i += parse_opt(options, optvals, argv[i]+2, i < (argc-1) ? argv[i+1] : NULL);
 	  } else {
+                /* Is like -cvf (multiple single-letter options) */ 
 		const char * o;
 		char opt[2] = "\0\0";
 
 		for(o = argv[i]+1; *o; o++) {
 			opt[0] = *o;
-			i += parse_opt(options, optvals, opt, i < argc ? argv[i+1] : NULL);
+			i += parse_opt(options, optvals, opt, i < (argc-1) ? argv[i+1] : NULL);
 		}
 	  }
 	}
