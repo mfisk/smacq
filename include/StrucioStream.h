@@ -313,7 +313,7 @@ inline StrucioStream * StrucioStream::MagicOpen(DtsObject fo) {
 /// Called by modules that wish to delegate file opening to fileModule.
 inline void SmacqFileModule(SmacqModule::smacq_init * context) {
   assert(context->argc > 0);
-  const char ** argv = (const char**)malloc(sizeof(char*) * context->argc);
+  const char ** argv = (const char**)malloc(sizeof(char*) * (1 + context->argc));
   argv[0] = "file";
 
   // Duplicate remaining arguments
