@@ -52,14 +52,13 @@ inline SmacqGraph * groupbyModule::get_partition() {
 
 /// Delete any tables that fit the fieldvec mask
 inline void groupbyModule::handle_invalidate(DtsObject datum) {
-  OutputsIterator i, prev;
+  OutputsIterator i;
 
   for (i=outTable.begin(); i != outTable.end();) {
     if (i->first.masks(fieldvec)) {
       i->second->shutdown();
       delete i->second;
-      prev = i++;
-      outTable.erase(prev);
+      outTable.erase(i++);
     } else {
       ++i;
     }
@@ -67,13 +66,12 @@ inline void groupbyModule::handle_invalidate(DtsObject datum) {
 }
 
 smacq_result groupbyModule::consume(DtsObject datum, int & outchan) {
-  // fprintf(stderr , "groupby got %p a type %d (refresh is %d)\n", datum.get(), datum->gettype(), refresh_type);
-
-  if (! fieldvec.getfields(datum)) return SMACQ_FREE;
-
   if (datum->gettype() == refresh_type) {
+    // fprintf(stderr , "groupby got %p a type %d (refresh is %d)\n", datum.get(), datum->gettype(), refresh_type);
+    if (! fieldvec.getfields(datum, true)) return SMACQ_FREE;
     handle_invalidate(datum);
   } else {
+    if (! fieldvec.getfields(datum)) return SMACQ_FREE;
     SmacqGraph * p = get_partition();
     scheduler->input(p, datum);
   }
