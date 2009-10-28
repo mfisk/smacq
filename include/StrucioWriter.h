@@ -95,6 +95,7 @@ inline void StrucioWriter::set_rotate_size(long long size) {
 
 inline void StrucioWriter::set_rotate_time(long long seconds) {
   maxfileseconds = seconds;
+  file_end_time = 0;
 }
 
 inline void StrucioWriter::close_file() {

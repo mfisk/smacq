@@ -236,6 +236,7 @@ METHOD void SmacqGraphNode::init_node_recursively(DTS * dts, SmacqScheduler * sc
 METHOD SmacqGraphNode::SmacqGraphNode(int argc, const char ** argv) 
 		  : instance(NULL), q(RINGSIZE), scheduler(NULL)
 {
+  memset(&algebra, 0, sizeof(algebra));
   set(argc, argv);
 }
 
