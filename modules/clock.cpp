@@ -68,7 +68,7 @@ smacq_result clockModule::consume(DtsObject datum, int & outchan) {
   return SMACQ_PASS;
 }
 
-clockModule::clockModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
+clockModule::clockModule(struct SmacqModule::smacq_init * context) : SmacqModule(context), current_tick(0) {
   int argc = 0;
   const char ** argv;
 
