@@ -75,6 +75,9 @@ class StrucioStream {
   /// Open a file specified in a DtsObject and return a StrucioStream object for it.
   static StrucioStream * MagicOpen(DtsObject fo);
 
+  /// Return the file name specified in a DtsObject.
+  static std::string Filename(DtsObject fo);
+
  protected:
       bool follow;
       ino_t inode;
@@ -299,9 +302,14 @@ inline void StrucioStream::Follow() {
     }
 }
 
-inline StrucioStream * StrucioStream::MagicOpen(DtsObject fo) {
+inline std::string StrucioStream::Filename(DtsObject fo) {
   //assert(fo->gettype() = fo->dts->requiretype("string"));
   std::string filename((char *)fo->getdata(), fo->getsize());
+  return filename;
+}
+
+inline StrucioStream * StrucioStream::MagicOpen(DtsObject fo) {
+  std::string filename = Filename(fo);
   StrucioStream * o = MagicOpen(filename.c_str());
   DtsObject doFollow = fo->getfield("doFollow", true);
   if (doFollow) {

@@ -139,7 +139,7 @@ smacq_result pcapfileModule::consume(DtsObject fileo, int & outchan) {
   parse_pcapfile(&pcap_file_header);
 
   //  fprintf(stderr, "pcapfile: Opening %s for read ( ", filename);
-  fprintf(stderr, "pcapfile: Opening file ( ");
+  fprintf(stderr, "pcapfile: Opening file %s ( ", StrucioStream::Filename(fileo).c_str());
 
   if (swapped) fprintf(stderr, "byte-swapped ");
   else fprintf(stderr, "host-byte-order ");
