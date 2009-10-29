@@ -398,8 +398,8 @@ char * print_comparison(dts_comparison * comp) {
     size += 20 + strlen(op1) + strlen(op2);
     buf = tmalloc(char, size);
     snprintf(buf, size, "(%s %s %s)", op1, opstr(comp), op2);
-    delete(op1);
-    delete(op2);
+    free(op1);
+    free(op2);
     break;
     
   }
