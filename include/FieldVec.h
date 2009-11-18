@@ -177,7 +177,7 @@ inline bool DtsObjectVec::masks (const DtsObjectVec &b) const {
   
   for (i = begin(), j=b.begin(); i != end(); i++, j++) {
     // i & j point to DtsObjects; IFF both are specified, see if they are equal (overloaded)
-    if (i->get() && j->get() && (*i != *j)) {
+    if (i->get() && j->get() && (i->get() != j->get())) {
       return false;
     }
   }
