@@ -158,7 +158,7 @@ smacq_result pcapwriteModule::consume(DtsObject datum, int & outchan) {
 pcapwriteModule::~pcapwriteModule() {
 }
 
-pcapwriteModule::pcapwriteModule(struct SmacqModule::smacq_init * context) : SmacqModule(context) {
+pcapwriteModule::pcapwriteModule(struct SmacqModule::smacq_init * context) : SmacqModule(context), rotate_time(0) {
   smacq_opt output, rotate_size, rotate_time_opt, gzip, buckets_opt;
 
   //fprintf(stderr, "Loading pcapfile (%d,%d)\n", context->isfirst, context->islast);
