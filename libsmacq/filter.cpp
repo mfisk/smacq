@@ -54,6 +54,9 @@ int DtsObject_::match_one(dts_comparison * c) {
       		op2 = c->op1;
     	}
 	fetch_operand(op1);
+        if (!op1->valueo) {
+                break;
+        }
 	if (op2->type == CONST) {
 		fetch_const_operand(op2, op1->valueo->gettype());
 	} else {
