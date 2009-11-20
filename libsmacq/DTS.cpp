@@ -63,7 +63,6 @@ dts_field_element DTS::requirefield_single(const char * name) {
   if (fields_byname.get(name, el)) {
 	return (el);
   } else {
-	name = strdup(name);
 	int f;
 #ifdef USE_GASNET
 	if (isProxy) {
@@ -97,33 +96,27 @@ int dts_comparefields(DtsField &fa, DtsField &fb) {
 	}
 }
 
-DtsField DTS::requirefield(const char * name) {
-  char * p;
-  int i = 0;
+DtsField DTS::requirefield(std::string name) {
+  size_t p;
   DtsField f;
 
-  //fprintf(stderr, "Parsing field %s\n", name);
+  //fprintf(stderr, "Parsing field %s\n", name.c_str());
   while (1) {
-    if (!name) {
+    if (! name.length()) {
       //fprintf(stderr, "No more field components\n");
       return f;
     }
 	
-    p = strchr(name, '.');
-    if (p) {
-      p[0] = '\0';
-    }
-   
-    f.push_back(requirefield_single(name));
-    //fprintf(stderr, "component (%d) %s is %d\n", i, name, f[i]);
-    
-    if (p) {
-      p[0] = '.';
-      name = p+1;
+    p = name.find('.');
+    if (p != std::string::npos) {
+      std::string first(name.substr(0, p));
+      f.push_back(requirefield_single(first.c_str()));
+
+      name = name.substr(p+1, std::string::npos);
     } else {
-      name = NULL;
+      f.push_back(requirefield_single(name.c_str()));
+      name.clear();
     }
-    i++;
   }
 }
 

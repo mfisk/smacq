@@ -39,7 +39,6 @@ int DtsObject_::match_one(dts_comparison * c) {
   case GT:
   case LEQ:
   case GEQ:
-
     if (c->op1->type == CONST && c->op2->type == CONST) {
       fetch_const_operand(c->op2, dts->requiretype("string"));
       if (c->op2->valueo)

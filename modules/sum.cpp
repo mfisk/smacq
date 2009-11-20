@@ -26,7 +26,7 @@ SMACQ_MODULE(sum,
 
   double total;
   DtsField xfield;
-  char * xfieldname;
+  std::string xfieldname;
 
   int sumtype;
   DtsField sumfield;
@@ -42,7 +42,6 @@ smacq_result sumModule::consume(DtsObject datum, int & outchan) {
   
   if (datum->gettype() != refreshtype) {
     if (! (newx = datum->getfield(xfield))) {
-      fprintf(stderr, "sum: no %s field\n", xfieldname);
       return SMACQ_PASS;
     }
     

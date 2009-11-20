@@ -21,7 +21,7 @@ SMACQ_MODULE(delta,
 
   double lastx;
   DtsField xfield;
-  char * xfieldname;
+  std::string xfieldname;
 
   int deltatype;
   DtsField deltafield;
@@ -31,7 +31,6 @@ smacq_result deltaModule::consume(DtsObject datum, int & outchan) {
   DtsObject newx;
 
   if (! (newx = datum->getfield(xfield))) {
-	fprintf(stderr, "delta: no %s field\n", xfieldname);
 	return SMACQ_PASS;
   }
 

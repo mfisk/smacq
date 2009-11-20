@@ -27,8 +27,7 @@ SMACQ_MODULE(derivative,
   double lasty;
   DtsField xfield;
   DtsField yfield;
-  char * xfieldname;
-  char * yfieldname;
+  std::string xfieldname, yfieldname;
 
   int derivtype;
   DtsField derivfield;
@@ -38,12 +37,9 @@ smacq_result derivativeModule::consume(DtsObject datum, int & outchan) {
   DtsObject newx, newy;
 
   if (! (newx = datum->getfield(xfield))) {
-	fprintf(stderr, "derivative: no %s field\n", xfieldname);
 	return SMACQ_PASS;
   }
   if (! (newy = datum->getfield(yfield))) {
-	fprintf(stderr, "derivative: no %s field\n", yfieldname);
-	
 	return SMACQ_PASS;
   }
 

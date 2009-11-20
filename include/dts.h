@@ -20,9 +20,10 @@
 # include <smacq_gasnet.h>
 #endif
 
-static inline char * dts_fieldname_append(const char * old, const char * newf) {
-  char * ret = (char*)malloc(strlen(old) + strlen(newf) + 2);
-  sprintf(ret, "%s.%s", old, newf);
+static inline std::string dts_fieldname_append(const char * old, const char * newf) {
+  std::string ret(old);
+  ret += ".";
+  ret += newf;
   return ret;
 }
 
@@ -117,7 +118,7 @@ class DTS : PthreadMutex {
   ///@{
 
   	/// Convert the given field name into a numeric identifier.
-  DtsField requirefield(const char * name);
+  DtsField requirefield(std::string name);
 
 	/// Find the location, size, and type of a field of the specified object
   //int getfieldoffset(DtsObject datum, dts_field_element fnum, dts_typeid * dtype, int * offset, int * len);
