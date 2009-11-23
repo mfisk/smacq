@@ -83,7 +83,7 @@ DDEESSCCRRIIPPTTIIOONN
 
        but is also the same as:
 
-            pcapfile /tmp/dump | groupby dstip -- sum len | print dstip sum
+            pcapfile /tmp/dump | sum len group by dstip | print dstip sum
 
        However the use of a function (such as "sum()") as one of the arguments
        will  result in the "sum" module processing the data before the "print"
@@ -527,24 +527,16 @@ MMIISSCCEELLLLAANNEEOOUUSS AANNAALLYYSSIISS FFUUNNCCTT
        "llaasstt" module for more information on rreeffrreesshh objects.
 
 
-   GGrroouupp--BByy
-       ggrroouuppbbyy  _f_i_e_l_d_s  --   _q_u_e_r_y
-
-       Treat the specified field(s) as a tuple and instantiate  the  specified
-       query  for each tuple.  If a record of type "refresh" is received, then
-       the pipeline for that tuple will be gracefully terminated.
-
-
    TTiimmee SSoorrtt
        ffiiffooddeellaayy [-t _t_i_m_e]  [-i _i_n_p_u_t_-_t_i_m_e_-_f_i_e_l_d]  [-o _o_u_t_p_u_t_-_t_i_m_e_-_f_i_e_l_d]
 
        Sort a series of input records and output them sorted by an output time
        field  that  is  specified  with  the  --oo option and defaults to "time‐
        series".  All records that are  past  the  edge  time  are  immediately
-       updated.   The  edge time is determined by the input time field (speci‐
-       fied with the --ii option and defaullting  to  "timseries")  and  a  time
-       delay  which is specified with the --tt   option which defaults to 0 sec‐
-       onds.
+       updated.   The  edge  time  is  determined  by  the  input  time  field
+       (specified with the --ii option and defaullting  to  "timseries")  and  a
+       time delay which is specified with the --tt    option which defaults to 0
+       seconds.
 
 
 QQUUEERRYY SSYYNNTTAAXX

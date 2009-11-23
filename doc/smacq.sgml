@@ -12,7 +12,7 @@
       <firstname>Mike</firstname>
       <surname>Fisk</surname>
     </author>
-    <date>$Date: 2008/01/08 00:10:14 $</date>
+    <date>$Date: 2008/07/25 21:10:43 $</date>
   </refentryinfo>
   <refmeta>
     <refentrytitle>smacq</refentrytitle>
@@ -130,7 +130,7 @@
       but is also the same as:
 
       <computeroutput>
-	pcapfile /tmp/dump | groupby dstip -- sum len | print dstip sum
+	pcapfile /tmp/dump | sum len group by dstip | print dstip sum
       </computeroutput>
 
       However the use of a function (such as "sum()") as one of the
@@ -862,23 +862,6 @@
       </para>
     </refsect2>
 
-    <refsect2>
-      <title>Group-By</title>
-      <cmdsynopsis>
-	<command>groupby</command>
-	<arg choice="req" rep="repeat"> <replaceable>fields</replaceable></arg>
-	<arg choice="req"> -- </arg>
-	<arg choice="req" rep="repeat"> <replaceable>query</replaceable></arg>
-      </cmdsynopsis>
-
-      <para>
-	Treat the specified field(s) as a tuple and instantiate the
-	specified query for each tuple.  If a record of type "refresh"
-	is received, then the pipeline for that tuple will be gracefully
-	terminated.
-      </para>
-
-    </refsect2>
     <refsect2>
       <title>Time Sort</title>
       <cmdsynopsis>

@@ -77,7 +77,7 @@ behave as it would in SQL:
 \fP  
 but is also the same as: 
  
-\f(CW	pcapfile /tmp/dump | groupby dstip \-\- sum len | print dstip sum 
+\f(CW	pcapfile /tmp/dump | sum len group by dstip | print dstip sum 
 \fP  
 However the use of a function (such as "sum()") as one of the 
 arguments will result in the "sum" module processing the data 
@@ -544,15 +544,6 @@ that every ocurring value has been seen and the entropy for the series is calcul
 and added as an annotation of type \fBdouble\fP to a refresh object.   
 See the "\fBlast\fP" module for more information on \fBrefresh\fP objects. 
  
-.SS "Group-By" 
-.PP 
-\fBgroupby\fR  \fIfields\fR  \-\-   \fIquery\fR 
-.PP 
-Treat the specified field(s) as a tuple and instantiate the 
-specified query for each tuple.  If a record of type "refresh" 
-is received, then the pipeline for that tuple will be gracefully 
-terminated. 
- 
 .SS "Time Sort" 
 .PP 
 \fBfifodelay\fR [\-t \fItime\fR]  [\-i \fIinput-time-field\fR]  [\-o \fIoutput-time-field\fR]  
@@ -624,4 +615,4 @@ boolean:
 \fBDTS\fR(3),  
 \fBSmacqGraph\fR(3) 
  
-.\" created by instant / docbook-to-man, Sun 09 Nov 2008, 15:41 
+.\" created by instant / docbook-to-man, Mon 23 Nov 2009, 15:22 
