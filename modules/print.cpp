@@ -55,6 +55,7 @@ static struct smacq_options options[] = {
 };
 
 void printModule::print_field(std::string & s, DtsObject field, const std::string & fname) {
+  if (!field) return;
   if (printed) {
     s += delimiter;
   } else if (field) {
@@ -63,7 +64,6 @@ void printModule::print_field(std::string & s, DtsObject field, const std::strin
   }
 
   if (verbose) printed = 1;
-  if (!field) return; 
 
   std::string sfield((char*)field->getdata(), field->getsize());
 

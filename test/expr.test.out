@@ -95,8 +95,8 @@ seq = 3594734292	ipid = 418	seq.double = 3.59473e+09	foo = 4.18e+09
 seq = 3594889360	ipid = 419	seq.double = 3.59489e+09	foo = 4.19e+09
 seq = 3594889361	ipid = 420	seq.double = 3.59489e+09	foo = 4.2e+09
 seq = 3594734335	ipid = 421	seq.double = 3.59473e+09	foo = 4.21e+09
-	ipid = 422		foo = 4.22e+09
-	ipid = 41189		foo = 4.1189e+11
+	ipid = 422	foo = 4.22e+09
+	ipid = 41189	foo = 4.1189e+11
 seq = 3594734374	ipid = 423	seq.double = 3.59473e+09	foo = 4.23e+09
 seq = 3594734666	ipid = 424	seq.double = 3.59473e+09	foo = 4.24e+09
 seq = 3594734958	ipid = 425	seq.double = 3.59473e+09	foo = 4.25e+09
