@@ -27,7 +27,7 @@ uniqobjModule::uniqobjModule(struct SmacqModule::smacq_init * context)
   : SmacqModule(context)
 {
   char seen_fieldstr[64];
-  sprintf(seen_fieldstr, "or%p", this);
+  sprintf(seen_fieldstr, "_or%p", this);
   seen_field = dts->requirefield(seen_fieldstr);
   seen_obj = dts->newObject(dts->requiretype("empty"));
 }
