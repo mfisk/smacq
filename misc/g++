@@ -12,7 +12,7 @@ findlib() {
 	lib=`basename "$1"`
 	dir=`dirname "$1"`
 	case $lib in 
-	   libc|libpthread|libdl|libintl)
+	   libc|libpthread|libdl|libintl|libstdc++|libgcc_s)
 			lib=`echo $lib | sed 's/lib/-l/'`
 			echo "$lib"
 			return 0
@@ -20,61 +20,54 @@ findlib() {
 	esac
 
 	for d in $dir $dirs; do 
-		#ls $d/${lib}.a
 		if [ -r $d/${lib}.a ]; then
 			# Replace -l argument with explicit .a file
-			res="-l:$d/${lib}.a"
-			echo "Using $res for $lib" 1>&2
+			echo "$d/${lib}.a"
+			echo "Using $d/${lib}.a for $lib" 1>&2
 
 			if [ -r $d/$lib.so ]; then
-				root=`ldd $d/$lib.so | cut -d= -f1 | sed 's/\..*//'`
-				ldd $d/$lib.so | cut -d= -f1 | sed 's/\..*//' 1>&2
-				for d in $root; do
-					deps=`findlib $d`	
-					if [ "$?" != "0" ]; then 
-						echo 
-						return 1
-					fi
-
-					if [ "$deps" != "" ]; then
-						echo "Recursive dependency $deps" 1>&2
-						res="$res $deps"
-					fi
+				root=`ldd $d/$lib.so | cut -d\  -f3`
+				for dep in $root; do
+					echo "Recurse from $lib to $dep" 1>&2
+					sublib $dep	
 				done
                         fi
-			echo "$res"
-			return 1
+			return 
 		fi
-		return 1 #No static version
 	done
-}
 
-for word in "$@"; do
-	sublib $word
-done
+        #No static version
+	echo "-l$lib"
+}
 
 sublib() {
-	case $word in
-		/*.so)
-			root=`echo "$word" | sed 's/\.so//'`
-			word=`findlib $root`
+	case $1 in
+		/*.so*)
+			root=`echo "$1" | sed 's/\.so.*//'`
+			findlib $root
 			;;
 		/*.dylib)
-			root=`echo "$word" | sed 's/\.dylib//'`
-			word=`findlib $root`
+			root=`echo "$1" | sed 's/\.dylib//'`
+			findlib $root
 			;;
 		-l*)
-			root=`echo "$word" | sed 's/^-l/lib/'`
-			word=`findlib $root`
+			root=`echo "$1" | sed 's/^-l/lib/'`
+			findlib $root
 			;;
 		-L*)
-			dir=`echo "$word" | sed 's/^-L//'`
+			echo "$1"
+			dir=`echo "$1" | sed 's/^-L//'`
 			dirs="$dir $dirs"
 			;;
+		*)
+			echo "$1"
+			;;
 	esac
-
-	args="$args$word "
 }
+
+args="$args"`for word in "$@"; do
+	sublib $word
+done`
 
 # Remove our directory from the path
 for f in `echo $PATH | sed 's/:/ /g'`; do 
@@ -83,5 +76,6 @@ done
 #echo $newpath 1>&2
 PATH=$newpath
 		
-echo "$args"
+#echo "$args"
+set -x
 $args
