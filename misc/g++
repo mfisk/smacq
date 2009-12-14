@@ -11,10 +11,10 @@ echo "Looking for static versions of libraries" 1>&2
 findlib() {
 	lib=`basename "$1"`
 	dir=`dirname "$1"`
+
 	case $lib in 
 	   libc|libpthread|libdl|libintl|libstdc++|libgcc_s)
-			lib=`echo $lib | sed 's/lib/-l/'`
-			echo "$lib"
+			echo $lib | sed 's/lib/-l/'
 			return 0
 			;;
 	esac
@@ -26,7 +26,7 @@ findlib() {
 			echo "Using $d/${lib}.a for $lib" 1>&2
 
 			if [ -r $d/$lib.so ]; then
-				root=`ldd $d/$lib.so | cut -d\  -f3`
+				root=`ldd $d/$lib.so | grep = | cut -d\  -f3 `
 				for dep in $root; do
 					echo "Recurse from $lib to $dep" 1>&2
 					sublib $dep	
@@ -44,15 +44,15 @@ sublib() {
 	case $1 in
 		/*.so*)
 			root=`echo "$1" | sed 's/\.so.*//'`
-			findlib $root
+			findlib $root $1
 			;;
 		/*.dylib)
 			root=`echo "$1" | sed 's/\.dylib//'`
-			findlib $root
+			findlib $root $1
 			;;
 		-l*)
 			root=`echo "$1" | sed 's/^-l/lib/'`
-			findlib $root
+			findlib $root 
 			;;
 		-L*)
 			echo "$1"
