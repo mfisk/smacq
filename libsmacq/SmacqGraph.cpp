@@ -153,7 +153,7 @@ METHOD void SmacqGraph::init(DTS * dts, SmacqScheduler * sched, bool do_optimize
 
   head.foreach( _1 = bind(&SmacqGraphNode::init, DEREF(_1), dts, sched) );
 
-  optimize();
+  if (do_optimize) optimize();
 }
 
 /// Shutdown graphs
