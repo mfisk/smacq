@@ -68,7 +68,6 @@ smacq_result equalsModule::consume(DtsObject datum, int & outchan) {
   	for (std::vector<int>::iterator oc = i->second.begin(); oc != i->second.end(); ++oc) {
                 if (oc+1 == i->second.end()) { 
 			// If this is the last match, then just return SMACQ_PASS
-                	fprintf(stderr, "pass\n");
 			outchan = *oc;
 			return SMACQ_PASS; 
 		} else {
