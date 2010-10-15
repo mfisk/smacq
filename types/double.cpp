@@ -13,6 +13,11 @@ static int smacqtype_double_get_string(DtsObject o, DtsObject field) {
   return 1;
 }
 
+static int smacqtype_double_get_int(DtsObject o, DtsObject field) {
+  int d = dts_data_as(o, double);
+  return dts_set(field, int, d);
+}
+
 static int parse_string(const char* buf,  DtsObject d) {
   double dbl;
   char * left = NULL;
@@ -42,6 +47,7 @@ static int double_lt(void * num1, int size1, void * num2, int size2) {
 struct dts_field_spec dts_type_double_fields[] = {
   { "string",   "string",	smacqtype_double_get_string },
   { "double",   "double",	smacqtype_double_get_double },
+  { "int",   	"int",		smacqtype_double_get_int },
   { NULL,        NULL }
 };
 
