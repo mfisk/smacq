@@ -65,15 +65,15 @@ maskModule::maskModule(struct SmacqModule::smacq_init * context) : SmacqModule(c
 
   assert(argc==2);
   for (i = 1; i < argc; i++) {
-	  char * slash = index(argv[i], '/');
 	  char * notstr = index(argv[i], '!');
-
-	  int cidr = 0;
 
 	  if (notstr && (notstr == argv[i])) {
 		  test.isnot = 1;
 		  argv[i]++;
 	  }
+
+	  char * slash = index(argv[i], '/');
+	  int cidr = 0;
 
 	  if (slash) {
 		  slash[0] = '\0';
