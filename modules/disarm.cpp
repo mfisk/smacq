@@ -367,7 +367,7 @@ disarmModule::disarmModule(struct SmacqModule::smacq_init * context) : SmacqModu
 		exit(-1);
 	}
 
-	end_date = index(date_string, '~');
+	end_date = (char*)index(date_string, '~');
 	if (end_date) {
 			end_date[0] = '\0';
 			end_date++;
