@@ -1,5 +1,4 @@
 # Process this file with autoconf to produce a configure script.
-
 AC_PREREQ(2.59)
 AC_INIT(SMACQ, 2.7, mfisk@lanl.gov)
 AC_CONFIG_AUX_DIR([config])
@@ -492,8 +491,9 @@ AM_CONDITIONAL(USE_PYTHON, test x$with_python = xyes)
 ## gnulib
 ##
 gl_SOURCE_BASE(libgnu)
-gl_M4_BASE(libgnu/m4)
-AM_CPPFLAGS="${AM_CPPFLAGS} -I\${top_srcdir}/libgnu"
+#gl_M4_BASE(libgnu/m4)
+AC_CONFIG_MACRO_DIR([libgnu/m4])
+AM_CPPFLAGS="${AM_CPPFLAGS} -I\$(top_srcdir)/libgnu"
 gl_FUNC_GNU_STRFTIME
 gl_MODULES(getdate gettime strftime)
 gl_GETDATE
@@ -503,7 +503,7 @@ gl_INIT
 ##
 ## Compiler flags
 ##
-AM_CPPFLAGS="$AM_CPPFLAGS -I\${top_srcdir}/include -D_GNU_SOURCE -D_ISOC99_SOURCE"
+AM_CPPFLAGS="$AM_CPPFLAGS -I\$(top_srcdir)/include -D_GNU_SOURCE -D_ISOC99_SOURCE"
 if test -n "$GCC"; then
 	AM_CPPFLAGS="$AM_CPPFLAGS -Wall -fPIC"
 fi
