@@ -433,7 +433,6 @@ SmacqGraph * optimize_bools(dts_comparison * c) {
       }
 
       g->join(newmodule("uniqobj", NULL), true); 
-/* * Use filter for NOT 
     } else if (c->op == NOT) {
       arglist = arglist_append(arglist, newarg("not", (argtype)0, NULL));
       if (c->group && c->group->op != FUNC) {
@@ -441,8 +440,7 @@ SmacqGraph * optimize_bools(dts_comparison * c) {
       }
       arglist = arglist_append(arglist, newarg(print_comparison(c->group), (argtype)0, NULL));
 				
-      g = newmodule("lor", arglist);
-*/
+      g = newmodule("not", arglist);
 
     } else if (c->op == EQ && c->op1->type == FIELD && c->op2->type == CONST) {
 
