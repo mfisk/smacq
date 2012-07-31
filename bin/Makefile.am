@@ -11,9 +11,9 @@ smacqq_CPPFLAGS = $(AM_CPPFLAGS)
 endif
 
 smacqq_DEPENDENCIES = $(top_builddir)/modules/libsmacq_modules.la $(top_builddir)/types/libdts_modules.la $(top_builddir)/libsmacq/libsmacq.la
-smacqq_LDFLAGS = $(AM_LDFLAGS) -export-dynamic $(FRAMEWORKADD) -static $(smacqq_DEPENDENCIES)  -L$(top_builddir)/libsmacq --tag=CXX
+smacqq_LDFLAGS = $(AM_LDFLAGS) -export-dynamic $(FRAMEWORKADD) -static $(smacqq_DEPENDENCIES)  -L$(top_builddir)/libsmacq 
 smacqq_LDADD = -lsmacq_modules -ldts_modules -lltdl -lsmacq
-CXXLD=$(top_srcdir)/misc/g++
+CXXLD=--tag=CXX $(top_srcdir)/misc/g++
 
 #smacqq_LDFLAGS = $(AM_LDFLAGS) -export-dynamic $(BUILTINS) $(FRAMEWORKADD) -static -v -Wl,-static,-lglib-2.0,-Bdynamic
 #smacqq_static_LDFLAGS = -export-dynamic -all-static $(BUILTINS)
