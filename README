@@ -32,7 +32,7 @@ SMACQ can build with the following optional functionality:
 	data into various databases (SQLlite, MySQL, Postgres, etc.).
 	configure automatically builds in libgda support if the
 	appropriate libraries are installed on your system:
-		Debian: libgda-dev gda-sqlite
+		Debian: libgda-4.0-dev 
 
 - Ethereal integration
 	The packet data-type can use Ethereal's EPAN system for decoding a 
@@ -52,7 +52,7 @@ MacPorts      |	glib2-devel	boost +python	libpcap
               					libgda +with_sqlite
 						db45
 Debian        |	libglib2.0-dev	libboost-python-dev	libpcap-dev	zlib1g-dev
-              	libbz2-dev	g++		libgda2-dev	libltdl3-dev
+              	libbz2-dev	g++		libgda-4.0-dev	libltdl3-dev
 				libssl-dev	libdb4.5++-dev	gda2-sqlite
 RHEL	      | glib2-devel	boost-devel	libpcap-devel	zlib-devel
               	bzip2-devel	gcc-c++		libgda-devel	libtool-ltdl-devel

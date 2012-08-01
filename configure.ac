@@ -202,22 +202,16 @@ AC_SUBST(LIBDB_CXX_LIBS)
 ##
 ## libgda
 ##
-PKG_CHECK_MODULES(GDA, libgda-2.0,
+PKG_CHECK_MODULES(GDA, libgda-4.0,
   [EXTRA_STATIC_MODULES="${EXTRA_STATIC_MODULES} libsmacq_sql.la"
   OPTIONAL_TESTS="${OPTIONAL_TESTS} sqlite.test.sh"
+  GDA_CFLAGS="${GDA_CFLAGS} -DHAS_GDA_NON_SELECT"
   ],[
-  echo "$GDA_PKG_ERRORS"
-  PKG_CHECK_MODULES(GDA, libgda,
-    [
-      EXTRA_STATIC_MODULES="${EXTRA_STATIC_MODULES} libsmacq_sql.la"
-      OPTIONAL_TESTS="${OPTIONAL_TESTS} sqlite.test.sh"
-      OPTIONAL_TESTS="${OPTIONAL_TESTS} sqlite.test.sh"
-      GDA_VERSION=103000
-    ],[
-      echo "$GDA_PKG_ERRORS"
-      echo "Building without modules: sqlinsert sqlquery"
-    ])
-  ])
+            echo "$GDA_PKG_ERRORS"
+            echo "Building without modules: sqlinsert sqlquery"
+            GDA_LIBS=
+  ]
+)
 
 ##
 ## Profiling
@@ -491,14 +485,13 @@ AM_CONDITIONAL(USE_PYTHON, test x$with_python = xyes)
 ## gnulib
 ##
 gl_SOURCE_BASE(libgnu)
-#gl_M4_BASE(libgnu/m4)
+gl_M4_BASE(libgnu/m4)
 AC_CONFIG_MACRO_DIR([libgnu/m4])
 AM_CPPFLAGS="${AM_CPPFLAGS} -I\$(top_srcdir)/libgnu"
 gl_FUNC_GNU_STRFTIME
 gl_MODULES(getdate gettime strftime)
 gl_GETDATE
 gl_INIT
-
 
 ##
 ## Compiler flags

@@ -13,8 +13,6 @@ SMACQ_MODULE(sqlinsert,
   PROTO_DTOR(sqlinsert);
   PROTO_CONSUME();
 
-  GdaCommand * gda_cmd;  
-  GdaClient * gda_client;
   GdaConnection * gda_connection;
   std::string insert_format;
 
@@ -53,12 +51,10 @@ smacq_result sqlinsertModule::consume(DtsObject datum, int & outchan) {
   
   snprintf(query, BUFSIZE-1, insert_format.c_str(), values.c_str());
 
-  gda_command_set_text(gda_cmd, query);
- 
   GError *gerr = NULL;
-  gda_connection_execute_non_query(gda_connection, gda_cmd, NULL, &gerr);
+  smacq_gda_execute_non_select(gda_connection, query, NULL, &gerr);
   if (gerr) {
-    fprintf(stderr, "Error executing SQL command: %s\n\t%s", gda_command_get_text(gda_cmd), gerr->message);
+    fprintf(stderr, "Error executing SQL command: %s\n\t%s", query, gerr->message);
     g_error_free(gerr);
     return SMACQ_ERROR|SMACQ_END;
   }  else {
@@ -71,7 +67,6 @@ sqlinsertModule::sqlinsertModule(struct SmacqModule::smacq_init * context)
 {
   std::string qbuf;
   smacq_opt table_name, database_name, provider_name;
-  int i;
 
   {
     struct smacq_optval optvals[] = {
@@ -93,13 +88,15 @@ sqlinsertModule::sqlinsertModule(struct SmacqModule::smacq_init * context)
   fields.resize(argc);
   string_transform = dts->requirefield("string");
 
+#ifdef HAS_GDA_NON_SELECT
+  gda_init();
+#else
   gda_init("SMACQ-GDA-sqlinsert", "0.1", 0, NULL);
-
-  gda_client = gda_client_new();
+#endif
 
   GError *gerr = NULL;
   gda_connection = 
-    gda_client_open_connection_from_string(gda_client, provider_name.string_t, database_name.string_t, (GdaConnectionOptions)(0), &gerr);
+    gda_connection_open_from_string(provider_name.string_t, database_name.string_t, NULL, GDA_CONNECTION_OPTIONS_NONE, &gerr);
 
   if (gerr) {
     std::string s("Error connecting to database ");
@@ -114,9 +111,6 @@ sqlinsertModule::sqlinsertModule(struct SmacqModule::smacq_init * context)
 
   assert(gda_connection);
 
-  gda_cmd = gda_command_new("", GDA_COMMAND_TYPE_SQL, 
-				   GDA_COMMAND_OPTION_STOP_ON_ERRORS);
-
   insert_format = "INSERT INTO ";
   insert_format += table_name.string_t;
   insert_format += "(";
@@ -126,7 +120,7 @@ sqlinsertModule::sqlinsertModule(struct SmacqModule::smacq_init * context)
   qbuf += table_name.string_t;
   qbuf += "(";
 
-  for (i = 0; i < argc; i++) {
+  for (int i = 0; i < argc; i++) {
     fields[i] = dts->requirefield(dts_fieldname_append(argv[i],"string")); 
 
     if (i) { /* Not first column */
@@ -141,13 +135,13 @@ sqlinsertModule::sqlinsertModule(struct SmacqModule::smacq_init * context)
   insert_format += ") VALUES (%s)";
   qbuf += ");";
 
-  gda_command_set_text(gda_cmd, qbuf.c_str());
-  gda_connection_execute_non_query(gda_connection, gda_cmd, NULL, NULL);
+  smacq_gda_execute_non_select(gda_connection, qbuf.c_str(), NULL, NULL);
 }
 
 sqlinsertModule::~sqlinsertModule() {
-  gda_command_free(gda_cmd);
+#ifndef HAS_GDA_NON_SELECT
   gda_client_close_all_connections(gda_client);
   g_object_unref(G_OBJECT(gda_client));
+#endif
 }
 

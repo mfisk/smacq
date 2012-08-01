@@ -33,12 +33,14 @@ public:
 class per_dimension_state {
 public:
   per_dimension_state(DTS * dts, const char * field_name, const char * file_name) : id((std::string(file_name) + "-") + field_name) {
+  //per_dimension_state(DTS * dts, const char * field_name, const char * file_name) : {
         field = dts->requirefield(dts_fieldname_append(field_name, "double"));
         raw_field = dts->requirefield(field_name);
   }
   per_dimension_state(const per_dimension_state & p) : id(p.id), field(p.field), raw_field(p.raw_field), last_field(p.last_field) {}
 
   FieldVecDB<per_id_dimension_state> id;
+  //FieldVec<per_id_dimension_state> id;
   DtsField field, raw_field;
   DtsObject last_field;
 };
