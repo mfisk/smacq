@@ -78,6 +78,8 @@ class StrucioStream {
   /// Return the file name specified in a DtsObject.
   static std::string Filename(DtsObject fo);
 
+  int getfd() { return fd; }
+
  protected:
       bool follow;
       ino_t inode;
