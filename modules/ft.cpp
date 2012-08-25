@@ -108,11 +108,11 @@ smacq_result ftModule::produce(DtsObject & datum, int & outchan) {
 
             if (endus < 0) {
                end -= 1;
-               endus += 1e6;
+               endus += 1000000;
             }
             if (startus < 0) {
                start -= 1;
-               startus += 1e6;
+               startus += 1000000;
             }
 
             /* We repurpose the unix_time for the end timeval and the First/End time for the start timeval */
