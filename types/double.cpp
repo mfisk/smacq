@@ -14,7 +14,7 @@ static int smacqtype_double_get_string(DtsObject o, DtsObject field) {
 }
 
 static int smacqtype_double_get_int(DtsObject o, DtsObject field) {
-  int d = dts_data_as(o, double);
+  int d = (int)dts_data_as(o, double);
   return dts_set(field, int, d);
 }
 
