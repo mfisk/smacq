@@ -1,6 +1,6 @@
 # Process this file with autoconf to produce a configure script.
 AC_PREREQ(2.59)
-AC_INIT(SMACQ, 2.7, mfisk@lanl.gov)
+AC_INIT(SMACQ, 2.7.1, mfisk@lanl.gov)
 AC_CONFIG_AUX_DIR([config])
 AM_CONFIG_HEADER(include/config.h)
 AM_INIT_AUTOMAKE(1.7)
@@ -133,19 +133,19 @@ SHAREDONLY_MODULES="test_dynamic" #reassemble
 BUILTIN_MODULES="print pcaplive pcapfile socket uniq count last top head filter msgtest entropy derivative split encrypt warden pdf fifo delta tabularinput sync rusage groupby flowid sum fifodelay project rename join substr bench_field mask const ndjoin lor counter_loop dfa noop expr equals cflow clock"
 BUILTIN_TYPES="int ushort ubyte timeval uint32 bytes netlong ip nushort nuint32 macaddr string double refresh empty ipproto packet cflow time ntime"
 
-SOURCES_TYPES_BUILTIN=`for f in $BUILTIN_TYPES; do $as_echo_n " $f.c "; done`
+SOURCES_TYPES_BUILTIN=`for f in $BUILTIN_TYPES; do echo $ECHO_N " $f.c "; done`
 AC_SUBST(SOURCES_TYPES_BUILTIN)
 
-LIBS_MODULES_ALL=`for f in $BUILTIN_MODULES $SHAREDONLY_MODULES; do $as_echo_n " lib$f.la "; done`
+LIBS_MODULES_ALL=`for f in $BUILTIN_MODULES $SHAREDONLY_MODULES; do echo $ECHO_N " lib$f.la "; done`
 AC_SUBST(LIBS_MODULES_ALL)
 
-SOURCES_MODULES_BUILTIN=`for f in $BUILTIN_MODULES; do $as_echo_n " $f.c "; done`
+SOURCES_MODULES_BUILTIN=`for f in $BUILTIN_MODULES; do echo $ECHO_N " $f.c "; done`
 AC_SUBST(SOURCES_MODULES_BUILTIN)
 
-OBJECTS_MODULES_BUILTIN=`for f in $BUILTIN_MODULES; do $as_echo_n " lib$f.la "; done`
+OBJECTS_MODULES_BUILTIN=`for f in $BUILTIN_MODULES; do echo $ECHO_N " lib$f.la "; done`
 AC_SUBST(OBJECTS_MODULES_BUILTIN)
 
-LIBS_MODULES_SHARED=`for f in $SHAREDONLY_MODULES; do $as_echo_n " smacq_$f.la "; done`
+LIBS_MODULES_SHARED=`for f in $SHAREDONLY_MODULES; do echo $ECHO_N " smacq_$f.la "; done`
 AC_SUBST(LIBS_MODULES_SHARED)
 
 ##
