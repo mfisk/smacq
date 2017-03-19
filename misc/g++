@@ -3,7 +3,8 @@
 # This is a wrapper for g++ that tries to statically link any libraries
 # that it can, with some specific exceptions.
 
-dirs="/usr/lib"
+defaultdirs=`ld --verbose | grep SEARCH_DIR | sed -e 's/SEARCH_DIR("=*//g' -e 's/");//g'`
+dirs=""
 args=`basename $0`" "
 
 echo "Looking for static versions of libraries" 1>&2
@@ -19,7 +20,7 @@ findlib() {
 			;;
 	esac
 
-	for d in $dir $dirs; do 
+	for d in $dir $dirs $defaultdirs; do 
 		if [ -r $d/${lib}.a ]; then
 			# Replace -l argument with explicit .a file
 			echo "$d/${lib}.a"
