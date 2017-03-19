@@ -157,13 +157,12 @@ static PyObject *PyDtsObject_getraw(PyObject *p, void *closure)
 static PyObject *PyDtsObject_getvalue(PyObject *p, void *closure)
 {
   PyDtsObject *self = (PyDtsObject *)p;
-  dts_typeid   dtstype;
+  //dts_typeid  dtstype = self->d->gettype();
   const char  *dtsname;
   void        *data;
   PyObject    *pRet;
 
   data    = self->d->getdata();
-  dtstype = self->d->gettype();
   dtsname = self->d->gettypename();
 
   if (strcmp(dtsname, "ubyte") == 0) {
@@ -213,12 +212,12 @@ static int PyDtsObject_setvalue(PyObject *p,
                           void *closure)
 {
   PyDtsObject        *self = (PyDtsObject *)p;
-  dts_typeid          dtstype;
+  //dts_typeid          dtstype;
   const char               *dtsname;
   void               *data;
 
   data    = self->d->getdata();
-  dtstype = self->d->gettype();
+  //dtstype = self->d->gettype();
   dtsname = self->d->gettypename();
 
   if (strcmp(dtsname, "ubyte") == 0) {
