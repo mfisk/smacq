@@ -103,7 +103,11 @@ smacq_result sqlqueryModule::produce(DtsObject & datum, int & outchan) {
 	switch (G_VALUE_TYPE(val)) {
 		case G_TYPE_NONE:	continue;
 		case G_TYPE_UCHAR: 	GET(int_type, int, uchar);
+#if defined(GLIB_VERSION_2_32)
+		case G_TYPE_CHAR: 	GET(int_type, int, schar);
+#else
 		case G_TYPE_CHAR: 	GET(int_type, int, char);
+#endif
 		case G_TYPE_UINT: 	GET(uint32_type, uint32_t, uint);
 		case G_TYPE_INT: 	GET(int_type, int, int);
 		case G_TYPE_UINT64: 	GET(uint64_type, uint64_t, uint64);
