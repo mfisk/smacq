@@ -38,7 +38,7 @@ findlib() {
 	done
 
         #No static version
-	echo "-l$lib"
+	echo "$lib" | sed 's/^lib/-l/'
 }
 
 sublib() {
