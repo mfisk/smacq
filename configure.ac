@@ -202,16 +202,23 @@ AC_SUBST(LIBDB_CXX_LIBS)
 ##
 ## libgda
 ##
-PKG_CHECK_MODULES(GDA, libgda-4.0,
+PKG_CHECK_MODULES(GDA, libgda-5.0,
   [EXTRA_STATIC_MODULES="${EXTRA_STATIC_MODULES} libsmacq_sql.la"
   OPTIONAL_TESTS="${OPTIONAL_TESTS} sqlite.test.sh"
   GDA_CFLAGS="${GDA_CFLAGS} -DHAS_GDA_NON_SELECT"
   ],[
-            echo "$GDA_PKG_ERRORS"
-            echo "Building without modules: sqlinsert sqlquery"
-            GDA_LIBS=
-  ]
-)
+	PKG_CHECK_MODULES(GDA, libgda-4.0,
+		[EXTRA_STATIC_MODULES="${EXTRA_STATIC_MODULES} libsmacq_sql.la"
+	  	OPTIONAL_TESTS="${OPTIONAL_TESTS} sqlite.test.sh"
+  		GDA_CFLAGS="${GDA_CFLAGS} -DHAS_GDA_NON_SELECT"
+  		],[
+        		echo "$GDA_PKG_ERRORS"
+        		echo "Building without modules: sqlinsert sqlquery"
+        		GDA_LIBS=
+  		]
+        )
+ ])
+
 
 ##
 ## Profiling
@@ -356,7 +363,7 @@ AC_SUBST(LDFLAGS_FASTBIT)
 ## Python
 ##
 AC_ARG_VAR(PYTHON, [Python interpreter command])
-AC_CHECK_PROGS([PYTHON], [python2.6 python2.5 python2.4 python2.3], :)
+AC_CHECK_PROGS([PYTHON], [python2.7 python2.6 python2.5 python2.4 python2.3], :)
 
 AC_ARG_WITH([python],
 	AC_HELP_STRING([--with-python], 
