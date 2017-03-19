@@ -43,7 +43,7 @@ METHOD void SmacqGraphNode::add_children(SmacqGraph * newo, unsigned int channel
   using namespace boost::lambda;
   using namespace std;
 
-  newo->head.foreach( bind(&SmacqGraphNode::add_child, this, _1, channel) );
+  newo->head.foreach( boost::lambda::bind(&SmacqGraphNode::add_child, this, boost::lambda::_1, channel) );
 }
 
 /// Recursively initialize a list of all the tails of this bag of graphs
@@ -51,7 +51,7 @@ METHOD void SmacqGraph::list_tails(std::set<SmacqGraphNode *> &list) {
   using namespace boost::lambda;
   using namespace std;
 
-  head.foreach( bind(&SmacqGraphNode::list_tails, DEREF(_1), var(list)) );
+  head.foreach( boost::lambda::bind(&SmacqGraphNode::list_tails, DEREF(boost::lambda::_1), var(list)) );
 }
 
 /// Recursively initialize a list of all the tails in this given graph
@@ -142,7 +142,7 @@ METHOD void SmacqGraph::add_graph(SmacqGraph * b, bool dofree) {
 
   if (!b) return;
 
-  b->head.foreach( bind(&ThreadSafeMultiSet<SmacqGraphNode_ptr>::insert, &head, _1) );
+  b->head.foreach( boost::lambda::bind(&ThreadSafeMultiSet<SmacqGraphNode_ptr>::insert, &head, boost::lambda::_1) );
   if (dofree) delete b;
 }
 
@@ -151,7 +151,7 @@ METHOD void SmacqGraph::init(DTS * dts, SmacqScheduler * sched, bool do_optimize
   using namespace boost::lambda;
   using namespace std;
 
-  head.foreach( _1 = bind(&SmacqGraphNode::init, DEREF(_1), dts, sched) );
+  head.foreach( boost::lambda::_1 = boost::lambda::bind(&SmacqGraphNode::init, DEREF(boost::lambda::_1), dts, sched) );
 
   if (do_optimize) optimize();
 }
@@ -161,7 +161,7 @@ METHOD void SmacqGraph::shutdown() {
   using namespace boost::lambda;
   using namespace std;
 
-  head.foreach( bind(&SmacqGraphNode::do_shutdown, _1) );
+  head.foreach( boost::lambda::bind(&SmacqGraphNode::do_shutdown, boost::lambda::_1) );
   head.clear();
 }
 
@@ -198,7 +198,7 @@ METHOD void SmacqGraphNode::init_node(DTS * dts, SmacqScheduler * sched) {
 	// Figure out if we have (non-stub) parent(s)
   	context.isfirst = true;
 
-	if (parent.has_if( bind(&SmacqGraphNode::argc, _1) )) {
+	if (parent.has_if( boost::lambda::bind(&SmacqGraphNode::argc, boost::lambda::_1) )) {
 		context.isfirst = false;
 	}
 
@@ -259,7 +259,7 @@ METHOD SmacqGraph * SmacqGraph::clone(SmacqGraphNode * newParent) {
 
   SmacqGraph * newg = new SmacqGraph;
 
-  head.foreach( bind(&SmacqGraph::add_clone, newg, _1, newParent));
+  head.foreach( boost::lambda::bind(&SmacqGraph::add_clone, newg, boost::lambda::_1, newParent));
 
   return newg;
 }
@@ -358,7 +358,7 @@ METHOD void SmacqGraphNode::remove_children() {
 
   // Reference counting will cause orphaned children to shutdown 
   // automatically (after any more scheduled consumptions).
-  //children.foreach( bind(&SmacqGraphNode::remove_child, this, DEREF(_1)) );
+  //children.foreach( boost::lambda::bind(&SmacqGraphNode::remove_child, this, DEREF(boost::lambda::_1)) );
   while (children.size()) {
         // Remove all children of last element
 	unsigned int i = children.size() - 1;

@@ -84,7 +84,7 @@ void iplookupModule::add_entry(const char * field, const char * needle, int outp
   	assert(!"duplicate mask");
   	//deref_data(node->data);
   }
-  node->data = (void*)output;
+  node->data = (void*)(intptr_t)output;
 }
 
 smacq_result iplookupModule::consume(DtsObject datum, int & outchan) {

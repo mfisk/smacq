@@ -333,7 +333,7 @@ trie_dump(trieobj * self)
         }
 }
 
-trieobj * trieobj_new(direction, collapse, alphabet)
+trieobj * trieobj_new(int direction, int collapse, int alphabet)
 {
    trieobj * t = MALLOC(trieobj);
    if (!t) return 0;

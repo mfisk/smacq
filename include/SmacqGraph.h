@@ -10,7 +10,7 @@
 #include <assert.h>
 #include <string>
 
-#define DEREF(x) (bind(&SmacqGraphNode_ptr::get, x))
+#define DEREF(x) (boost::lambda::bind(&SmacqGraphNode_ptr::get, x))
 
 #define FOREACH_CHILD(x, y)						\
    RECURSIVE_LOCK((x)->children);                                       \

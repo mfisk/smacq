@@ -19,7 +19,7 @@
 
 #define HashTemplate(keytype,valtype,fname) \
 valtype fname(GHashTable * table, keytype key) { \
-    return (valtype)g_hash_table_lookup(table, (gpointer)key);	\
+    return (valtype)g_hash_table_lookup(table, (gpointer)(intptr_t)key);	\
 }
 
 static inline HashTemplate(int, struct dts_type *, lookup_type_byint);

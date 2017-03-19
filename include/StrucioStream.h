@@ -169,6 +169,7 @@ class bzFile_t {
   public:
    bzFile_t(BZFILE* nfh) : fh(nfh) {};
    BZFILE * fh;
+   operator bool() { return fh!=NULL; }
 };
 
 template<> inline bool FileStream<FILE*>::FdOpen() {
@@ -241,7 +242,7 @@ inline StrucioStream * StrucioStream::MagicOpen(const char * fname, const char *
 		if (!memcmp(header, "BZh", 3)) {
 			// Bzip
   			//fprintf(stderr, "Opening file %s (bzip)\n", fname);
-			return(new FileStream<BZFILE*>(fname, fd, mode));
+			return(new FileStream<bzFile_t>(fname, fd, mode));
 		} else if (!memcmp(header, "\037\213", 2) ||  // Gzip
 			!memcmp(header, "\037\235", 2)) {     // Compress
   			//fprintf(stderr, "Opening file %s (gzip)\n", fname);

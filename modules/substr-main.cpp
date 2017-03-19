@@ -118,7 +118,7 @@ void substrModule::add_entry(const char * field, const char * needle, int output
   fprintf(stderr, "%s(%d)\n", needle, nlen);
 #endif
 
-  substr_add(mybatch->set, nlen, (unsigned char*)needle, 0, (void*)output, 0, 0);
+  substr_add(mybatch->set, nlen, (unsigned char*)needle, 0, (void*)(intptr_t)output, 0, 0);
 }
 
 smacq_result substrModule::consume(DtsObject datum, int & outchan) {

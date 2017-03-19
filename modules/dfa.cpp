@@ -17,13 +17,13 @@ class IdMap : public std::map<T, int> {
   	IdMap() : ids(0) {}
 
         int operator[](const T & x) {
-		if (find(x) == std::map<T,int>::end()) {
+		if (std::map<T,int>::find(x) == std::map<T,int>::end()) {
 			// New
                 	int & i = std::map<T,int>::operator[](x);
 			i = ids;
 			return ids++;
 		} else {
-			return (find(x)->second);
+			return (std::map<T,int>::find(x)->second);
 		}
         }
 

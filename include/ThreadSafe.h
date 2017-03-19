@@ -171,19 +171,19 @@ class ThreadSafeContainer : protected PthreadMutex, protected CONTAINER {
 
 	RECURSIVE_LOCK(this);
 	if (!empty())
-        	for_each(CONTAINER::begin(), CONTAINER::end(), cb);
+        	std::for_each(CONTAINER::begin(), CONTAINER::end(), cb);
     };
 
     template<typename U> 
     typename CONTAINER::iterator findIf(U cb) {
 	RECURSIVE_LOCK(this);
-        return find_if(CONTAINER::begin(), CONTAINER::end(), cb);
+        return std::find_if(CONTAINER::begin(), CONTAINER::end(), cb);
     };
 
     template<class U> 
     bool has_if(U cb) {
  	RECURSIVE_LOCK(this);
-        typename CONTAINER::iterator f = findIf(cb);
+        typename CONTAINER::iterator f = ThreadSafeContainer<T,CONTAINER>::findIf(cb);
 	if (f == CONTAINER::end()) {
 		return false;
 	} else {

@@ -53,7 +53,7 @@ class BloomSet : Bloom<T>, std::vector<bool> {
 		       
 		       bool isnew = false;	     
 		       for (int i = 0; i < Bloom<T>::numfilters; i++) {
-			 int x = inrange(n,i);
+			 int x = Bloom<T>::inrange(n,i);
 			 if (! this->operator[](x)) 
 			   isnew = true;
 			 this->operator[](x) = true;
@@ -74,7 +74,7 @@ class BloomCounters : std::vector<COUNTER>, Bloom<T> {
       COUNTER min = 0;
       
       for (int i = 0; i < Bloom<T>::numfilters; i++) {
-	COUNTER x = (*this)[inrange(n, i)];
+	COUNTER x = (*this)[Bloom<T>::inrange(n, i)];
 	if (min && (x < min)) min = x;
       }
       
@@ -85,8 +85,8 @@ class BloomCounters : std::vector<COUNTER>, Bloom<T> {
       COUNTER min = get(n);
       
       for (int i =0; i < Bloom<T>::numfilters; i++) {
-	if (min == (*this)[inrange(n, i)]) 
-	  ++((*this)[inrange(n, i)]);
+	if (min == (*this)[Bloom<T>::inrange(n, i)]) 
+	  ++((*this)[Bloom<T>::inrange(n, i)]);
       }
       
       counttotal++;
