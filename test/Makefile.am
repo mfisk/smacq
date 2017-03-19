@@ -7,4 +7,5 @@ CLEANFILES = *.err *.run *.diff
 
 #Disabled tests: pcapfile.test (false alarm on big-endian platforms)
 
+AUTOMAKE_OPTIONS=serial-tests
 TESTS_ENVIRONMENT = OUTDIR=`pwd` SRCDIR=$(srcdir) TOP_SRCDIR=`cd $(top_srcdir); pwd` BINDIR=`cd $(top_builddir); pwd`/bin/ $(top_srcdir)/misc/runtest
