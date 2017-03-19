@@ -2,6 +2,7 @@
 %type <comp> booleanline
 %debug
 %locations
+%define api.pure
 
 %{
      #define    yymaxdepth yyfiltermaxdepth

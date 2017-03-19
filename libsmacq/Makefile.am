@@ -10,7 +10,7 @@ libsmacq.cpp: $(LIBSMACQ_CPP_SOURCES)
 	for f in $+; do echo "# 1 \"$$f\""; cat $$f; done > $@
 
 # Flex version  2.5.33 (but not 2.5.4) has a sign problem
-libscanner_la_CPPFLAGS = $(AM_CPPFLAGS) -Wno-sign-compare
+libscanner_la_CPPFLAGS = $(AM_CPPFLAGS) -Wno-sign-compare -Wno-unused-but-set-variable
 libscanner_la_SOURCES=scanner.lpp
 
 libsmacq_la_SOURCES=libsmacq.cpp mem.c args.c dynloader.c cmalloc.c parser.ym filter-parser.ym expr-parser.ym 

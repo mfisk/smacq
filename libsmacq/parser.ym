@@ -1,15 +1,10 @@
 %start queryline
 %locations
 %debug
+%define api.pure
+//%lex-param { YYLVAL * &yylval}
 
 %{
-/*
-#undef yyerror
-
-#define YYPARSE_PARAM yycontrol
-#define YYLEX_PARAM yycontrol
-*/
-
 void yysmacql_error(char*);
      #define    yymaxdepth yysmacql_maxdepth
      #define    yyparse yysmacql_parse

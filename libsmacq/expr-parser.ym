@@ -2,6 +2,7 @@
 %type <operand> exprline
 %locations
 %debug
+%define api.pure
 
 %{
      #define    yymaxdepth yyexprmaxdepth
