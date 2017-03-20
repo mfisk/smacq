@@ -25,7 +25,7 @@ SMACQ_MODULE(deskew,
   DtsField timeField;
   DtsField doubleField;
   DtsField secondaryField;
-  double previousTs, begin, end;
+  double previousTs=0, begin, end;
 
   // Temp vars
   dts_typeid fieldType;
@@ -64,7 +64,7 @@ smacq_result deskewModule::consume(DtsObject datum, int & outchan) {
   }
 
   //fprintf(stderr, "got something of type %s\n", this->obj->getfieldname());
-  if ((begin && ts < begin) || (end && ts > end)) {
+  if ((begin && (ts < begin)) || (end && (ts > end))) {
 	if (!previousTs) previousTs = begin;
 	double diff = previousTs - ts;
   	//fprintf(stderr, "got skew of %g seconds \n", diff);
