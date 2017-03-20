@@ -5,6 +5,7 @@ AC_CONFIG_AUX_DIR([config])
 AM_CONFIG_HEADER(include/config.h)
 AM_INIT_AUTOMAKE(1.7)
 AC_CONFIG_SRCDIR([bin])
+AC_SUBST(AM_LIBADD)
 
 ##
 ## Checks for programs
@@ -35,7 +36,7 @@ AC_CHECK_LIB([pcap], [pcap_open_live])
 AC_CHECK_LIB([pthread], [pthread_exit])
 AC_CHECK_LIB([z], [gzopen])
 AC_CHECK_LIB([bz2], [BZ2_bzopen])
-AC_CHECK_LIB([crypto], [SHA1_Init], [AM_LDFLAGS="$AM_LDFLAGS -lcrypto"])
+AC_CHECK_LIB([crypto], [SHA1_Init], [AM_LIBADD="$AM_LIBADD -lcrypto"])
 
 ##
 ## Libtool
@@ -57,7 +58,7 @@ if test -n "$GCC"; then
 			AM_CPPFLAGS="$AM_CPPFLAGS -force_flat_namespace"
 			LIBGNU_CFLAGS="-Wno-long-double"
 			CO="-fast -fPIC -mcpu="`machine | sed 's/ppc//'`
-			DEBUG_LDFLAGS="-lMallocDebug"
+			DEBUG_LIBADD="-lMallocDebug"
 
 			# This became necessary when I switched from Fink to DarwinPorts (on 10.4 Intel):
 			AM_LDFLAGS="$AM_LDFLAGS -framework CoreFoundation"
@@ -251,7 +252,7 @@ AC_ARG_ENABLE(debug,
 		CO="-O0"
 		# Hard to debug when everything is inlined
 		AM_CPPFLAGS="$AM_CPPFLAGS -g -fno-inline"
-		AM_LDFLAGS="$AM_LDFLAGS ${DEBUG_LDFLAGS}"
+		AM_LIBADD="$AM_LIBADD ${DEBUG_LIBADD}"
 	 else
 		CO="-O0"
 		AM_CPPFLAGS="$AM_CPPFLAGS -g"
@@ -277,7 +278,7 @@ AC_ARG_ENABLE(efence,
 		       [Enable electric-fence memory debugging]))
 
 if test "X$with_efence" != "X"; then
-   AM_LDFLAGS="$AM_LDFLAGS -lefence";
+   AM_LIBADD="$AM_LIBADD -lefence";
 fi
 
 ##
@@ -319,7 +320,7 @@ if test "X$with_upc" != "X"; then
 	AC_MSG_RESULT($GASNET_LIBS)
 
 	AM_CPPFLAGS="$AM_CPPFLAGS -DUSE_GASNET $GASNET_CPPFLAGS"
-	AM_LDFLAGS="$AM_LDFLAGS $GASNET_LIBS"
+	AM_LIBADD="$AM_LIBADD $GASNET_LIBS"
 	EXTRA_STATIC_MODULES="${EXTRA_STATIC_MODULES} libsmacq_distribute.la"
 fi
 
@@ -336,11 +337,11 @@ if test "X$with_wireshark" != "X"; then
 	if test "X$with_wireshark" = "Xyes"; then
 		AC_MSG_ERROR([Must specify path to source with --with-wireshark=])
 	fi
-	ETHEREAL_LDFLAGS=$withval/epan/libwireshark.la -lsnmp -lcrypto
+	ETHEREAL_LIBADD=$withval/epan/libwireshark.la -lsnmp -lcrypto
 	ETHEREAL_CPPFLAGS="-DWITH_ETHEREAL=$withval -I$withval"
 fi
 
-AC_SUBST(ETHEREAL_LDFLAGS)
+AC_SUBST(ETHEREAL_LIBADD)
 AC_SUBST(ETHEREAL_CPPFLAGS)
 
 ##
@@ -352,12 +353,12 @@ AC_ARG_WITH([fastbit],
 
 if test "X$with_fastbit" != "X"; then
 	CFLAGS_FASTBIT="-I$withval -I$withval/../stork/ibis"
-	LDFLAGS_FASTBIT="-L$withval -lfastbit"
+	LIBADD_FASTBIT="-L$withval -lfastbit"
 	EXTRA_STATIC_MODULES="${EXTRA_STATIC_MODULES} libsmacq_fastbit.la"
 fi
 
 AC_SUBST(CFLAGS_FASTBIT)
-AC_SUBST(LDFLAGS_FASTBIT)
+AC_SUBST(LIBADD_FASTBIT)
 
 ##
 ## Python

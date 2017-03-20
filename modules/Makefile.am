@@ -33,7 +33,7 @@ libsmacq_pcaplive_la_SOURCES = pcaplive.cpp
 libsmacq_pcaplive_la_LIBS = -lpcap
 
 libsmacq_fastbit_la_SOURCES = fastbit.cpp
-libsmacq_fastbit_la_LDFLAGS = $(AM_LDFLAGS) @LDFLAGS_FASTBIT@
+libsmacq_fastbit_la_LIBADD = $(AM_LIBADD) @LIBADD_FASTBIT@
 libsmacq_fastbit_la_CPPFLAGS = $(AM_CPPFLAGS) @CFLAGS_FASTBIT@
 
 #libbench_field_la_SOURCES = bench_field-main.c bench_field-virtual.C 
